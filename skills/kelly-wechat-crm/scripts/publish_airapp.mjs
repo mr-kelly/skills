@@ -39,4 +39,8 @@ const client = createBusabaseClient({
   ...(process.env.BUSABASE_SPACE_ID ? { spaceId: process.env.BUSABASE_SPACE_ID } : {}),
 });
 const result = await publishAirApp(client, appConfig, await files());
-console.log(`AirApp ${result.status}; pending ChangeRequest ${result.changeRequestId}`);
+console.log(
+  result.merged === true
+    ? `AirApp ${result.status}; merged`
+    : `AirApp ${result.status}; pending ChangeRequest ${result.changeRequestId}`,
+);

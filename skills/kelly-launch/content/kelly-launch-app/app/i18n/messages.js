@@ -1,5 +1,9 @@
 export const messages = {
   en: {
+    pagination: "Pagination",
+    prevPage: "Prev",
+    nextPage: "Next",
+    pageOf: "Page {current} of {total}",
     all: "All",
     approve: "Approve",
     approved: "Approved",
@@ -125,6 +129,10 @@ export const messages = {
     },
   },
   zh: {
+    pagination: "分页",
+    prevPage: "上一页",
+    nextPage: "下一页",
+    pageOf: "第 {current} / {total} 页",
     all: "全部",
     approve: "批准",
     approved: "已批准",

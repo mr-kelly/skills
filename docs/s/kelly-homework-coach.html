@@ -149,7 +149,6 @@ h2.group {
 .card[hidden] { display: none; }
 .card .thumb { aspect-ratio: 3 / 2; background: #eef0f3; overflow: hidden; border-bottom: 1px solid var(--border); }
 .card .thumb img { width: 100%; height: 100%; object-fit: cover; object-position: top left; display: block; }
-.card .thumb.template-cover img { object-fit: contain; object-position: center; }
 .card .thumb.empty { display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 26px; }
 .card .body { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 6px; }
 .card .name { font-weight: 650; font-size: 15.5px; display: flex; align-items: center; gap: 8px; }
@@ -311,7 +310,22 @@ After it is installed, invoke the skill as $kelly-homework-coach.</textarea>
 </section>
     </section>
     <div class="panel"><h3><span class="en">When to use it</span><span class="zh">什么时候用</span></h3><p><span class="en">Use it when elementary students need photo-based homework help, gentle step-by-step explanations, wrong-question review, or mistake-focused paper generation.</span><span class="zh">小学生需要拍照讲题、温柔分步讲解、错题复习、错因分析或按错题生成练习卷时使用。</span></p></div>
-    <div class="shots"><figure class="shot">
+    <div class="shots"><figure class="shot shot-video">
+  <button type="button" class="video-poster" data-video-en="https://media.githubusercontent.com/media/mr-kelly/skills/main/docs/demo-recordings/kelly-homework-coach/kelly-homework-coach-demo-zh-CN.mp4" data-video-zh="https://media.githubusercontent.com/media/mr-kelly/skills/main/docs/demo-recordings/kelly-homework-coach/kelly-homework-coach-demo-zh-CN.mp4" data-label-en="Play: Demo recording" data-label-zh="播放：演示录屏" aria-label="Play: Demo recording">
+    <img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/docs/demo-recordings/kelly-homework-coach/kelly-homework-coach-demo-zh-CN.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/docs/demo-recordings/kelly-homework-coach/kelly-homework-coach-demo-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/docs/demo-recordings/kelly-homework-coach/kelly-homework-coach-demo-zh-CN.webp" alt="" loading="lazy">
+    <span class="play" aria-hidden="true"><svg viewBox="0 0 24 24" width="28" height="28"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z" fill="currentColor"/></svg></span>
+  </button>
+  <figcaption class="cap">
+    <div class="en"><strong>Demo recording</strong><span>Screen recording of the app in use. Recorded in Simplified Chinese.</span></div><div class="zh"><strong>演示录屏</strong><span>应用实际操作的屏幕录制。</span></div>
+  </figcaption>
+</figure>
+<figure class="shot">
+  <img data-shot-en="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-homework-coach/assets/screenshots/student.webp" data-shot-zh="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-homework-coach/assets/screenshots/student-zh-CN.webp" src="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-homework-coach/assets/screenshots/student.webp" alt="Student desk" loading="lazy">
+  <figcaption class="cap">
+    <div class="en"><strong>Student desk</strong><span>Photo-based homework help with a gentle step-by-step explanation, self-check, and hint-first controls for the child.</span></div><div class="zh"><strong>学生学习桌</strong><span>拍照作业辅导，给孩子温柔的分步讲解、自我检查和先提示后答案的学习控件。</span></div>
+  </figcaption>
+</figure>
+<figure class="shot">
   <img data-shot-en="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-homework-coach/assets/screenshots/mistakes.webp" data-shot-zh="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-homework-coach/assets/screenshots/mistakes-zh-CN.webp" src="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-homework-coach/assets/screenshots/mistakes.webp" alt="Mistake notebook" loading="lazy">
   <figcaption class="cap">
     <div class="en"><strong>Mistake notebook</strong><span>Wrong-answer cards with root cause, misconception, fix strategy, similar practice, and the next review date.</span></div><div class="zh"><strong>错题本</strong><span>错题卡记录错因、误区、修正方法、相似练习和下一次复习日期。</span></div>
@@ -327,12 +341,6 @@ After it is installed, invoke the skill as $kelly-homework-coach.</textarea>
   <img data-shot-en="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-homework-coach/assets/screenshots/review.webp" data-shot-zh="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-homework-coach/assets/screenshots/review-zh-CN.webp" src="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-homework-coach/assets/screenshots/review.webp" alt="Review queue" loading="lazy">
   <figcaption class="cap">
     <div class="en"><strong>Review queue</strong><span>Parent/teacher approval desk for explanations, mistake cards, and paper exports before the agent continues.</span></div><div class="zh"><strong>审核队列</strong><span>家长或老师先审核讲解、错题卡和试卷导出，再让 agent 继续处理。</span></div>
-  </figcaption>
-</figure>
-<figure class="shot">
-  <img data-shot-en="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-homework-coach/assets/screenshots/student.webp" data-shot-zh="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-homework-coach/assets/screenshots/student-zh-CN.webp" src="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-homework-coach/assets/screenshots/student.webp" alt="Student desk" loading="lazy">
-  <figcaption class="cap">
-    <div class="en"><strong>Student desk</strong><span>Photo-based homework help with a gentle step-by-step explanation, self-check, and hint-first controls for the child.</span></div><div class="zh"><strong>学生学习桌</strong><span>拍照作业辅导，给孩子温柔的分步讲解、自我检查和先提示后答案的学习控件。</span></div>
   </figcaption>
 </figure></div>
 
@@ -377,8 +385,8 @@ After it is installed, invoke the skill as $kelly-homework-coach.</textarea>
 </aside>
 </div>
 <footer class="footer">
-  <span class="en">MIT licensed · Built from the repo READMEs and template manifests by <code>scripts/build-site.mjs</code> · <a href="https://github.com/mr-kelly/skills">mr-kelly/skills</a></span>
-  <span class="zh">MIT 许可 · 由 <code>scripts/build-site.mjs</code> 从仓库 README 和模板清单生成 · <a href="https://github.com/mr-kelly/skills">mr-kelly/skills</a></span>
+  <span class="en">MIT licensed · Built from the repo READMEs by <code>scripts/build-site.mjs</code> · <a href="https://github.com/mr-kelly/skills">mr-kelly/skills</a></span>
+  <span class="zh">MIT 许可 · 由 <code>scripts/build-site.mjs</code> 从仓库 README 生成 · <a href="https://github.com/mr-kelly/skills">mr-kelly/skills</a></span>
 </footer>
 </div>
 <script>

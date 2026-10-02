@@ -2,12 +2,48 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   buildConfigSummary,
+  buildPracticeTicketBundle,
   buildSnapshot,
   recomputeMetrics,
   refreshTicketDerived,
   runQualityGate,
   statusForAction,
 } from "../app/js/support-model.js";
+import {
+  DEFAULT_SUPPORT_SETTINGS,
+  normalizeSupportSettings,
+  serializeSupportSettings,
+  settingsRecord,
+  supportSettingsComplete,
+} from "../app/js/support-settings.js";
+
+test("support settings default to conservative values but require explicit confirmation", () => {
+  const pending = settingsRecord({ updatedAt: "2026-09-18T00:00:00.000Z" });
+  assert.equal(supportSettingsComplete(pending), false);
+  const normalized = normalizeSupportSettings(pending);
+  assert.deepEqual(normalized.sla_policy, DEFAULT_SUPPORT_SETTINGS.sla_policy);
+  assert.equal(normalized.risk_policy.refund_requires_approval, true);
+  assert.equal(normalized.risk_policy.max_auto_refund, 0);
+  assert.equal(normalized.risk_policy.block_ungrounded_replies, true);
+  assert.equal(normalized.risk_policy.block_commitments_without_approval, true);
+});
+
+test("support settings become complete only after a validated confirmation", () => {
+  const confirmed = serializeSupportSettings(
+    { ...settingsRecord(), onboarding_status: "complete" },
+    { complete: true, updatedAt: "2026-09-18T00:00:00.000Z" },
+  );
+  assert.equal(supportSettingsComplete(confirmed), true);
+  assert.equal(supportSettingsComplete({ onboarding_status: "complete", onboarding_version: 1 }), false);
+  assert.throws(
+    () =>
+      serializeSupportSettings(
+        { ...confirmed, reply_style: JSON.stringify({ ...DEFAULT_SUPPORT_SETTINGS.reply_style, signature: "" }) },
+        { complete: true },
+      ),
+    /reply_style\.signature/,
+  );
+});
 
 test("statusForAction maps every decision verdict", () => {
   assert.equal(statusForAction("approve"), "approved");
@@ -93,6 +129,22 @@ test("runQualityGate: a reply promising a refund without approval is a hard BLOC
   assert.equal(commitmentCheck.ok, false);
   const refundCheck = gate.checks.find((c) => c.id === "refund_policy");
   assert.equal(refundCheck.ok, false);
+});
+
+test("runQualityGate: a Chinese-language refund commitment is also a hard BLOCK", () => {
+  const ticket = {
+    suggested_reply: "我可以把这笔年付款项退回原支付方式，我这就为您处理退款。",
+    kb_refs: ["kb-refunds"],
+    proposed_action: "refund",
+    status: "needs_review",
+    execution: { amount: 120 },
+  };
+  const kb = [{ article_id: "kb-refunds" }];
+  const risk = { refund_requires_approval: true, block_commitments_without_approval: true };
+  const gate = runQualityGate(ticket, kb, risk);
+  assert.equal(gate.verdict, "block");
+  const commitmentCheck = gate.checks.find((c) => c.id === "no_unapproved_commitment");
+  assert.equal(commitmentCheck.ok, false);
 });
 
 test("runQualityGate: the same refund reply on an APPROVED refund action clears the gate", () => {
@@ -280,4 +332,34 @@ test("buildConfigSummary: never exposes secret values, only env-var names and re
   const email = summary.accounts.find((a) => a.account_id === "email-support");
   assert.deepEqual(email.secret_envs, []);
   assert.equal(email.secrets_ready, true);
+});
+
+test("buildPracticeTicketBundle creates grounded, non-deliverable synthetic tickets", () => {
+  const article = { article_id: "kb-guide" };
+  const bundle = buildPracticeTicketBundle({
+    article,
+    qa_pairs: [
+      {
+        pair_id: "qa-opening",
+        article_id: "kb-guide",
+        question: "客服怎样开场？",
+        answer: "先问候并说明身份，再询问客户需要什么帮助。",
+        status: "draft",
+      },
+      {
+        pair_id: "qa-other-source",
+        article_id: "kb-other",
+        question: "不应导入",
+        answer: "不应导入",
+      },
+    ],
+    now: "2026-09-23T12:00:00.000Z",
+  });
+  assert.equal(bundle.account.connector, "manual");
+  assert.equal(bundle.tickets.length, 1);
+  assert.equal(bundle.messages.length, 1);
+  assert.equal(bundle.tickets[0].status, "needs_review");
+  assert.equal(bundle.tickets[0].provider_conversation_id, "");
+  assert.deepEqual(JSON.parse(bundle.tickets[0].kb_refs), ["kb-guide"]);
+  assert.match(bundle.tickets[0].execution_detail, /never deliver externally/);
 });

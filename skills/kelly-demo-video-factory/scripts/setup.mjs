@@ -109,9 +109,7 @@ if (!apply) {
     if (current.repairs.length) console.log(`将补写 ${current.repairs.length} 处应用归属标记（不改数据）。`);
   }
   if (!current.airApp) {
-    console.log(
-      "将发布 AirApp（提交待审核 ChangeRequest——执行代码，不会自动合并，需要人工在 Busabase 里审核并合并）。",
-    );
+    console.log("将发布 AirApp（执行代码；有 Folder 写权限时直接生效，否则提交待审核 ChangeRequest）。");
   }
   console.log("确认无误后加 --apply。");
   process.exit(0);
@@ -134,8 +132,18 @@ if (!current.airApp) {
   console.log("\n发布 AirApp…");
   const files = await readAirAppFiles();
   const result = await publishAirApp(client, appConfig, files);
-  console.log(`AirApp ${result.status === "created" ? "创建" : "更新"}请求已提交：${result.changeRequestId}（待审核）`);
-  console.log("请在 Busabase 里审核并合并这个 ChangeRequest 后，再打开工作台。");
+  // Whether this landed or waits for review is the server's call, made from this key's
+  // permission on the Folder: `write` merges immediately, anything less opens a ChangeRequest.
+  // `=== true`, not truthiness: this repo typechecks non-strict, where only the comparison
+  // narrows the result union to the members that carry `changeRequestId`.
+  if (result.merged === true) {
+    console.log(`AirApp 已${result.status === "created" ? "创建" : "更新"}并生效。`);
+  } else {
+    console.log(
+      `AirApp ${result.status === "created" ? "创建" : "更新"}请求已提交：${result.changeRequestId}（待审核）`,
+    );
+    console.log("请在 Busabase 里审核并合并这个 ChangeRequest 后，再打开工作台。");
+  }
 } else {
   console.log("\nAirApp 已就绪。");
 }

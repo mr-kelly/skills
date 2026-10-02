@@ -149,7 +149,6 @@ h2.group {
 .card[hidden] { display: none; }
 .card .thumb { aspect-ratio: 3 / 2; background: #eef0f3; overflow: hidden; border-bottom: 1px solid var(--border); }
 .card .thumb img { width: 100%; height: 100%; object-fit: cover; object-position: top left; display: block; }
-.card .thumb.template-cover img { object-fit: contain; object-position: center; }
 .card .thumb.empty { display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 26px; }
 .card .body { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 6px; }
 .card .name { font-weight: 650; font-size: 15.5px; display: flex; align-items: center; gap: 8px; }
@@ -312,18 +311,6 @@ After it is installed, invoke the skill as $kelly-insurance-intel.</textarea>
     </section>
     <div class="panel"><h3><span class="en">When to use it</span><span class="zh">什么时候用</span></h3><p><span class="en">Use it when brokers or agencies need sourced meeting agendas, renewal scripts, client education notes, or needs-review checklists without making suitability claims.</span><span class="zh">经纪人或代理团队需要会议议程、续保话术、客户教育、保障缺口 checklist，且不能越界做适配结论时使用。</span></p></div>
     <div class="shots"><figure class="shot">
-  <img data-shot-en="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-insurance-intel/assets/screenshots/actions.webp" data-shot-zh="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-insurance-intel/assets/screenshots/actions-zh-CN.webp" src="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-insurance-intel/assets/screenshots/actions.webp" alt="Actions" loading="lazy">
-  <figcaption class="cap">
-    <div class="en"><strong>Actions</strong><span>Meeting agendas, renewal checklists, and education tasks with compliance-aware approval status.</span></div><div class="zh"><strong>动作</strong><span>会议议程、续保 checklist 和客户教育任务带合规审批状态。</span></div>
-  </figcaption>
-</figure>
-<figure class="shot">
-  <img data-shot-en="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-insurance-intel/assets/screenshots/drafts.webp" data-shot-zh="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-insurance-intel/assets/screenshots/drafts-zh-CN.webp" src="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-insurance-intel/assets/screenshots/drafts.webp" alt="Drafts" loading="lazy">
-  <figcaption class="cap">
-    <div class="en"><strong>Drafts</strong><span>Editable client education and advisor scripts that avoid suitability or return promises.</span></div><div class="zh"><strong>草稿</strong><span>客户教育和顾问脚本避免适配结论与收益承诺。</span></div>
-  </figcaption>
-</figure>
-<figure class="shot">
   <img data-shot-en="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-insurance-intel/assets/screenshots/overview.webp" data-shot-zh="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-insurance-intel/assets/screenshots/overview-zh-CN.webp" src="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-insurance-intel/assets/screenshots/overview.webp" alt="Overview" loading="lazy">
   <figcaption class="cap">
     <div class="en"><strong>Overview</strong><span>Insurance-advisor desk with protection-gap triggers, renewal actions, blocked advice, and source freshness.</span></div><div class="zh"><strong>总览</strong><span>保险顾问情报台：保障缺口触发、续保动作、被拦截建议和来源新鲜度。</span></div>
@@ -333,6 +320,18 @@ After it is installed, invoke the skill as $kelly-insurance-intel.</textarea>
   <img data-shot-en="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-insurance-intel/assets/screenshots/signals.webp" data-shot-zh="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-insurance-intel/assets/screenshots/signals-zh-CN.webp" src="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-insurance-intel/assets/screenshots/signals.webp" alt="Signals" loading="lazy">
   <figcaption class="cap">
     <div class="en"><strong>Signals</strong><span>Regulator, insurer, premium, benefit, health, travel, and lifecycle signals interpreted as review reasons.</span></div><div class="zh"><strong>信号</strong><span>监管、险司、保费、权益、健康、旅行和生命周期信号，解释成 review reason。</span></div>
+  </figcaption>
+</figure>
+<figure class="shot">
+  <img data-shot-en="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-insurance-intel/assets/screenshots/actions.webp" data-shot-zh="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-insurance-intel/assets/screenshots/actions-zh-CN.webp" src="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-insurance-intel/assets/screenshots/actions.webp" alt="Actions" loading="lazy">
+  <figcaption class="cap">
+    <div class="en"><strong>Actions</strong><span>Meeting agendas, renewal checklists, and education tasks with compliance-aware approval status.</span></div><div class="zh"><strong>动作</strong><span>会议议程、续保 checklist 和客户教育任务带合规审批状态。</span></div>
+  </figcaption>
+</figure>
+<figure class="shot">
+  <img data-shot-en="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-insurance-intel/assets/screenshots/drafts.webp" data-shot-zh="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-insurance-intel/assets/screenshots/drafts-zh-CN.webp" src="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-insurance-intel/assets/screenshots/drafts.webp" alt="Drafts" loading="lazy">
+  <figcaption class="cap">
+    <div class="en"><strong>Drafts</strong><span>Editable client education and advisor scripts that avoid suitability or return promises.</span></div><div class="zh"><strong>草稿</strong><span>客户教育和顾问脚本避免适配结论与收益承诺。</span></div>
   </figcaption>
 </figure></div>
 
@@ -377,8 +376,8 @@ After it is installed, invoke the skill as $kelly-insurance-intel.</textarea>
 </aside>
 </div>
 <footer class="footer">
-  <span class="en">MIT licensed · Built from the repo READMEs and template manifests by <code>scripts/build-site.mjs</code> · <a href="https://github.com/mr-kelly/skills">mr-kelly/skills</a></span>
-  <span class="zh">MIT 许可 · 由 <code>scripts/build-site.mjs</code> 从仓库 README 和模板清单生成 · <a href="https://github.com/mr-kelly/skills">mr-kelly/skills</a></span>
+  <span class="en">MIT licensed · Built from the repo READMEs by <code>scripts/build-site.mjs</code> · <a href="https://github.com/mr-kelly/skills">mr-kelly/skills</a></span>
+  <span class="zh">MIT 许可 · 由 <code>scripts/build-site.mjs</code> 从仓库 README 生成 · <a href="https://github.com/mr-kelly/skills">mr-kelly/skills</a></span>
 </footer>
 </div>
 <script>

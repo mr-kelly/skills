@@ -17,17 +17,11 @@
 // (see its header comment); this module assumes that proxy exists and only
 // ever uses paths relative to `window.location.origin`.
 //
-// KNOWN LIMITATION, confirmed live against `npx busabase@0.11.0 server`
-// (the exact OSS target every converted skill's integration test runs):
-// `assets.createUploadUrl()` returns an `/api/dev/upload` target, and that
-// route 404s ("Not available in production") under the CLI's own
-// NODE_ENV=production gate — so a real upload does not complete against
-// that specific packaged CLI today, independent of this proxy (server.js's
-// header comment has the full trace). The code here is written against the
-// documented SDK contract and mirrors Busabase's own product usage (the Doc
-// editor's image-paste upload), so it is correct and will start working
-// as soon as the upstream package serves what it advertises; it just cannot
-// be verified end-to-end against this specific OSS build today.
+// Upload works end to end on current servers: re-tested against `busabase@0.16.2`
+// (the version the OSS integration tests pin) and 0.81.0, `assets.createUploadUrl()`
+// returns `/api/storage/upload?key=…` and a PUT → confirm() → read-back round trip
+// completes. Only `busabase@0.11.0` minted an `/api/dev/upload` target that 404'd
+// under its own production NODE_ENV — a gap in that one release, fixed upstream.
 
 const urlCache = new Map();
 

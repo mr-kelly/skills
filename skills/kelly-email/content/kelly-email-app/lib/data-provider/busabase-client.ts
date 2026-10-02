@@ -5,10 +5,16 @@ import { isAirAppRequest, runtimeHeaders, runtimeOrigin } from "../runtime-conte
 
 type BaseKey = "reviews" | "contacts" | "settings";
 type Fields = Record<string, unknown>;
+type RecordFilter = {
+  fieldSlug: string;
+  fieldType?: string;
+  operator: "contains" | "equals" | "is_empty" | "is_false" | "is_true" | "not_empty";
+  value?: unknown;
+};
 
 // Folder + Bases are the shape every App-in-Skill declares, so their
-// discovery/ownership/repair logic lives in busabase-sdk/airapp now. Busa
-// Email is the only app in this fleet that also provisions a Drive alongside
+// discovery/ownership/repair logic lives in busabase-sdk/airapp now. Kelly
+// Email also provisions a Drive alongside
 // its Bases, which the shared declaration has no concept of -- so the Drive
 // stays hand-rolled here, layered on top of the SDK's Folder resolution.
 const resourceConfig = {
@@ -34,13 +40,8 @@ const toBusabaseFields = (fields: Fields) =>
 const fromBusabaseFields = (fields: Fields = {}) =>
   Object.fromEntries(Object.entries(fields).map(([key, value]) => [key.replaceAll("-", "_"), value]));
 
-function asRecords(page: any) {
-  if (Array.isArray(page)) return page;
-  return Array.isArray(page?.records) ? page.records : [];
-}
-
 function recordFields(record: any) {
-  return fromBusabaseFields(record?.headCommit?.fields || record?.fields || {});
+  return fromBusabaseFields(record?.headCommit?.payload || record?.headCommit?.fields || record?.fields || {});
 }
 
 function crId(result: any) {
@@ -83,7 +84,9 @@ export function createBusabaseClient() {
     const children = (detail as any).children || [];
     let drive = appConfig.drive.nodeId ? children.find((item: any) => item.id === appConfig.drive.nodeId) : null;
     drive ||= children.find((item: any) => item.type === "drive" && item.slug === appConfig.drive.slug);
-    if (drive && !owns(drive, "files")) throw new Error("SETUP_CONFLICT: Kelly Email Drive ownership mismatch");
+    if (drive && !owns(drive, appConfig.drive.resourceKey)) {
+      throw new Error("SETUP_CONFLICT: Kelly Email Drive ownership mismatch");
+    }
     if (drive) appConfig.drive.nodeId = drive.id;
     return drive;
   }
@@ -115,7 +118,10 @@ export function createBusabaseClient() {
       const createdAny = created as any;
       if (createdAny?.status && createdAny.status !== "merged") throw new Error(`SETUP_PENDING: ${createdAny.id}`);
       if (createdAny?.node?.id) {
-        await sdk.nodes.updateMetadata({ nodeId: createdAny.node.id, metadata: ownership("files") });
+        await sdk.nodes.updateMetadata({
+          nodeId: createdAny.node.id,
+          metadata: ownership(appConfig.drive.resourceKey),
+        });
       }
       drive = await locateDrive(resources.folder!.nodeId);
     }
@@ -142,9 +148,41 @@ export function createBusabaseClient() {
     return getRecordByField(sdk, { baseId: base(key).baseId, fieldSlug: "record-id", valueText: recordId });
   }
 
-  async function listRecords(key: BaseKey) {
+  async function readPage(
+    key: BaseKey,
+    options: {
+      cursor?: string;
+      filters?: RecordFilter[];
+      limit?: number;
+      sort?: { fieldSlug: string; fieldType?: string; direction: "asc" | "desc" };
+    } = {},
+  ) {
     const declaration = base(key);
-    return asRecords(await sdk.records.list({ baseId: declaration.baseId, limit: declaration.readLimit }));
+    const result = await sdk.records.list({
+      baseId: declaration.baseId,
+      limit: options.limit || declaration.readLimit,
+      ...(options.cursor ? { cursor: options.cursor } : {}),
+      ...(options.filters ? { filters: options.filters } : {}),
+      ...(options.sort ? { sort: options.sort } : {}),
+    });
+    const records = Array.isArray(result) ? result : result.records || [];
+    return {
+      rows: records.map(recordFields),
+      nextCursor: Array.isArray(result) ? null : result.nextCursor || null,
+    };
+  }
+
+  async function countRecords(key: BaseKey, filters?: RecordFilter[]) {
+    const declaration = base(key);
+    try {
+      const result = await sdk.records.count({
+        baseId: declaration.baseId,
+        ...(filters ? { filters } : {}),
+      });
+      return result.total;
+    } catch {
+      return null;
+    }
   }
 
   async function upsert(key: BaseKey, recordId: string, fields: Fields, message: string) {
@@ -232,9 +270,11 @@ export function createBusabaseClient() {
     inspectResources,
     verifyConnection,
     getRecordFields: async (recordId: string) => recordFields(await getRecord("reviews", recordId)),
-    listRecordFields: async () => (await listRecords("reviews")).map(recordFields),
-    listContactFields: async () => (await listRecords("contacts")).map(recordFields),
-    listSettingsFields: async () => (await listRecords("settings")).map(recordFields),
+    readRecordPage: (options?: Parameters<typeof readPage>[1]) => readPage("reviews", options),
+    countRecordFields: (filters?: RecordFilter[]) => countRecords("reviews", filters),
+    listRecordFields: async () => (await readPage("reviews")).rows,
+    listContactFields: async () => (await readPage("contacts")).rows,
+    listSettingsFields: async () => (await readPage("settings")).rows,
     getSettingsFields: async (recordId: string) => recordFields(await getRecord("settings", recordId)),
     upsertRecord: (recordId: string, fields: Fields, message: string) => upsert("reviews", recordId, fields, message),
     upsertContactRecord: (recordId: string, fields: Fields, message: string) =>

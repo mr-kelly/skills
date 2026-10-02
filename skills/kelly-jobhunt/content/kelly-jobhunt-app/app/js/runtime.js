@@ -2,7 +2,7 @@
  * Where am I running? — answered once, by this app's own server.
  *
  * Busabase spawns the AirApp's process in every runtime it hosts and injects
- * `BUSABASE_AIRAPP_RUNTIME` (`nodepod` | `local-node` | `srt` | `embed`).
+ * `BUSABASE_AIRAPP_RUNTIME` with a non-empty value.
  * Nobody else sets it, so its absence is the positive fact "standalone".
  * `server.js` re-exposes it at `__airapp/runtime` because the browser cannot
  * read environment variables.
@@ -36,9 +36,9 @@ const normalize = (body) => {
 };
 
 /**
- * Relative path on purpose: under the Local Node engine the app is served from
- * a sub-path of busabase's origin, and a leading slash would resolve against
- * that origin's root instead. The content-type check is not paranoia either — a
+ * Relative path on purpose: a hosted app can be served from a sub-path of
+ * Busabase's origin, and a leading slash would resolve against that origin's
+ * root instead. The content-type check is not paranoia either — a
  * hosted origin's catch-all route can answer 200 with an HTML shell, which
  * `response.ok` alone would read as a successful probe.
  *

@@ -1,7 +1,7 @@
 import { bindForm } from "./actions.js";
 import { escapeHtml, formActions, input, statusBadge, statusSelect, textarea } from "./format.js";
 import { t } from "./i18n.js";
-import { collectionFor, matches } from "./list-detail.js";
+import { collectionFor, loadMoreControl, matches } from "./list-detail.js";
 import { syncRoute } from "./router.js";
 import { shotPreview, shotReadiness, shotsForEpisode } from "./shots.js";
 import { $, store } from "./store.js";
@@ -122,6 +122,7 @@ function shotListRow(shot, index) {
         </span>
         <span class="shot-row-caret">${expanded ? "▾" : "▸"}</span>
       </button>
+      <button type="button" class="mini-button ghost shot-row-edit" data-shot-edit="${escapeHtml(shot.id)}" title="${t("shot_edit")}">${t("shot_edit")}</button>
       ${expanded ? `<div class="shot-row-detail">${shotPreview(shot)}</div>` : ""}
     </div>`;
 }
@@ -166,6 +167,7 @@ function executionTimeline(item, shots) {
       <div class="shot-list">
         ${shots.map((shot, index) => shotListRow(shot, index)).join("") || `<div class="empty-shot">${t("shot_empty")}</div>`}
       </div>
+      ${loadMoreControl("shots")}
     </section>`;
 }
 
@@ -195,7 +197,7 @@ function episodeDetail(item) {
       </div>
 
       ${store.episodeTab === "shots" ? episodeShotsTab(item, shots) : episodeSummaryTab(item)}
-      ${store.episodeTab === "shots" ? `<div class="form-actions"><span class="muted">${t("episode_shots_note")}</span></div>` : formActions()}
+      ${store.episodeTab === "shots" ? "" : formActions()}
     </form>`;
 }
 
@@ -203,7 +205,9 @@ export function renderEpisodesWorkspace() {
   $("newItemButton").style.visibility = "visible";
   const allEpisodes = collectionFor("episodes");
   const items = allEpisodes.filter(matches).sort((a, b) => (a.number || 0) - (b.number || 0));
-  $("itemCount").textContent = String(items.length);
+  $("itemCount").textContent = store.query
+    ? `${items.length}${store.state.pagination?.episodes ? "+" : ""}`
+    : String(store.state.totalCount?.episodes ?? `${items.length}${store.state.pagination?.episodes ? "+" : ""}`);
   if (
     store.episodeMode === "detail" &&
     (!store.selectedId || !allEpisodes.some((item) => item.id === store.selectedId))
@@ -219,7 +223,7 @@ export function renderEpisodesWorkspace() {
     $("list").innerHTML = episodeDetail(selected);
     $("detail").innerHTML = "";
   } else {
-    $("list").innerHTML = episodeTable(items);
+    $("list").innerHTML = `${episodeTable(items)}${loadMoreControl("episodes")}`;
     $("detail").innerHTML = "";
   }
   bindForm();

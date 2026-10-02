@@ -34,6 +34,13 @@ export interface AttachmentResult {
   attachments: AttachmentInput[];
 }
 
+export interface BatchPage {
+  batch: Batch;
+  batchId: string;
+  nextCursor: string | null;
+  total: number | null;
+}
+
 export interface LockPayload {
   locked?: boolean;
   owner?: string;
@@ -67,6 +74,7 @@ export interface EmailDataProvider {
   onboardingStatus(config: Config, meta?: ConfigWithMeta): Onboarding;
 
   getBatch(): Promise<Batch>;
+  getBatchPage?(options?: { cursor?: string; batchId?: string }): Promise<BatchPage>;
   saveBatch(batch: Batch): Promise<Batch>;
   getDecisions(): Promise<DecisionsPayload>;
   writeDecisions(batch: Batch): Promise<DecisionsPayload>;
@@ -120,6 +128,7 @@ export const CORE_METHODS = [
 
 export const OPTIONAL_METHODS = [
   "writeExecutionReport",
+  "getBatchPage",
   "writeScanState",
   "persistAttachments",
   "clearBatchAttachments",

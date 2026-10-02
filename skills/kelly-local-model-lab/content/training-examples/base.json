@@ -1,0 +1,96 @@
+{
+  "name": "Training Examples",
+  "description": "Human-reviewed prompt and ideal-response pairs used to build immutable training snapshots.",
+  "position": 0,
+  "fields": [
+    {
+      "slug": "example-id",
+      "name": "Example ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "task",
+      "name": "Task",
+      "type": "text",
+      "required": true,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "prompt",
+      "name": "Prompt",
+      "type": "longtext",
+      "required": true,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "ideal-response",
+      "name": "Ideal response",
+      "type": "longtext",
+      "required": true,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "split",
+      "name": "Split",
+      "type": "text",
+      "required": true,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "status",
+      "name": "Status",
+      "type": "text",
+      "required": true,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "source",
+      "name": "Source",
+      "type": "text",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "content-hash",
+      "name": "Content hash",
+      "type": "text",
+      "required": true,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "review-note",
+      "name": "Review note",
+      "type": "longtext",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "reviewed-at",
+      "name": "Reviewed at",
+      "type": "text",
+      "required": false,
+      "position": 9,
+      "options": {}
+    },
+    {
+      "slug": "updated-at",
+      "name": "Updated at",
+      "type": "text",
+      "required": false,
+      "position": 10,
+      "options": {}
+    }
+  ],
+  "views": []
+}

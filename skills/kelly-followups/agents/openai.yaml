@@ -1,0 +1,4 @@
+interface:
+  display_name: "Kelly Followups"
+  short_description: "Record who to follow up with after a meeting, see today's list"
+  default_prompt: "Use $kelly-followups to open my followup list and show what's due today."

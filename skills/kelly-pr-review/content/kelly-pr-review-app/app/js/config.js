@@ -18,7 +18,7 @@ export const appConfig = {
       name: "Reviews",
       slug: "kelly-pr-review-reviews",
       description: "GitHub pull request review queue, review notes, and human verdicts",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "item-id", name: "Item ID", type: "text", required: true },
         { slug: "repo", name: "Repo", type: "text", required: false },
@@ -72,7 +72,7 @@ export const appConfig = {
     },
   ],
   permissions: {
-    readProcedures: ["nodes.list", "nodes.get", "bases.get", "records.list"],
+    readProcedures: ["nodes.list", "nodes.get", "bases.get", "records.list", "records.count"],
     setupProcedures: ["nodes.createChangeRequest", "nodes.updateMetadata"],
     writeProcedures: ["records.changeRequest", "bases.createChangeRequest"],
   },

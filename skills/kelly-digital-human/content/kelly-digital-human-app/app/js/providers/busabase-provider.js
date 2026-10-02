@@ -65,29 +65,46 @@ function base(key) {
   return declared;
 }
 
-async function readAllRecords(key, { maxPages = 20 } = {}) {
+async function readPage(key, cursor) {
   if (!allowedReads.has("records.list")) throw new Error("PROCEDURE_DENIED: records.list");
   const declared = base(key);
-  const rows = [];
-  let cursor;
-  for (let page = 0; page < maxPages; page += 1) {
-    const result = await runtimeClient.records.list({
-      baseId: declared.baseId,
-      limit: declared.readLimit,
-      ...(cursor ? { cursor } : {}),
-    });
-    const records = Array.isArray(result) ? result : result.records || [];
-    for (const record of records) {
-      rows.push({
-        ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields),
-        __recordId: record.id,
-        __headCommitId: record.headCommitId || record.headCommit?.id,
-      });
-    }
-    cursor = Array.isArray(result) ? null : result.nextCursor;
-    if (!cursor) break;
-  }
+  const result = await runtimeClient.records.list({
+    baseId: declared.baseId,
+    limit: declared.readLimit,
+    ...(cursor ? { cursor } : {}),
+  });
+  const records = Array.isArray(result) ? result : result.records || [];
+  const rows = records.map((record) => ({
+    ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields),
+    __recordId: record.id,
+    __headCommitId: record.headCommitId || record.headCommit?.id,
+  }));
+  return { rows, nextCursor: Array.isArray(result) ? null : result.nextCursor || null };
+}
+
+const initialPageCursors = {};
+const initialTotalCounts = {};
+
+async function readFirstPage(key) {
+  const [{ rows, nextCursor }, total] = await Promise.all([readPage(key), countRecords(key)]);
+  initialPageCursors[key] = nextCursor;
+  initialTotalCounts[key] = total;
   return rows;
+}
+
+async function countRecords(key, filters) {
+  if (!allowedReads.has("records.count")) return null;
+  const declared = base(key);
+  try {
+    const { total } = await runtimeClient.records.count({ baseId: declared.baseId, ...(filters ? { filters } : {}) });
+    return total;
+  } catch {
+    return null;
+  }
+}
+
+function normalizePageRows(key, rows) {
+  return key === "qa-decisions" ? rows.map(normalizeDecisionRow) : rows;
 }
 
 async function createRecord(key, fields, message) {
@@ -116,18 +133,28 @@ async function updateRecord(existing, fields, message) {
 }
 
 async function readDecisions() {
-  const rows = await readAllRecords("qa-decisions");
+  const rows = await readFirstPage("qa-decisions");
   return rows.map(normalizeDecisionRow);
+}
+
+function withPagination(data) {
+  return {
+    ...data,
+    pagination: { ...initialPageCursors },
+    totals: { ...initialTotalCounts },
+  };
 }
 
 export const busabaseProvider = {
   kind: "busabase",
 
   async getState() {
+    for (const key of Object.keys(initialPageCursors)) delete initialPageCursors[key];
+    for (const key of Object.keys(initialTotalCounts)) delete initialTotalCounts[key];
     await ensureResources();
     const decisions = await readDecisions();
     const generated_at = new Date().toISOString();
-    return {
+    return withPagination({
       app: "kelly-digital-human",
       demo: false,
       generated_at,
@@ -135,7 +162,7 @@ export const busabaseProvider = {
       decisions: decisionsToMap(decisions),
       data_provider: "busabase",
       onboarding: { completed: true, config_version: "1" },
-    };
+    });
   },
 
   // Direct write: record the operator's decision straight onto the check's
@@ -145,7 +172,7 @@ export const busabaseProvider = {
   // write, matching kelly-clm's saveApprovalDecision() precedent. Creates the
   // row the first time a check is decided; updates it on every later
   // decision for the same check. Looks up the existing row through
-  // readAllRecords() (records.list) rather than records.get(fieldSlug=...):
+  // readFirstPage() (records.list) rather than records.get(fieldSlug=...):
   // the QA checklist is fixed at 8 possible check ids, so listing the whole
   // (<=100 row) Base is cheap, and it avoids a guaranteed-404 network call
   // the very first time any given check is decided (records.get 404s when no
@@ -153,7 +180,7 @@ export const busabaseProvider = {
   async saveDecision(checkId, action, note = "") {
     if (!checkId) throw new Error("checkId is required");
     await ensureResources();
-    const rows = await readAllRecords("qa-decisions");
+    const rows = await readFirstPage("qa-decisions");
     const existingRow = rows.find((row) => row.check_id === checkId);
     const next = buildDecision({ check_id: checkId, action, note });
     if (existingRow) {
@@ -163,6 +190,12 @@ export const busabaseProvider = {
       await createRecord("qa-decisions", decisionToFields(next), `Record decision for ${checkId}`);
     }
     return next;
+  },
+
+  async fetchPage(key, cursor) {
+    await ensureResources();
+    const page = await readPage(key, cursor);
+    return { ...page, rows: normalizePageRows(key, page.rows) };
   },
 
   async provisionResources() {

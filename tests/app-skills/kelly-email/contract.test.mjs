@@ -27,7 +27,15 @@ test("has the canonical app project and deterministic commands", async () => {
   assert.equal(pkg.engines.node, ">=24.18.0");
   assert.equal(pkg.scripts.dev, "node server.js");
   assert.equal(pkg.scripts.start, "node server.js");
-  assert.equal(pkg.dependencies["busabase-sdk"], "0.17.2");
+  assert.match(pkg.dependencies["busabase-sdk"], /^\d+\.\d+\.\d+$/, "busabase-sdk must be an exact pin");
+});
+
+test("mail collection can scope secret checks and IMAP search before downloading bodies", async () => {
+  const source = await readFile(join(skillRoot, "scripts", "generate_review_batch.ts"), "utf8");
+  assert.match(source, /--mailbox/);
+  assert.match(source, /--recipient/);
+  assert.match(source, /header:\s*\{\s*to:\s*recipient\s*\}/);
+  assert.match(source, /selectedConfig = \{ \.\.\.config, mailboxes \}/);
 });
 
 // kelly-email is laid out as a busabase TEMPLATE, so the invariant this file

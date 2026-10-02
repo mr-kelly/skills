@@ -19,6 +19,9 @@ window.KELLY_INVOICE_SHEET_MESSAGES = {
     save: "Save Edit",
     back: "Back to table",
     lockedBanner: "An agent is writing files right now. Review actions are paused until the lock clears.",
+    loadMore: "Load more",
+    loadingMore: "Loading...",
+    loadMoreFailed: "Couldn't load more. Try again.",
   },
   zh: {
     all: "全部",
@@ -40,5 +43,8 @@ window.KELLY_INVOICE_SHEET_MESSAGES = {
     save: "保存修改",
     back: "返回表格",
     lockedBanner: "代理正在写入文件，审核操作暂时锁定，请稍候再试。",
+    loadMore: "加载更多",
+    loadingMore: "加载中...",
+    loadMoreFailed: "无法加载更多，请重试。",
   },
 };

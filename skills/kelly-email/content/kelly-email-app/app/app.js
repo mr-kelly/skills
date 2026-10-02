@@ -5,7 +5,15 @@
 import { toast } from "./js/api.js";
 import { activeHelpTab, closeHelp, isHelpOpen, openHelp, setHelpTab } from "./js/help-modal.js";
 import { applyTranslations, onLanguageChange, setLanguageMode, t } from "./js/i18n.js";
-import { decide, refresh, renderBulkActions, renderCounts, renderDetail, renderList } from "./js/list-detail.js";
+import {
+  decide,
+  loadMore,
+  refresh,
+  renderBulkActions,
+  renderCounts,
+  renderDetail,
+  renderList,
+} from "./js/list-detail.js";
 import { applyRouteFromHash, navigateTo, registerRouterHooks, syncRoute } from "./js/router.js";
 import { applyProviderGate, copySetupPrompt, ensureLocalBusabaseConnection, registerSetupHooks } from "./js/setup.js";
 import {
@@ -108,6 +116,7 @@ function wire() {
     renderList();
     renderBulkActions();
   };
+  $("loadMore").onclick = () => loadMore();
   $("searchInput").addEventListener("input", () => refresh({ preserveScroll: false }));
   document.querySelectorAll("#filters button").forEach((button) => {
     button.onclick = () => {
@@ -134,7 +143,9 @@ async function bootstrap() {
   window.addEventListener("hashchange", () => applyRouteFromHash({ refreshData: true }));
   refresh({ preserveScroll: false }).catch((error) => toast(error.message));
   store.lockTimer = setInterval(() => pollLock().catch((error) => toast(error.message)), 3000);
-  store.refreshTimer = setInterval(() => refresh().catch((error) => toast(error.message)), 15000);
+  store.refreshTimer = setInterval(() => {
+    if (store.pagesLoaded === 1) refresh().catch((error) => toast(error.message));
+  }, 15000);
 }
 
 bootstrap().catch((error) => toast(error.message));

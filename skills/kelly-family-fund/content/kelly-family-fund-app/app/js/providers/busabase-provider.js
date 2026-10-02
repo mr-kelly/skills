@@ -5,6 +5,7 @@ import { buildSnapshot, computeInsights } from "../fund-model.js?v=0.1.0";
 
 const allowedReads = new Set(appConfig.permissions.readProcedures);
 const allowedSetup = new Set(appConfig.permissions.setupProcedures);
+const BROWSED_KEYS = ["families", "expenses"];
 
 const normalizeFields = (fields) =>
   Object.fromEntries(Object.entries(fields || {}).map(([slug, value]) => [slug.replaceAll("-", "_"), value]));
@@ -41,29 +42,46 @@ function base(key) {
   return declared;
 }
 
-async function readAllRecords(key, { maxPages = 20 } = {}) {
+const initialCursors = new Map();
+
+async function readPage(key, cursor) {
   if (!allowedReads.has("records.list")) throw new Error("PROCEDURE_DENIED: records.list");
   const declared = base(key);
-  const rows = [];
-  let cursor;
-  for (let page = 0; page < maxPages; page += 1) {
-    const result = await runtimeClient.records.list({
-      baseId: declared.baseId,
-      limit: declared.readLimit,
-      ...(cursor ? { cursor } : {}),
+  const result = await runtimeClient.records.list({
+    baseId: declared.baseId,
+    limit: declared.readLimit,
+    ...(cursor ? { cursor } : {}),
+  });
+  const records = Array.isArray(result) ? result : result.records || [];
+  const rows = records.map((record) => ({
+    ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields),
+    __recordId: record.id,
+    __headCommitId: record.headCommitId || record.headCommit?.id,
+  }));
+  return { rows, nextCursor: Array.isArray(result) ? null : result.nextCursor || null };
+}
+
+async function readPageRows(key) {
+  const page = await readPage(key);
+  initialCursors.set(key, page.nextCursor);
+  return page.rows;
+}
+
+async function countRecords(key, filters) {
+  if (!allowedReads.has("records.count")) return null;
+  try {
+    const { total } = await runtimeClient.records.count({
+      baseId: base(key).baseId,
+      ...(filters ? { filters } : {}),
     });
-    const records = Array.isArray(result) ? result : result.records || [];
-    for (const record of records) {
-      rows.push(normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields));
-    }
-    cursor = Array.isArray(result) ? null : result.nextCursor;
-    if (!cursor) break;
+    return total;
+  } catch {
+    return null;
   }
-  return rows;
 }
 
 async function readSettingsRows() {
-  const rows = await readAllRecords("settings");
+  const rows = await readPageRows("settings");
   return new Map(rows.map((row) => [row.record_id || row.kind, row]));
 }
 
@@ -77,16 +95,43 @@ function parsePayload(value) {
   }
 }
 
+function normalizeExpenseRow(row = {}) {
+  return {
+    id: row.expense_id || "",
+    month: row.month || "",
+    date: row.date || "",
+    category: row.category || "misc",
+    amount: Number(row.amount) || 0,
+    payee: row.payee || "",
+    occasion: row.occasion || "",
+    family_id: row.family_id || null,
+    shared: row.shared === "true" || row.shared === true,
+    note: row.note || "",
+  };
+}
+
+function normalizeFamilyRow(row = {}) {
+  return {
+    id: row.family_id || "",
+    name: row.name || row.family_id || "",
+    head: row.head || "",
+    members_count: Number(row.members_count) || 0,
+    note: row.note || "",
+  };
+}
+
 export const busabaseProvider = {
   kind: "busabase",
 
   async getState() {
     await ensureResources();
+    initialCursors.clear();
+    const recordCountsPromise = Promise.all(BROWSED_KEYS.map((key) => countRecords(key)));
     const [beneficiaryRows, familyRows, incomeRows, expenseRows, settings] = await Promise.all([
-      readAllRecords("beneficiaries"),
-      readAllRecords("families"),
-      readAllRecords("income"),
-      readAllRecords("expenses"),
+      readPageRows("beneficiaries"),
+      readPageRows("families"),
+      readPageRows("income"),
+      readPageRows("expenses"),
       readSettingsRows(),
     ]);
 
@@ -96,13 +141,7 @@ export const busabaseProvider = {
       relation: row.relation || "",
       pension_monthly: Number(row.pension_monthly) || 0,
     }));
-    const families = familyRows.map((row) => ({
-      id: row.family_id || "",
-      name: row.name || row.family_id || "",
-      head: row.head || "",
-      members_count: Number(row.members_count) || 0,
-      note: row.note || "",
-    }));
+    const families = familyRows.map(normalizeFamilyRow);
     const income = incomeRows.map((row) => ({
       id: row.income_id || "",
       month: row.month || "",
@@ -110,18 +149,7 @@ export const busabaseProvider = {
       amount: Number(row.amount) || 0,
       note: row.note || "",
     }));
-    const expenses = expenseRows.map((row) => ({
-      id: row.expense_id || "",
-      month: row.month || "",
-      date: row.date || "",
-      category: row.category || "misc",
-      amount: Number(row.amount) || 0,
-      payee: row.payee || "",
-      occasion: row.occasion || "",
-      family_id: row.family_id || null,
-      shared: row.shared === "true" || row.shared === true,
-      note: row.note || "",
-    }));
+    const expenses = expenseRows.map(normalizeExpenseRow);
 
     const metaRow = settings.get("fund-meta") || {};
     const meta = parsePayload(metaRow.payload);
@@ -144,10 +172,13 @@ export const busabaseProvider = {
     });
     snapshot.insights = computeInsights(snapshot, deviation_threshold_pct);
 
+    const recordCounts = await recordCountsPromise;
     return {
       app: "kelly-family-fund",
       demo: false,
       data_provider: "busabase",
+      pagination: Object.fromEntries(BROWSED_KEYS.map((key) => [key, initialCursors.get(key) || null])),
+      totals: Object.fromEntries(BROWSED_KEYS.map((key, index) => [key, recordCounts[index]])),
       onboarding: { completed: Boolean(onboarding.completed), ...onboarding },
       config_summary: {
         config_path: "busabase:base/kelly-family-fund-settings",
@@ -161,6 +192,13 @@ export const busabaseProvider = {
       lock: null,
       snapshot,
     };
+  },
+
+  async fetchPage(key, cursor) {
+    await ensureResources();
+    const page = await readPage(key, cursor);
+    const normalize = { families: normalizeFamilyRow, expenses: normalizeExpenseRow }[key];
+    return { ...page, rows: normalize ? page.rows.map(normalize) : page.rows };
   },
 
   async provisionResources() {

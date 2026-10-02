@@ -149,7 +149,6 @@ h2.group {
 .card[hidden] { display: none; }
 .card .thumb { aspect-ratio: 3 / 2; background: #eef0f3; overflow: hidden; border-bottom: 1px solid var(--border); }
 .card .thumb img { width: 100%; height: 100%; object-fit: cover; object-position: top left; display: block; }
-.card .thumb.template-cover img { object-fit: contain; object-position: center; }
 .card .thumb.empty { display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 26px; }
 .card .body { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 6px; }
 .card .name { font-weight: 650; font-size: 15.5px; display: flex; align-items: center; gap: 8px; }
@@ -312,6 +311,12 @@ After it is installed, invoke the skill as $kelly-campaigns.</textarea>
     </section>
     <div class="panel"><h3><span class="en">When to use it</span><span class="zh">什么时候用</span></h3><p><span class="en">Use it when planning email campaigns, newsletters, or lifecycle sequences, checking deliverability and A/B subjects, or approving sends — distinct from kelly-email inbox triage.</span><span class="zh">策划邮件 campaign、newsletter 或生命周期序列、检查送达率和 A/B 主题、审批群发时使用——与 kelly-email 收件箱清零区分开。</span></p></div>
     <div class="shots"><figure class="shot">
+  <img data-shot-en="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-campaigns/assets/screenshots/overview.webp" data-shot-zh="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-campaigns/assets/screenshots/overview-zh-CN.webp" src="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-campaigns/assets/screenshots/overview.webp" alt="Overview" loading="lazy">
+  <figcaption class="cap">
+    <div class="en"><strong>Overview</strong><span>Send calendar plus list health — subscribers, bounce, churn, and complaint rates.</span></div><div class="zh"><strong>总览</strong><span>发送日历 + 列表健康度——订阅数、退信、流失和投诉率。</span></div>
+  </figcaption>
+</figure>
+<figure class="shot">
   <img data-shot-en="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-campaigns/assets/screenshots/campaigns.webp" data-shot-zh="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-campaigns/assets/screenshots/campaigns-zh-CN.webp" src="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-campaigns/assets/screenshots/campaigns.webp" alt="Campaigns" loading="lazy">
   <figcaption class="cap">
     <div class="en"><strong>Campaigns</strong><span>Draft and approval queue across campaigns, newsletters, and sequence steps.</span></div><div class="zh"><strong>Campaign</strong><span>campaign、newsletter 和序列步骤的草稿/审批队列。</span></div>
@@ -321,12 +326,6 @@ After it is installed, invoke the skill as $kelly-campaigns.</textarea>
   <img data-shot-en="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-campaigns/assets/screenshots/deliverability.webp" data-shot-zh="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-campaigns/assets/screenshots/deliverability-zh-CN.webp" src="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-campaigns/assets/screenshots/deliverability.webp" alt="Deliverability" loading="lazy">
   <figcaption class="cap">
     <div class="en"><strong>Deliverability</strong><span>Pre-send QA — SPF/DKIM/DMARC, spam score, and the EQS SHIP/FIX/BLOCK gate.</span></div><div class="zh"><strong>送达率</strong><span>发送前 QA——SPF/DKIM/DMARC、垃圾分，和 EQS SHIP/FIX/BLOCK 门。</span></div>
-  </figcaption>
-</figure>
-<figure class="shot">
-  <img data-shot-en="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-campaigns/assets/screenshots/overview.webp" data-shot-zh="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-campaigns/assets/screenshots/overview-zh-CN.webp" src="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-campaigns/assets/screenshots/overview.webp" alt="Overview" loading="lazy">
-  <figcaption class="cap">
-    <div class="en"><strong>Overview</strong><span>Send calendar plus list health — subscribers, bounce, churn, and complaint rates.</span></div><div class="zh"><strong>总览</strong><span>发送日历 + 列表健康度——订阅数、退信、流失和投诉率。</span></div>
   </figcaption>
 </figure>
 <figure class="shot">
@@ -377,8 +376,8 @@ After it is installed, invoke the skill as $kelly-campaigns.</textarea>
 </aside>
 </div>
 <footer class="footer">
-  <span class="en">MIT licensed · Built from the repo READMEs and template manifests by <code>scripts/build-site.mjs</code> · <a href="https://github.com/mr-kelly/skills">mr-kelly/skills</a></span>
-  <span class="zh">MIT 许可 · 由 <code>scripts/build-site.mjs</code> 从仓库 README 和模板清单生成 · <a href="https://github.com/mr-kelly/skills">mr-kelly/skills</a></span>
+  <span class="en">MIT licensed · Built from the repo READMEs by <code>scripts/build-site.mjs</code> · <a href="https://github.com/mr-kelly/skills">mr-kelly/skills</a></span>
+  <span class="zh">MIT 许可 · 由 <code>scripts/build-site.mjs</code> 从仓库 README 生成 · <a href="https://github.com/mr-kelly/skills">mr-kelly/skills</a></span>
 </footer>
 </div>
 <script>

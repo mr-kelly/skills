@@ -1,5 +1,9 @@
 export const messages = {
   en: {
+    pagination: "Pagination",
+    prevPage: "Prev",
+    nextPage: "Next",
+    pageOf: "Page {current} of {total}",
     overview: "Overview",
     catalog: "catalog",
     catalogTitle: "Agent Catalog",
@@ -71,6 +75,10 @@ export const messages = {
     },
   },
   zh: {
+    pagination: "分页",
+    prevPage: "上一页",
+    nextPage: "下一页",
+    pageOf: "第 {current} / {total} 页",
     overview: "总览",
     catalog: "目录",
     catalogTitle: "智能体目录",

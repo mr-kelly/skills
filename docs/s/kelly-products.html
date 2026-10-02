@@ -149,7 +149,6 @@ h2.group {
 .card[hidden] { display: none; }
 .card .thumb { aspect-ratio: 3 / 2; background: #eef0f3; overflow: hidden; border-bottom: 1px solid var(--border); }
 .card .thumb img { width: 100%; height: 100%; object-fit: cover; object-position: top left; display: block; }
-.card .thumb.template-cover img { object-fit: contain; object-position: center; }
 .card .thumb.empty { display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 26px; }
 .card .body { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 6px; }
 .card .name { font-weight: 650; font-size: 15.5px; display: flex; align-items: center; gap: 8px; }
@@ -312,24 +311,6 @@ After it is installed, invoke the skill as $kelly-products.</textarea>
     </section>
     <div class="panel"><h3><span class="en">When to use it</span><span class="zh">什么时候用</span></h3><p><span class="en">Use it when managing product master data, inventory/reorder risks, marketplace channel status, price changes, quality holds, SKU archive decisions, or publish approvals.</span><span class="zh">管商品主数据、库存/补货风险、各平台渠道状态、调价、质检暂停、SKU 下架归档或发布审批时使用。</span></p></div>
     <div class="shots"><figure class="shot">
-  <img data-shot-en="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-products/assets/screenshots/channels.webp" data-shot-zh="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-products/assets/screenshots/channels-zh-CN.webp" src="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-products/assets/screenshots/channels.webp" alt="Channels" loading="lazy">
-  <figcaption class="cap">
-    <div class="en"><strong>Channels</strong><span>Per-channel listing matrix across Amazon, Shopify, and TikTok Shop with status, price, score, and channel issues.</span></div><div class="zh"><strong>渠道</strong><span>各渠道上架矩阵（Amazon、Shopify、TikTok Shop），含状态、价格、评分与渠道问题。</span></div>
-  </figcaption>
-</figure>
-<figure class="shot">
-  <img data-shot-en="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-products/assets/screenshots/detail.webp" data-shot-zh="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-products/assets/screenshots/detail-zh-CN.webp" src="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-products/assets/screenshots/detail.webp" alt="Product detail" loading="lazy">
-  <figcaption class="cap">
-    <div class="en"><strong>Product detail</strong><span>Gallery, pricing, inventory, content readiness, compliance notes, channel matrix, and related review cards.</span></div><div class="zh"><strong>商品详情</strong><span>商品图库、价格、库存、素材就绪度、合规备注、渠道矩阵和相关审批卡。</span></div>
-  </figcaption>
-</figure>
-<figure class="shot">
-  <img data-shot-en="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-products/assets/screenshots/inventory.webp" data-shot-zh="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-products/assets/screenshots/inventory-zh-CN.webp" src="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-products/assets/screenshots/inventory.webp" alt="Inventory" loading="lazy">
-  <figcaption class="cap">
-    <div class="en"><strong>Inventory</strong><span>Stock health across warehouses — on-hand, available, days of cover, and low-stock flags.</span></div><div class="zh"><strong>库存</strong><span>跨仓库的库存健康度——在库、可用、可售天数与低库存标记。</span></div>
-  </figcaption>
-</figure>
-<figure class="shot">
   <img data-shot-en="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-products/assets/screenshots/overview.webp" data-shot-zh="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-products/assets/screenshots/overview-zh-CN.webp" src="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-products/assets/screenshots/overview.webp" alt="Overview" loading="lazy">
   <figcaption class="cap">
     <div class="en"><strong>Overview</strong><span>Product command desk with visual product cards, margin, inventory value, activity, and approval queue.</span></div><div class="zh"><strong>总览</strong><span>商品管理台：图文商品卡、毛利、库存货值、近期动态和审批队列。</span></div>
@@ -342,9 +323,27 @@ After it is installed, invoke the skill as $kelly-products.</textarea>
   </figcaption>
 </figure>
 <figure class="shot">
+  <img data-shot-en="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-products/assets/screenshots/detail.webp" data-shot-zh="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-products/assets/screenshots/detail-zh-CN.webp" src="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-products/assets/screenshots/detail.webp" alt="Product detail" loading="lazy">
+  <figcaption class="cap">
+    <div class="en"><strong>Product detail</strong><span>Gallery, pricing, inventory, content readiness, compliance notes, channel matrix, and related review cards.</span></div><div class="zh"><strong>商品详情</strong><span>商品图库、价格、库存、素材就绪度、合规备注、渠道矩阵和相关审批卡。</span></div>
+  </figcaption>
+</figure>
+<figure class="shot">
   <img data-shot-en="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-products/assets/screenshots/review.webp" data-shot-zh="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-products/assets/screenshots/review-zh-CN.webp" src="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-products/assets/screenshots/review.webp" alt="Review queue" loading="lazy">
   <figcaption class="cap">
     <div class="en"><strong>Review queue</strong><span>Approval-gated publish, price, quality-hold, and lifecycle recommendations with evidence.</span></div><div class="zh"><strong>审批队列</strong><span>发布、调价、质检暂停和生命周期建议，全部带证据并需人工批准。</span></div>
+  </figcaption>
+</figure>
+<figure class="shot">
+  <img data-shot-en="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-products/assets/screenshots/channels.webp" data-shot-zh="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-products/assets/screenshots/channels-zh-CN.webp" src="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-products/assets/screenshots/channels.webp" alt="Channels" loading="lazy">
+  <figcaption class="cap">
+    <div class="en"><strong>Channels</strong><span>Per-channel listing matrix across Amazon, Shopify, and TikTok Shop with status, price, score, and channel issues.</span></div><div class="zh"><strong>渠道</strong><span>各渠道上架矩阵（Amazon、Shopify、TikTok Shop），含状态、价格、评分与渠道问题。</span></div>
+  </figcaption>
+</figure>
+<figure class="shot">
+  <img data-shot-en="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-products/assets/screenshots/inventory.webp" data-shot-zh="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-products/assets/screenshots/inventory-zh-CN.webp" src="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-products/assets/screenshots/inventory.webp" alt="Inventory" loading="lazy">
+  <figcaption class="cap">
+    <div class="en"><strong>Inventory</strong><span>Stock health across warehouses — on-hand, available, days of cover, and low-stock flags.</span></div><div class="zh"><strong>库存</strong><span>跨仓库的库存健康度——在库、可用、可售天数与低库存标记。</span></div>
   </figcaption>
 </figure></div>
 
@@ -389,8 +388,8 @@ After it is installed, invoke the skill as $kelly-products.</textarea>
 </aside>
 </div>
 <footer class="footer">
-  <span class="en">MIT licensed · Built from the repo READMEs and template manifests by <code>scripts/build-site.mjs</code> · <a href="https://github.com/mr-kelly/skills">mr-kelly/skills</a></span>
-  <span class="zh">MIT 许可 · 由 <code>scripts/build-site.mjs</code> 从仓库 README 和模板清单生成 · <a href="https://github.com/mr-kelly/skills">mr-kelly/skills</a></span>
+  <span class="en">MIT licensed · Built from the repo READMEs by <code>scripts/build-site.mjs</code> · <a href="https://github.com/mr-kelly/skills">mr-kelly/skills</a></span>
+  <span class="zh">MIT 许可 · 由 <code>scripts/build-site.mjs</code> 从仓库 README 生成 · <a href="https://github.com/mr-kelly/skills">mr-kelly/skills</a></span>
 </footer>
 </div>
 <script>

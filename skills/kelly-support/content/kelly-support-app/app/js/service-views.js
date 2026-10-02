@@ -8,11 +8,15 @@ import {
   enumLabel,
   escapeHtml,
   flashNotice,
+  gateSummaryText,
   kbById,
   knowledge,
   loadState,
   matchesQuery,
   priorityChip,
+  qaPairById,
+  qaPairs,
+  recordTotal,
   referenceNow,
   render,
   slaCountdown,
@@ -30,10 +34,31 @@ export function renderKnowledge() {
   const list = knowledge().filter((article) =>
     matchesQuery([article.title, article.body, article.category, ...(article.tags || [])]),
   );
-  els.subtitle.textContent = `${list.length} ${t("knowledgeBase")}`;
-  els.content.innerHTML = list.length
-    ? `
-    <div class="kb-grid">
+  els.subtitle.textContent = `${recordTotal("knowledge-base", list.length)} ${t("knowledgeBase")}`;
+  const importPanel = state.settings?.demo
+    ? ""
+    : `
+      <div class="row knowledge-actions">
+        <button type="button" class="btn primary" data-action="toggle-material-import">${t("importMaterial")}</button>
+      </div>
+      ${
+        state.materialImportOpen
+          ? `<section class="overview-panel material-import-panel">
+              <div class="settings-form-grid">
+                <label><span>${t("materialTitle")}</span><input id="material-title" type="text"></label>
+                <label><span>${t("sourceMaterial")}</span><input id="material-url" type="url" placeholder="https://"></label>
+                <label><span>${t("materialPublishedAt")}</span><input id="material-published-at" type="text" placeholder="YYYY-MM-DD"></label>
+                <label><span>${t("category")}</span><input id="material-category" type="text" value="service-script"></label>
+                <label class="settings-span-2"><span>${t("materialBody")}</span><textarea id="material-body" rows="7"></textarea></label>
+                <label class="settings-span-2"><span>${t("materialQaJson")}</span><textarea id="material-qa" rows="10" placeholder='[{"question":"...","answer":"..."}]'></textarea></label>
+              </div>
+              <div class="row"><button type="button" class="btn primary" data-action="import-material">${t("importAsDraft")}</button></div>
+            </section>`
+          : ""
+      }
+    `;
+  const grid = list.length
+    ? `<div class="kb-grid">
       ${list
         .map(
           (article) => `
@@ -48,9 +73,86 @@ export function renderKnowledge() {
       `,
         )
         .join("")}
-    </div>
-  `
+    </div>`
     : `<div class="empty">${t("empty")}</div>`;
+  els.content.innerHTML = `${importPanel}${grid}`;
+}
+
+function stableMaterialId(value) {
+  const source = String(value || "").trim();
+  let hash = 2166136261;
+  for (let index = 0; index < source.length; index += 1) {
+    hash ^= source.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return `kb-material-${(hash >>> 0).toString(16).padStart(8, "0")}`;
+}
+
+async function sha256(value) {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
+  return `sha256:${[...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, "0")).join("")}`;
+}
+
+export async function importMaterialAction() {
+  const title = document.querySelector("#material-title")?.value.trim() || "";
+  const sourceUrl = document.querySelector("#material-url")?.value.trim() || "";
+  const publishedAt = document.querySelector("#material-published-at")?.value.trim() || "";
+  const category = document.querySelector("#material-category")?.value.trim() || "service-script";
+  const body = document.querySelector("#material-body")?.value.trim() || "";
+  const qaSource = document.querySelector("#material-qa")?.value.trim() || "";
+  if (!title || !body || !qaSource) {
+    flashNotice(t("materialRequired"));
+    return;
+  }
+  let pairs;
+  try {
+    pairs = JSON.parse(qaSource);
+  } catch {
+    flashNotice(t("materialQaInvalid"));
+    return;
+  }
+  if (!Array.isArray(pairs) || !pairs.length || pairs.some((pair) => !pair.question?.trim() || !pair.answer?.trim())) {
+    flashNotice(t("materialQaInvalid"));
+    return;
+  }
+  const articleId = stableMaterialId(sourceUrl || title);
+  const now = new Date().toISOString();
+  const provider = await getProvider();
+  try {
+    await provider.importKnowledgeBundle({
+      article: {
+        article_id: articleId,
+        kind: "article",
+        title,
+        body,
+        tags: ["training-source", category],
+        category,
+        source_url: sourceUrl,
+        source_published_at: publishedAt,
+        source_fetched_at: now,
+        content_hash: await sha256(JSON.stringify({ title, sourceUrl, body })),
+        updated_at: now,
+      },
+      qa_pairs: pairs.map((pair, index) => ({
+        pair_id: `${articleId}-qa-${String(index + 1).padStart(2, "0")}`,
+        article_id: articleId,
+        question: pair.question.trim(),
+        answer: pair.answer.trim(),
+        category: pair.category?.trim() || category,
+        tags: Array.isArray(pair.tags) ? pair.tags : [],
+        status: "draft",
+        reviewed_by: "",
+        updated_at: now,
+      })),
+    });
+  } catch (error) {
+    flashNotice(error.message || t("materialImportFailed"));
+    return;
+  }
+  state.materialImportOpen = false;
+  await loadState();
+  location.hash = "#/qa-pairs";
+  flashNotice(t("materialImported").replace("{n}", String(pairs.length)));
 }
 
 export function renderKbDetail() {
@@ -69,6 +171,11 @@ export function renderKbDetail() {
         <div class="overview-panel kb-article">
           <p class="kb-article-body">${escapeHtml(article.body)}</p>
           <div class="kb-tags">${(article.tags || []).map((tag) => `<span class="tag">${escapeHtml(tag)}</span>`).join("")}</div>
+          ${
+            article.source_url
+              ? `<p class="kb-provenance"><strong>${t("sourceMaterial")}:</strong> <a class="text-link" href="${escapeHtml(article.source_url)}" target="_blank" rel="noreferrer">${escapeHtml(article.source_url)}</a>${article.source_published_at ? ` · ${escapeHtml(article.source_published_at.slice(0, 10))}` : ""}</p>`
+              : ""
+          }
         </div>
       </div>
       <aside class="detail-side">
@@ -90,6 +197,102 @@ export function renderKbDetail() {
       </aside>
     </section>
   `;
+}
+
+/* ----- qa pairs ----- */
+
+const QA_STATUS_CLASS = { draft: "warning", approved: "positive", rejected: "" };
+
+function qaStatusBadge(status) {
+  return `<span class="badge ${QA_STATUS_CLASS[status] || ""}">${t(`qaStatus_${status}`)}</span>`;
+}
+
+export function renderQaPairs() {
+  els.title.textContent = t("qaPairs");
+  const list = qaPairs().filter((pair) => matchesQuery([pair.question, pair.answer, pair.category, pair.article_id]));
+  const draftCount = qaPairs().filter((pair) => pair.status === "draft").length;
+  els.subtitle.textContent = draftCount
+    ? t("qaPairsSubtitleDraft").replace("{n}", draftCount)
+    : t("qaPairsSubtitleClear");
+  const practiceActions = state.settings?.demo
+    ? ""
+    : [...new Set(list.map((pair) => pair.article_id))]
+        .map((articleId) => {
+          const article = kbById(articleId);
+          if (!article) return "";
+          return `<button type="button" class="btn" data-action="create-practice-tickets" data-article="${escapeHtml(articleId)}">${t("createPracticeTickets")} · ${escapeHtml(article.title)}</button>`;
+        })
+        .join("");
+  els.content.innerHTML = list.length
+    ? `
+    ${practiceActions ? `<div class="row qa-practice-actions">${practiceActions}</div>` : ""}
+    <div class="qa-list">
+      ${list
+        .map((pair) => {
+          const article = kbById(pair.article_id);
+          return `
+        <div class="qa-card" data-qa-id="${escapeHtml(pair.pair_id)}">
+          <div class="row between">
+            ${qaStatusBadge(pair.status)}
+            ${article ? `<a class="qa-source" href="#/knowledge/${encodeURIComponent(article.article_id)}">${escapeHtml(article.title)}</a>` : `<span class="muted">${escapeHtml(pair.article_id)}</span>`}
+          </div>
+          <p class="qa-question"><strong>${t("qaQuestion")}:</strong> ${escapeHtml(pair.question)}</p>
+          <p class="qa-answer"><strong>${t("qaAnswer")}:</strong> ${escapeHtml(pair.answer)}</p>
+          ${
+            pair.status === "draft"
+              ? `
+            <div class="row">
+              <button type="button" class="btn primary" data-action="qa-decide" data-pair="${escapeHtml(pair.pair_id)}" data-decision="approved">${t("qaApprove")}</button>
+              <button type="button" class="btn" data-action="qa-decide" data-pair="${escapeHtml(pair.pair_id)}" data-decision="rejected">${t("qaReject")}</button>
+            </div>`
+              : `<p class="muted qa-reviewed">${t("qaReviewedBy").replace("{name}", escapeHtml(pair.reviewed_by || "—"))}</p>`
+          }
+        </div>
+      `;
+        })
+        .join("")}
+    </div>
+    <div class="boundary-note qa-training-note">${t("qaTrainingHandoff")}</div>
+  `
+    : `<div class="empty">${t("empty")}</div>`;
+}
+
+export async function createPracticeTicketsAction(articleId) {
+  const article = kbById(articleId);
+  const pairs = qaPairs().filter((pair) => pair.article_id === articleId);
+  if (!article || !pairs.length) {
+    flashNotice(t("practiceTicketsUnavailable"));
+    return;
+  }
+  try {
+    const provider = await getProvider();
+    const result = await provider.createPracticeTicketsFromQa({ article, qa_pairs: pairs });
+    await loadState();
+    location.hash = "#/tickets/needs_review";
+    flashNotice(t("practiceTicketsCreated").replace("{n}", String(result.ticket_count)));
+  } catch (error) {
+    flashNotice(error.message || t("practiceTicketsFailed"));
+  }
+}
+
+export async function qaPairDecision(pairId, status) {
+  if (state.settings?.demo) {
+    const pair = qaPairById(pairId);
+    if (!pair) return;
+    pair.status = status;
+    pair.reviewed_by = "you (demo)";
+    flashNotice(t("demoNotice"));
+    render();
+    return;
+  }
+  try {
+    const provider = await getProvider();
+    await provider.reviewQaPair({ pair_id: pairId, status });
+  } catch (error) {
+    flashNotice(error.message || "Review failed");
+    return;
+  }
+  await loadState();
 }
 
 /* ----- sla & csat ----- */
@@ -172,8 +375,44 @@ export function renderSettings() {
   const syncLog = state.snapshot?.sync_log || [];
   const report = state.settings?.execution_report;
   const risk = summary.risk_policy || {};
+  const sla = summary.sla_policy || {};
+  const hours = sla.first_response_hours || {};
+  const style = summary.reply_style || {};
+  const checked = (value) => (value === false ? "" : "checked");
   els.content.innerHTML = `
     <div class="settings">
+      <section class="settings-editor">
+        <div class="row between settings-editor-head">
+          <div>
+            <h2>${t("supportPolicies")}</h2>
+            <p class="muted">${state.settings?.onboarding?.settings_completed ? t("settingsReady") : t("settingsRequired")}</p>
+          </div>
+          <span class="badge ${state.settings?.onboarding?.settings_completed ? "positive" : "warning"}">${state.settings?.onboarding?.settings_completed ? t("completed") : t("incomplete")}</span>
+        </div>
+        <div class="settings-form-grid">
+          ${["urgent", "high", "normal", "low"]
+            .map(
+              (priority) =>
+                `<label><span>${escapeHtml(enumLabel(priority, "severity"))} · ${t("firstResponseTarget")}</span><input data-settings-field="sla-${priority}" type="number" min="0.25" step="0.25" value="${escapeHtml(hours[priority] ?? { urgent: 2, high: 4, normal: 8, low: 24 }[priority])}"></label>`,
+            )
+            .join("")}
+          <label class="settings-span-2"><span>${t("businessHours")}</span><input data-settings-field="business-hours" type="text" value="${escapeHtml(sla.business_hours || "24/7")}"></label>
+          <label><span>${t("maxAutoRefund")}</span><input data-settings-field="max-auto-refund" type="number" min="0" step="0.01" value="${escapeHtml(risk.max_auto_refund ?? 0)}"></label>
+          <label class="settings-span-2"><span>${t("replyTone")}</span><input data-settings-field="tone" type="text" value="${escapeHtml(style.tone || "professional, concise, direct, solution-focused")}"></label>
+          <label><span>${t("languagePolicy")}</span><select data-settings-field="language"><option value="follow_customer" ${style.language === "follow_customer" || !style.language ? "selected" : ""}>${t("followCustomer")}</option><option value="zh-CN" ${style.language === "zh-CN" ? "selected" : ""}>简体中文</option><option value="en" ${style.language === "en" ? "selected" : ""}>English</option></select></label>
+          <label><span>${t("replySignature")}</span><input data-settings-field="signature" type="text" value="${escapeHtml(style.signature || "Support")}"></label>
+          <label class="settings-span-2"><span>${t("knowledgeSource")}</span><input data-settings-field="kb-source" type="text" value="${escapeHtml(summary.knowledge_base?.source_path || "")}" placeholder="https://docs.example.com"></label>
+        </div>
+        <div class="settings-toggles">
+          <label><input data-settings-field="refund-approval" type="checkbox" ${checked(risk.refund_requires_approval)}> ${t("refundApproval")}</label>
+          <label><input data-settings-field="block-ungrounded" type="checkbox" ${checked(risk.block_ungrounded_replies)}> ${t("blockUngrounded")}</label>
+          <label><input data-settings-field="block-commitments" type="checkbox" ${checked(risk.block_commitments_without_approval)}> ${t("blockCommitments")}</label>
+        </div>
+        <div class="row settings-save-row">
+          <button type="button" class="primary" data-action="save-settings">${t("saveSettings")}</button>
+          <span class="muted">${t("settingsReviewNote")}</span>
+        </div>
+      </section>
       <section>
         <h2>${t("configuration")}</h2>
         <dl>
@@ -271,6 +510,56 @@ export function renderSettings() {
   `;
 }
 
+export async function saveSettingsAction() {
+  const value = (name) => String(els.content.querySelector(`[data-settings-field="${name}"]`)?.value || "").trim();
+  const number = (name) => Number(value(name));
+  const checked = (name) => Boolean(els.content.querySelector(`[data-settings-field="${name}"]`)?.checked);
+  const payload = {
+    onboarding_status: "complete",
+    onboarding_version: 1,
+    sla_policy: {
+      first_response_hours: {
+        urgent: number("sla-urgent"),
+        high: number("sla-high"),
+        normal: number("sla-normal"),
+        low: number("sla-low"),
+      },
+      business_hours: value("business-hours"),
+    },
+    risk_policy: {
+      refund_requires_approval: checked("refund-approval"),
+      max_auto_refund: number("max-auto-refund"),
+      block_ungrounded_replies: checked("block-ungrounded"),
+      block_commitments_without_approval: checked("block-commitments"),
+    },
+    reply_style: {
+      tone: value("tone"),
+      language: value("language"),
+      signature: value("signature"),
+      avoid: state.settings?.config_summary?.reply_style?.avoid || [],
+    },
+    kb_source_path: value("kb-source"),
+  };
+  if (state.settings?.demo) {
+    state.settings.config_summary = { ...state.settings.config_summary, ...payload };
+    state.settings.onboarding.settings_completed = true;
+    state.settings.onboarding.completed = true;
+    flashNotice(`${t("saveSettings")} · ${t("demoNotice")}`);
+    render();
+    return;
+  }
+  try {
+    const provider = await getProvider();
+    const result = await provider.saveSettings(payload);
+    flashNotice(
+      result.change_request_id ? `${t("settingsPendingReview")}: ${result.change_request_id}` : t("settingsSaved"),
+    );
+    await loadState();
+  } catch (error) {
+    flashNotice(error.message || "Settings save failed");
+  }
+}
+
 /* ----- actions ----- */
 
 function currentReplyText(ticketId) {
@@ -329,7 +618,7 @@ export async function decideAction(ticketId, action) {
     if (typeof text === "string" && text) ticket.suggested_reply = text;
     applyGateDemo(ticket);
     if (action === "approve" && ticket.quality_gate?.verdict === "block") {
-      flashNotice(ticket.quality_gate.summary);
+      flashNotice(gateSummaryText(ticket.quality_gate));
       render();
       return;
     }

@@ -6,6 +6,10 @@
 // no reason to add a network round trip for its own UI strings.
 export const messages = {
   en: {
+    pagination: "Pagination",
+    prevPage: "Prev",
+    nextPage: "Next",
+    pageOf: "Page {current} of {total}",
     appTitle: "Agent Fleet Observability Desk",
     brandInitial: "F",
     overview: "Overview",
@@ -91,6 +95,10 @@ export const messages = {
     },
   },
   zh: {
+    pagination: "分页",
+    prevPage: "上一页",
+    nextPage: "下一页",
+    pageOf: "第 {current} / {total} 页",
     appTitle: "智能体舰队可观测台",
     brandInitial: "F",
     overview: "总览",

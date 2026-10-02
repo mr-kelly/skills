@@ -149,7 +149,6 @@ h2.group {
 .card[hidden] { display: none; }
 .card .thumb { aspect-ratio: 3 / 2; background: #eef0f3; overflow: hidden; border-bottom: 1px solid var(--border); }
 .card .thumb img { width: 100%; height: 100%; object-fit: cover; object-position: top left; display: block; }
-.card .thumb.template-cover img { object-fit: contain; object-position: center; }
 .card .thumb.empty { display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 26px; }
 .card .body { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 6px; }
 .card .name { font-weight: 650; font-size: 15.5px; display: flex; align-items: center; gap: 8px; }
@@ -312,9 +311,9 @@ After it is installed, invoke the skill as $kelly-messenger.</textarea>
     </section>
     <div class="panel"><h3><span class="en">When to use it</span><span class="zh">什么时候用</span></h3><p><span class="en">Use it when reading messages across chat platforms in one place, drafting replies in a single composer, and approving queued outbound messages that the agent then sends via platform connectors.</span><span class="zh">在一个地方读所有聊天平台的消息、用一个 composer 写回复、批准后由 agent 经平台连接器发送时使用。</span></p></div>
     <div class="shots"><figure class="shot">
-  <img data-shot-en="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-messenger/assets/screenshots/accounts.webp" data-shot-zh="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-messenger/assets/screenshots/accounts-zh-CN.webp" src="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-messenger/assets/screenshots/accounts.webp" alt="Accounts" loading="lazy">
+  <img data-shot-en="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-messenger/assets/screenshots/overview.webp" data-shot-zh="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-messenger/assets/screenshots/overview-zh-CN.webp" src="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-messenger/assets/screenshots/overview.webp" alt="Overview" loading="lazy">
   <figcaption class="cap">
-    <div class="en"><strong>Accounts</strong><span>Connected messaging accounts across WhatsApp and Telegram with connector status and secret readiness.</span></div><div class="zh"><strong>账户</strong><span>已连接的消息账户（WhatsApp、Telegram），含连接器状态与密钥就绪情况。</span></div>
+    <div class="en"><strong>Overview</strong><span>Messaging command desk with reply-decision counts, per-platform sync status, and oldest-waiting indicator.</span></div><div class="zh"><strong>总览</strong><span>消息操作台：待回复决定计数、各平台同步状态和最久等待指示。</span></div>
   </figcaption>
 </figure>
 <figure class="shot">
@@ -336,9 +335,9 @@ After it is installed, invoke the skill as $kelly-messenger.</textarea>
   </figcaption>
 </figure>
 <figure class="shot">
-  <img data-shot-en="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-messenger/assets/screenshots/overview.webp" data-shot-zh="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-messenger/assets/screenshots/overview-zh-CN.webp" src="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-messenger/assets/screenshots/overview.webp" alt="Overview" loading="lazy">
+  <img data-shot-en="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-messenger/assets/screenshots/accounts.webp" data-shot-zh="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-messenger/assets/screenshots/accounts-zh-CN.webp" src="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-messenger/assets/screenshots/accounts.webp" alt="Accounts" loading="lazy">
   <figcaption class="cap">
-    <div class="en"><strong>Overview</strong><span>Messaging command desk with reply-decision counts, per-platform sync status, and oldest-waiting indicator.</span></div><div class="zh"><strong>总览</strong><span>消息操作台：待回复决定计数、各平台同步状态和最久等待指示。</span></div>
+    <div class="en"><strong>Accounts</strong><span>Connected messaging accounts across WhatsApp and Telegram with connector status and secret readiness.</span></div><div class="zh"><strong>账户</strong><span>已连接的消息账户（WhatsApp、Telegram），含连接器状态与密钥就绪情况。</span></div>
   </figcaption>
 </figure></div>
 
@@ -383,8 +382,8 @@ After it is installed, invoke the skill as $kelly-messenger.</textarea>
 </aside>
 </div>
 <footer class="footer">
-  <span class="en">MIT licensed · Built from the repo READMEs and template manifests by <code>scripts/build-site.mjs</code> · <a href="https://github.com/mr-kelly/skills">mr-kelly/skills</a></span>
-  <span class="zh">MIT 许可 · 由 <code>scripts/build-site.mjs</code> 从仓库 README 和模板清单生成 · <a href="https://github.com/mr-kelly/skills">mr-kelly/skills</a></span>
+  <span class="en">MIT licensed · Built from the repo READMEs by <code>scripts/build-site.mjs</code> · <a href="https://github.com/mr-kelly/skills">mr-kelly/skills</a></span>
+  <span class="zh">MIT 许可 · 由 <code>scripts/build-site.mjs</code> 从仓库 README 生成 · <a href="https://github.com/mr-kelly/skills">mr-kelly/skills</a></span>
 </footer>
 </div>
 <script>

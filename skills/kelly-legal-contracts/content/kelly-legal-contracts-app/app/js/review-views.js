@@ -19,8 +19,10 @@ import {
   localeBadge,
   metricCards,
   noticeBanner,
+  pagerControl,
   platformBadge,
   platformRulesFor,
+  recordCountLabel,
   render,
   resultBadge,
   reviewForIssue,
@@ -39,7 +41,7 @@ import { getProvider } from "./providers/index.js?v=0.1.0";
 export function renderIssues() {
   els.title.textContent = t("issues");
   const items = filteredIssues();
-  els.subtitle.textContent = `${items.length} ${t("issuesLower")}`;
+  els.subtitle.textContent = `${recordCountLabel("issues", items.length, Boolean(state.query))} ${t("issuesLower")}`;
   els.content.innerHTML = `
     ${metricCards()}
     ${warnings()}
@@ -78,6 +80,7 @@ export function renderIssues() {
     `
         : `<div class="empty">${t("noIssues")}</div>`
     }
+    ${pagerControl("issues")}
   `;
 }
 
@@ -301,12 +304,13 @@ export function renderChecks() {
   const passCount = all.filter((item) => item.result === "pass").length;
   const warnCount = all.filter((item) => item.result === "warn").length;
   const failCount = all.filter((item) => item.result === "fail").length;
-  els.subtitle.textContent = `${all.length} ${t("checksTotal")} · ${failCount} ${t("failedChecks")}`;
+  const checkTotal = recordCountLabel("checks", all.length);
+  els.subtitle.textContent = `${checkTotal} ${t("checksTotal")} · ${failCount} ${t("failedChecks")}`;
   const platforms = [...new Set(issues().map((issue) => issue.platform))];
   els.content.innerHTML = `
     ${warnings()}
     <div class="metrics">
-      <div class="metric"><span>${t("checks")}</span><strong>${all.length}</strong></div>
+      <div class="metric"><span>${t("checks")}</span><strong>${checkTotal}</strong></div>
       <div class="metric"><span>${enumLabel("pass", "result")}</span><strong>${passCount}</strong></div>
       <div class="metric"><span>${enumLabel("warn", "result")}</span><strong>${warnCount}</strong></div>
       <div class="metric"><span>${enumLabel("fail", "result")}</span><strong>${failCount}</strong></div>
@@ -372,6 +376,7 @@ export function renderChecks() {
     `
         : `<div class="empty">${t("noChecks")}</div>`
     }
+    ${pagerControl("checks")}
   `;
   const bind = (id, prop) => {
     els.content.querySelector(id)?.addEventListener("change", (event) => {
@@ -467,6 +472,7 @@ export function renderReview() {
           .join("") || `<div class="empty">${t("noReviewItems")}</div>`
       }
     </div>
+    ${pagerControl("issues")}
   `;
   bindReviewEvents();
 }
@@ -584,6 +590,7 @@ export function renderClaims() {
           : `<div class="empty-inline">${t("noClaimRules")}</div>`
       }
     </div>
+    ${pagerControl("claims")}
   `;
 }
 

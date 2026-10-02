@@ -86,6 +86,8 @@ function idFor(kind, item) {
 let runtimeClient;
 let runtimeBases = new Map();
 let pendingSetupError = "";
+let latestPagination = {};
+let latestTotalCount = {};
 
 async function ensureResources() {
   runtimeClient = runtimeClient || createRuntimeClient();
@@ -115,28 +117,39 @@ function base(key) {
   return declared;
 }
 
-async function readAllRecords(key, { maxPages = 20 } = {}) {
+async function readPage(key, cursor) {
   if (!allowedReads.has("records.list")) throw new Error("PROCEDURE_DENIED: records.list");
   const declared = base(key);
-  const rows = [];
-  let cursor;
-  for (let page = 0; page < maxPages; page += 1) {
-    const result = await runtimeClient.records.list({
-      baseId: declared.baseId,
-      limit: declared.readLimit,
-      ...(cursor ? { cursor } : {}),
-    });
-    const records = Array.isArray(result) ? result : result.records || [];
-    for (const record of records) {
-      const fields = normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields);
-      fields.__recordId = record.id;
-      fields.__headCommitId = record.headCommitId || record.headCommit?.id;
-      rows.push(fields);
-    }
-    cursor = Array.isArray(result) ? null : result.nextCursor;
-    if (!cursor) break;
+  const result = await runtimeClient.records.list({
+    baseId: declared.baseId,
+    limit: declared.readLimit,
+    ...(cursor ? { cursor } : {}),
+  });
+  const records = Array.isArray(result) ? result : result.records || [];
+  const rows = records.map((record) => ({
+    ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields),
+    __recordId: record.id,
+    __headCommitId: record.headCommitId || record.headCommit?.id,
+  }));
+  return { rows, nextCursor: Array.isArray(result) ? null : result.nextCursor || null };
+}
+
+async function countRecords(key, filters) {
+  if (!allowedReads.has("records.count")) return null;
+  try {
+    const { total } = await runtimeClient.records.count({ baseId: base(key).baseId, ...(filters ? { filters } : {}) });
+    return total;
+  } catch {
+    return null;
   }
-  return rows;
+}
+
+async function countActiveRecords(key) {
+  const [total, deleted] = await Promise.all([
+    countRecords(key),
+    countRecords(key, [{ fieldSlug: "deleted", fieldType: "text", operator: "equals", value: "true" }]),
+  ]);
+  return total === null || deleted === null ? null : total - deleted;
 }
 
 async function findRecord(key, idFieldSlug, idValue) {
@@ -544,16 +557,12 @@ function buildTask(row) {
   };
 }
 
-function nextShotPosition(shotRows) {
-  return shotRows.reduce((max, row) => Math.max(max, Number(row.position) || 0), 0) + 1;
-}
-
 async function readProjectRow() {
-  const rows = await readAllRecords("project");
+  const { rows } = await readPage("project");
   return rows[0] || {};
 }
 async function readSettingsRow() {
-  const rows = await readAllRecords("settings");
+  const { rows } = await readPage("settings");
   return rows.find((row) => row.record_id === "config") || {};
 }
 
@@ -579,33 +588,60 @@ function settingsPayload(row = {}) {
   };
 }
 
+async function buildCollectionItems(key, rows, sharedUrlOf) {
+  const liveRows = rows.filter((row) => row.deleted !== "true");
+  if (key === "shots") liveRows.sort((a, b) => (Number(a.position) || 0) - (Number(b.position) || 0));
+  let urlOf = sharedUrlOf;
+  if (!urlOf && (key === "characters" || key === "shots")) {
+    const assetIds = collectAssetIds({
+      projectRow: {},
+      characterRows: key === "characters" ? liveRows : [],
+      shotRows: key === "shots" ? liveRows : [],
+    });
+    const urlMap = await resolveAssetUrls(runtimeClient, assetIds);
+    urlOf = (assetId) => (assetId ? urlMap.get(assetId) || "" : "");
+  }
+  const build = COLLECTIONS[key].build;
+  const items = liveRows.map((row) => build(row, urlOf || (() => "")));
+  if (key === "episodes") items.sort((a, b) => (a.number || 0) - (b.number || 0));
+  return items;
+}
+
 async function buildFullProject() {
-  const [projectRow, settingsRow, characterRows, relationshipRows, episodeRows, shotRows, taskRows] = await Promise.all(
-    [
+  const [projectRow, settingsRow, characterPage, relationshipPage, episodePage, shotPage, taskPage, totals] =
+    await Promise.all([
       readProjectRow(),
       readSettingsRow(),
-      readAllRecords("characters"),
-      readAllRecords("relationships"),
-      readAllRecords("episodes"),
-      readAllRecords("shots"),
-      readAllRecords("tasks"),
-    ],
-  );
+      readPage("characters"),
+      readPage("relationships"),
+      readPage("episodes"),
+      readPage("shots"),
+      readPage("tasks"),
+      Promise.all(["characters", "relationships", "episodes", "shots", "tasks"].map(countActiveRecords)),
+    ]);
+  const characterRows = characterPage.rows;
+  const shotRows = shotPage.rows;
   const assetIds = collectAssetIds({ projectRow, characterRows, shotRows });
   const urlMap = await resolveAssetUrls(runtimeClient, assetIds);
   const urlOf = (assetId) => (assetId ? urlMap.get(assetId) || "" : "");
 
-  const characters = characterRows.filter((row) => row.deleted !== "true").map((row) => buildCharacter(row, urlOf));
-  const relationships = relationshipRows.filter((row) => row.deleted !== "true").map(buildRelationship);
-  const episodes = episodeRows
-    .filter((row) => row.deleted !== "true")
-    .map(buildEpisode)
-    .sort((a, b) => (a.number || 0) - (b.number || 0));
-  const shots = shotRows
-    .filter((row) => row.deleted !== "true")
-    .sort((a, b) => (Number(a.position) || 0) - (Number(b.position) || 0))
-    .map((row) => buildShot(row, urlOf));
-  const tasks = taskRows.filter((row) => row.deleted !== "true").map(buildTask);
+  const [characters, relationships, episodes, shots, tasks] = await Promise.all([
+    buildCollectionItems("characters", characterRows, urlOf),
+    buildCollectionItems("relationships", relationshipPage.rows, urlOf),
+    buildCollectionItems("episodes", episodePage.rows, urlOf),
+    buildCollectionItems("shots", shotRows, urlOf),
+    buildCollectionItems("tasks", taskPage.rows, urlOf),
+  ]);
+  latestPagination = {
+    characters: characterPage.nextCursor,
+    relationships: relationshipPage.nextCursor,
+    episodes: episodePage.nextCursor,
+    shots: shotPage.nextCursor,
+    tasks: taskPage.nextCursor,
+  };
+  latestTotalCount = Object.fromEntries(
+    ["characters", "relationships", "episodes", "shots", "tasks"].map((key, index) => [key, totals[index]]),
+  );
 
   const project = {
     project_id: projectRow.project_id || "kelly-drama-project",
@@ -646,12 +682,14 @@ function fullStatePayload(project) {
       tasks: countBy(project.tasks),
     },
     totals: {
-      characters: (project.characters || []).length,
-      relationships: (project.relationships || []).length,
-      episodes: (project.episodes || []).length,
-      shots: (project.shots || []).length,
-      tasks: (project.tasks || []).length,
+      characters: latestTotalCount.characters ?? (project.characters || []).length,
+      relationships: latestTotalCount.relationships ?? (project.relationships || []).length,
+      episodes: latestTotalCount.episodes ?? (project.episodes || []).length,
+      shots: latestTotalCount.shots ?? (project.shots || []).length,
+      tasks: latestTotalCount.tasks ?? (project.tasks || []).length,
     },
+    pagination: latestPagination,
+    totalCount: latestTotalCount,
     completeness: completeness(project),
     attention: attention(project),
   };
@@ -792,6 +830,12 @@ export const busabaseProvider = {
     return fullStatePayload(project);
   },
 
+  async fetchPage(key, cursor) {
+    await ensureResources();
+    const page = await readPage(key, cursor);
+    return { items: await buildCollectionItems(key, page.rows), nextCursor: page.nextCursor };
+  },
+
   async saveSeries(series = {}) {
     await ensureResources();
     const current = await readProjectRow();
@@ -818,10 +862,12 @@ export const busabaseProvider = {
     const spec = COLLECTIONS[kindKey];
     if (!spec) throw new Error(`Unknown collection: ${kindKey}`);
     const id = idForPayload(kindKey, payload);
-    const rows = await readAllRecords(spec.baseKey);
-    const existingRow = rows.find((row) => row[spec.idKey] === id);
+    const existing = await findRecord(spec.baseKey, spec.idField, id);
+    const existingRow = existing
+      ? normalizeFields(existing.headCommit?.payload || existing.headCommit?.fields || existing.fields)
+      : null;
     const fields = { ...spec.fields(existingRow || {}), [spec.idKey]: id, ...payloadToRow(kindKey, payload) };
-    if (kindKey === "shots" && !existingRow) fields.position = nextShotPosition(rows);
+    if (kindKey === "shots" && !existingRow) fields.position = ((await countActiveRecords("shots")) || 0) + 1;
     await upsert(spec.baseKey, spec.idField, id, fields, `Save ${kindKey} ${id}`);
     const project = await buildFullProject();
     return fullStatePayload(project);

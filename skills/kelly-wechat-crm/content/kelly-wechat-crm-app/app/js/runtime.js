@@ -30,8 +30,8 @@ const normalize = (body) => {
 };
 
 /**
- * Relative path on purpose: under the Local Node engine the app lives on a
- * sub-path of busabase's origin, and `<base href>` makes a relative fetch
+ * Relative path on purpose: a hosted app can live on a sub-path of Busabase's
+ * origin, and `<base href>` makes a relative fetch
  * resolve there. A leading slash would hit busabase's own root and 404.
  *
  * The content-type check is not paranoia — a hosted origin's catch-all route

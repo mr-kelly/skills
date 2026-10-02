@@ -1,7 +1,7 @@
 {
   "name": "Sync Log",
   "description": "Append-only history of ticket collection runs per account",
-  "position": 4,
+  "position": 5,
   "fields": [
     {
       "slug": "sync-id",

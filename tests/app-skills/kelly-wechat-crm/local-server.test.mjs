@@ -53,7 +53,12 @@ test.after(async () => {
 test("serves health, runtime, and canonical browser assets", async () => {
   assert.deepEqual(await (await fetch(`${baseUrl}/health`)).json(), { ok: true, app: "kelly-wechat-crm" });
   const runtimeResponse = await fetch(`${baseUrl}/__airapp/runtime`);
-  assert.deepEqual(await runtimeResponse.json(), { runtime: "standalone", hosted: false, devProxy: false });
+  assert.deepEqual(await runtimeResponse.json(), {
+    runtime: "standalone",
+    knownRuntime: null,
+    hosted: false,
+    devProxy: false,
+  });
   for (const path of ["/", "/styles.css", "/js/app.js", "/js/config.js"]) {
     const response = await fetch(`${baseUrl}${path}`);
     assert.equal(response.status, 200, path);

@@ -1,4 +1,5 @@
 import { closeConnectGate, passConnectGate, renderSetupRequired } from "./js/connect-gate.js?v=0.1.0";
+import { computeInvoiceFromRow } from "./js/invoice-model.js?v=0.1.0";
 import { getProvider } from "./js/providers/index.js?v=0.1.0";
 
 const messages = window.KELLY_INVOICE_SHEET_MESSAGES || {};
@@ -13,6 +14,11 @@ const state = {
   uploadOpen: false,
   lang: localStorage.getItem("kelly-invoice-sheet-lang") || "auto",
   notice: "",
+  pagination: {},
+  totalCount: {},
+  loadingMore: false,
+  loadMoreError: false,
+  hasLoadedMore: false,
 };
 
 function t(key) {
@@ -94,10 +100,14 @@ async function loadState({ quiet = false } = {}) {
   const active = document.activeElement;
   const editing = active && ["INPUT", "TEXTAREA", "SELECT"].includes(active.tagName);
   if (editing && quiet) return;
+  if (quiet && state.hasLoadedMore) return;
   const provider = await getProvider();
   const data = await provider.getState();
   closeConnectGate();
   state.data = data;
+  state.pagination = data.pagination || {};
+  state.totalCount = data.totalCount || {};
+  if (!quiet) state.hasLoadedMore = false;
   const invoices = state.data?.batch?.invoices || [];
   if (!state.selectedId && invoices[0]) state.selectedId = invoices[0].id;
   if (state.selectedId && !invoices.some((invoice) => invoice.id === state.selectedId) && invoices[0]) {
@@ -133,7 +143,7 @@ function sidebarHtml() {
         <strong>${humanTask}</strong>
         <div class="human-counts">
           <span>${metrics.approved || 0} ready</span>
-          <span>${metrics.low_confidence || 0} low confidence</span>
+          <span>${metrics.low_confidence || 0}${state.pagination.invoices ? "+" : ""} low confidence</span>
         </div>
       </section>
       <nav class="filters">
@@ -215,8 +225,37 @@ function tableHtml() {
         </table>
         ${invoices.length ? "" : `<div class="empty-state">No invoices in this view.</div>`}
       </div>
+      ${loadMoreControl()}
     </section>
   `;
+}
+
+function loadMoreControl() {
+  if (!state.pagination.invoices) return "";
+  return `<div class="load-more"><button type="button" data-load-more ${state.loadingMore ? "disabled" : ""}>${state.loadingMore ? t("loadingMore") : t("loadMore")}</button>${state.loadMoreError ? `<span role="alert">${t("loadMoreFailed")}</span>` : ""}</div>`;
+}
+
+async function loadMoreInvoices() {
+  const cursor = state.pagination.invoices;
+  if (!cursor || state.loadingMore) return;
+  state.loadingMore = true;
+  state.loadMoreError = false;
+  render();
+  try {
+    const provider = await getProvider();
+    if (typeof provider.fetchPage !== "function") return;
+    const page = await provider.fetchPage("invoices", cursor);
+    const invoices = state.data.batch.invoices;
+    const known = new Set(invoices.map((invoice) => invoice.id));
+    invoices.push(...page.rows.map(computeInvoiceFromRow).filter((invoice) => !known.has(invoice.id)));
+    state.pagination.invoices = page.nextCursor;
+    state.hasLoadedMore = true;
+  } catch {
+    state.loadMoreError = true;
+  } finally {
+    state.loadingMore = false;
+    render();
+  }
 }
 
 function uploadDialogHtml() {
@@ -330,7 +369,7 @@ function mobileTopbarHtml() {
       <button class="mobile-sidebar-toggle" type="button" aria-label="Open sidebar"><span class="sidebar-toggle-icon"></span></button>
       <div class="mobile-title">
         <strong>${statusLabel(state.view)}</strong>
-        <span>${filteredInvoices().length} shown · ${metrics.total || 0} total</span>
+        <span>${filteredInvoices().length} shown · ${state.totalCount.invoices ?? `${state.data?.batch?.invoices?.length || 0}${state.pagination.invoices ? "+" : ""}`} total</span>
       </div>
       <button class="ghost-button" type="button" data-open-settings>?</button>
     </div>
@@ -434,6 +473,10 @@ async function submitDecision(action, patch = null, comment = "") {
 
 document.addEventListener("click", async (event) => {
   const target = event.target;
+  if (target.closest?.("[data-load-more]")) {
+    await loadMoreInvoices();
+    return;
+  }
   const row = target.closest?.("[data-select]");
   if (row) {
     state.selectedId = row.getAttribute("data-select");

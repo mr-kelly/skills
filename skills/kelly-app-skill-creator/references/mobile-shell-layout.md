@@ -1,16 +1,86 @@
-# Mobile Shell And Linear-Style Layout
+# Mobile Shell And Split-Pane Layout
 
-Use this reference when creating or updating an App-in-Skill UI. It captures the default layout pattern for quiet workflow tools: a dense desktop split-pane inspired by Linear-style product surfaces, plus a phone-first shell that remains usable at 360-390px widths.
+Use this reference when creating or updating an App-in-Skill UI. It captures the
+shell mechanics for a workflow tool: a desktop split-pane that keeps its working
+density, plus a phone-first shell that remains usable at 360-390px widths.
+
+The visual system it carries — type, colour families, layout register, dark
+mode, camera-ready rules — lives in `editorial-visual-system.md`. Read that
+first.
 
 ## Layout Taste
 
-- Build the actual work surface first, not a landing page.
-- Prefer a restrained, operational layout: sidebar navigation, human-attention summary, list/workspace area, detail pane, and compact actions.
-- Use a neutral base palette with one accent, soft borders, low shadows, and 6-8px radii. Avoid decorative hero sections, nested cards, color-heavy gradients, and oversized marketing typography.
-- Keep controls visually quiet. Icon buttons should usually be transparent with a low-contrast icon and a subtle hover background. Avoid black floating mobile buttons, hamburger glyphs, heavy button shadows, and selected states that flood whole rows with accent color.
-- Keep information dense but calm. Rows should scan quickly; detail pages can carry the full context.
-- Use full-width panes and bands for page structure. Reserve cards for repeated items, settings groups, dialogs, and genuinely framed tools.
-- Use workflow navigation as the primary sidebar: `All`, `Needs Review`, `Approved`, `Done`, `Blocked`, or the domain equivalent. Show categories as badges, not primary navigation.
+Build the actual work surface first, not a landing page. A good App-in-Skill
+reads as a small editorial desk for one workflow: composed, legible from across
+a room, specific to the work, and calm.
+
+**`editorial-visual-system.md` owns every visual token** — the type scale, the
+colour families (`data-theme`), the layout register (`data-editorial`), dark
+mode, the magazine vocabulary (eyebrow / headline / lede / rule / metric band /
+status pill), the camera-ready rules, and the `Do Not` list. Read it before
+writing a line of CSS, copy `assets/editorial-theme/editorial.css` into the app
+(after `base-ui.css`, before every app-owned stylesheet), and never write a raw
+colour, font size, radius, or duration into any other rule.
+
+This file owns the mechanics that carry those tokens: shell grid, sidebar
+collapse, drawer and scrim, sticky panes, breakpoints, and the modal shape.
+
+### Polish
+
+Cheap in code, and their absence is what makes a tool look unfinished:
+
+- **Motion.** Pointer feedback on `--ease`; a state change the operator (or a
+  viewer of the recording) must notice on `--ease-state`; a persisted verdict
+  gets one `--ease-flash` highlight before its row moves queue. All of it
+  collapses under `prefers-reduced-motion`, which the theme asset handles by
+  rewriting the duration tokens — do not write that media query per component.
+- **Scrollbars.** Thin, transparent track, `--rule` thumb, via `scrollbar-width`
+  plus `::-webkit-scrollbar`. The default chrome scrollbar is wide, opaque and
+  light-only; in a two-pane layout it reads as a seam through the design.
+- **Focus.** A 2px `--accent` outline plus a soft `--accent-focus` `box-shadow`
+  halo, not one flat outline — `box-shadow` so focus never shifts layout.
+- **`::selection` and `caret-color`** read from the accent.
+- **Icons**: monochrome, 16px, `stroke: currentColor`, sized by rule rather than
+  per icon. A multi-coloured icon set is the fastest way to make a composed tool
+  look like a toy.
+- **Empty states**: icon, what is missing, and the one action that fixes it —
+  never a bare line of grey text. An empty screen with no next step is where
+  these tools most often strand a user.
+- **Skeletons** for known-shape loads so the layout does not jump; a loading
+  message for unknown-length waits.
+
+### Composition
+
+Structural rules; the visual ones live in `editorial-visual-system.md`.
+
+- The page sits on `--canvas`. Regions are separated by **rules**, not by giving
+  each one its own bordered card. A card is right for the list/detail workspace
+  (one card containing both panes) and for the settings modal; it is wrong for a
+  headline block, a metric band, or a section heading.
+- The metric band uses **fixed columns** — `repeat(3, minmax(0, 1fr))` or
+  `repeat(4, …)`, dropping to two at the phone breakpoint. **Never
+  `repeat(auto-fit, …)`**: with `auto-fit` the band's height becomes a function
+  of how many metrics the app declares, six wrap to ~217px at 1280x820 and three
+  rows at 390x844, and the list starts below the fold. Fixed columns squeeze the
+  cells instead, which is the behaviour you want when space runs short.
+- **Internal identifiers never reach the screen.** A field that stores a
+  reference renders the referenced thing's name; when it is not loaded yet, say
+  so rather than falling back to the id. A display helper's last resort is `-`,
+  never `value.id` and never `JSON.stringify(value)`.
+- A row's secondary line is a **chosen** set of fields. Slicing "the 2nd through
+  4th field" picks up whatever the schema happens to hold there — which is how
+  two reference columns became the subtitle of every row in a shipped app.
+- The list/detail workspace is one card containing both panes, not two floating
+  panels.
+- Any number that sits in a column — counts, currency, percentages — gets
+  `tabular-nums`.
+- Rows scan quickly; the detail pane carries the full context.
+- Icon buttons stay transparent with a low-contrast icon and a subtle hover
+  background.
+
+Use workflow navigation as the primary sidebar: `All`, `Needs Review`,
+`Approved`, `Done`, `Blocked`, or the domain equivalent. Show categories as
+badges, not primary navigation.
 
 ## Desktop Shell
 
@@ -57,17 +127,21 @@ Use a panel icon instead of a hamburger. A hamburger suggests a generic menu; a 
 
 ```css
 .brand-icon {
-  width: 18px;
-  height: 18px;
+  /* 24px, not the 18px this used to be: at 18px the monogram had to sit at
+   * 8px, which is unreadable in a 720p clip and was the smallest type in the
+   * whole fleet. */
+  width: 24px;
+  height: 24px;
   flex: 0 0 auto;
   display: grid;
   place-items: center;
-  border: 1px solid var(--line-strong);
-  border-radius: 5px;
-  background: #f7f8fa;
-  color: #475569;
-  font-size: 8px;
-  font-weight: 760;
+  border: var(--hairline) solid var(--rule);
+  border-radius: var(--radius-sm);
+  background: var(--surface-soft);
+  color: var(--ink-soft);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: var(--tracking-wide);
   line-height: 1;
 }
 
@@ -77,7 +151,7 @@ Use a panel icon instead of a hamburger. A hamburger suggests a generic menu; a 
   place-items: center;
   padding: 0;
   border-color: transparent;
-  border-radius: 7px;
+  border-radius: var(--radius-sm);
   background: transparent;
   box-shadow: none;
 }
@@ -85,7 +159,7 @@ Use a panel icon instead of a hamburger. A hamburger suggests a generic menu; a 
 .sidebar-toggle {
   width: 30px;
   height: 30px;
-  color: #7a828f;
+  color: var(--muted);
 }
 
 .sidebar-toggle:hover,
@@ -93,8 +167,8 @@ Use a panel icon instead of a hamburger. A hamburger suggests a generic menu; a 
 .mobile-sidebar-toggle:hover,
 .mobile-sidebar-toggle:focus-visible {
   border-color: transparent;
-  background: #eef1f5;
-  color: #2f343b;
+  background: var(--surface-soft);
+  color: var(--ink);
   box-shadow: none;
 }
 
@@ -103,8 +177,8 @@ Use a panel icon instead of a hamburger. A hamburger suggests a generic menu; a 
   display: block;
   width: 17px;
   height: 15px;
-  border: 1.5px solid currentColor;
-  border-radius: 4px;
+  border: var(--rule-weight) solid currentColor;
+  border-radius: var(--radius-xs);
   opacity: 0.82;
 }
 
@@ -114,7 +188,7 @@ Use a panel icon instead of a hamburger. A hamburger suggests a generic menu; a 
   top: 0;
   bottom: 0;
   left: 5px;
-  width: 1.5px;
+  width: var(--rule-weight);
   background: currentColor;
   opacity: 0.52;
 }
@@ -126,7 +200,7 @@ For mobile, prefer the same quiet light control unless the app chrome is dark:
 .mobile-sidebar-toggle {
   width: 36px;
   height: 34px;
-  color: #59616d;
+  color: var(--muted);
 }
 ```
 
@@ -136,9 +210,9 @@ If a mobile toggle must be dark, override hover/focus so the global button hover
 .mobile-sidebar-toggle,
 .mobile-sidebar-toggle:hover,
 .mobile-sidebar-toggle:focus-visible {
-  border-color: #202124;
-  background: #202124;
-  color: #fff;
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--canvas);
   box-shadow: none;
 }
 ```
@@ -191,8 +265,8 @@ At `<=720px`, switch to a real phone shell instead of shrinking the desktop:
     gap: 9px;
     min-height: 52px;
     padding: 8px 10px;
-    border-bottom: 1px solid var(--line);
-    background: rgba(255, 255, 255, 0.96);
+    border-bottom: var(--rule-weight) solid var(--rule);
+    background: var(--surface-blur);
     backdrop-filter: blur(12px);
   }
 
@@ -203,14 +277,14 @@ At `<=720px`, switch to a real phone shell instead of shrinking the desktop:
     height: 100dvh;
     overflow: auto;
     transform: translateX(-100%);
-    transition: transform 0.18s ease;
+    transition: transform var(--ease-state);
     z-index: 30;
     box-shadow: none;
   }
 
   body.sidebar-open .sidebar {
     transform: translateX(0);
-    box-shadow: 20px 0 40px rgba(15, 23, 42, 0.16);
+    box-shadow: var(--shadow-modal);
   }
 
   .sidebar-scrim {
@@ -218,7 +292,7 @@ At `<=720px`, switch to a real phone shell instead of shrinking the desktop:
     inset: 0;
     z-index: 25;
     display: block;
-    background: rgba(15, 23, 42, 0.28);
+    background: var(--scrim);
   }
 
   .content {
@@ -256,9 +330,9 @@ At `<=720px`, switch to a real phone shell instead of shrinking the desktop:
     display: inline-flex;
     width: calc(100% + 24px);
     margin: 0 -12px 10px;
-    border-width: 0 0 1px;
+    border-width: 0 0 var(--rule-weight);
     border-radius: 0;
-    background: rgba(255, 255, 255, 0.96);
+    background: var(--surface-blur);
     backdrop-filter: blur(12px);
   }
 
@@ -375,6 +449,14 @@ Run these checks before handing off:
 - `node --check app/app.js` and any server modules.
 - App validator or dry-run script, if the skill has one.
 - Desktop viewport around `1280x820`: sidebar collapse works, no horizontal overflow, list/detail remain usable.
+- Desktop first-screen budget at `1280x820`: the metrics row is **one row**, the list shows at least
+  three rows, and the page itself does not scroll vertically. Every other item on this list is about
+  width; this is the one that catches a summary quietly eating the first screen. Check `390x844`
+  too — two columns of four metrics is two rows there, and the list still has to be visible under
+  them.
+- No identifier is visible anywhere. Walk every view, open the first row in each, and assert the
+  rendered text matches no id shape the app stores (`rec…`/uuid/hash). A sweep, not a spot check —
+  ids surface in whichever view happens to hold a reference field.
 - Phone viewport around `390x844`: top bar visible, drawer opens/closes, scrim only intercepts clicks while open, list rows are scannable, selecting a row opens detail, back returns to list.
 - Narrow phone viewport around `360x740`: no horizontal overflow.
 - Help/settings modal: every tab fits, long paths wrap, close button is visible, `document.documentElement.scrollWidth <= window.innerWidth`.

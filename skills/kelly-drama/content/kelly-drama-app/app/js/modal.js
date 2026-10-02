@@ -92,3 +92,16 @@ export function openPromptModal(data) {
       node.addEventListener("click", () => openImageModal(node.dataset.imageZoom));
     });
 }
+
+// Edit one shot without leaving the episode's shot list. Reuses the same
+// shotForm the detail pane already renders, so every field, every validation
+// and the whole `kind: "shots"` save path in actions.js are shared — this
+// modal adds no second way to write a shot, it just gives the execution
+// timeline a place to open the form that already existed.
+export function openShotEditModal(formHtml, title) {
+  if (!formHtml) return;
+  mountModal(`
+    <button type="button" class="modal-close-button" aria-label="Close">${t("modal_close")}</button>
+    <div class="modal-form-head"><div class="eyebrow">${escapeHtml(t("shot_edit_eyebrow"))}</div><h3>${escapeHtml(title || "")}</h3></div>
+    <div class="modal-form-body">${formHtml}</div>`);
+}

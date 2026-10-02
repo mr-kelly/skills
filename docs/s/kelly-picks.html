@@ -149,7 +149,6 @@ h2.group {
 .card[hidden] { display: none; }
 .card .thumb { aspect-ratio: 3 / 2; background: #eef0f3; overflow: hidden; border-bottom: 1px solid var(--border); }
 .card .thumb img { width: 100%; height: 100%; object-fit: cover; object-position: top left; display: block; }
-.card .thumb.template-cover img { object-fit: contain; object-position: center; }
 .card .thumb.empty { display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 26px; }
 .card .body { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 6px; }
 .card .name { font-weight: 650; font-size: 15.5px; display: flex; align-items: center; gap: 8px; }
@@ -312,6 +311,12 @@ After it is installed, invoke the skill as $kelly-picks.</textarea>
     </section>
     <div class="panel"><h3><span class="en">When to use it</span><span class="zh">什么时候用</span></h3><p><span class="en">Use it when hunting products to sell, pressure-testing margins before committing, or running develop/watch/drop decisions with sourcing and listing briefs.</span><span class="zh">找品、上架前压测利润空间、带采购/上架 brief 做「立项/观察/放弃」决策时使用。</span></p></div>
     <div class="shots"><figure class="shot">
+  <img data-shot-en="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-picks/assets/screenshots/overview.webp" data-shot-zh="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-picks/assets/screenshots/overview-zh-CN.webp" src="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-picks/assets/screenshots/overview.webp" alt="Overview" loading="lazy">
+  <figcaption class="cap">
+    <div class="en"><strong>Overview</strong><span>Product-research desk with weekly candidates by source, top movers, and per-source sweep freshness.</span></div><div class="zh"><strong>总览</strong><span>选品台：本周各来源候选品、Top movers 和各来源扫描新鲜度。</span></div>
+  </figcaption>
+</figure>
+<figure class="shot">
   <img data-shot-en="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-picks/assets/screenshots/candidates.webp" data-shot-zh="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-picks/assets/screenshots/candidates-zh-CN.webp" src="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-picks/assets/screenshots/candidates.webp" alt="Candidates" loading="lazy">
   <figcaption class="cap">
     <div class="en"><strong>Candidates</strong><span>Candidate table with momentum, estimated margin, competition grade, and develop/watch/drop stages.</span></div><div class="zh"><strong>候选品</strong><span>候选品表：动量、预估毛利率、竞争评级和「立项/观察/放弃」阶段。</span></div>
@@ -327,12 +332,6 @@ After it is installed, invoke the skill as $kelly-picks.</textarea>
   <img data-shot-en="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-picks/assets/screenshots/detail.webp" data-shot-zh="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-picks/assets/screenshots/detail-zh-CN.webp" src="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-picks/assets/screenshots/detail.webp" alt="Margin card" loading="lazy">
   <figcaption class="cap">
     <div class="en"><strong>Margin card</strong><span>Live-editable margin math — price, landed cost, freight, fees, ad cost → margin % and breakeven ACOS — plus a top-10 review-count competition read.</span></div><div class="zh"><strong>利润卡</strong><span>可实时改数的利润测算——售价、到岸成本、运费、平台费、广告费 → 毛利率和保本 ACOS——外加前 10 名评论数竞争解读。</span></div>
-  </figcaption>
-</figure>
-<figure class="shot">
-  <img data-shot-en="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-picks/assets/screenshots/overview.webp" data-shot-zh="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-picks/assets/screenshots/overview-zh-CN.webp" src="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-picks/assets/screenshots/overview.webp" alt="Overview" loading="lazy">
-  <figcaption class="cap">
-    <div class="en"><strong>Overview</strong><span>Product-research desk with weekly candidates by source, top movers, and per-source sweep freshness.</span></div><div class="zh"><strong>总览</strong><span>选品台：本周各来源候选品、Top movers 和各来源扫描新鲜度。</span></div>
   </figcaption>
 </figure></div>
 
@@ -377,8 +376,8 @@ After it is installed, invoke the skill as $kelly-picks.</textarea>
 </aside>
 </div>
 <footer class="footer">
-  <span class="en">MIT licensed · Built from the repo READMEs and template manifests by <code>scripts/build-site.mjs</code> · <a href="https://github.com/mr-kelly/skills">mr-kelly/skills</a></span>
-  <span class="zh">MIT 许可 · 由 <code>scripts/build-site.mjs</code> 从仓库 README 和模板清单生成 · <a href="https://github.com/mr-kelly/skills">mr-kelly/skills</a></span>
+  <span class="en">MIT licensed · Built from the repo READMEs by <code>scripts/build-site.mjs</code> · <a href="https://github.com/mr-kelly/skills">mr-kelly/skills</a></span>
+  <span class="zh">MIT 许可 · 由 <code>scripts/build-site.mjs</code> 从仓库 README 生成 · <a href="https://github.com/mr-kelly/skills">mr-kelly/skills</a></span>
 </footer>
 </div>
 <script>

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Kelly Local Model Lab"
+  short_description: "Curate Busabase datasets and run reproducible MLX fine-tunes"
+  default_prompt: "Use $kelly-local-model-lab to review training data, run a local MLX fine-tune, and compare the adapter with its baseline."

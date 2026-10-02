@@ -119,10 +119,10 @@ export function renderOverview() {
   const list = $("list");
   list.innerHTML = `
     <div class="metrics">
-      <div class="metric"><strong>${p.characters?.length || 0}</strong><span>${t("overview_metric_characters")}</span></div>
-      <div class="metric"><strong>${p.relationships?.length || 0}</strong><span>${t("overview_metric_relationships")}</span></div>
-      <div class="metric"><strong>${p.episodes?.length || 0}</strong><span>${t("overview_metric_episodes")}</span></div>
-      <div class="metric"><strong>${p.shots?.length || 0}</strong><span>${t("overview_metric_shots")}</span></div>
+      <div class="metric"><strong>${store.state.totals?.characters ?? p.characters?.length ?? 0}</strong><span>${t("overview_metric_characters")}</span></div>
+      <div class="metric"><strong>${store.state.totals?.relationships ?? p.relationships?.length ?? 0}</strong><span>${t("overview_metric_relationships")}</span></div>
+      <div class="metric"><strong>${store.state.totals?.episodes ?? p.episodes?.length ?? 0}</strong><span>${t("overview_metric_episodes")}</span></div>
+      <div class="metric"><strong>${store.state.totals?.shots ?? p.shots?.length ?? 0}</strong><span>${t("overview_metric_shots")}</span></div>
     </div>
     <div class="section-label">${t("overview_next_steps")}</div>
     ${overviewCard(t("overview_card_char_consistency"), t("overview_card_char_consistency_body").replace("{n}", store.state.completeness.characters_missing_views), "characters", t("view_characters"))}

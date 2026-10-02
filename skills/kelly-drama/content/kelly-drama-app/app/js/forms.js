@@ -170,7 +170,7 @@ function episodeForm(item) {
     </form>`;
 }
 
-function shotForm(item) {
+export function shotForm(item) {
   return `
     <form class="detail-card" data-kind="shots" data-id="${escapeHtml(item.id)}">
       <h2>${escapeHtml(item.title || "New shot")}</h2>

@@ -17,13 +17,13 @@
     grid-template-rows: auto auto minmax(0, 1fr);
     overflow: hidden;
     border: 1px solid var(--line);
-    border-radius: 10px;
+    border-radius: var(--radius-md);
     background: var(--surface);
     box-shadow: 0 24px 80px rgba(24, 24, 27, 0.22);
   }
 
   .modal-title {
-    font-size: 15px;
+    font-size: var(--text-md);
     font-weight: 750;
   }
 
@@ -32,7 +32,7 @@
     max-width: 460px;
     margin-top: 3px;
     color: var(--muted);
-    font-size: 12px;
+    font-size: var(--text-sm);
     text-overflow: ellipsis;
     white-space: nowrap;
   }
@@ -56,7 +56,7 @@
 
   .modal-tabs button {
     padding: 8px 10px 9px;
-    border-radius: 7px 7px 0 0;
+    border-radius: var(--radius-sm) var(--radius-sm) 0 0;
     color: var(--muted);
     background: transparent;
     font-weight: 650;
@@ -79,7 +79,7 @@
 
   .settings-panel h2 {
     margin: 0;
-    font-size: 13px;
+    font-size: var(--text-base);
     font-weight: 750;
   }
 
@@ -99,7 +99,7 @@
     gap: 8px;
     align-items: baseline;
     color: var(--muted);
-    font-size: 12px;
+    font-size: var(--text-sm);
   }
 
   .settings-row code {
@@ -151,7 +151,7 @@
     min-height: 34px;
     padding: 8px 11px;
     border-radius: var(--radius);
-    color: #fff;
+    color: var(--accent-contrast);
     background: var(--accent);
     font-weight: 650;
   }

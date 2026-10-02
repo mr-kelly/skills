@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import json
+import os
+import subprocess
 import sys
 import tempfile
 import urllib.request
@@ -50,10 +52,11 @@ def test_demo_ui(browser, base_url: str) -> None:
     page.wait_for_load_state("networkidle")
     assert page.locator(".table-wrap table tbody tr").count() == 14
 
-    # 7 knowledge-base articles/macros.
+    # 8 knowledge-base articles/macros — the eighth is the phone-script guide
+    # the QA training flow reads from, which is why it carries `training-source`.
     page.goto(f"{base_url}/?demo=knowledge#/knowledge")
     page.wait_for_load_state("networkidle")
-    assert page.locator(".kb-grid .kb-card").count() == 7
+    assert page.locator(".kb-grid .kb-card").count() == 8
 
     # SLA board: 10 open tickets carry a due-by (14 total minus 3 done minus
     # 1 blocked); 3 resolved tickets carry a CSAT score.
@@ -228,11 +231,24 @@ def test_busabase_provisioning(browser) -> None:
                     page.goto(f"{app_url}/#/tickets")
                     page.wait_for_load_state("networkidle")
                     assert page.locator("[data-provision]").count() == 0
+                    assert page.locator("#notice", has_text="Confirm support policies").is_visible()
                     row = page.locator(".table-wrap table tbody tr", has_text="Integration Fixture Ticket")
                     assert row.is_visible()
                     row.locator("a").first.click()
                     page.wait_for_load_state("networkidle")
-                    page.locator("[data-action='decide'][data-decision='approve']").click()
+                    approve = page.locator("[data-action='decide'][data-decision='approve']")
+                    assert approve.is_disabled()
+
+                    page.goto(f"{app_url}/#/settings")
+                    page.wait_for_load_state("networkidle")
+                    page.locator("[data-action='save-settings']").click()
+                    page.wait_for_timeout(500)
+
+                    page.goto(f"{app_url}/#/tickets/tk-fixture")
+                    page.wait_for_load_state("networkidle")
+                    approve = page.locator("[data-action='decide'][data-decision='approve']")
+                    assert approve.is_enabled()
+                    approve.click()
                     page.wait_for_timeout(500)
                     assert_no_horizontal_overflow(page)
                     assert not errors, errors
@@ -247,10 +263,74 @@ def test_busabase_provisioning(browser) -> None:
                 )
                 assert (fixture["headCommit"].get("payload") or fixture["headCommit"]["fields"])["status"] == "approved", fixture
 
+                trusted_env = {**os.environ, "BUSABASE_BASE_URL": busabase_url}
+                queued = subprocess.run(
+                    ["node", "skills/kelly-support/scripts/execute_decisions.mjs", "--apply"],
+                    cwd=REPO_ROOT,
+                    env=trusted_env,
+                    check=True,
+                    capture_output=True,
+                    text=True,
+                )
+                assert "queued send_reply" in queued.stdout, queued.stdout
+
+                finalize_command = [
+                    "node",
+                    "skills/kelly-support/scripts/finalize_delivery.mjs",
+                    "--ticket-id",
+                    "tk-fixture",
+                    "--provider-message-id",
+                    "provider-fixture-1",
+                    "--sent-at",
+                    "2026-07-06T08:05:00.000Z",
+                    "--apply",
+                ]
+                finalized = subprocess.run(
+                    finalize_command,
+                    cwd=REPO_ROOT,
+                    env=trusted_env,
+                    check=True,
+                    capture_output=True,
+                    text=True,
+                )
+                assert "finalized as sent and done" in finalized.stdout, finalized.stdout
+                repeated = subprocess.run(
+                    finalize_command,
+                    cwd=REPO_ROOT,
+                    env=trusted_env,
+                    check=True,
+                    capture_output=True,
+                    text=True,
+                )
+                assert "already finalized" in repeated.stdout, repeated.stdout
+
+                records = read_json(f"{busabase_url}/api/v1/records?baseId={tickets_base['baseId']}")
+                record_items = records if isinstance(records, list) else records.get("records", [])
+                fixture = next(
+                    r
+                    for r in record_items
+                    if (r.get("headCommit", {}).get("payload") or r.get("headCommit", {}).get("fields", {})).get("ticket-id") == "tk-fixture"
+                )
+                fixture_fields = fixture["headCommit"].get("payload") or fixture["headCommit"]["fields"]
+                assert fixture_fields["status"] == "done", fixture
+                assert fixture_fields["execution-status"] == "sent", fixture
+                assert fixture_fields["execution-provider-message-id"] == "provider-fixture-1", fixture
+                assert fixture_fields["sla-first-response-at"] == "2026-07-06T08:05:00.000Z", fixture
+
+                messages_base = find_resource(nodes, "messages")
+                messages = read_json(f"{busabase_url}/api/v1/records?baseId={messages_base['baseId']}")
+                message_items = messages if isinstance(messages, list) else messages.get("records", [])
+                outgoing = [
+                    r
+                    for r in message_items
+                    if (r.get("headCommit", {}).get("payload") or r.get("headCommit", {}).get("fields", {})).get("direction") == "outgoing"
+                ]
+                assert len(outgoing) == 1, outgoing
+
             nodes = read_json(f"{busabase_url}/api/v1/nodes?depth=2")
             keys = resource_keys(nodes)
             assert sorted(keys) == sorted(
-                ["app-root", "accounts", "tickets", "messages", "knowledge-base", "sync-log", "settings"]
+                ["app-root", "accounts", "tickets", "messages", "knowledge-base", "qa-pairs", "sync-log", "settings"]
             ), nodes
             change_requests = read_json(f"{busabase_url}/api/v1/change-requests")["changeRequests"]
             structure_requests = [
@@ -261,12 +341,12 @@ def test_busabase_provisioning(browser) -> None:
         # Data must survive a complete Busabase process restart.
         with managed_process(busabase_command, REPO_ROOT, {}, f"{busabase_url}/api/health", timeout=90):
             nodes = read_json(f"{busabase_url}/api/v1/nodes?depth=2")
-            assert len(resource_keys(nodes)) == 7, nodes
+            assert len(resource_keys(nodes)) == 8, nodes
             tickets_base = find_resource(nodes, "tickets")
             records = read_json(f"{busabase_url}/api/v1/records?baseId={tickets_base['baseId']}")
             record_items = records if isinstance(records, list) else records.get("records", [])
             assert any(
-                (record.get("headCommit", {}).get("payload") or record.get("headCommit", {}).get("fields", {})).get("status") == "approved"
+                (record.get("headCommit", {}).get("payload") or record.get("headCommit", {}).get("fields", {})).get("status") == "done"
                 for record in record_items
             )
 

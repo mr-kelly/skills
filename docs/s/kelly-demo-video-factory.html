@@ -149,7 +149,6 @@ h2.group {
 .card[hidden] { display: none; }
 .card .thumb { aspect-ratio: 3 / 2; background: #eef0f3; overflow: hidden; border-bottom: 1px solid var(--border); }
 .card .thumb img { width: 100%; height: 100%; object-fit: cover; object-position: top left; display: block; }
-.card .thumb.template-cover img { object-fit: contain; object-position: center; }
 .card .thumb.empty { display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 26px; }
 .card .body { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 6px; }
 .card .name { font-weight: 650; font-size: 15.5px; display: flex; align-items: center; gap: 8px; }
@@ -312,15 +311,15 @@ After it is installed, invoke the skill as $kelly-demo-video-factory.</textarea>
     </section>
     <div class="panel"><h3><span class="en">When to use it</span><span class="zh">什么时候用</span></h3><p><span class="en">Use it when planning a product demo video, writing a storyboard, verifying a video script's product claims before recording, tracking which shots are recorded, or handing a finished storyboard to editing/Remotion.</span><span class="zh">规划一条产品演示视频、写分镜表格、录制前核实脚本里的产品说法、追踪哪些镜头已录制，或把定稿分镜交给剪辑/Remotion 时使用。</span></p></div>
     <div class="shots"><figure class="shot">
-  <img data-shot-en="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-demo-video-factory/assets/screenshots/video-shots.webp" data-shot-zh="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-demo-video-factory/assets/screenshots/video-shots.webp" src="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-demo-video-factory/assets/screenshots/video-shots.webp" alt="Video detail" loading="lazy">
-  <figcaption class="cap">
-    <div class="en"><strong>Video detail</strong><span>Purpose/hook/pain-point/concept fields, the verified-claims correction table, and the full shot-by-shot storyboard with recording status.</span></div><div class="zh"><strong>视频详情</strong><span>目的/钩子/痛点/概念字段、核实结论对照表，以及完整的逐镜分镜表格和录制状态。</span></div>
-  </figcaption>
-</figure>
-<figure class="shot">
   <img data-shot-en="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-demo-video-factory/assets/screenshots/videos.webp" data-shot-zh="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-demo-video-factory/assets/screenshots/videos.webp" src="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-demo-video-factory/assets/screenshots/videos.webp" alt="Videos" loading="lazy">
   <figcaption class="cap">
     <div class="en"><strong>Videos</strong><span>Every planned video with status, shot count, and per-status recording progress, read live from Busabase.</span></div><div class="zh"><strong>视频列表</strong><span>每条视频的状态、镜头数、按录制状态汇总的进度，实时读自 Busabase。</span></div>
+  </figcaption>
+</figure>
+<figure class="shot">
+  <img data-shot-en="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-demo-video-factory/assets/screenshots/video-shots.webp" data-shot-zh="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-demo-video-factory/assets/screenshots/video-shots.webp" src="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-demo-video-factory/assets/screenshots/video-shots.webp" alt="Video detail" loading="lazy">
+  <figcaption class="cap">
+    <div class="en"><strong>Video detail</strong><span>Purpose/hook/pain-point/concept fields, the verified-claims correction table, and the full shot-by-shot storyboard with recording status.</span></div><div class="zh"><strong>视频详情</strong><span>目的/钩子/痛点/概念字段、核实结论对照表，以及完整的逐镜分镜表格和录制状态。</span></div>
   </figcaption>
 </figure></div>
 
@@ -365,8 +364,8 @@ After it is installed, invoke the skill as $kelly-demo-video-factory.</textarea>
 </aside>
 </div>
 <footer class="footer">
-  <span class="en">MIT licensed · Built from the repo READMEs and template manifests by <code>scripts/build-site.mjs</code> · <a href="https://github.com/mr-kelly/skills">mr-kelly/skills</a></span>
-  <span class="zh">MIT 许可 · 由 <code>scripts/build-site.mjs</code> 从仓库 README 和模板清单生成 · <a href="https://github.com/mr-kelly/skills">mr-kelly/skills</a></span>
+  <span class="en">MIT licensed · Built from the repo READMEs by <code>scripts/build-site.mjs</code> · <a href="https://github.com/mr-kelly/skills">mr-kelly/skills</a></span>
+  <span class="zh">MIT 许可 · 由 <code>scripts/build-site.mjs</code> 从仓库 README 生成 · <a href="https://github.com/mr-kelly/skills">mr-kelly/skills</a></span>
 </footer>
 </div>
 <script>

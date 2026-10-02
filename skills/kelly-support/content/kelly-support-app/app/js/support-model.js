@@ -116,9 +116,147 @@ export function normalizeKbArticle({
   body = "",
   tags = "",
   category = "",
+  source_url = "",
+  source_published_at = "",
+  source_fetched_at = "",
+  content_hash = "",
   updated_at = "",
 } = {}) {
-  return { article_id, kind, title, body, tags: parseJsonList(tags), category, updated_at };
+  return {
+    article_id,
+    kind,
+    title,
+    body,
+    tags: parseJsonList(tags),
+    category,
+    source_url,
+    source_published_at,
+    source_fetched_at,
+    content_hash,
+    updated_at,
+  };
+}
+
+export function normalizeQaPair({
+  pair_id = "",
+  article_id = "",
+  question = "",
+  answer = "",
+  category = "",
+  tags = "",
+  status = "",
+  reviewed_by = "",
+  updated_at = "",
+} = {}) {
+  // Status is trusted from storage here (unlike a ticket's derived fields)
+  // because approve/reject is the one write this record ever receives, and
+  // it always writes status directly -- there is no separate signal (like a
+  // ticket's messages) that could drift out of sync with it.
+  return {
+    pair_id,
+    article_id,
+    question,
+    answer,
+    category,
+    tags: parseJsonList(tags),
+    status: status === "approved" || status === "rejected" ? status : "draft",
+    reviewed_by,
+    updated_at,
+  };
+}
+
+const PRACTICE_CUSTOMERS = [
+  ["林晓", "青岚工作室"],
+  ["周然", "北辰零售"],
+  ["陈雨", "澄海设计"],
+  ["王宁", "木棉教育"],
+  ["赵清", "远山科技"],
+  ["何安", "日光餐饮"],
+];
+
+function practiceCategory(question) {
+  return /(投诉|抱怨|情绪|生气|激动)/.test(question) ? "complaint" : "how_to";
+}
+
+/**
+ * @param {{ article?: { article_id?: string }, qa_pairs?: Array<Record<string, any>>, now?: string }} options
+ */
+export function buildPracticeTicketBundle({ article, qa_pairs = [], now = new Date().toISOString() } = {}) {
+  if (!article?.article_id) throw new Error("Practice tickets require a source article");
+  const pairs = qa_pairs.map(normalizeQaPair).filter((pair) => pair.article_id === article.article_id);
+  const baseTime = new Date(now).getTime();
+  const account = {
+    account_id: "manual-qa-practice",
+    channel: "form",
+    connector: "manual",
+    display_name: "QA 练习工单",
+    handle: "",
+    status: "ok",
+    access_token_env: "",
+    phone_number_id_env: "",
+    corp_secret_env: "",
+    last_sync_at: now,
+  };
+  const tickets = [];
+  const messages = [];
+  pairs.forEach((pair, index) => {
+    const [customerName, customerCompany] = PRACTICE_CUSTOMERS[index % PRACTICE_CUSTOMERS.length];
+    const ticketId = `practice-${pair.pair_id}`;
+    const createdAt = new Date(baseTime - index * 5 * 60 * 1000).toISOString();
+    const priority = /(投诉|抱怨|情绪|生气|激动)/.test(pair.question) ? "high" : "normal";
+    tickets.push({
+      ticket_id: ticketId,
+      account_id: account.account_id,
+      channel: account.channel,
+      customer_name: customerName,
+      customer_company: customerCompany,
+      customer_email: "",
+      customer_handle: "",
+      customer_country: "CN",
+      customer_plan: "练习场景",
+      subject: pair.question,
+      body: pair.question,
+      category: practiceCategory(pair.question),
+      priority,
+      status: "needs_review",
+      proposed_action: "send_reply",
+      reason: `根据 QA ${pair.pair_id} 生成的合成练习工单；回复仅依据知识材料 ${article.article_id}。`,
+      suggested_reply: pair.answer,
+      kb_refs: JSON.stringify([article.article_id]),
+      sla_policy: "first_response",
+      sla_due_by: new Date(baseTime + (priority === "high" ? 4 : 8) * 60 * 60 * 1000).toISOString(),
+      sla_first_response_at: "",
+      csat_score: "",
+      csat_comment: "",
+      csat_rated_at: "",
+      owner: "Kelly",
+      unread: "true",
+      created_at: createdAt,
+      provider_conversation_id: "",
+      decision_action: "",
+      decision_comment: "",
+      decided_at: "",
+      execution_status: "",
+      execution_operation: "",
+      execution_connector: "",
+      execution_target: "",
+      execution_tier: "",
+      execution_amount: "",
+      execution_detail: "Synthetic practice ticket; never deliver externally.",
+      executed_at: "",
+      updated_at: now,
+    });
+    messages.push({
+      message_id: `${ticketId}-incoming-01`,
+      ticket_id: ticketId,
+      direction: "incoming",
+      sender: customerName,
+      text: pair.question,
+      sent_at: createdAt,
+      attachment: "",
+    });
+  });
+  return { account, tickets, messages };
 }
 
 export function normalizeTicket({
@@ -160,6 +298,11 @@ export function normalizeTicket({
   execution_tier = "",
   execution_amount = "",
   execution_detail = "",
+  execution_idempotency_key = "",
+  execution_provider_message_id = "",
+  execution_attempt = "",
+  execution_started_at = "",
+  execution_completed_at = "",
   executed_at = "",
   updated_at = "",
 } = {}) {
@@ -213,6 +356,11 @@ export function normalizeTicket({
           tier: execution_tier,
           amount: execution_amount !== "" ? Number(execution_amount) || 0 : undefined,
           detail: execution_detail,
+          idempotency_key: execution_idempotency_key,
+          provider_message_id: execution_provider_message_id,
+          attempt: execution_attempt !== "" ? Number(execution_attempt) || 0 : 0,
+          started_at: execution_started_at,
+          completed_at: execution_completed_at,
           executed_at,
         }
       : null,
@@ -241,8 +389,11 @@ function withTicketRefs(tickets) {
 // never sends; a human still approves. decideApproval and the executor both
 // re-check the gate so a BLOCK is a hard stop even if a stale approve exists.
 
+// \b is a \w-based word boundary and never matches around CJK ideographs, so
+// the Chinese alternatives below are plain substrings with no \b — matching
+// them the same way the English half does would silently never match.
 const COMMITMENT_PATTERNS =
-  /\b(refund|money back|reimburse|compensat|guarantee|we (?:will|'ll) (?:refund|credit|waive|comp)|credit your account|free month|discount code|coupon)\b/i;
+  /\b(refund|money back|reimburse|compensat|guarantee|we (?:will|'ll) (?:refund|credit|waive|comp)|credit your account|free month|discount code|coupon)\b|(退款|补偿|赔偿|保证退|免费一个月|优惠券|折扣码)/i;
 
 export function runQualityGate(ticket = {}, kb = [], risk = {}) {
   const reply = String(ticket.suggested_reply || "");
@@ -252,10 +403,16 @@ export function runQualityGate(ticket = {}, kb = [], risk = {}) {
   const checks = [];
 
   // 1. Grounding: a substantive reply should cite at least one real KB article.
+  // Every check also carries a stable `code` (+ `params` for the dynamic
+  // pieces) alongside the English `message` fallback, so the UI can render a
+  // localized string (see gateCheckText() in app.js) without having to
+  // reverse-engineer which branch produced a given English sentence.
   const grounded = validRefs.length > 0 || reply.trim().length < 40;
   checks.push({
     id: "grounding",
     ok: grounded,
+    code: grounded ? (validRefs.length ? "grounded_with_refs" : "short_ack") : "ungrounded",
+    params: { count: validRefs.length },
     message: grounded
       ? validRefs.length
         ? `Reply cites ${validRefs.length} KB article(s).`
@@ -268,6 +425,8 @@ export function runQualityGate(ticket = {}, kb = [], risk = {}) {
   checks.push({
     id: "kb_refs_resolve",
     ok: danglingRefs.length === 0,
+    code: danglingRefs.length ? "dangling" : "all_resolve",
+    params: { refs: danglingRefs.join(", ") },
     message: danglingRefs.length
       ? `Cites unknown KB article(s): ${danglingRefs.join(", ")}.`
       : "All cited KB refs resolve.",
@@ -282,6 +441,7 @@ export function runQualityGate(ticket = {}, kb = [], risk = {}) {
   checks.push({
     id: "no_unapproved_commitment",
     ok: commitmentOk,
+    code: commitmentOk ? (makesCommitment ? "commitment_approved" : "no_commitment") : "commitment_blocked",
     message: commitmentOk
       ? makesCommitment
         ? "Commitment present but on an approved refund/action."
@@ -297,6 +457,12 @@ export function runQualityGate(ticket = {}, kb = [], risk = {}) {
   checks.push({
     id: "refund_policy",
     ok: refundOk || ticket.status === "approved",
+    code:
+      ticket.proposed_action === "refund"
+        ? ticket.status === "approved"
+          ? "refund_approved"
+          : "refund_needs_approval"
+        : "no_refund_requested",
     message:
       ticket.proposed_action === "refund"
         ? ticket.status === "approved"
@@ -420,6 +586,12 @@ function buildWarnings(tickets) {
     warnings.push({
       id: "sla-breach-batch",
       severity: "warning",
+      count: breaching.length,
+      oldest_ticket_id: breaching[0].ticket_id,
+      oldest_priority: breaching[0].priority,
+      oldest_due_by: breaching[0].sla.due_by,
+      // English fallback for non-UI consumers (CLI output, logs); the
+      // rendered UI builds a localized string from the fields above instead.
       message: `${breaching.length} ticket(s) have breached their first-response SLA.`,
       detail: `See the SLA board — the oldest is ${breaching[0].ticket_id} (${breaching[0].priority}, due ${breaching[0].sla.due_by}).`,
     });
@@ -430,6 +602,12 @@ function buildWarnings(tickets) {
         id: `${ticket.ticket_id}-quality-block`,
         severity: "warning",
         account_id: ticket.account_id,
+        ticket_ref: ticket.ref,
+        customer_name: ticket.customer?.name || ticket.ticket_id,
+        gate_checks: ticket.quality_gate.checks,
+        // English fallback for non-UI consumers; UI builds a localized string
+        // for both message and detail (the latter from gate_checks, since
+        // ticket.quality_gate.summary is itself just an English fallback).
         message: `Ticket #${ticket.ref} (${ticket.customer?.name || ticket.ticket_id}) is BLOCKED by the support-qa gate.`,
         detail: ticket.quality_gate.summary || "",
       });
@@ -450,6 +628,7 @@ function buildWarnings(tickets) {
  *   tickets?: Array<Record<string, any>>,
  *   messages?: Array<Record<string, any>>,
  *   knowledge_base?: Array<Record<string, any>>,
+ *   qa_pairs?: Array<Record<string, any>>,
  *   sync_log?: Array<Record<string, any>>,
  *   risk_policy?: Record<string, any>,
  * }} [args]
@@ -459,10 +638,14 @@ export function buildSnapshot({
   tickets = [],
   messages = [],
   knowledge_base = [],
+  qa_pairs = [],
   sync_log = [],
   risk_policy = {},
 } = {}) {
   const normalizedKb = knowledge_base.map(normalizeKbArticle);
+  const normalizedQaPairs = qa_pairs
+    .map(normalizeQaPair)
+    .sort((a, b) => String(b.updated_at || "").localeCompare(String(a.updated_at || "")));
 
   const messagesByTicket = new Map();
   for (const row of messages) {
@@ -500,6 +683,7 @@ export function buildSnapshot({
     accounts: normalizedAccounts,
     tickets: normalizedTickets,
     knowledge_base: normalizedKb,
+    qa_pairs: normalizedQaPairs,
     sync_log: [...sync_log].sort((a, b) => String(a.at || "").localeCompare(String(b.at || ""))),
     warnings: buildWarnings(normalizedTickets),
   };
@@ -517,6 +701,9 @@ export function buildSnapshot({
  */
 export function buildConfigSummary({ settings = {}, accounts = [] } = {}) {
   return {
+    onboarding_status: settings.onboarding_status || "not_started",
+    onboarding_version: Number(settings.onboarding_version || 0),
+    updated_at: settings.updated_at || "",
     config_path: "busabase",
     is_example: false,
     sla_policy: parseJsonObject(settings.sla_policy),

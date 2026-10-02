@@ -8,9 +8,11 @@ import {
   feedbackTable,
   filteredFeedback,
   loadState,
+  pagerControl,
   preview,
   productName,
   proposals,
+  recordCountLabel,
   render,
   requestLink,
   requests,
@@ -27,8 +29,9 @@ import { getProvider } from "./providers/index.js?v=0.1.0";
 export function renderInbox() {
   els.title.textContent = t("inbox");
   const items = filteredFeedback();
-  els.subtitle.textContent = `${items.length} ${t("items")} · ${items.filter((item) => item.triage === "new").length} ${t("newUncategorized")}`;
-  els.content.innerHTML = feedbackTable(items);
+  els.subtitle.textContent = `${recordCountLabel("feedback", items.length, Boolean(state.query))} ${t("items")} · ${items.filter((item) => item.triage === "new").length} ${t("newUncategorized")}`;
+  els.content.innerHTML = `${feedbackTable(items)}
+    ${pagerControl("feedback")}`;
 }
 
 export function renderInboxDetail() {
@@ -115,7 +118,7 @@ function filteredRequests() {
 export function renderRequests() {
   els.title.textContent = t("requests");
   const items = filteredRequests();
-  els.subtitle.textContent = `${items.length} ${t("requests").toLowerCase()} · ${items.filter((item) => item.status === "needs_info").length} ${t("needsInfo")}`;
+  els.subtitle.textContent = `${recordCountLabel("requests", items.length, Boolean(state.query))} ${t("requests").toLowerCase()} · ${items.filter((item) => item.status === "needs_info").length} ${t("needsInfo")}`;
   const sorted = [...items].sort((a, b) => b.weighted_score - a.weighted_score);
   els.content.innerHTML = `
     <div class="table-wrap">
@@ -146,6 +149,7 @@ export function renderRequests() {
         </tbody>
       </table>
     </div>
+    ${pagerControl("requests")}
   `;
 }
 
@@ -246,7 +250,7 @@ export function renderRoadmap() {
   const items = proposals();
   const waiting = items.filter((item) => item.status === "needs_review").length;
   els.title.textContent = t("roadmap");
-  els.subtitle.textContent = `${items.length} ${t("proposal").toLowerCase()} · ${waiting} ${t("decisionsWaiting")}`;
+  els.subtitle.textContent = `${recordCountLabel("proposals", items.length)} ${t("proposal").toLowerCase()} · ${waiting} ${t("decisionsWaiting")}`;
   const roadmap = state.snapshot?.roadmap || { now: [], next: [], later: [] };
   els.content.innerHTML = `
     <section class="proposal-list">
@@ -280,6 +284,7 @@ export function renderRoadmap() {
           .join("")}
       </div>
     </section>
+    ${pagerControl("roadmap")}
   `;
   bindProposalCards();
 }

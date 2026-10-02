@@ -58,30 +58,35 @@ function base(key) {
   return declared;
 }
 
-async function readAllRecords(key, { maxPages = 20 } = {}) {
+async function readPage(key, cursor) {
   if (!allowedReads.has("records.list")) throw new Error("PROCEDURE_DENIED: records.list");
   const declared = base(key);
-  const rows = [];
-  let cursor;
-  for (let page = 0; page < maxPages; page += 1) {
-    const result = await runtimeClient.records.list({
-      baseId: declared.baseId,
-      limit: declared.readLimit,
-      ...(cursor ? { cursor } : {}),
-    });
-    const records = Array.isArray(result) ? result : result.records || [];
-    for (const record of records) {
-      rows.push({
-        ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields),
-        __recordId: record.id,
-        __headCommitId: record.headCommitId || record.headCommit?.id,
-      });
-    }
-    cursor = Array.isArray(result) ? null : result.nextCursor;
-    if (!cursor) break;
-  }
-  return rows;
+  const result = await runtimeClient.records.list({
+    baseId: declared.baseId,
+    limit: declared.readLimit,
+    ...(cursor ? { cursor } : {}),
+  });
+  const records = Array.isArray(result) ? result : result.records || [];
+  const rows = records.map((record) => ({
+    ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields),
+    __recordId: record.id,
+    __headCommitId: record.headCommitId || record.headCommit?.id,
+  }));
+  return { rows, nextCursor: Array.isArray(result) ? null : result.nextCursor || null };
 }
+
+async function countRecords(key, filters) {
+  if (!allowedReads.has("records.count")) return null;
+  try {
+    const { total } = await runtimeClient.records.count({ baseId: base(key).baseId, ...(filters ? { filters } : {}) });
+    return total;
+  } catch {
+    return null;
+  }
+}
+
+const countChecks = (status) =>
+  countRecords("checks", [{ fieldSlug: "status", fieldType: "text", operator: "equals", value: status }]);
 
 async function findRecord(key, idFieldSlug, idValue) {
   const declared = base(key);
@@ -153,18 +158,30 @@ export const busabaseProvider = {
 
   async getState() {
     await ensureResources();
-    const [modelRows, checkRows, settingsRows] = await Promise.all([
-      readAllRecords("model"),
-      readAllRecords("checks"),
-      readAllRecords("settings"),
-    ]);
-    const config_summary = buildConfigSummary(settingsRows);
-    const modelRow = findModelRow(modelRows);
-    const checks = checkRows.map(computeCheckFromRow);
+    const [modelPage, checkPage, settingsPage, totalChecks, needsReview, changesRequested, approved, done, blocked] =
+      await Promise.all([
+        readPage("model"),
+        readPage("checks"),
+        readPage("settings"),
+        countRecords("checks"),
+        countChecks("needs_review"),
+        countChecks("changes_requested"),
+        countChecks("approved"),
+        countChecks("done"),
+        countChecks("blocked"),
+      ]);
+    const config_summary = buildConfigSummary(settingsPage.rows);
+    const modelRow = findModelRow(modelPage.rows);
+    const checks = checkPage.rows.map(computeCheckFromRow);
     const snapshot = assembleSnapshot({
       model: modelRow ? computeModelFromRow(modelRow) : null,
       checks,
     });
+    if (needsReview !== null && changesRequested !== null)
+      snapshot.metrics.needs_review = needsReview + changesRequested;
+    if (approved !== null) snapshot.metrics.approved = approved;
+    if (done !== null) snapshot.metrics.done = done;
+    if (blocked !== null) snapshot.metrics.blocked = blocked;
     return {
       app: "kelly-finance",
       demo: false,
@@ -173,7 +190,14 @@ export const busabaseProvider = {
       lock: null,
       config_summary,
       snapshot,
+      pagination: { checks: checkPage.nextCursor },
+      totalCount: { checks: totalChecks },
     };
+  },
+
+  async fetchPage(key, cursor) {
+    await ensureResources();
+    return readPage(key, cursor);
   },
 
   // Human verdict (approve / request_changes / block / dismiss), written

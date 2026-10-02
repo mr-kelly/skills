@@ -25,6 +25,8 @@ export const store = {
   lastAppliedHash: "",
   langPref: URL_LANG || localStorage.getItem(LANG_STORAGE_KEY) || "auto",
   expandedShots: new Set(),
+  loadingMore: {},
+  loadMoreError: {},
 };
 
 export function project() {

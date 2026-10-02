@@ -1,7 +1,7 @@
 import { inspectProvisionedResources, provisionDeclaredResources } from "../../vendor/busabase-airapp.js";
 import { createRuntimeClient } from "../busabase-client.js";
 import { appConfig } from "../config.js?v=0.1.0";
-import { DECISION_ACTIONS, buildSnapshot, statusForAction } from "../writer-model.js?v=0.1.0";
+import { DECISION_ACTIONS, buildSnapshot, normalizeDraft, statusForAction } from "../writer-model.js?v=0.1.0";
 
 const allowedReads = new Set(appConfig.permissions.readProcedures);
 const allowedSetup = new Set(appConfig.permissions.setupProcedures);
@@ -59,29 +59,42 @@ function base(key) {
   return declared;
 }
 
-async function readAllRecords(key, { maxPages = 20 } = {}) {
+const initialCursors = new Map();
+
+async function readPage(key, cursor) {
   if (!allowedReads.has("records.list")) throw new Error("PROCEDURE_DENIED: records.list");
   const declared = base(key);
-  const rows = [];
-  let cursor;
-  for (let page = 0; page < maxPages; page += 1) {
-    const result = await runtimeClient.records.list({
-      baseId: declared.baseId,
-      limit: declared.readLimit,
-      ...(cursor ? { cursor } : {}),
+  const result = await runtimeClient.records.list({
+    baseId: declared.baseId,
+    limit: declared.readLimit,
+    ...(cursor ? { cursor } : {}),
+  });
+  const records = Array.isArray(result) ? result : result.records || [];
+  const rows = records.map((record) => ({
+    ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields),
+    __recordId: record.id,
+    __headCommitId: record.headCommitId || record.headCommit?.id,
+  }));
+  return { rows, nextCursor: Array.isArray(result) ? null : result.nextCursor || null };
+}
+
+async function readPageRows(key) {
+  const page = await readPage(key);
+  initialCursors.set(key, page.nextCursor);
+  return page.rows;
+}
+
+async function countRecords(key, filters) {
+  if (!allowedReads.has("records.count")) return null;
+  try {
+    const { total } = await runtimeClient.records.count({
+      baseId: base(key).baseId,
+      ...(filters ? { filters } : {}),
     });
-    const records = Array.isArray(result) ? result : result.records || [];
-    for (const record of records) {
-      rows.push({
-        ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields),
-        __recordId: record.id,
-        __headCommitId: record.headCommitId || record.headCommit?.id,
-      });
-    }
-    cursor = Array.isArray(result) ? null : result.nextCursor;
-    if (!cursor) break;
+    return total;
+  } catch {
+    return null;
   }
-  return rows;
 }
 
 async function findRecord(key, idFieldSlug, idValue) {
@@ -123,7 +136,7 @@ async function upsert(key, idFieldSlug, idValue, fields, message) {
 }
 
 async function readSettingsRows() {
-  const rows = await readAllRecords("settings");
+  const rows = await readPageRows("settings");
   return new Map(rows.map((row) => [row.record_id || row.kind, row]));
 }
 
@@ -132,7 +145,12 @@ export const busabaseProvider = {
 
   async getState() {
     await ensureResources();
-    const [draftRows, settings] = await Promise.all([readAllRecords("drafts"), readSettingsRows()]);
+    initialCursors.clear();
+    const [draftRows, settings, draftCount] = await Promise.all([
+      readPageRows("drafts"),
+      readSettingsRows(),
+      countRecords("drafts"),
+    ]);
     const snapshot = buildSnapshot({ drafts: draftRows });
     const profileRow = settings.get("kelly-writer-profile") || {};
     const lockRow = settings.get("kelly-writer-lock") || {};
@@ -161,7 +179,15 @@ export const busabaseProvider = {
         : { locked: false },
       decisions: {},
       snapshot,
+      totals: { drafts: draftCount },
+      pagination: { drafts: initialCursors.get("drafts") || null },
     };
+  },
+
+  async fetchPage(key, cursor) {
+    await ensureResources();
+    const page = await readPage(key, cursor);
+    return { ...page, rows: page.rows.map(normalizeDraft) };
   },
 
   // Human verdict: writes status/decision_note/decided_at (and, if edited,

@@ -24,6 +24,11 @@ export function selectedItem() {
   return collectionFor().find((item) => String(item.id) === String(store.selectedId)) || collectionFor()[0] || null;
 }
 
+export function loadMoreControl(key) {
+  if (!store.state?.pagination?.[key]) return "";
+  return `<div class="load-more"><button type="button" data-load-more="${escapeHtml(key)}" ${store.loadingMore[key] ? "disabled" : ""}>${store.loadingMore[key] ? t("loading_more") : t("load_more")}</button>${store.loadMoreError[key] ? `<span role="alert">${t("load_more_failed")}</span>` : ""}</div>`;
+}
+
 function itemCard(item) {
   const title = item.name || item.title || item.type || item.id;
   const body =
@@ -67,14 +72,19 @@ function itemCard(item) {
 export function renderListAndDetail() {
   $("newItemButton").style.visibility = "visible";
   const items = collectionFor().filter(matches);
-  $("itemCount").textContent = String(items.length);
+  $("itemCount").textContent = store.query
+    ? `${items.length}${store.state.pagination?.[store.view] ? "+" : ""}`
+    : String(
+        store.state.totalCount?.[store.view] ?? `${items.length}${store.state.pagination?.[store.view] ? "+" : ""}`,
+      );
   if (!store.selectedId || !collectionFor().some((item) => item.id === store.selectedId)) {
     store.selectedId = items[0]?.id || null;
     syncRoute({ replace: true });
   }
-  $("list").innerHTML =
+  $("list").innerHTML = `${
     items.map(itemCard).join("") ||
-    `<div class="item-card"><h3>${t("empty_list")}</h3><p>${t("empty_list_hint")}</p></div>`;
+    `<div class="item-card"><h3>${t("empty_list")}</h3><p>${t("empty_list_hint")}</p></div>`
+  }${loadMoreControl(store.view)}`;
   $("detail").innerHTML = detailForm(selectedItem());
   bindForm();
 }

@@ -88,7 +88,10 @@ export const MESSAGES = {
     episode_tab_summary: "剧集总述",
     episode_tab_shots: "分镜详情",
     episode_back: "返回剧集列表",
-    episode_shots_note: "分镜详情当前用于查看执行层，编辑分镜可后续接到单镜头弹窗。",
+    shot_edit: "编辑",
+    toast_save_failed: "保存失败。",
+    shot_edit_eyebrow: "编辑分镜",
+    shot_not_found: "找不到这个分镜。",
     episode_select_hint: "选择一集",
     episode_select_hint_sub: "从左侧剧集表格进入单集详情。",
     // shot readiness
@@ -119,6 +122,9 @@ export const MESSAGES = {
     form_select_or_new_hint: "这里会显示当前视图的编辑表单。",
     empty_list: "还没有内容",
     empty_list_hint: "点击右上角新建，先搭一个骨架。",
+    load_more: "加载更多",
+    loading_more: "加载中...",
+    load_more_failed: "无法加载更多，请重试。",
     // shot sheet labels
     shot_label_composition: "镜头描述 / 规格",
     shot_label_action: "动作脚本（运动）",
@@ -316,7 +322,10 @@ export const MESSAGES = {
     episode_tab_summary: "Episode summary",
     episode_tab_shots: "Storyboard shots",
     episode_back: "Back to episode list",
-    episode_shots_note: "Shot details are view-only here. Full editing is available per-shot in a future panel.",
+    shot_edit: "Edit",
+    toast_save_failed: "Save failed.",
+    shot_edit_eyebrow: "Edit shot",
+    shot_not_found: "That shot no longer exists.",
     episode_select_hint: "Select an episode",
     episode_select_hint_sub: "Click an episode in the table to open its detail.",
     // shot readiness
@@ -347,6 +356,9 @@ export const MESSAGES = {
     form_select_or_new_hint: "The edit form for the current view will appear here.",
     empty_list: "Nothing here yet",
     empty_list_hint: "Click + to create a first item.",
+    load_more: "Load more",
+    loading_more: "Loading...",
+    load_more_failed: "Couldn't load more. Try again.",
     // shot sheet labels
     shot_label_composition: "Shot description / spec",
     shot_label_action: "Action script (motion)",

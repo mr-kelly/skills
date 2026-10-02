@@ -1,0 +1,840 @@
+#!/usr/bin/env node
+/**
+ * busabase-community — read and post on the Busabase community forum through
+ * its own `/api/v1/community/*` REST API.
+ *
+ * Zero dependencies: Node's built-in `fetch` and nothing else.
+ *
+ * Publishing is immediate and public — this API has no draft or review state.
+ * `new` and `reply` therefore print exactly what they would send and refuse to
+ * send it unless `--yes` is passed in the same command.
+ *
+ * Usage:  node scripts/community.mjs <command> [options]
+ */
+
+import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const SKILL_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+/** Shown in instructions — a path the user can paste, not an absolute one. */
+const SKILL_ENV_HINT = `skills/${"busabase-community"}/.env`;
+
+/** The only per-product part of this file. Everything below is shared verbatim. */
+const PRODUCT = {
+  name: "Busabase",
+  slug: "busabase-community",
+  /** Where humans read the forum. */
+  webUrl: "https://community.busabase.com",
+  /**
+   * Where the API actually lives. The `community.` host only 307s here, and a
+   * cross-origin redirect drops the Authorization header, so calling it would
+   * always come back UNAUTHORIZED.
+   */
+  apiUrl: "https://busabase.com",
+  keyEnv: "BUSABASE_API_KEY",
+  apiEnv: "BUSABASE_COMMUNITY_API_URL",
+  webEnv: "BUSABASE_COMMUNITY_URL",
+  /** `/api/v1/users/me`, when the deployment serves it. */
+  meEndpoint: "/api/v1/users/me",
+  keyDocs: "https://busabase.com/docs/api-tokens",
+  /** Conventional place to keep the key — outside any repository. */
+  envFile: "~/.busabase/.env",
+  /**
+   * Extra accounts live under this prefix — `BUSABASE_API_KEY_ALT` is the
+   * account `--as alt`. One forum, several identities.
+   */
+  accountEnv: "BUSABASE_ACCOUNT",
+  /** Point this at any file to override the search path entirely. */
+  envFileEnv: "BUSABASE_ENV_FILE",
+  /** Conventional per-product home directory, shared with the other Busabase tooling. */
+  homeDir: ".busabase",
+};
+
+// ------------------------------------------------------------- env files
+
+/**
+ * Where the keys may live, nearest first. All of these are gitignored or
+ * outside the repository; none of them is ever read into output.
+ *
+ * An already-exported variable always wins, so a one-off
+ * `BUSABASE_API_KEY=… node scripts/community.mjs …` still overrides the file.
+ */
+export function envSearchPaths(env = process.env) {
+  const home = env.HOME || "";
+  return [
+    env[PRODUCT.envFileEnv],
+    path.join(SKILL_DIR, ".env"),
+    home && path.join(home, PRODUCT.homeDir, ".env"),
+  ].filter((file) => typeof file === "string" && file.length > 0);
+}
+
+/** A deliberately small dotenv reader — `KEY=value`, `#` comments, optional quotes. */
+export function parseDotenv(raw) {
+  /** @type {Record<string, string>} */
+  const values = {};
+  for (const line of raw.split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) continue;
+    const at = trimmed.indexOf("=");
+    if (at === -1) continue;
+    const key = trimmed.slice(0, at).trim();
+    let value = trimmed.slice(at + 1).trim();
+    if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
+      value = value.slice(1, -1);
+    }
+    if (key) values[key] = value;
+  }
+  return values;
+}
+
+/** Fill in missing variables from the first file that defines them. Returns what it read. */
+export function loadEnvFiles(env = process.env) {
+  const loaded = [];
+  for (const file of envSearchPaths(env)) {
+    let raw;
+    try {
+      raw = readFileSync(file, "utf8");
+    } catch {
+      continue; // absent or unreadable — the next candidate gets a turn
+    }
+    const values = parseDotenv(raw);
+    const applied = [];
+    for (const [key, value] of Object.entries(values)) {
+      if (env[key] === undefined) {
+        env[key] = value;
+        applied.push(key);
+      }
+    }
+    loaded.push({ file, keys: applied });
+  }
+  return loaded;
+}
+
+const SORTS = ["active", "latest", "top"];
+/** Server enum for `--status`; kept here so a typo fails locally, not after a round trip. */
+const TRIAGE_STATUSES = ["triage", "needs_info", "accepted", "in_progress", "done", "closed"];
+
+// ---------------------------------------------------------------- arg parsing
+
+const BOOLEAN_FLAGS = new Set(["yes", "json", "unanswered", "solved"]);
+
+export function parseArgs(argv) {
+  const positional = [];
+  const flags = {};
+  for (let i = 0; i < argv.length; i++) {
+    const token = argv[i];
+    if (!token.startsWith("--")) {
+      positional.push(token);
+      continue;
+    }
+    const at = token.indexOf("=");
+    const rawKey = at === -1 ? token.slice(2) : token.slice(2, at);
+    const inline = at === -1 ? undefined : token.slice(at + 1);
+    const key = rawKey.replace(/-([a-z])/g, (_, c) => c.toUpperCase());
+    if (BOOLEAN_FLAGS.has(key)) {
+      flags[key] = inline === undefined ? true : inline !== "false";
+      continue;
+    }
+    const value = inline ?? (argv[i + 1]?.startsWith("--") ? true : (argv[++i] ?? true));
+    flags[key] = value;
+  }
+  return { positional, flags };
+}
+
+/** A bare `--limit` carries `true`, and `Number(true)` is 1 — fall back instead. */
+export function num(value, fallback) {
+  if (typeof value !== "string" && typeof value !== "number") return fallback;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : fallback;
+}
+
+/**
+ * Every refusal in this file goes through here.
+ *
+ * It throws rather than calling `process.exit` so the commands can be driven
+ * from a test — "this refused to send" is the behaviour most worth pinning
+ * down, and it is unreachable from a process that has already exited. The
+ * entry point turns it back into exit code 1 on stderr.
+ */
+export class CommunityCliError extends Error {
+  constructor(message, { prefixed = true } = {}) {
+    super(prefixed ? `${PRODUCT.slug}: ${message}` : message);
+    this.name = "CommunityCliError";
+  }
+}
+
+function fail(message) {
+  throw new CommunityCliError(message);
+}
+
+/** What to tell a user who has not configured the key yet. */
+export function onboarding(env = process.env, account = "") {
+  const { apiUrl, webUrl, keyEnv } = config(env, account);
+  return [
+    `${keyEnv} is not set — this skill cannot reach the ${PRODUCT.name} community without it.`,
+    "",
+    "Set it up:",
+    `  1. Sign in at ${webUrl} — the forum uses your ${PRODUCT.name} account.`,
+    `  2. Create an API key: ${PRODUCT.keyDocs}`,
+    "  3. Write it to the skill's own env file — gitignored, read automatically:",
+    `       printf '${keyEnv}=%s\\n' '<key>' >> ${SKILL_ENV_HINT}`,
+    `       chmod 600 ${SKILL_ENV_HINT}`,
+    `     ${PRODUCT.envFile} works too, and so does a one-off`,
+    `     \`export ${keyEnv}=<key>\`, which an exported value always wins over.`,
+    `     A second account is ${PRODUCT.keyEnv}_<NAME>, reached with \`--as <name>\`.`,
+    "  4. Verify: node scripts/community.mjs whoami",
+    "",
+    `Optional overrides — ${PRODUCT.apiEnv} (default ${apiUrl}), ${PRODUCT.webEnv} (default ${webUrl}).`,
+    `Files are read nearest-first — ${PRODUCT.envFileEnv}, ${SKILL_ENV_HINT}, ${PRODUCT.envFile}.`,
+    "Never paste the key into chat, into a tracked file, or into command output.",
+  ].join("\n");
+}
+
+function requireKey() {
+  const { apiKey } = selected();
+  if (apiKey) return apiKey;
+  // The onboarding text is the whole message; the slug prefix would only
+  // push its first line out of alignment.
+  throw new CommunityCliError(onboarding(ENV, ACCOUNT), { prefixed: false });
+}
+
+// -------------------------------------------------------------------- request
+
+/** `alt` → `BUSABASE_API_KEY_ALT`. Anything not a letter or digit becomes `_`. */
+export function accountKeyEnv(account) {
+  return `${PRODUCT.keyEnv}_${String(account)
+    .toUpperCase()
+    .replace(/[^A-Z0-9]+/g, "_")}`;
+}
+
+/**
+ * Every account configured for this forum, default first.
+ *
+ * The default is the bare `BUSABASE_API_KEY`; a named one is
+ * `BUSABASE_API_KEY_<NAME>`. Returns names and key lengths — never a key.
+ */
+export function listAccounts(env = process.env) {
+  const accounts = [];
+  if (env[PRODUCT.keyEnv]) accounts.push({ name: "default", env: PRODUCT.keyEnv, length: env[PRODUCT.keyEnv].length });
+  const prefix = `${PRODUCT.keyEnv}_`;
+  for (const [key, value] of Object.entries(env)) {
+    if (!key.startsWith(prefix) || !value) continue;
+    accounts.push({ name: key.slice(prefix.length).toLowerCase(), env: key, length: value.length });
+  }
+  return accounts;
+}
+
+/**
+ * @param {Record<string, string | undefined>} [env]
+ * @param {string} [account] the `--as` name, when one was given
+ */
+export function config(env = process.env, account = "") {
+  // Precedence: --as beats $BUSABASE_ACCOUNT beats the unnamed default key.
+  const name = account || env[PRODUCT.accountEnv] || "";
+  const keyEnv = name && name !== "default" ? accountKeyEnv(name) : PRODUCT.keyEnv;
+  const apiKey = env[keyEnv];
+  const apiUrl = (env[PRODUCT.apiEnv] || PRODUCT.apiUrl).replace(/\/+$/, "").replace(/\/api\/v1$/, "");
+  const webUrl = (env[PRODUCT.webEnv] || PRODUCT.webUrl).replace(/\/+$/, "");
+  return { apiKey, apiUrl, webUrl, account: name || "default", keyEnv };
+}
+
+/** Both error envelopes in the wild — `{error}` and `{success,message}`. */
+export function errorMessage(status, payload) {
+  const detail =
+    (payload && typeof payload === "object" ? (payload.error ?? payload.message) : undefined) ||
+    (typeof payload === "string" ? payload.slice(0, 200) : "") ||
+    "no error body";
+  return `HTTP ${status} — ${detail}`;
+}
+
+export function buildUrl(apiUrl, path, query = {}) {
+  const url = new URL(path, `${apiUrl}/`);
+  for (const [key, value] of Object.entries(query)) {
+    if (value === undefined || value === null || value === "") continue;
+    url.searchParams.set(key, String(value));
+  }
+  return url.toString();
+}
+
+/**
+ * @param {string} path
+ * @param {{ method?: string, query?: Record<string, unknown>, body?: unknown, soft?: boolean, fetchImpl?: typeof fetch }} [options]
+ */
+async function request(path, { method = "GET", query, body, soft = false, fetchImpl } = {}) {
+  const apiKey = requireKey();
+  const { apiUrl } = selected();
+  const send = fetchImpl ?? FETCH ?? fetch;
+
+  const response = await send(buildUrl(apiUrl, path, query), {
+    method,
+    headers: {
+      authorization: `Bearer ${apiKey}`,
+      accept: "application/json",
+      ...(body ? { "content-type": "application/json" } : {}),
+    },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+
+  const raw = await response.text();
+  let payload;
+  try {
+    payload = raw ? JSON.parse(raw) : null;
+  } catch {
+    payload = raw;
+  }
+
+  if (!response.ok) {
+    // `soft` is for callers checking several credentials in a row: one dead
+    // account should be reported beside the others, not end the command.
+    if (soft) return null;
+    if (response.status === 401) {
+      fail(`${method} ${path} — unauthorized. ${selected().keyEnv} is expired or rejected.`);
+    }
+    if (response.status === 403) {
+      fail(
+        method === "PATCH"
+          ? `${method} ${path} — forbidden. Only the account that wrote it can edit it (see --as), and a locked post cannot be edited.`
+          : `${method} ${path} — forbidden. This key may not post to that category.`,
+      );
+    }
+    if (response.status === 404) {
+      // A missing *route* echoes the path back; a missing *record* does not.
+      // Worth separating: one means "not deployed here", the other "wrong id".
+      const routeMissing = typeof payload === "object" && payload !== null && "path" in payload;
+      if (routeMissing) {
+        fail(
+          `${method} ${path} — this deployment does not serve that route yet (it was not deployed, so nothing was changed). Try again after the next release.`,
+        );
+      }
+      fail(`${method} ${path} — not found. Check the slug or id.`);
+    }
+    fail(`${method} ${path} — ${errorMessage(response.status, payload)}`);
+  }
+  // Some deployments wrap success in { success, data }; unwrap when they do.
+  return payload && typeof payload === "object" && payload.success === true && "data" in payload
+    ? payload.data
+    : payload;
+}
+
+function output(data, flags, render) {
+  if (flags.json) {
+    console.log(JSON.stringify(data, null, 2));
+    return;
+  }
+  render(data);
+}
+
+const oneLine = (text, max = 160) =>
+  String(text ?? "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, max);
+
+/** CJK and emoji occupy two terminal columns; `String.length` does not know that. */
+export function displayWidth(text) {
+  let width = 0;
+  for (const char of String(text ?? "")) {
+    const code = char.codePointAt(0);
+    const wide =
+      (code >= 0x1100 && code <= 0x115f) ||
+      (code >= 0x2e80 && code <= 0xa4cf) ||
+      (code >= 0xac00 && code <= 0xd7a3) ||
+      (code >= 0xf900 && code <= 0xfaff) ||
+      (code >= 0xfe30 && code <= 0xfe4f) ||
+      (code >= 0xff00 && code <= 0xff60) ||
+      (code >= 0xffe0 && code <= 0xffe6) ||
+      (code >= 0x1f300 && code <= 0x1f9ff) ||
+      (code >= 0x20000 && code <= 0x3fffd);
+    width += wide ? 2 : 1;
+  }
+  return width;
+}
+
+export function pad(text, target) {
+  const value = String(text ?? "");
+  return value + " ".repeat(Math.max(1, target - displayWidth(value)));
+}
+
+function postUrl(post, webUrl) {
+  if (post.url) return /^https?:\/\//.test(post.url) ? post.url : `${webUrl}${post.url}`;
+  return `${webUrl}/community/${post.categorySlug}/${post.slug}`;
+}
+
+// ------------------------------------------------------------------ commands
+
+async function cmdWhoami(_positional, flags) {
+  const { apiUrl, webUrl } = selected();
+  const categories = await request("/api/v1/community/categories");
+  const me = PRODUCT.meEndpoint ? await request(PRODUCT.meEndpoint) : null;
+  output({ api: apiUrl, forum: webUrl, user: me, categoryCount: categories.items.length }, flags, () => {
+    console.log(`api        ${apiUrl}`);
+    console.log(`forum      ${webUrl}`);
+    console.log(`account    ${selected().account} (${selected().keyEnv})`);
+    const user = me?.user ?? me;
+    console.log(
+      `user       ${user?.name ?? user?.email ?? (me ? JSON.stringify(user) : "(no users/me on this deployment)")}`,
+    );
+    console.log(`key        valid — ${categories.items.length} categories visible`);
+  });
+}
+
+async function cmdCategories(_positional, flags) {
+  const data = await request("/api/v1/community/categories");
+  output(data, flags, () => {
+    for (const category of data.items) {
+      console.log(
+        `${pad(category.slug, 18)}${String(category.postCount).padStart(4)}  ${pad(category.kind, 16)}${category.name}`,
+      );
+    }
+    console.log(`\n${data.items.length} categor(ies)`);
+  });
+}
+
+/**
+ * `--status a,b` (or the server also accepts `?status=a&status=b`, but a
+ * comma-separated single flag is all this CLI offers — simpler than adding
+ * back general flag-repetition for one filter). Validated locally so a typo
+ * fails before the request, not as a silently-empty result.
+ */
+function validateStatusFilter(value) {
+  if (value === undefined) return undefined;
+  const statuses = String(value)
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  for (const status of statuses) {
+    if (!TRIAGE_STATUSES.includes(status)) {
+      fail(`--status ${status} — expected one of ${TRIAGE_STATUSES.join(", ")} (comma-separated for several).`);
+    }
+  }
+  return statuses.length ? statuses.join(",") : undefined;
+}
+
+/**
+ * `triage` is the default status and shows no badge on the web UI either —
+ * an untouched post is not "in a state" worth calling out. `closed` adds its
+ * reason; `duplicate` adds what it is a duplicate of.
+ */
+function triageMark(post) {
+  if (!post.triageStatus || post.triageStatus === "triage") return null;
+  if (post.triageStatus === "closed") {
+    const reason = post.closeReason ? `:${post.closeReason}` : "";
+    const dup = post.closeReason === "duplicate" && post.duplicateOf ? `→${post.duplicateOf.slug}` : "";
+    return `closed${reason}${dup}`;
+  }
+  return post.triageStatus;
+}
+
+async function cmdPosts(_positional, flags) {
+  const sort = flags.sort ? String(flags.sort) : "active";
+  if (!SORTS.includes(sort)) fail(`--sort ${sort} — expected one of ${SORTS.join(", ")}.`);
+  const status = validateStatusFilter(flags.status);
+  const { webUrl } = selected();
+  const data = await request("/api/v1/community/posts", {
+    query: {
+      category: flags.category,
+      lang: flags.lang,
+      sort,
+      unanswered: flags.unanswered ? "true" : undefined,
+      status,
+      solved: flags.solved === undefined ? undefined : String(flags.solved),
+      q: flags.q,
+      limit: num(flags.limit, 20),
+      offset: num(flags.offset, 0),
+    },
+  });
+  output(data, flags, () => {
+    for (const post of data.items) {
+      const marks = [
+        post.isPinned && "pinned",
+        post.isSolved && "solved",
+        post.isLocked && "locked",
+        triageMark(post),
+      ].filter(Boolean);
+      console.log(
+        `${pad(post.slug, 30)}${pad(post.categorySlug, 17)}r${String(post.replyCount).padStart(3)} ` +
+          `${post.lastActivityAt.slice(0, 10)}  ${post.title}${marks.length ? `  [${marks.join(",")}]` : ""}`,
+      );
+      console.log(`    ${postUrl(post, webUrl)}`);
+    }
+    console.log(`\n${data.items.length} of ${data.total} post(s)${data.hasMore ? " — more with --offset" : ""}`);
+  });
+}
+
+async function cmdPost(positional, flags) {
+  const slug = positional[0];
+  if (!slug) fail("post <slug> — pass the post slug (the last URL segment, see `posts`).");
+  const { webUrl } = selected();
+  const post = await request(`/api/v1/community/posts/${encodeURIComponent(slug)}`);
+  output(post, flags, () => {
+    console.log(`# ${post.title}`);
+    console.log(
+      `${post.categoryName} · ${post.kind} · ${post.author.name}${post.author.isStaff ? " (staff)" : ""} · ${post.createdAt}`,
+    );
+    console.log(postUrl(post, webUrl));
+    const triage = triageMark(post);
+    if (triage) console.log(`status: ${triage}`);
+    console.log(`\n${post.body}\n`);
+    console.log(`--- ${post.replies?.length ?? 0} of ${post.replyCount} repl(ies) ---`);
+    for (const reply of post.replies ?? []) {
+      const marks = [reply.isAccepted && "accepted", reply.isEdited && "edited"].filter(Boolean);
+      console.log(
+        `\n[${reply.id}] ${reply.author.name}${reply.author.isStaff ? " (staff)" : ""} · ${reply.createdAt}` +
+          `${marks.length ? ` [${marks.join(",")}]` : ""}\n${reply.body}`,
+      );
+    }
+  });
+}
+
+/** Publishing is immediate and public, so default to showing the payload only. */
+function confirmOrPreview(flags, label, payload) {
+  if (flags.yes === true) return true;
+  console.log(`${label} — NOT sent. This is what --yes would publish, as account ${selected().account}:\n`);
+  console.log(JSON.stringify(payload, null, 2));
+  console.log(`\nThis forum has no draft state. Get the user's explicit go-ahead, then re-run with --yes.`);
+  return false;
+}
+
+async function cmdNew(_positional, flags) {
+  const { category, title, body } = flags;
+  const lang = flags.lang ? String(flags.lang) : "en";
+  if (typeof category !== "string" || typeof title !== "string" || typeof body !== "string") {
+    fail('new --category <slug> --title "..." --body "..." [--lang zh-CN] [--yes]');
+  }
+  if (title.length < 5 || title.length > 200) fail("--title must be 5–200 characters.");
+  if (body.length < 10 || body.length > 50000) fail("--body must be 10–50000 characters (markdown).");
+  const payload = { category, title, body, lang };
+  if (!confirmOrPreview(flags, "New post", payload)) return;
+
+  const { webUrl } = selected();
+  const post = await request("/api/v1/community/posts", { method: "POST", body: payload });
+  output(post, flags, () => {
+    console.log(`Published as ${selected().account}: ${post.title}`);
+    console.log(postUrl(post, webUrl));
+    console.log(`post id ${post.id} · slug ${post.slug}`);
+  });
+}
+
+async function cmdReply(positional, flags) {
+  const postId = positional[0] ?? flags.post;
+  const body = flags.body;
+  if (typeof postId !== "string" || typeof body !== "string") {
+    fail('reply <postId> --body "..." [--yes]     (postId is the id from `post <slug>`, not the slug)');
+  }
+  if (body.length < 2 || body.length > 20000) fail("--body must be 2–20000 characters (markdown).");
+  const payload = { body };
+  if (!confirmOrPreview(flags, `Reply to ${postId}`, payload)) return;
+
+  const reply = await request(`/api/v1/community/posts/${encodeURIComponent(postId)}/replies`, {
+    method: "POST",
+    body: payload,
+  });
+  output(reply, flags, () => {
+    console.log(`Replied to ${reply.postId} as ${reply.id}, from account ${selected().account}.`);
+    console.log(oneLine(reply.bodyText, 200));
+  });
+}
+
+/**
+ * Edit something you wrote. The server only lets an account change its own
+ * posts and replies (and refuses a locked post), so `--as` decides whose.
+ * The URL never changes; the thread just shows an "edited" mark.
+ */
+async function cmdEdit(positional, flags) {
+  const postId = positional[0] ?? flags.post;
+  const { title, body } = flags;
+  if (typeof postId !== "string" || (title === undefined && body === undefined && flags.lang === undefined)) {
+    fail('edit <postId> [--title "..."] [--body "..."] [--lang zh-CN] [--yes]     (postId, not the slug)');
+  }
+  const payload = {};
+  if (title !== undefined) {
+    if (typeof title !== "string" || title.length < 5 || title.length > 200) fail("--title must be 5–200 characters.");
+    payload.title = title;
+  }
+  if (body !== undefined) {
+    if (typeof body !== "string" || body.length < 10 || body.length > 50000) {
+      fail("--body must be 10–50000 characters (markdown).");
+    }
+    payload.body = body;
+  }
+  if (flags.lang !== undefined) payload.lang = String(flags.lang);
+  if (!confirmOrPreview(flags, `Edit post ${postId}`, payload)) return;
+
+  const { webUrl } = selected();
+  const post = await request(`/api/v1/community/posts/${encodeURIComponent(postId)}`, {
+    method: "PATCH",
+    body: payload,
+  });
+  output(post, flags, () => {
+    console.log(`Edited as ${selected().account}: ${post.title}`);
+    console.log(postUrl(post, webUrl));
+  });
+}
+
+async function cmdEditReply(positional, flags) {
+  const replyId = positional[0] ?? flags.reply;
+  const body = flags.body;
+  if (typeof replyId !== "string" || typeof body !== "string") {
+    fail('edit-reply <replyId> --body "..." [--yes]     (replyId from `post <slug>`)');
+  }
+  if (body.length < 2 || body.length > 20000) fail("--body must be 2–20000 characters (markdown).");
+  const payload = { body };
+  if (!confirmOrPreview(flags, `Edit reply ${replyId}`, payload)) return;
+
+  const reply = await request(`/api/v1/community/replies/${encodeURIComponent(replyId)}`, {
+    method: "PATCH",
+    body: payload,
+  });
+  output(reply, flags, () => {
+    console.log(`Edited reply ${reply.id} as ${selected().account}.`);
+    console.log(oneLine(reply.bodyText, 200));
+  });
+}
+
+/**
+ * What a post body can render and what the server accepts. Duplicated from the
+ * server on purpose: a 12MB screenshot should be refused before it is read into
+ * memory and hashed, not after a round trip that was never going to succeed.
+ */
+const IMAGE_MIME_TYPES = {
+  ".png": "image/png",
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".gif": "image/gif",
+  ".webp": "image/webp",
+};
+const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
+
+/**
+ * Put an image where a post body can point at it.
+ *
+ * A forum image is not an attachment on the post — it is a markdown link in the
+ * body, which is why this prints the markdown rather than attaching anything.
+ * Upload first, paste the line into `--body`, then `new`/`reply` as usual.
+ *
+ * Deliberately not behind `--yes`: the bytes are inert until a post references
+ * them, and the gate that matters is on publishing the post.
+ */
+async function cmdUpload(positional, flags) {
+  const file = positional[0] ?? flags.file;
+  if (typeof file !== "string") {
+    fail("upload <file.png> [--as NAME]     prints the markdown line to paste into --body");
+  }
+
+  const ext = path.extname(file).toLowerCase();
+  const mimeType = IMAGE_MIME_TYPES[ext];
+  if (!mimeType) {
+    fail(`upload takes ${Object.keys(IMAGE_MIME_TYPES).join(", ")} — got "${ext || file}".`);
+  }
+
+  let bytes;
+  try {
+    bytes = readFileSync(file);
+  } catch {
+    fail(`cannot read ${file}`);
+  }
+  if (bytes.byteLength > MAX_IMAGE_BYTES) {
+    fail(`${file} is ${(bytes.byteLength / 1024 / 1024).toFixed(1)}MB; the limit is 10MB.`);
+  }
+
+  const fileName = path.basename(file);
+  // Sending the hash is what buys store-once: the same screenshot uploaded
+  // twice resolves to the object already there instead of a second copy.
+  const contentHash = `sha256:${createHash("sha256").update(bytes).digest("hex")}`;
+  const sizeBytes = bytes.byteLength;
+
+  const target = await request("/api/v1/community/attachments/upload-urls", {
+    method: "POST",
+    body: { fileName, mimeType, sizeBytes, contentHash },
+  });
+
+  if (!target.duplicate) {
+    const send = FETCH ?? fetch;
+    // A deployment backed by object storage hands back an absolute presigned
+    // URL; one backed by local disk hands back a path on the API host itself.
+    // Both are valid targets, and `fetch` only accepts the first, so resolve
+    // against the API origin rather than assuming the shape.
+    const uploadUrl = new URL(target.uploadUrl, selected().apiUrl).toString();
+    // No authorization header here: the target is already presigned, and an
+    // extra credential is exactly what invalidates the signature.
+    const stored = await send(uploadUrl, {
+      method: "PUT",
+      headers: { "content-type": mimeType },
+      body: bytes,
+    });
+    if (!stored.ok) fail(`upload failed: the storage target answered ${stored.status}.`);
+
+    await request("/api/v1/community/attachments/confirmations", {
+      method: "POST",
+      body: { storageKey: target.storageKey, fileName, mimeType, sizeBytes, contentHash },
+    });
+  }
+
+  const markdown = `![](${target.publicUrl})`;
+  output({ publicUrl: target.publicUrl, markdown, duplicate: Boolean(target.duplicate) }, flags, () => {
+    console.log(markdown);
+    console.log(
+      target.duplicate
+        ? "Already stored — same bytes, same URL. Paste the line above into --body."
+        : "Paste the line above into --body.",
+    );
+  });
+}
+
+/** Populated at startup so `setup` can say where the values came from. */
+let ENV_SOURCES = [];
+/** The `--as` name for this invocation, resolved once in the entry point. */
+let ACCOUNT = "";
+/** Ambient environment and transport. `run()` swaps both for the duration of a call. */
+let ENV = process.env;
+/** @type {typeof fetch | null} */
+let FETCH = null;
+
+const selected = () => config(ENV, ACCOUNT);
+
+async function cmdAccounts(_positional, flags) {
+  const accounts = listAccounts(ENV);
+  const active = selected().account;
+  if (!accounts.length) {
+    throw new CommunityCliError(onboarding(ENV, ACCOUNT), { prefixed: false });
+  }
+
+  // --verify costs one request per account; without it this is offline.
+  const rows = [];
+  for (const account of accounts) {
+    /** @type {{ name: string, env: string, length: number, active: boolean, user?: string | null, valid?: boolean }} */
+    const row = { ...account, active: account.name === active };
+    if (flags.verify) {
+      ACCOUNT = account.name;
+      const me = PRODUCT.meEndpoint
+        ? await request(PRODUCT.meEndpoint, { soft: true })
+        : await request("/api/v1/community/categories", { soft: true });
+      const user = me?.user ?? me;
+      row.user = user ? (user.name ?? user.email ?? "ok") : null;
+      row.valid = Boolean(me);
+    }
+    rows.push(row);
+  }
+  ACCOUNT = active === "default" ? "" : active;
+
+  output({ accounts: rows, active }, flags, () => {
+    for (const row of rows) {
+      console.log(
+        `${row.active ? "*" : " "} ${pad(row.name, 16)}${pad(row.env, 30)}${String(row.length).padStart(3)} chars` +
+          `${row.valid === false ? "  REJECTED" : row.user ? `  ${row.user}` : ""}`,
+      );
+    }
+    console.log(`\n${rows.length} account(s). \`--as <name>\` picks one; ${PRODUCT.accountEnv} sets the default.`);
+  });
+}
+
+function cmdSetup(_positional, flags) {
+  const { apiKey, apiUrl, webUrl, account, keyEnv } = selected();
+  if (!apiKey) {
+    console.log(onboarding());
+    return;
+  }
+  output({ configured: true, apiUrl, webUrl, keyLength: apiKey.length }, flags, () => {
+    console.log(`${keyEnv} is set (${apiKey.length} characters — value not shown).`);
+    const all = listAccounts(ENV);
+    if (all.length > 1) {
+      console.log(`account  ${account} (of ${all.length}: ${all.map((a) => a.name).join(", ")})`);
+    }
+    console.log(`api    ${apiUrl}`);
+    console.log(`forum  ${webUrl}`);
+    for (const source of ENV_SOURCES) {
+      console.log(`read   ${source.file} → ${source.keys.join(", ") || "(nothing new)"}`);
+    }
+    console.log("\nRun `whoami` to confirm the key is still valid.");
+  });
+}
+
+function cmdHelp() {
+  console.log(`${PRODUCT.slug} — read and post on ${PRODUCT.webUrl}
+
+  setup                                   Check configuration, or explain how to configure it
+  accounts [--verify]                     List the configured accounts
+  whoami                                  Verify the key and print the account
+  categories                              List categories with post counts
+  posts [--category S] [--sort active|latest|top] [--unanswered]
+        [--q TEXT] [--lang XX] [--limit N] [--offset N]
+  post <slug>                             One post with its replies
+  new --category S --title T --body B [--lang XX] [--yes]
+  reply <postId> --body B [--yes]
+  edit <postId> [--title T] [--body B] [--lang XX] [--yes]   Your own post only
+  edit-reply <replyId> --body B [--yes]                      Your own reply only
+  upload <file.png>                       Store an image, print its markdown line
+
+Every command accepts --json, and --as <name> to act as another account
+(\`accounts\` lists them; ${PRODUCT.accountEnv} changes the default).
+
+\`new\` and \`reply\` publish immediately and publicly — there is no draft or
+review state on this API. Without --yes they only print the payload.
+
+A forum image is a markdown link in the body, not an attachment on the post.
+\`upload\` stores the file and prints \`![](url)\` — paste that into --body.
+Needs ${PRODUCT.keyEnv}. Not set yet? Run \`setup\`.`);
+}
+
+const COMMANDS = {
+  setup: cmdSetup,
+  accounts: cmdAccounts,
+  whoami: cmdWhoami,
+  categories: cmdCategories,
+  posts: cmdPosts,
+  post: cmdPost,
+  new: cmdNew,
+  reply: cmdReply,
+  edit: cmdEdit,
+  "edit-reply": cmdEditReply,
+  upload: cmdUpload,
+  help: cmdHelp,
+};
+
+/**
+ * Run one command. Exported so a test can drive the real command layer —
+ * including the paths that refuse to do anything — with an injected `fetch`.
+ */
+export async function run(argv, { env = process.env, fetchImpl = null } = {}) {
+  const previous = { env: ENV, fetch: FETCH, account: ACCOUNT };
+  ENV = env;
+  FETCH = fetchImpl;
+  try {
+    return await dispatch(argv, env);
+  } finally {
+    ENV = previous.env;
+    FETCH = previous.fetch;
+    ACCOUNT = previous.account;
+  }
+}
+
+async function dispatch(argv, env) {
+  const [command, ...rest] = argv;
+  const handler = COMMANDS[command ?? "help"];
+  if (!handler) fail(`unknown command "${command}". Run \`help\`.`);
+  const { positional, flags } = parseArgs(rest);
+  ACCOUNT = "";
+  if (flags.as !== undefined) {
+    if (typeof flags.as !== "string") fail("--as <name> — name the account. `accounts` lists them.");
+    ACCOUNT = flags.as;
+    const { apiKey, keyEnv } = config(env, ACCOUNT);
+    if (!apiKey)
+      fail(`--as ${flags.as} — no such account. ${keyEnv} is not set; \`accounts\` lists the ones that are.`);
+  }
+  return handler(positional, flags);
+}
+
+const isMain = process.argv[1] && import.meta.url === `file://${process.argv[1]}`;
+if (isMain) {
+  // Before anything reads config(): files fill only what the shell left unset.
+  ENV_SOURCES = loadEnvFiles();
+  try {
+    await run(process.argv.slice(2));
+  } catch (error) {
+    if (!(error instanceof CommunityCliError)) throw error;
+    console.error(error.message);
+    process.exit(1);
+  }
+}

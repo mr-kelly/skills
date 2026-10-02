@@ -84,7 +84,7 @@ the exact missing dependency. Do not invent a second data backend.
 
 ## Boundary
 
-- The AirApp reads and writes Busabase records only. It must never send anything: the composer stores drafts, the decision buttons record verdicts, and `scripts/execute_decisions.mjs` only records an execution marker on the ticket. Real sends, escalations, and refunds are skill-executed post-approval via the configured channel connectors.
+- The AirApp reads and writes Busabase records only. It must never send anything: the composer stores drafts and the decision buttons record verdicts. `scripts/execute_decisions.mjs --apply` only claims eligible work as `queued`; it never records `sent`. Real sends, escalations, and refunds are connector-executed post-approval. A connector records success only by passing its provider receipt to `scripts/finalize_delivery.mjs`.
 - Every outgoing reply AND every proposed action is approval-required. Refund and escalate are high-risk / approval-required; the skill executes only tickets whose recorded decision is `approve` AND whose `support-qa` verdict is not `block`.
 - Own accounts only: read and send exclusively through channels the user owns and has configured. Respect each platform's terms of service and rate limits; prefer official APIs; keep collection read-only.
 - Never store passwords, QR-login payloads, or session tokens — anywhere, including Busabase. Accounts store only the channel, connector, and the **names** of env vars holding tokens, never the token values.
@@ -92,15 +92,16 @@ the exact missing dependency. Do not invent a second data backend.
 
 ## Busabase Resources
 
-Six Bases under one application Folder (`kelly-support`), declared in
+Seven Bases under one application Folder (`kelly-support`), declared in
 `content/kelly-support-app/app/js/config.js` and the generated template sidecars under `content/`:
 
 - `accounts`: channel accounts — email, WhatsApp, web chat, contact form, WeChat — with connector and env-var *names* for tokens (never values).
 - `tickets`: the approval queue — customer, subject/body, category/priority, workflow `status`, `proposed-action`, the KB-grounded `suggested-reply` and its `kb-refs`, SLA fields, an optional CSAT score, the human verdict (`decision-action`/`decision-comment`/`decided-at`), and the execution marker written by `scripts/execute_decisions.mjs`.
 - `messages`: one row per conversation message, joined onto its ticket by `ticket-id`.
-- `knowledge-base`: articles and canned macros the agent cites when drafting replies.
+- `knowledge-base`: articles and canned macros the agent cites when drafting replies. **This is the source of truth** — everything downstream traces back to an article here.
+- `qa-pairs`: question/answer pairs distilled from those articles. Each row keeps its `article-id`, so any answer can be traced back to the article it came from. This is both what the agent retrieves against for a fast, well-scoped reply, and the exact shape a fine-tune consumes.
 - `sync-log`: append-only history of ticket-collection runs per account.
-- `settings`: one row (`record-id: "config"`) with SLA policy, risk policy, reply style, and the KB source path.
+- `settings`: one versioned row (`record-id: "config"`) with onboarding status, SLA policy, risk policy, reply style, and the KB source path. Setup proposes conservative defaults for review; approval and execution remain blocked until the operator confirms a complete policy.
 
 Resources provision lazily through an idempotent Busabase ChangeRequest the
 first time the app runs in a Space; see `references/support-schema.md` for
@@ -111,8 +112,9 @@ read — **never stored**, so a stale record can never carry a stale verdict.
 
 ## First Run And Onboarding
 
-On invocation, check the `accounts` Base. If empty, guide setup before
-collecting real tickets.
+On invocation, check both the `accounts` Base and the versioned Settings
+`config` record. If either is incomplete, guide setup before collecting real
+tickets, approving replies, or executing connector work.
 
 Onboarding asks, turn by turn:
 
@@ -124,7 +126,9 @@ Onboarding asks, turn by turn:
 
 Write the answers to the `settings` Base's single `record-id: "config"` row
 (`sla-policy`/`risk-policy`/`reply-style`/`kb-source-path`, each JSON-encoded
-where structured) via `busabase-sdk`.
+where structured) via `busabase-sdk`. The Settings UI submits this as a
+ChangeRequest. Mark onboarding complete only after that ChangeRequest is
+materialized; hidden code fallbacks are not a substitute for visible policy.
 
 ## Local App
 
@@ -138,7 +142,7 @@ Required app views (hash routes):
 - `#/tickets` and `#/tickets/<id>`: the approval queue table (ref, customer, subject, channel, category badge, priority, proposed-action badge, `support-qa` verdict badge, status, SLA countdown). Detail: the conversation transcript (bubbles), the agent's `reason`, the full `support-qa` gate panel (verdict + per-check results), an editable KB-grounded reply with its cited `kb_refs`, decision buttons (Save reply / Approve / Request changes / Block) that write directly onto the ticket record through `busabase-sdk`, an SLA reschedule field, the customer profile, and the CSAT if rated. Sidebar workflow filters (`#/tickets/needs_review` etc.) narrow the same table.
 - `#/knowledge` and `#/knowledge/<id>`: the knowledge base — article and macro cards (title, body, tags). Detail shows the full article and the tickets that cite it.
 - `#/sla`: the SLA board (open tickets sorted by due-by, breached ones flagged) plus the CSAT trend and the rated tickets with their scores and comments.
-- `#/settings`: sanitized config — channels/accounts with connector + env readiness booleans, KB source, SLA policy, risk policy, and onboarding state. Never secrets.
+- `#/settings`: sanitized, editable config — channels/accounts with connector + env readiness booleans, KB source, SLA policy, risk policy, reply style, and onboarding state. Saves submit a ChangeRequest and never expose secrets.
 
 Demo mode:
 
@@ -174,6 +178,53 @@ logic.
 3. Write the ticket to Busabase with `status: "needs_review"`. The `support-qa` gate (`runQualityGate`) is computed live on every read — never stored — so an edited reply always reflects the current verdict.
 4. Give Kelly the AirApp URL (or local preview URL) to review the queue, gate verdicts, and SLA board.
 
+## Knowledge Base → QA Pairs
+
+The `knowledge-base` Base holds whole documents — a returns policy, a
+shipping FAQ, a warranty page. Those are what a human wrote; they are not the
+shape either retrieval or training wants.
+
+Distilling an article into `qa-pairs` produces that shape:
+
+1. Read the article from `knowledge-base`.
+2. Split it into the distinct questions a customer would actually ask, and
+   the answer to each. One article usually yields several pairs; a long
+   policy page can yield a dozen.
+3. Write each pair with its `article-id` so the answer stays traceable to its
+   source, and `status: "draft"`.
+4. A human reviews and flips `status` to `approved`. Only approved pairs are
+   used for drafting or exported for training.
+
+Rules that keep this honest:
+
+- **Never invent an answer the article does not support.** If a question has
+  no answer in the source, it does not become a pair. A fabricated pair is
+  worse here than anywhere else: it will be repeated to a real customer, and
+  if exported it teaches a model to repeat it forever.
+- **Preserve numbers and conditions exactly** — refund windows, fee amounts,
+  eligibility conditions. Paraphrasing "within 7 days" into "about a week" is
+  a policy change, not a rewrite.
+- **An article edit invalidates its pairs.** When an article's `updated-at`
+  moves past its pairs', re-distill and re-review rather than leaving stale
+  answers approved.
+- Pairs are derived data. The article remains the source of truth; never edit
+  a pair to say something the article does not.
+
+Approved pairs are also the export surface for fine-tuning — see
+`$kelly-local-model-lab`, which consumes exactly this question/answer shape.
+Fine-tuning is optional and separate: this skill works fully without it, and
+a fine-tune never replaces the human approval queue.
+
+The handoff is implemented by Local Model Lab's trusted bridge. It reads only
+`approved` pairs, rejects pairs made stale by a newer source article, preserves
+the article/pair provenance and content hash, and creates `support_qa` training
+examples in `needs_review` so training use receives a second human verdict:
+
+```bash
+pnpm --dir skills/kelly-local-model-lab sync:support-qa
+pnpm --dir skills/kelly-local-model-lab sync:support-qa -- --apply
+```
+
 ## The Quality Gate — `support-qa` ⛩
 
 Before any send, each drafted reply passes `support-qa`, a CSAT-risk / policy gate producing a score (0–100) and a **SHIP / FIX / BLOCK** verdict (see `runQualityGate()` in `content/kelly-support-app/app/js/support-model.js`):
@@ -190,8 +241,10 @@ Verdicts: **SHIP** (grounded and within policy), **FIX** (deliverable but revise
 1. Queue: the agent drafts the `suggested_reply` and writes `status: needs_review` to the `tickets` Base. The user edits it in the ticket detail and clicks Save reply (re-runs the gate live), or decides directly.
 2. Review: in the ticket detail the user Approves, Requests changes, or Blocks — written directly onto the ticket record through `busabase-sdk`. `approve` is refused while the (possibly just-edited) reply's gate is `BLOCK` — the user must fix the reply (e.g. drop the unapproved refund promise) or Block instead. From a standalone local preview the write merges immediately (trusted operator); from the deployed AirApp it creates a pending ChangeRequest for the trusted process to merge.
 3. Agent revision loop: for a ticket moved to `changes_requested`, redraft honoring the `decision-comment`, the config `reply_style`, and the KB (re-run the gate live), and write it back to `needs_review`. A `FIX` verdict (usually a dangling KB ref) is visible live on every read — no separate task queue needed.
-4. Execute: only after the user asks, run `node scripts/execute_decisions.mjs` (dry-run) and show the plan — `send_reply` / `escalate` / `refund` / `close` operations, targets, and any gate-blocked items. With explicit approval, run `node scripts/execute_decisions.mjs --apply`: it re-reads Busabase immediately, re-checks each ticket's decision and gate, refuses any `BLOCK`, and writes an execution marker (`execution-status`/`execution-operation`/`execution-target`/etc.) onto each ticket — it never changes the ticket's workflow `status` itself and performs no external side effect. Real delivery is performed by the channel connectors (kelly-email drafts, WhatsApp Cloud API, the web-chat widget, WeChat Work) per this file — the script and the AirApp both send nothing.
-5. Report per-ticket results back with the stable `#<ref>` refs.
+4. Queue: only after the user asks, run `node scripts/execute_decisions.mjs` (dry-run) and show the plan. With explicit approval, run `--apply`: it re-reads the canonical settings, ticket, reviewed decision and gate, then claims eligible work as `queued` with a stable idempotency key. It performs no external side effect and never records `sent`.
+5. Deliver: the named connector performs the exact approved operation using the stored idempotency key. Do not change the mailbox or ticket on a failed or ambiguous provider response.
+6. Finalize: after the provider accepts delivery, call `node scripts/finalize_delivery.mjs --ticket-id <id> --provider-message-id <receipt> --sent-at <iso> --apply`. The finalizer writes a deterministic outgoing message, first-response SLA, provider receipt, `execution-status: sent`, and `status: done`. Re-running the same receipt is a no-op; a conflicting receipt fails.
+7. Report per-ticket results back with the stable `#<ref>` refs.
 
 ## SLA & CSAT
 
@@ -207,6 +260,7 @@ Verdicts: **SHIP** (grounded and within policy), **FIX** (deliverable but revise
 - Prefer read-scoped tokens where the platform offers them; keep collection strictly read-only.
 - Redact tokens and token-like strings from logs, reports, and UI state; expose only env-var readiness booleans.
 - Keep execution idempotent: stable ticket ids, an execution marker stored on each ticket, and re-reading Busabase before each run.
+- Fail closed while support settings are incomplete. Approval and execution require a materialized, validated Settings config at the current onboarding version.
 - Honor platform rate limits; on 429s back off rather than retrying aggressively.
 
 ## Useful Commands
@@ -214,6 +268,7 @@ Verdicts: **SHIP** (grounded and within policy), **FIX** (deliverable but revise
 ```bash
 node skills/kelly-support/scripts/execute_decisions.mjs
 node skills/kelly-support/scripts/execute_decisions.mjs --apply
+node skills/kelly-support/scripts/finalize_delivery.mjs --ticket-id <id> --provider-message-id <receipt> --sent-at <iso> --apply
 pnpm --dir skills/kelly-support/content/kelly-support-app dev
 ```
 

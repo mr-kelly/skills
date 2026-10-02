@@ -57,29 +57,57 @@ function base(key) {
   return declared;
 }
 
-async function readAllRecords(key, { maxPages = 20 } = {}) {
+async function readPage(key, cursor) {
   if (!allowedReads.has("records.list")) throw new Error("PROCEDURE_DENIED: records.list");
   const declared = base(key);
-  const rows = [];
-  let cursor;
-  for (let page = 0; page < maxPages; page += 1) {
-    const result = await runtimeClient.records.list({
-      baseId: declared.baseId,
-      limit: declared.readLimit,
-      ...(cursor ? { cursor } : {}),
-    });
-    const records = Array.isArray(result) ? result : result.records || [];
-    for (const record of records) {
-      rows.push({
-        ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields),
-        __recordId: record.id,
-        __headCommitId: record.headCommitId || record.headCommit?.id,
-      });
-    }
-    cursor = Array.isArray(result) ? null : result.nextCursor;
-    if (!cursor) break;
-  }
+  const result = await runtimeClient.records.list({
+    baseId: declared.baseId,
+    limit: declared.readLimit,
+    ...(cursor ? { cursor } : {}),
+  });
+  const records = Array.isArray(result) ? result : result.records || [];
+  const rows = records.map((record) => ({
+    ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields),
+    __recordId: record.id,
+    __headCommitId: record.headCommitId || record.headCommit?.id,
+  }));
+  return { rows, nextCursor: Array.isArray(result) ? null : result.nextCursor || null };
+}
+
+const initialPageCursors = {};
+const initialTotalCounts = {};
+
+async function readFirstPage(key) {
+  const [{ rows, nextCursor }, total] = await Promise.all([readPage(key), countRecords(key)]);
+  initialPageCursors[key] = nextCursor;
+  initialTotalCounts[key] = total;
   return rows;
+}
+
+async function countRecords(key, filters) {
+  if (!allowedReads.has("records.count")) return null;
+  const declared = base(key);
+  try {
+    const { total } = await runtimeClient.records.count({ baseId: declared.baseId, ...(filters ? { filters } : {}) });
+    return total;
+  } catch {
+    return null;
+  }
+}
+
+function normalizePageRows(key, rows) {
+  if (key === "items") return rows.map(computeItemFromRow);
+  if (key !== "vehicles") return rows;
+  return rows.map((row) => ({
+    vehicle_id: row.vehicle_id,
+    name: row.name,
+    vehicle_type: row.vehicle_type,
+    origination_entity: row.origination_entity,
+    fund_manager_entity: row.fund_manager_entity,
+    listing_venue: row.listing_venue,
+    base_currency: row.base_currency,
+    target_close_date: row.target_close_date,
+  }));
 }
 
 async function findRecord(key, idFieldSlug, idValue) {
@@ -146,15 +174,25 @@ function baseItemFields(row) {
   };
 }
 
+function withPagination(data) {
+  return {
+    ...data,
+    pagination: { ...initialPageCursors },
+    totals: { ...initialTotalCounts },
+  };
+}
+
 export const busabaseProvider = {
   kind: "busabase",
 
   async getState() {
+    for (const key of Object.keys(initialPageCursors)) delete initialPageCursors[key];
+    for (const key of Object.keys(initialTotalCounts)) delete initialTotalCounts[key];
     await ensureResources();
     const [vehicleRows, itemRows, settingsRows] = await Promise.all([
-      readAllRecords("vehicles"),
-      readAllRecords("items"),
-      readAllRecords("settings"),
+      readFirstPage("vehicles"),
+      readFirstPage("items"),
+      readFirstPage("settings"),
     ]);
     const config_summary = buildConfigSummary(settingsRows);
     const run = runMetaFromSettings(settingsRows);
@@ -176,7 +214,7 @@ export const busabaseProvider = {
       generatedAt: run.generated_at || "",
       source: "kelly-disclosure-tracker",
     });
-    return {
+    return withPagination({
       app: "kelly-disclosure-tracker",
       demo: false,
       data_provider: "busabase",
@@ -184,7 +222,7 @@ export const busabaseProvider = {
       lock: null,
       config_summary,
       batch: vehicleRows.length ? batch : null,
-    };
+    });
   },
 
   // Human verdict (verified / needs_source / flagged), written directly onto
@@ -212,6 +250,12 @@ export const busabaseProvider = {
     };
     await upsert("items", "item-id", id, fields, `Decision on disclosure item ${id}: ${action}`);
     return { ok: true };
+  },
+
+  async fetchPage(key, cursor) {
+    await ensureResources();
+    const page = await readPage(key, cursor);
+    return { ...page, rows: normalizePageRows(key, page.rows) };
   },
 
   async provisionResources() {

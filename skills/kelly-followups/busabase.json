@@ -1,0 +1,17 @@
+{
+  "format": "busabase-package@1",
+  "name": "kelly-followups",
+  "description": "会后跟进提醒：谁、跟进什么事、什么时候该完成，打开就看到今天该做什么",
+  "version": "0.1.0",
+  "license": "MIT",
+  "tags": ["followups", "reminder"],
+  "template": {
+    "category": "productivity",
+    "schemaVersion": 1,
+    "airapp": "kelly-followups-app",
+    "tags": ["followups", "reminder"],
+    "screenshots": ["assets/screenshots/today.webp"],
+    "agentPrompts": ["帮我记一条跟进：跟进谁、跟进什么事", "今天该跟进哪些人和事"],
+    "requires": { "airapp": true }
+  }
+}

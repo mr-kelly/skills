@@ -21,8 +21,8 @@ const DEMO_CONFIG_PAYLOAD = {
   student_profile: {
     display_name: "Demo Student",
     grade: "Grade 4",
-    language: "zh-HK",
-    timezone: "Asia/Hong_Kong",
+    language: "zh-CN",
+    timezone: "Asia/Shanghai",
   },
   subjects: ["Math", "Chinese", "English"],
   learning_policy: {
@@ -59,6 +59,13 @@ export const demoProvider = {
   },
 
   async submitReview() {
+    throw new Error("Demo mode is read-only.");
+  },
+
+  // app.js special-cases demo mode before it reaches a provider (see
+  // applyDemoDecision/finishRun); this exists so the two providers keep the
+  // same surface and a missed code path fails loudly instead of silently.
+  async submitPaperAttempt() {
     throw new Error("Demo mode is read-only.");
   },
 

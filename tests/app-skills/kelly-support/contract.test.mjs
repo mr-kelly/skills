@@ -19,6 +19,7 @@ const requiredFiles = [
   "app/app.js",
   "app/js/config.js",
   "app/js/support-model.js",
+  "app/js/support-settings.js",
   "app/js/service-views.js",
   "app/js/providers/index.js",
   "app/js/providers/busabase-provider.js",
@@ -34,7 +35,7 @@ test("has the canonical app project and deterministic commands", async () => {
   assert.equal(pkg.scripts.dev, "node server.js");
   assert.equal(pkg.scripts.start, "node server.js");
   assert.match(pkg.scripts.check, /node --test/);
-  assert.equal(pkg.dependencies["busabase-sdk"], "0.17.2");
+  assert.match(pkg.dependencies["busabase-sdk"], /^\d+\.\d+\.\d+$/, "busabase-sdk must be an exact pin");
 });
 
 test("keeps the package manifest and runtime declarations aligned", async () => {
@@ -123,6 +124,34 @@ test("ships a trusted execute-decisions script that performs no external send it
   assert.match(source, /BUSABASE_BASE_URL/);
   assert.match(source, /--apply/);
   assert.doesNotMatch(source, /nodemailer|smtp|sendMail|graph\.facebook\.com|api\.telegram\.org|slack\.com\/api/i);
+  assert.match(source, /status: apply \? "queued" : "dry_run"/);
+  assert.doesNotMatch(source, /status: apply \? "sent"/);
+  assert.match(source, /supportSettingsComplete/);
   const pkg = await readJson(join(skillRoot, "package.json"));
-  assert.equal(pkg.dependencies["busabase-sdk"], "0.17.2");
+  assert.match(pkg.dependencies["busabase-sdk"], /^\d+\.\d+\.\d+$/, "busabase-sdk must be an exact pin");
+});
+
+test("finalizes only provider-confirmed delivery and records the customer-visible outcome", async () => {
+  const source = await readFile(join(skillRoot, "scripts", "finalize_delivery.mjs"), "utf8");
+  assert.match(source, /--provider-message-id/);
+  assert.match(source, /direction: "outgoing"/);
+  assert.match(source, /status: "done"/);
+  assert.match(source, /execution_status: "sent"/);
+  assert.match(source, /sla_first_response_at/);
+  assert.match(source, /createHash\("sha256"\)/);
+});
+
+test("initializes reviewable support defaults and exposes approval-first settings editing", async () => {
+  const [setup, provider, app] = await Promise.all([
+    readFile(join(skillRoot, "scripts", "setup.mjs"), "utf8"),
+    readFile(join(browserRoot, "js", "providers", "busabase-provider.js"), "utf8"),
+    readFile(join(browserRoot, "app.js"), "utf8"),
+  ]);
+  assert.match(setup, /settingsRecord/);
+  assert.match(setup, /autoMerge: false/);
+  assert.match(setup, /idempotencyKey: "kelly-support-default-settings-v1"/);
+  assert.match(provider, /saveSettings/);
+  assert.match(provider, /SUPPORT_SETTINGS_REQUIRED/);
+  assert.match(app, /settingsReady/);
+  assert.match(app, /save-settings/);
 });

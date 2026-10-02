@@ -5,1936 +5,6 @@ var __export = (target, all) => {
     __defProp(target, name, { get: all[name], enumerable: true });
 };
 
-// node_modules/.pnpm/busabase-sdk@0.17.1/node_modules/busabase-sdk/dist/chunk-5NYQX65A.js
-function normalizeBaseUrl(raw) {
-  return raw.replace(/\/+$/, "").replace(/\/api\/v1$/, "");
-}
-
-// node_modules/.pnpm/@orpc+shared@1.15.0/node_modules/@orpc/shared/dist/index.mjs
-function resolveMaybeOptionalOptions(rest) {
-  return rest[0] ?? {};
-}
-function toArray(value2) {
-  return Array.isArray(value2) ? value2 : value2 === void 0 || value2 === null ? [] : [value2];
-}
-var ORPC_NAME = "orpc";
-var ORPC_SHARED_PACKAGE_NAME = "@orpc/shared";
-var ORPC_SHARED_PACKAGE_VERSION = "1.15.0";
-var AbortError = class extends Error {
-  constructor(...rest) {
-    super(...rest);
-    this.name = "AbortError";
-  }
-};
-function once(fn) {
-  let cached2;
-  return () => {
-    if (cached2) {
-      return cached2.result;
-    }
-    const result = fn();
-    cached2 = { result };
-    return result;
-  };
-}
-function sequential(fn) {
-  let lastOperationPromise = Promise.resolve();
-  return (...args) => {
-    return lastOperationPromise = lastOperationPromise.catch(() => {
-    }).then(() => {
-      return fn(...args);
-    });
-  };
-}
-var SPAN_ERROR_STATUS = 2;
-var GLOBAL_OTEL_CONFIG_KEY = `__${ORPC_SHARED_PACKAGE_NAME}@${ORPC_SHARED_PACKAGE_VERSION}/otel/config__`;
-function getGlobalOtelConfig() {
-  return globalThis[GLOBAL_OTEL_CONFIG_KEY];
-}
-function startSpan(name, options = {}, context) {
-  const tracer = getGlobalOtelConfig()?.tracer;
-  return tracer?.startSpan(name, options, context);
-}
-function setSpanError(span, error51, options = {}) {
-  if (!span) {
-    return;
-  }
-  const exception = toOtelException(error51);
-  span.recordException(exception);
-  if (!options.signal?.aborted || options.signal.reason !== error51) {
-    span.setStatus({
-      code: SPAN_ERROR_STATUS,
-      message: exception.message
-    });
-  }
-}
-function toOtelException(error51) {
-  if (error51 instanceof Error) {
-    const exception = {
-      message: error51.message,
-      name: error51.name,
-      stack: error51.stack
-    };
-    if ("code" in error51 && (typeof error51.code === "string" || typeof error51.code === "number")) {
-      exception.code = error51.code;
-    }
-    return exception;
-  }
-  return { message: String(error51) };
-}
-async function runWithSpan({ name, context, ...options }, fn) {
-  const tracer = getGlobalOtelConfig()?.tracer;
-  if (!tracer) {
-    return fn();
-  }
-  const callback = async (span) => {
-    try {
-      return await fn(span);
-    } catch (e) {
-      setSpanError(span, e, options);
-      throw e;
-    } finally {
-      span.end();
-    }
-  };
-  if (context) {
-    return tracer.startActiveSpan(name, options, context, callback);
-  } else {
-    return tracer.startActiveSpan(name, options, callback);
-  }
-}
-async function runInSpanContext(span, fn) {
-  const otelConfig = getGlobalOtelConfig();
-  if (!span || !otelConfig) {
-    return fn();
-  }
-  const ctx = otelConfig.trace.setSpan(otelConfig.context.active(), span);
-  return otelConfig.context.with(ctx, fn);
-}
-function isAsyncIteratorObject(maybe) {
-  if (!maybe || typeof maybe !== "object") {
-    return false;
-  }
-  return "next" in maybe && typeof maybe.next === "function" && Symbol.asyncIterator in maybe && typeof maybe[Symbol.asyncIterator] === "function";
-}
-var fallbackAsyncDisposeSymbol = /* @__PURE__ */ Symbol.for("asyncDispose");
-var asyncDisposeSymbol = Symbol.asyncDispose ?? fallbackAsyncDisposeSymbol;
-var AsyncIteratorClass = class {
-  #isDone = false;
-  #isExecuteComplete = false;
-  #cleanup;
-  #next;
-  constructor(next, cleanup) {
-    this.#cleanup = cleanup;
-    this.#next = sequential(async () => {
-      if (this.#isDone) {
-        return { done: true, value: void 0 };
-      }
-      try {
-        const result = await next();
-        if (result.done) {
-          this.#isDone = true;
-        }
-        return result;
-      } catch (err) {
-        this.#isDone = true;
-        throw err;
-      } finally {
-        if (this.#isDone && !this.#isExecuteComplete) {
-          this.#isExecuteComplete = true;
-          await this.#cleanup("next");
-        }
-      }
-    });
-  }
-  next() {
-    return this.#next();
-  }
-  async return(value2) {
-    this.#isDone = true;
-    if (!this.#isExecuteComplete) {
-      this.#isExecuteComplete = true;
-      await this.#cleanup("return");
-    }
-    return { done: true, value: value2 };
-  }
-  async throw(err) {
-    this.#isDone = true;
-    if (!this.#isExecuteComplete) {
-      this.#isExecuteComplete = true;
-      await this.#cleanup("throw");
-    }
-    throw err;
-  }
-  /**
-   * asyncDispose symbol only available in esnext, we should fallback to Symbol.for('asyncDispose')
-   */
-  async [asyncDisposeSymbol]() {
-    this.#isDone = true;
-    if (!this.#isExecuteComplete) {
-      this.#isExecuteComplete = true;
-      await this.#cleanup("dispose");
-    }
-  }
-  [Symbol.asyncIterator]() {
-    return this;
-  }
-};
-function asyncIteratorWithSpan({ name, ...options }, iterator) {
-  let span;
-  return new AsyncIteratorClass(
-    async () => {
-      span ??= startSpan(name);
-      try {
-        const result = await runInSpanContext(span, () => iterator.next());
-        span?.addEvent(result.done ? "completed" : "yielded");
-        return result;
-      } catch (err) {
-        setSpanError(span, err, options);
-        throw err;
-      }
-    },
-    async (reason) => {
-      try {
-        if (reason !== "next") {
-          await runInSpanContext(span, () => iterator.return?.());
-        }
-      } catch (err) {
-        setSpanError(span, err, options);
-        throw err;
-      } finally {
-        span?.end();
-      }
-    }
-  );
-}
-function intercept(interceptors, options, main) {
-  const next = (options2, index) => {
-    const interceptor = interceptors[index];
-    if (!interceptor) {
-      return main(options2);
-    }
-    return interceptor({
-      ...options2,
-      next: (newOptions = options2) => next(newOptions, index + 1)
-    });
-  };
-  return next(options, 0);
-}
-function parseEmptyableJSON(text) {
-  if (!text) {
-    return void 0;
-  }
-  return JSON.parse(text);
-}
-function stringifyJSON(value2) {
-  return JSON.stringify(value2);
-}
-function getConstructor(value2) {
-  if (!isTypescriptObject(value2)) {
-    return null;
-  }
-  return Object.getPrototypeOf(value2)?.constructor;
-}
-function isObject(value2) {
-  if (!value2 || typeof value2 !== "object") {
-    return false;
-  }
-  const proto = Object.getPrototypeOf(value2);
-  return proto === Object.prototype || !proto || !proto.constructor;
-}
-function isTypescriptObject(value2) {
-  return !!value2 && (typeof value2 === "object" || typeof value2 === "function");
-}
-function get(object2, path) {
-  let current = object2;
-  for (const key of path) {
-    if (!isTypescriptObject(current)) {
-      return void 0;
-    }
-    current = current[key];
-  }
-  return current;
-}
-var NullProtoObj = /* @__PURE__ */ (() => {
-  const e = function() {
-  };
-  e.prototype = /* @__PURE__ */ Object.create(null);
-  Object.freeze(e.prototype);
-  return e;
-})();
-function value(value2, ...args) {
-  if (typeof value2 === "function") {
-    return value2(...args);
-  }
-  return value2;
-}
-function preventNativeAwait(target) {
-  return new Proxy(target, {
-    get(target2, prop, receiver) {
-      const value2 = Reflect.get(target2, prop, receiver);
-      if (prop !== "then" || typeof value2 !== "function") {
-        return value2;
-      }
-      return new Proxy(value2, {
-        apply(targetFn, thisArg, args) {
-          if (args.length !== 2 || args.some((arg) => !isNativeFunction(arg))) {
-            return Reflect.apply(targetFn, thisArg, args);
-          }
-          let shouldOmit = true;
-          args[0].call(thisArg, preventNativeAwait(new Proxy(target2, {
-            get: (target3, prop2, receiver2) => {
-              if (shouldOmit && prop2 === "then") {
-                shouldOmit = false;
-                return void 0;
-              }
-              return Reflect.get(target3, prop2, receiver2);
-            }
-          })));
-        }
-      });
-    }
-  });
-}
-var NATIVE_FUNCTION_REGEX = /^\s*function\s*\(\)\s*\{\s*\[native code\]\s*\}\s*$/;
-function isNativeFunction(fn) {
-  return typeof fn === "function" && NATIVE_FUNCTION_REGEX.test(fn.toString());
-}
-function tryDecodeURIComponent(value2) {
-  try {
-    return decodeURIComponent(value2);
-  } catch {
-    return value2;
-  }
-}
-
-// node_modules/.pnpm/@orpc+client@1.15.0/node_modules/@orpc/client/dist/shared/client.CZlviB0y.mjs
-var ORPC_CLIENT_PACKAGE_NAME = "@orpc/client";
-var ORPC_CLIENT_PACKAGE_VERSION = "1.15.0";
-var RECURSIVE_CLIENT_UNWRAP_KEYS = /* @__PURE__ */ new Set([
-  /**
-   * Commonly used by libraries to bind functions to a specific `this`
-   * context.
-   */
-  "bind",
-  /**
-   * Commonly accessed during primitive conversion, inspection, and logging.
-   */
-  "valueOf",
-  /**
-   * Commonly accessed during string conversion, inspection, and logging.
-   */
-  "toString",
-  /**
-   * Commonly accessed by serializers such as `JSON.stringify`.
-   */
-  "toJSON"
-]);
-var COMMON_ORPC_ERROR_DEFS = {
-  BAD_REQUEST: {
-    status: 400,
-    message: "Bad Request"
-  },
-  UNAUTHORIZED: {
-    status: 401,
-    message: "Unauthorized"
-  },
-  FORBIDDEN: {
-    status: 403,
-    message: "Forbidden"
-  },
-  NOT_FOUND: {
-    status: 404,
-    message: "Not Found"
-  },
-  METHOD_NOT_SUPPORTED: {
-    status: 405,
-    message: "Method Not Supported"
-  },
-  NOT_ACCEPTABLE: {
-    status: 406,
-    message: "Not Acceptable"
-  },
-  TIMEOUT: {
-    status: 408,
-    message: "Request Timeout"
-  },
-  CONFLICT: {
-    status: 409,
-    message: "Conflict"
-  },
-  PRECONDITION_FAILED: {
-    status: 412,
-    message: "Precondition Failed"
-  },
-  PAYLOAD_TOO_LARGE: {
-    status: 413,
-    message: "Payload Too Large"
-  },
-  UNSUPPORTED_MEDIA_TYPE: {
-    status: 415,
-    message: "Unsupported Media Type"
-  },
-  UNPROCESSABLE_CONTENT: {
-    status: 422,
-    message: "Unprocessable Content"
-  },
-  TOO_MANY_REQUESTS: {
-    status: 429,
-    message: "Too Many Requests"
-  },
-  CLIENT_CLOSED_REQUEST: {
-    status: 499,
-    message: "Client Closed Request"
-  },
-  INTERNAL_SERVER_ERROR: {
-    status: 500,
-    message: "Internal Server Error"
-  },
-  NOT_IMPLEMENTED: {
-    status: 501,
-    message: "Not Implemented"
-  },
-  BAD_GATEWAY: {
-    status: 502,
-    message: "Bad Gateway"
-  },
-  SERVICE_UNAVAILABLE: {
-    status: 503,
-    message: "Service Unavailable"
-  },
-  GATEWAY_TIMEOUT: {
-    status: 504,
-    message: "Gateway Timeout"
-  }
-};
-function fallbackORPCErrorStatus(code, status) {
-  return status ?? COMMON_ORPC_ERROR_DEFS[code]?.status ?? 500;
-}
-function fallbackORPCErrorMessage(code, message) {
-  return message || COMMON_ORPC_ERROR_DEFS[code]?.message || code;
-}
-var globalORPCErrorConstructors;
-var ORPCError = class _ORPCError extends Error {
-  defined;
-  code;
-  status;
-  data;
-  static {
-    const GLOBAL_ORPC_ERROR_CONSTRUCTORS_SYMBOL = /* @__PURE__ */ Symbol.for(`__${ORPC_CLIENT_PACKAGE_NAME}@${ORPC_CLIENT_PACKAGE_VERSION}/error/ORPC_ERROR_CONSTRUCTORS__`);
-    void (globalThis[GLOBAL_ORPC_ERROR_CONSTRUCTORS_SYMBOL] ??= /* @__PURE__ */ new WeakSet());
-    globalORPCErrorConstructors = globalThis[GLOBAL_ORPC_ERROR_CONSTRUCTORS_SYMBOL];
-    globalORPCErrorConstructors.add(_ORPCError);
-  }
-  constructor(code, ...rest) {
-    const options = resolveMaybeOptionalOptions(rest);
-    if (options.status !== void 0 && !isORPCErrorStatus(options.status)) {
-      throw new Error("[ORPCError] Invalid error status code.");
-    }
-    const message = fallbackORPCErrorMessage(code, options.message);
-    super(message, options);
-    this.code = code;
-    this.status = fallbackORPCErrorStatus(code, options.status);
-    this.defined = options.defined ?? false;
-    this.data = options.data;
-  }
-  toJSON() {
-    return {
-      defined: this.defined,
-      code: this.code,
-      status: this.status,
-      message: this.message,
-      data: this.data
-    };
-  }
-  /**
-   * Workaround for Next.js where different contexts use separate
-   * dependency graphs, causing multiple ORPCError constructors existing and breaking
-   * `instanceof` checks across contexts.
-   *
-   * This is particularly problematic with "Optimized SSR", where orpc-client
-   * executes in one context but is invoked from another. When an error is thrown
-   * in the execution context, `instanceof ORPCError` checks fail in the
-   * invocation context due to separate class constructors.
-   *
-   * @todo Remove this and related code if Next.js resolves the multiple dependency graph issue.
-   */
-  static [Symbol.hasInstance](instance) {
-    if (globalORPCErrorConstructors.has(this)) {
-      const constructor = getConstructor(instance);
-      if (constructor && globalORPCErrorConstructors.has(constructor)) {
-        return true;
-      }
-    }
-    return super[Symbol.hasInstance](instance);
-  }
-};
-function toORPCError(error51) {
-  return error51 instanceof ORPCError ? error51 : new ORPCError("INTERNAL_SERVER_ERROR", {
-    message: "Internal server error",
-    cause: error51
-  });
-}
-function isORPCErrorStatus(status) {
-  return status < 200 || status >= 400;
-}
-function isORPCErrorJson(json2) {
-  if (!isObject(json2)) {
-    return false;
-  }
-  const validKeys = ["defined", "code", "status", "message", "data"];
-  if (Object.keys(json2).some((k) => !validKeys.includes(k))) {
-    return false;
-  }
-  return "defined" in json2 && typeof json2.defined === "boolean" && "code" in json2 && typeof json2.code === "string" && "status" in json2 && typeof json2.status === "number" && isORPCErrorStatus(json2.status) && "message" in json2 && typeof json2.message === "string";
-}
-function createORPCErrorFromJson(json2, options = {}) {
-  return new ORPCError(json2.code, {
-    ...options,
-    ...json2
-  });
-}
-
-// node_modules/.pnpm/@orpc+standard-server@1.15.0/node_modules/@orpc/standard-server/dist/index.mjs
-var EventEncoderError = class extends TypeError {
-};
-var EventDecoderError = class extends TypeError {
-};
-var ErrorEvent = class extends Error {
-  data;
-  constructor(options) {
-    super(options?.message ?? "An error event was received", options);
-    this.data = options?.data;
-  }
-};
-var LINE_ENDING_REGEX$1 = /\r\n|\r(?!\n)|\n/;
-var MESSAGE_DELIMITER_REGEX = /(?:\r\n|\r(?!\n)|\n){2}/;
-var MESSAGE_DELIMITER_GLOBAL_REGEX = /(?:\r\n|\r(?!\n)|\n){2}/g;
-var CR = 13;
-var LF = 10;
-var SPACE = 32;
-function decodeEventMessage(encoded) {
-  const message = {
-    data: void 0,
-    event: void 0,
-    id: void 0,
-    retry: void 0,
-    comments: []
-  };
-  for (const line of encoded.split(LINE_ENDING_REGEX$1)) {
-    if (line === "") {
-      continue;
-    }
-    const index = line.indexOf(":");
-    const value2 = index === -1 ? "" : line.slice(line.charCodeAt(index + 1) === SPACE ? index + 2 : index + 1);
-    if (index === 0) {
-      message.comments.push(value2);
-      continue;
-    }
-    switch (index === -1 ? line : line.slice(0, index)) {
-      case "data":
-        message.data = message.data === void 0 ? value2 : `${message.data}
-${value2}`;
-        break;
-      case "event":
-        message.event = value2;
-        break;
-      case "id":
-        message.id = value2;
-        break;
-      case "retry": {
-        const maybeInteger = Number.parseInt(value2, 10);
-        if (maybeInteger >= 0 && maybeInteger.toString() === value2) {
-          message.retry = maybeInteger;
-        }
-        break;
-      }
-    }
-  }
-  return message;
-}
-var EventDecoder = class {
-  constructor(options = {}) {
-    this.options = options;
-  }
-  pending = [];
-  // Last up-to-3 characters of the pending buffer, prefixed to the next chunk
-  // so a delimiter straddling the boundary is still found.
-  tail = "";
-  // Set when a chunk-ending '\r' was already consumed as a line ending, so a
-  // leading '\n' in the next chunk is the second half of that CRLF pair.
-  discardLeadingLF = false;
-  feed(chunk) {
-    if (chunk === "") {
-      return;
-    }
-    if (this.discardLeadingLF) {
-      this.discardLeadingLF = false;
-      if (chunk.charCodeAt(0) === LF) {
-        chunk = chunk.slice(1);
-        if (chunk === "") {
-          return;
-        }
-      }
-    }
-    const scan = this.tail + chunk;
-    if (!MESSAGE_DELIMITER_REGEX.test(scan)) {
-      this.pending.push(chunk);
-      this.tail = scan.slice(-3);
-      return;
-    }
-    this.pending.push(chunk);
-    const buffered = this.pending.length === 1 ? chunk : this.pending.join("");
-    const offset = buffered.length - scan.length;
-    const parts = [];
-    let start = 0;
-    for (const match of scan.matchAll(MESSAGE_DELIMITER_GLOBAL_REGEX)) {
-      parts.push(buffered.slice(start, offset + match.index));
-      start = offset + match.index + match[0].length;
-    }
-    const incomplete = buffered.slice(start);
-    this.pending.length = 0;
-    this.tail = incomplete.slice(-3);
-    if (incomplete === "") {
-      this.discardLeadingLF = chunk.charCodeAt(chunk.length - 1) === CR;
-    } else {
-      this.pending.push(incomplete);
-    }
-    for (const encoded of parts) {
-      const message = decodeEventMessage(encoded);
-      if (this.options.onEvent) {
-        this.options.onEvent(message);
-      }
-    }
-  }
-  end() {
-    if (this.pending.length !== 0) {
-      throw new EventDecoderError("Event Iterator ended before complete");
-    }
-  }
-};
-var EventDecoderStream = class extends TransformStream {
-  constructor() {
-    let decoder;
-    super({
-      start(controller) {
-        decoder = new EventDecoder({
-          onEvent: (event) => {
-            controller.enqueue(event);
-          }
-        });
-      },
-      transform(chunk) {
-        decoder.feed(chunk);
-      },
-      flush() {
-        decoder.end();
-      }
-    });
-  }
-};
-var LINE_ENDING_REGEX = /\r\n|[\n\r]/;
-var LINE_ENDING_GLOBAL_REGEX = /\r\n|[\n\r]/g;
-function containsLineBreak(value2) {
-  return LINE_ENDING_REGEX.test(value2);
-}
-function assertEventId(id) {
-  if (containsLineBreak(id)) {
-    throw new EventEncoderError("Event's id must not contain a carriage return or newline character");
-  }
-}
-function assertEventName(event) {
-  if (containsLineBreak(event)) {
-    throw new EventEncoderError("Event's event must not contain a carriage return or newline character");
-  }
-}
-function assertEventRetry(retry) {
-  if (!Number.isInteger(retry) || retry < 0) {
-    throw new EventEncoderError("Event's retry must be a integer and >= 0");
-  }
-}
-function assertEventComment(comment) {
-  if (containsLineBreak(comment)) {
-    throw new EventEncoderError("Event's comment must not contain a carriage return or newline character");
-  }
-}
-function encodeEventData(data) {
-  if (data === void 0) {
-    return "";
-  }
-  return `data: ${data.replace(LINE_ENDING_GLOBAL_REGEX, "\ndata: ")}
-`;
-}
-function encodeEventComments(comments) {
-  let output = "";
-  for (const comment of comments ?? []) {
-    assertEventComment(comment);
-    output += `: ${comment}
-`;
-  }
-  return output;
-}
-function encodeEventMessage(message) {
-  let output = "";
-  output += encodeEventComments(message.comments);
-  if (message.event !== void 0) {
-    assertEventName(message.event);
-    output += `event: ${message.event}
-`;
-  }
-  if (message.retry !== void 0) {
-    assertEventRetry(message.retry);
-    output += `retry: ${message.retry}
-`;
-  }
-  if (message.id !== void 0) {
-    assertEventId(message.id);
-    output += `id: ${message.id}
-`;
-  }
-  output += encodeEventData(message.data);
-  output += "\n";
-  return output;
-}
-var EVENT_SOURCE_META_SYMBOL = /* @__PURE__ */ Symbol("ORPC_EVENT_SOURCE_META");
-function withEventMeta(container, meta3) {
-  if (meta3.id === void 0 && meta3.retry === void 0 && !meta3.comments?.length) {
-    return container;
-  }
-  if (meta3.id !== void 0) {
-    assertEventId(meta3.id);
-  }
-  if (meta3.retry !== void 0) {
-    assertEventRetry(meta3.retry);
-  }
-  if (meta3.comments !== void 0) {
-    for (const comment of meta3.comments) {
-      assertEventComment(comment);
-    }
-  }
-  return new Proxy(container, {
-    get(target, prop, receiver) {
-      if (prop === EVENT_SOURCE_META_SYMBOL) {
-        return meta3;
-      }
-      return Reflect.get(target, prop, receiver);
-    }
-  });
-}
-function getEventMeta(container) {
-  return isTypescriptObject(container) ? Reflect.get(container, EVENT_SOURCE_META_SYMBOL) : void 0;
-}
-function generateContentDisposition(filename, disposition = "inline") {
-  const encodedFileName = filename.replace(/[^\x20-\x7E]/g, "_").replace(/"/g, '\\"');
-  const encodedFilenameStar = encodeURIComponent(filename).replace(/['()*]/g, (c) => `%${c.charCodeAt(0).toString(16).toUpperCase()}`).replace(/%(7C|60|5E)/g, (str, hex3) => String.fromCharCode(Number.parseInt(hex3, 16)));
-  return `${disposition}; filename="${encodedFileName}"; filename*=utf-8''${encodedFilenameStar}`;
-}
-function getFilenameFromContentDisposition(contentDisposition) {
-  const encodedFilenameStarMatch = contentDisposition.match(/filename\*=(UTF-8'')?([^;]*)/i);
-  if (encodedFilenameStarMatch && typeof encodedFilenameStarMatch[2] === "string") {
-    return tryDecodeURIComponent(encodedFilenameStarMatch[2]);
-  }
-  const encodedFilenameMatch = contentDisposition.match(/filename="((?:\\"|[^"])*)"/i);
-  if (encodedFilenameMatch && typeof encodedFilenameMatch[1] === "string") {
-    return encodedFilenameMatch[1].replace(/\\"/g, '"');
-  }
-}
-function mergeStandardHeaders(a, b) {
-  const merged = { ...a };
-  for (const key in b) {
-    if (Array.isArray(b[key])) {
-      merged[key] = [...toArray(merged[key]), ...b[key]];
-    } else if (b[key] !== void 0) {
-      if (Array.isArray(merged[key])) {
-        merged[key] = [...merged[key], b[key]];
-      } else if (merged[key] !== void 0) {
-        merged[key] = [merged[key], b[key]];
-      } else {
-        merged[key] = b[key];
-      }
-    }
-  }
-  return merged;
-}
-
-// node_modules/.pnpm/@orpc+client@1.15.0/node_modules/@orpc/client/dist/shared/client.BLtwTQUg.mjs
-function mapEventIterator(iterator, maps) {
-  const mapError = async (error51) => {
-    let mappedError = await maps.error(error51);
-    if (mappedError !== error51) {
-      const meta3 = getEventMeta(error51);
-      if (meta3 && isTypescriptObject(mappedError)) {
-        mappedError = withEventMeta(mappedError, meta3);
-      }
-    }
-    return mappedError;
-  };
-  return new AsyncIteratorClass(async () => {
-    const { done, value: value2 } = await (async () => {
-      try {
-        return await iterator.next();
-      } catch (error51) {
-        throw await mapError(error51);
-      }
-    })();
-    let mappedValue = await maps.value(value2, done);
-    if (mappedValue !== value2) {
-      const meta3 = getEventMeta(value2);
-      if (meta3 && isTypescriptObject(mappedValue)) {
-        mappedValue = withEventMeta(mappedValue, meta3);
-      }
-    }
-    return { done, value: mappedValue };
-  }, async () => {
-    try {
-      await iterator.return?.();
-    } catch (error51) {
-      throw await mapError(error51);
-    }
-  });
-}
-
-// node_modules/.pnpm/@orpc+client@1.15.0/node_modules/@orpc/client/dist/index.mjs
-function resolveFriendlyClientOptions(options) {
-  return {
-    ...options,
-    context: options.context ?? {}
-    // Context only optional if all fields are optional
-  };
-}
-function createORPCClient(link, options = {}) {
-  const path = options.path ?? [];
-  const procedureClient = async (...[input, options2 = {}]) => {
-    return await link.call(path, input, resolveFriendlyClientOptions(options2));
-  };
-  const recursive = new Proxy(procedureClient, {
-    get(target, key) {
-      if (typeof key !== "string" || RECURSIVE_CLIENT_UNWRAP_KEYS.has(key)) {
-        return Reflect.get(target, key);
-      }
-      return createORPCClient(link, {
-        ...options,
-        path: [...path, key]
-      });
-    }
-  });
-  return preventNativeAwait(recursive);
-}
-
-// node_modules/.pnpm/@orpc+standard-server-fetch@1.15.0/node_modules/@orpc/standard-server-fetch/dist/index.mjs
-function toEventIterator(stream, options = {}) {
-  const eventStream = stream?.pipeThrough(new TextDecoderStream()).pipeThrough(new EventDecoderStream());
-  const reader = eventStream?.getReader();
-  let span;
-  let isCancelled = false;
-  return new AsyncIteratorClass(async () => {
-    span ??= startSpan("consume_event_iterator_stream");
-    try {
-      while (true) {
-        if (reader === void 0) {
-          return { done: true, value: void 0 };
-        }
-        const { done, value: value2 } = await runInSpanContext(span, () => reader.read());
-        if (done) {
-          if (isCancelled) {
-            throw new AbortError("Stream was cancelled");
-          }
-          return { done: true, value: void 0 };
-        }
-        switch (value2.event) {
-          case "message": {
-            let message = parseEmptyableJSON(value2.data);
-            if (isTypescriptObject(message)) {
-              message = withEventMeta(message, value2);
-            }
-            span?.addEvent("message");
-            return { done: false, value: message };
-          }
-          case "error": {
-            let error51 = new ErrorEvent({
-              data: parseEmptyableJSON(value2.data)
-            });
-            error51 = withEventMeta(error51, value2);
-            span?.addEvent("error");
-            throw error51;
-          }
-          case "done": {
-            let done2 = parseEmptyableJSON(value2.data);
-            if (isTypescriptObject(done2)) {
-              done2 = withEventMeta(done2, value2);
-            }
-            span?.addEvent("done");
-            return { done: true, value: done2 };
-          }
-          default: {
-            span?.addEvent("maybe_keepalive");
-          }
-        }
-      }
-    } catch (e) {
-      if (!(e instanceof ErrorEvent)) {
-        setSpanError(span, e, options);
-      }
-      throw e;
-    }
-  }, async (reason) => {
-    try {
-      if (reason !== "next") {
-        isCancelled = true;
-        span?.addEvent("cancelled");
-      }
-      await runInSpanContext(span, () => reader?.cancel());
-    } catch (e) {
-      setSpanError(span, e, options);
-      throw e;
-    } finally {
-      span?.end();
-    }
-  });
-}
-function toEventStream(iterator, options = {}) {
-  const keepAliveEnabled = options.eventIteratorKeepAliveEnabled ?? true;
-  const keepAliveInterval = options.eventIteratorKeepAliveInterval ?? 5e3;
-  const keepAliveComment = options.eventIteratorKeepAliveComment ?? "";
-  const initialCommentEnabled = options.eventIteratorInitialCommentEnabled ?? true;
-  const initialComment = options.eventIteratorInitialComment ?? "";
-  let cancelled = false;
-  let timeout;
-  let span;
-  const stream = new ReadableStream({
-    start(controller) {
-      span = startSpan("stream_event_iterator");
-      if (initialCommentEnabled) {
-        controller.enqueue(encodeEventMessage({
-          comments: [initialComment]
-        }));
-      }
-    },
-    async pull(controller) {
-      try {
-        if (keepAliveEnabled) {
-          timeout = setInterval(() => {
-            controller.enqueue(encodeEventMessage({
-              comments: [keepAliveComment]
-            }));
-            span?.addEvent("keepalive");
-          }, keepAliveInterval);
-        }
-        const value2 = await runInSpanContext(span, () => iterator.next());
-        clearInterval(timeout);
-        if (cancelled) {
-          return;
-        }
-        const meta3 = getEventMeta(value2.value);
-        if (!value2.done || value2.value !== void 0 || meta3 !== void 0) {
-          const event = value2.done ? "done" : "message";
-          controller.enqueue(encodeEventMessage({
-            ...meta3,
-            event,
-            data: stringifyJSON(value2.value)
-          }));
-          span?.addEvent(event);
-        }
-        if (value2.done) {
-          controller.close();
-          span?.end();
-        }
-      } catch (err) {
-        clearInterval(timeout);
-        if (cancelled) {
-          return;
-        }
-        if (err instanceof ErrorEvent) {
-          controller.enqueue(encodeEventMessage({
-            ...getEventMeta(err),
-            event: "error",
-            data: stringifyJSON(err.data)
-          }));
-          span?.addEvent("error");
-          controller.close();
-        } else {
-          setSpanError(span, err);
-          controller.error(err);
-        }
-        span?.end();
-      }
-    },
-    async cancel() {
-      try {
-        cancelled = true;
-        clearInterval(timeout);
-        span?.addEvent("cancelled");
-        await runInSpanContext(span, () => iterator.return?.());
-      } catch (e) {
-        setSpanError(span, e);
-        throw e;
-      } finally {
-        span?.end();
-      }
-    }
-  }).pipeThrough(new TextEncoderStream());
-  return stream;
-}
-function toStandardBody(re, options = {}) {
-  return runWithSpan(
-    { name: "parse_standard_body", signal: options.signal },
-    async () => {
-      const contentDisposition = re.headers.get("content-disposition");
-      if (typeof contentDisposition === "string") {
-        const fileName = getFilenameFromContentDisposition(contentDisposition) ?? "blob";
-        const blob2 = await re.blob();
-        return new File([blob2], fileName, {
-          type: blob2.type
-        });
-      }
-      const contentType = re.headers.get("content-type");
-      if (!contentType || contentType.startsWith("application/json")) {
-        const text = await re.text();
-        return parseEmptyableJSON(text);
-      }
-      if (contentType.startsWith("multipart/form-data")) {
-        return await re.formData();
-      }
-      if (contentType.startsWith("application/x-www-form-urlencoded")) {
-        const text = await re.text();
-        return new URLSearchParams(text);
-      }
-      if (contentType.startsWith("text/event-stream")) {
-        return toEventIterator(re.body, options);
-      }
-      if (contentType.startsWith("text/plain")) {
-        return await re.text();
-      }
-      const blob = await re.blob();
-      return new File([blob], "blob", {
-        type: blob.type
-      });
-    }
-  );
-}
-function toFetchBody(body, headers, options = {}) {
-  if (body instanceof ReadableStream) {
-    return body;
-  }
-  const currentContentDisposition = headers.get("content-disposition");
-  headers.delete("content-type");
-  headers.delete("content-disposition");
-  if (body === void 0) {
-    return void 0;
-  }
-  if (body instanceof Blob) {
-    headers.set("content-type", body.type);
-    headers.set("content-length", body.size.toString());
-    headers.set(
-      "content-disposition",
-      currentContentDisposition ?? generateContentDisposition(body instanceof File ? body.name : "blob")
-    );
-    return body;
-  }
-  if (body instanceof FormData) {
-    return body;
-  }
-  if (body instanceof URLSearchParams) {
-    return body;
-  }
-  if (isAsyncIteratorObject(body)) {
-    headers.set("content-type", "text/event-stream");
-    return toEventStream(body, options);
-  }
-  headers.set("content-type", "application/json");
-  return stringifyJSON(body);
-}
-function toStandardHeaders(headers, standardHeaders = {}) {
-  headers.forEach((value2, key) => {
-    if (Array.isArray(standardHeaders[key])) {
-      standardHeaders[key].push(value2);
-    } else if (standardHeaders[key] !== void 0) {
-      standardHeaders[key] = [standardHeaders[key], value2];
-    } else {
-      standardHeaders[key] = value2;
-    }
-  });
-  return standardHeaders;
-}
-function toFetchHeaders(headers, fetchHeaders = new Headers()) {
-  for (const [key, value2] of Object.entries(headers)) {
-    if (Array.isArray(value2)) {
-      for (const v of value2) {
-        fetchHeaders.append(key, v);
-      }
-    } else if (value2 !== void 0) {
-      fetchHeaders.append(key, value2);
-    }
-  }
-  return fetchHeaders;
-}
-function toFetchRequest(request, options = {}) {
-  const headers = toFetchHeaders(request.headers);
-  const body = toFetchBody(request.body, headers, options);
-  return new Request(request.url, {
-    signal: request.signal,
-    method: request.method,
-    headers,
-    body
-  });
-}
-function toStandardLazyResponse(response, options = {}) {
-  return {
-    body: once(() => toStandardBody(response, options)),
-    status: response.status,
-    get headers() {
-      const headers = toStandardHeaders(response.headers);
-      Object.defineProperty(this, "headers", { value: headers, writable: true });
-      return headers;
-    },
-    set headers(value2) {
-      Object.defineProperty(this, "headers", { value: value2, writable: true });
-    }
-  };
-}
-
-// node_modules/.pnpm/@orpc+client@1.15.0/node_modules/@orpc/client/dist/shared/client.BtiuJPEa.mjs
-var CompositeStandardLinkPlugin = class {
-  plugins;
-  constructor(plugins = []) {
-    this.plugins = [...plugins].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
-  }
-  init(options) {
-    for (const plugin of this.plugins) {
-      plugin.init?.(options);
-    }
-  }
-};
-var StandardLink = class {
-  constructor(codec2, sender, options = {}) {
-    this.codec = codec2;
-    this.sender = sender;
-    const plugin = new CompositeStandardLinkPlugin(options.plugins);
-    plugin.init(options);
-    this.interceptors = toArray(options.interceptors);
-    this.clientInterceptors = toArray(options.clientInterceptors);
-  }
-  interceptors;
-  clientInterceptors;
-  call(path, input, options) {
-    return runWithSpan(
-      { name: `${ORPC_NAME}.${path.join("/")}`, signal: options.signal },
-      (span) => {
-        span?.setAttribute("rpc.system", ORPC_NAME);
-        span?.setAttribute("rpc.method", path.join("."));
-        if (isAsyncIteratorObject(input)) {
-          input = asyncIteratorWithSpan(
-            { name: "consume_event_iterator_input", signal: options.signal },
-            input
-          );
-        }
-        return intercept(this.interceptors, { ...options, path, input }, async ({ path: path2, input: input2, ...options2 }) => {
-          const otelConfig = getGlobalOtelConfig();
-          let otelContext;
-          const currentSpan = otelConfig?.trace.getActiveSpan() ?? span;
-          if (currentSpan && otelConfig) {
-            otelContext = otelConfig?.trace.setSpan(otelConfig.context.active(), currentSpan);
-          }
-          const request = await runWithSpan(
-            { name: "encode_request", context: otelContext },
-            () => this.codec.encode(path2, input2, options2)
-          );
-          const response = await intercept(
-            this.clientInterceptors,
-            { ...options2, input: input2, path: path2, request },
-            ({ input: input3, path: path3, request: request2, ...options3 }) => {
-              return runWithSpan(
-                { name: "send_request", signal: options3.signal, context: otelContext },
-                () => this.sender.call(request2, options3, path3, input3)
-              );
-            }
-          );
-          const output = await runWithSpan(
-            { name: "decode_response", context: otelContext },
-            () => this.codec.decode(response, options2, path2, input2)
-          );
-          if (isAsyncIteratorObject(output)) {
-            return asyncIteratorWithSpan(
-              { name: "consume_event_iterator_output", signal: options2.signal },
-              output
-            );
-          }
-          return output;
-        });
-      }
-    );
-  }
-};
-function toHttpPath(path) {
-  return `/${path.map(encodeURIComponent).join("/")}`;
-}
-function toStandardHeaders2(headers) {
-  if (typeof headers.forEach === "function") {
-    return toStandardHeaders(headers);
-  }
-  return headers;
-}
-function getMalformedResponseErrorCode(status) {
-  return Object.entries(COMMON_ORPC_ERROR_DEFS).find(([, def]) => def.status === status)?.[0] ?? "MALFORMED_ORPC_ERROR_RESPONSE";
-}
-
-// node_modules/.pnpm/@orpc+client@1.15.0/node_modules/@orpc/client/dist/adapters/fetch/index.mjs
-var CompositeLinkFetchPlugin = class extends CompositeStandardLinkPlugin {
-  initRuntimeAdapter(options) {
-    for (const plugin of this.plugins) {
-      plugin.initRuntimeAdapter?.(options);
-    }
-  }
-};
-var LinkFetchClient = class {
-  fetch;
-  toFetchRequestOptions;
-  adapterInterceptors;
-  constructor(options) {
-    const plugin = new CompositeLinkFetchPlugin(options.plugins);
-    plugin.initRuntimeAdapter(options);
-    this.fetch = options.fetch ?? globalThis.fetch.bind(globalThis);
-    this.toFetchRequestOptions = options;
-    this.adapterInterceptors = toArray(options.adapterInterceptors);
-  }
-  async call(standardRequest, options, path, input) {
-    const request = toFetchRequest(standardRequest, this.toFetchRequestOptions);
-    const fetchResponse = await intercept(
-      this.adapterInterceptors,
-      { ...options, request, path, input, init: { redirect: "manual" } },
-      ({ request: request2, path: path2, input: input2, init, ...options2 }) => this.fetch(request2, init, options2, path2, input2)
-    );
-    const lazyResponse = toStandardLazyResponse(fetchResponse, { signal: request.signal });
-    return lazyResponse;
-  }
-};
-
-// node_modules/.pnpm/@orpc+openapi-client@1.15.0/node_modules/@orpc/openapi-client/dist/shared/openapi-client.t9fCAe3x.mjs
-var StandardBracketNotationSerializer = class {
-  maxArrayIndex;
-  constructor(options = {}) {
-    this.maxArrayIndex = options.maxBracketNotationArrayIndex ?? 9999;
-  }
-  serialize(data, segments = [], result = []) {
-    if (Array.isArray(data)) {
-      data.forEach((item, i) => {
-        this.serialize(item, [...segments, i], result);
-      });
-    } else if (isObject(data)) {
-      for (const key in data) {
-        this.serialize(data[key], [...segments, key], result);
-      }
-    } else {
-      result.push([this.stringifyPath(segments), data]);
-    }
-    return result;
-  }
-  deserialize(serialized) {
-    if (serialized.length === 0) {
-      return {};
-    }
-    const arrayPushStyles = /* @__PURE__ */ new WeakSet();
-    const ref = { value: [] };
-    for (const [path, value2] of serialized) {
-      const segments = this.parsePath(path);
-      let currentRef = ref;
-      let nextSegment = "value";
-      segments.forEach((segment, i) => {
-        if (!Array.isArray(currentRef[nextSegment]) && !isObject(currentRef[nextSegment])) {
-          currentRef[nextSegment] = [];
-        }
-        if (i !== segments.length - 1) {
-          if (Array.isArray(currentRef[nextSegment]) && !isValidArrayIndex(segment, this.maxArrayIndex)) {
-            if (arrayPushStyles.has(currentRef[nextSegment])) {
-              arrayPushStyles.delete(currentRef[nextSegment]);
-              currentRef[nextSegment] = pushStyleArrayToObject(currentRef[nextSegment]);
-            } else {
-              currentRef[nextSegment] = arrayToObject(currentRef[nextSegment]);
-            }
-          }
-        } else {
-          if (Array.isArray(currentRef[nextSegment])) {
-            if (segment === "") {
-              if (currentRef[nextSegment].length && !arrayPushStyles.has(currentRef[nextSegment])) {
-                currentRef[nextSegment] = arrayToObject(currentRef[nextSegment]);
-              }
-            } else {
-              if (arrayPushStyles.has(currentRef[nextSegment])) {
-                arrayPushStyles.delete(currentRef[nextSegment]);
-                currentRef[nextSegment] = pushStyleArrayToObject(currentRef[nextSegment]);
-              } else if (!isValidArrayIndex(segment, this.maxArrayIndex)) {
-                currentRef[nextSegment] = arrayToObject(currentRef[nextSegment]);
-              }
-            }
-          }
-        }
-        currentRef = currentRef[nextSegment];
-        nextSegment = segment;
-      });
-      if (Array.isArray(currentRef) && nextSegment === "") {
-        arrayPushStyles.add(currentRef);
-        currentRef.push(value2);
-      } else if (nextSegment in currentRef) {
-        if (Array.isArray(currentRef[nextSegment])) {
-          currentRef[nextSegment].push(value2);
-        } else {
-          currentRef[nextSegment] = [currentRef[nextSegment], value2];
-        }
-      } else {
-        currentRef[nextSegment] = value2;
-      }
-    }
-    return ref.value;
-  }
-  stringifyPath(segments) {
-    return segments.map((segment) => {
-      return segment.toString().replace(/[\\[\]]/g, (match) => {
-        switch (match) {
-          case "\\":
-            return "\\\\";
-          case "[":
-            return "\\[";
-          case "]":
-            return "\\]";
-          /* v8 ignore next 2 */
-          default:
-            return match;
-        }
-      });
-    }).reduce((result, segment, i) => {
-      if (i === 0) {
-        return segment;
-      }
-      return `${result}[${segment}]`;
-    }, "");
-  }
-  parsePath(path) {
-    const segments = [];
-    let inBrackets = false;
-    let currentSegment = "";
-    let backslashCount = 0;
-    for (let i = 0; i < path.length; i++) {
-      const char = path[i];
-      const nextChar = path[i + 1];
-      if (inBrackets && char === "]" && (nextChar === void 0 || nextChar === "[") && backslashCount % 2 === 0) {
-        if (nextChar === void 0) {
-          inBrackets = false;
-        }
-        segments.push(currentSegment);
-        currentSegment = "";
-        i++;
-      } else if (segments.length === 0 && char === "[" && backslashCount % 2 === 0) {
-        inBrackets = true;
-        segments.push(currentSegment);
-        currentSegment = "";
-      } else if (char === "\\") {
-        backslashCount++;
-      } else {
-        currentSegment += "\\".repeat(backslashCount / 2) + char;
-        backslashCount = 0;
-      }
-    }
-    return inBrackets || segments.length === 0 ? [path] : segments;
-  }
-};
-function isValidArrayIndex(value2, maxIndex) {
-  return /^0$|^[1-9]\d*$/.test(value2) && Number(value2) <= maxIndex;
-}
-function arrayToObject(array2) {
-  const obj = new NullProtoObj();
-  array2.forEach((item, i) => {
-    obj[i] = item;
-  });
-  return obj;
-}
-function pushStyleArrayToObject(array2) {
-  const obj = new NullProtoObj();
-  obj[""] = array2.length === 1 ? array2[0] : array2;
-  return obj;
-}
-
-// node_modules/.pnpm/@orpc+contract@1.15.0/node_modules/@orpc/contract/dist/shared/contract.D_dZrO__.mjs
-var ValidationError = class extends Error {
-  issues;
-  data;
-  constructor(options) {
-    super(options.message, options);
-    this.issues = options.issues;
-    this.data = options.data;
-  }
-};
-function mergeErrorMap(errorMap1, errorMap2) {
-  return { ...errorMap1, ...errorMap2 };
-}
-var ContractProcedure = class {
-  /**
-   * This property holds the defined options for the contract procedure.
-   */
-  "~orpc";
-  constructor(def) {
-    if (def.route?.successStatus && isORPCErrorStatus(def.route.successStatus)) {
-      throw new Error("[ContractProcedure] Invalid successStatus.");
-    }
-    if (Object.values(def.errorMap).some((val) => val && val.status && !isORPCErrorStatus(val.status))) {
-      throw new Error("[ContractProcedure] Invalid error status code.");
-    }
-    this["~orpc"] = def;
-  }
-};
-function isContractProcedure(item) {
-  if (item instanceof ContractProcedure) {
-    return true;
-  }
-  return (typeof item === "object" || typeof item === "function") && item !== null && "~orpc" in item && typeof item["~orpc"] === "object" && item["~orpc"] !== null && "errorMap" in item["~orpc"] && "route" in item["~orpc"] && "meta" in item["~orpc"];
-}
-
-// node_modules/.pnpm/@orpc+contract@1.15.0/node_modules/@orpc/contract/dist/index.mjs
-function mergeMeta(meta1, meta22) {
-  return { ...meta1, ...meta22 };
-}
-function mergeRoute(a, b) {
-  return { ...a, ...b };
-}
-function prefixRoute(route, prefix) {
-  if (!route.path) {
-    return route;
-  }
-  return {
-    ...route,
-    path: `${prefix}${route.path}`
-  };
-}
-function unshiftTagRoute(route, tags) {
-  return {
-    ...route,
-    tags: [...tags, ...route.tags ?? []]
-  };
-}
-function mergePrefix(a, b) {
-  return a ? `${a}${b}` : b;
-}
-function mergeTags(a, b) {
-  return a ? [...a, ...b] : b;
-}
-function enhanceRoute(route, options) {
-  let router = route;
-  if (options.prefix) {
-    router = prefixRoute(router, options.prefix);
-  }
-  if (options.tags?.length) {
-    router = unshiftTagRoute(router, options.tags);
-  }
-  return router;
-}
-function enhanceContractRouter(router, options) {
-  if (isContractProcedure(router)) {
-    const enhanced2 = new ContractProcedure({
-      ...router["~orpc"],
-      errorMap: mergeErrorMap(options.errorMap, router["~orpc"].errorMap),
-      route: enhanceRoute(router["~orpc"].route, options)
-    });
-    return enhanced2;
-  }
-  if (typeof router !== "object" || router === null) {
-    return router;
-  }
-  const enhanced = {};
-  for (const key in router) {
-    enhanced[key] = enhanceContractRouter(router[key], options);
-  }
-  return enhanced;
-}
-var ContractBuilder = class _ContractBuilder extends ContractProcedure {
-  constructor(def) {
-    super(def);
-    this["~orpc"].prefix = def.prefix;
-    this["~orpc"].tags = def.tags;
-  }
-  /**
-   * Sets or overrides the initial meta.
-   *
-   * @see {@link https://orpc.dev/docs/metadata Metadata Docs}
-   */
-  $meta(initialMeta) {
-    return new _ContractBuilder({
-      ...this["~orpc"],
-      meta: initialMeta
-    });
-  }
-  /**
-   * Sets or overrides the initial route.
-   * This option is typically relevant when integrating with OpenAPI.
-   *
-   * @see {@link https://orpc.dev/docs/openapi/routing OpenAPI Routing Docs}
-   * @see {@link https://orpc.dev/docs/openapi/input-output-structure OpenAPI Input/Output Structure Docs}
-   */
-  $route(initialRoute) {
-    return new _ContractBuilder({
-      ...this["~orpc"],
-      route: initialRoute
-    });
-  }
-  /**
-   * Sets or overrides the initial input schema.
-   *
-   * @see {@link https://orpc.dev/docs/procedure#initial-configuration Initial Procedure Configuration Docs}
-   */
-  $input(initialInputSchema) {
-    return new _ContractBuilder({
-      ...this["~orpc"],
-      inputSchema: initialInputSchema
-    });
-  }
-  /**
-   * Adds type-safe custom errors to the contract.
-   * The provided errors are spared-merged with any existing errors in the contract.
-   *
-   * @see {@link https://orpc.dev/docs/error-handling#type%E2%80%90safe-error-handling Type-Safe Error Handling Docs}
-   */
-  errors(errors) {
-    return new _ContractBuilder({
-      ...this["~orpc"],
-      errorMap: mergeErrorMap(this["~orpc"].errorMap, errors)
-    });
-  }
-  /**
-   * Sets or updates the metadata for the contract.
-   * The provided metadata is spared-merged with any existing metadata in the contract.
-   *
-   * @see {@link https://orpc.dev/docs/metadata Metadata Docs}
-   */
-  meta(meta3) {
-    return new _ContractBuilder({
-      ...this["~orpc"],
-      meta: mergeMeta(this["~orpc"].meta, meta3)
-    });
-  }
-  /**
-   * Sets or updates the route definition for the contract.
-   * The provided route is spared-merged with any existing route in the contract.
-   * This option is typically relevant when integrating with OpenAPI.
-   *
-   * @see {@link https://orpc.dev/docs/openapi/routing OpenAPI Routing Docs}
-   * @see {@link https://orpc.dev/docs/openapi/input-output-structure OpenAPI Input/Output Structure Docs}
-   */
-  route(route) {
-    return new _ContractBuilder({
-      ...this["~orpc"],
-      route: mergeRoute(this["~orpc"].route, route)
-    });
-  }
-  /**
-   * Defines the input validation schema for the contract.
-   *
-   * @see {@link https://orpc.dev/docs/procedure#input-output-validation Input Validation Docs}
-   */
-  input(schema) {
-    return new _ContractBuilder({
-      ...this["~orpc"],
-      inputSchema: schema
-    });
-  }
-  /**
-   * Defines the output validation schema for the contract.
-   *
-   * @see {@link https://orpc.dev/docs/procedure#input-output-validation Output Validation Docs}
-   */
-  output(schema) {
-    return new _ContractBuilder({
-      ...this["~orpc"],
-      outputSchema: schema
-    });
-  }
-  /**
-   * Prefixes all procedures in the contract router.
-   * The provided prefix is post-appended to any existing router prefix.
-   *
-   * @note This option does not affect procedures that do not define a path in their route definition.
-   *
-   * @see {@link https://orpc.dev/docs/openapi/routing#route-prefixes OpenAPI Route Prefixes Docs}
-   */
-  prefix(prefix) {
-    return new _ContractBuilder({
-      ...this["~orpc"],
-      prefix: mergePrefix(this["~orpc"].prefix, prefix)
-    });
-  }
-  /**
-   * Adds tags to all procedures in the contract router.
-   * This helpful when you want to group procedures together in the OpenAPI specification.
-   *
-   * @see {@link https://orpc.dev/docs/openapi/openapi-specification#operation-metadata OpenAPI Operation Metadata Docs}
-   */
-  tag(...tags) {
-    return new _ContractBuilder({
-      ...this["~orpc"],
-      tags: mergeTags(this["~orpc"].tags, tags)
-    });
-  }
-  /**
-   * Applies all of the previously defined options to the specified contract router.
-   *
-   * @see {@link https://orpc.dev/docs/router#extending-router Extending Router Docs}
-   */
-  router(router) {
-    return enhanceContractRouter(router, this["~orpc"]);
-  }
-};
-var oc = new ContractBuilder({
-  errorMap: {},
-  route: {},
-  meta: {}
-});
-var DEFAULT_CONFIG = {
-  defaultMethod: "POST",
-  defaultSuccessStatus: 200,
-  defaultSuccessDescription: "OK",
-  defaultInputStructure: "compact",
-  defaultOutputStructure: "compact"
-};
-function fallbackContractConfig(key, value2) {
-  if (value2 === void 0) {
-    return DEFAULT_CONFIG[key];
-  }
-  return value2;
-}
-var EVENT_ITERATOR_DETAILS_SYMBOL = /* @__PURE__ */ Symbol("ORPC_EVENT_ITERATOR_DETAILS");
-function eventIterator(yields, returns) {
-  return {
-    "~standard": {
-      [EVENT_ITERATOR_DETAILS_SYMBOL]: { yields, returns },
-      vendor: "orpc",
-      version: 1,
-      validate(iterator) {
-        if (!isAsyncIteratorObject(iterator)) {
-          return { issues: [{ message: "Expect event iterator", path: [] }] };
-        }
-        const mapped = mapEventIterator(iterator, {
-          async value(value2, done) {
-            const schema = done ? returns : yields;
-            if (!schema) {
-              return value2;
-            }
-            const result = await schema["~standard"].validate(value2);
-            if (result.issues) {
-              throw new ORPCError("EVENT_ITERATOR_VALIDATION_FAILED", {
-                message: "Event iterator validation failed",
-                cause: new ValidationError({
-                  issues: result.issues,
-                  message: "Event iterator validation failed",
-                  data: value2
-                })
-              });
-            }
-            return result.value;
-          },
-          error: async (error51) => error51
-        });
-        return { value: mapped };
-      }
-    }
-  };
-}
-
-// node_modules/.pnpm/@orpc+openapi-client@1.15.0/node_modules/@orpc/openapi-client/dist/shared/openapi-client.B2Q9qU5m.mjs
-var StandardOpenAPIJsonSerializer = class {
-  customSerializers;
-  constructor(options = {}) {
-    this.customSerializers = options.customJsonSerializers ?? [];
-  }
-  serialize(data, hasBlobRef = { value: false }) {
-    for (const custom2 of this.customSerializers) {
-      if (custom2.condition(data)) {
-        const result = this.serialize(custom2.serialize(data), hasBlobRef);
-        return result;
-      }
-    }
-    if (data instanceof Blob) {
-      hasBlobRef.value = true;
-      return [data, hasBlobRef.value];
-    }
-    if (data instanceof Set) {
-      return this.serialize(Array.from(data), hasBlobRef);
-    }
-    if (data instanceof Map) {
-      return this.serialize(Array.from(data.entries()), hasBlobRef);
-    }
-    if (Array.isArray(data)) {
-      const json2 = data.map((v) => v === void 0 ? null : this.serialize(v, hasBlobRef)[0]);
-      return [json2, hasBlobRef.value];
-    }
-    if (isObject(data)) {
-      const json2 = {};
-      for (const k in data) {
-        if (k === "toJSON" && typeof data[k] === "function") {
-          continue;
-        }
-        json2[k] = this.serialize(data[k], hasBlobRef)[0];
-      }
-      return [json2, hasBlobRef.value];
-    }
-    if (typeof data === "bigint" || data instanceof RegExp || data instanceof URL) {
-      return [data.toString(), hasBlobRef.value];
-    }
-    if (data instanceof Date) {
-      return [Number.isNaN(data.getTime()) ? null : data.toISOString(), hasBlobRef.value];
-    }
-    if (Number.isNaN(data)) {
-      return [null, hasBlobRef.value];
-    }
-    return [data, hasBlobRef.value];
-  }
-};
-function standardizeHTTPPath(path) {
-  return `/${path.replace(/\/{2,}/g, "/").replace(/^\/|\/$/g, "")}`;
-}
-function getDynamicParams(path) {
-  return path ? standardizeHTTPPath(path).match(/\/\{[^}]+\}/g)?.map((v) => ({
-    raw: v,
-    name: v.match(/\{\+?([^}]+)\}/)[1]
-  })) : void 0;
-}
-var StandardOpenapiLinkCodec = class {
-  constructor(contract, serializer, options) {
-    this.contract = contract;
-    this.serializer = serializer;
-    this.baseUrl = options.url;
-    this.headers = options.headers ?? {};
-    this.customErrorResponseBodyDecoder = options.customErrorResponseBodyDecoder;
-  }
-  baseUrl;
-  headers;
-  customErrorResponseBodyDecoder;
-  async encode(path, input, options) {
-    let headers = toStandardHeaders2(await value(this.headers, options, path, input));
-    if (options.lastEventId !== void 0) {
-      headers = mergeStandardHeaders(headers, { "last-event-id": options.lastEventId });
-    }
-    const baseUrl = await value(this.baseUrl, options, path, input);
-    const procedure = get(this.contract, path);
-    if (!isContractProcedure(procedure)) {
-      throw new Error(`[StandardOpenapiLinkCodec] expect a contract procedure at ${path.join(".")}`);
-    }
-    const inputStructure = fallbackContractConfig("defaultInputStructure", procedure["~orpc"].route.inputStructure);
-    return inputStructure === "compact" ? this.#encodeCompact(procedure, path, input, options, baseUrl, headers) : this.#encodeDetailed(procedure, path, input, options, baseUrl, headers);
-  }
-  #encodeCompact(procedure, path, input, options, baseUrl, headers) {
-    let httpPath = standardizeHTTPPath(procedure["~orpc"].route.path ?? toHttpPath(path));
-    let httpBody = input;
-    const dynamicParams = getDynamicParams(httpPath);
-    if (dynamicParams?.length) {
-      if (!isObject(input)) {
-        throw new TypeError(`[StandardOpenapiLinkCodec] Invalid input shape for "compact" structure when has dynamic params at ${path.join(".")}.`);
-      }
-      const body = { ...input };
-      for (const param of dynamicParams) {
-        const value2 = input[param.name];
-        httpPath = httpPath.replace(param.raw, `/${encodeURIComponent(`${this.serializer.serialize(value2)}`)}`);
-        delete body[param.name];
-      }
-      httpBody = Object.keys(body).length ? body : void 0;
-    }
-    const method = fallbackContractConfig("defaultMethod", procedure["~orpc"].route.method);
-    const url2 = new URL(baseUrl);
-    url2.pathname = `${url2.pathname.replace(/\/$/, "")}${httpPath}`;
-    if (method === "GET") {
-      const serialized = this.serializer.serialize(httpBody, { outputFormat: "URLSearchParams" });
-      for (const [key, value2] of serialized) {
-        url2.searchParams.append(key, value2);
-      }
-      return {
-        url: url2,
-        method,
-        headers,
-        body: void 0,
-        signal: options.signal
-      };
-    }
-    return {
-      url: url2,
-      method,
-      headers,
-      body: this.serializer.serialize(httpBody),
-      signal: options.signal
-    };
-  }
-  #encodeDetailed(procedure, path, input, options, baseUrl, headers) {
-    let httpPath = standardizeHTTPPath(procedure["~orpc"].route.path ?? toHttpPath(path));
-    const dynamicParams = getDynamicParams(httpPath);
-    if (!isObject(input) && input !== void 0) {
-      throw new TypeError(`[StandardOpenapiLinkCodec] Invalid input shape for "detailed" structure at ${path.join(".")}.`);
-    }
-    if (dynamicParams?.length) {
-      if (!isObject(input?.params)) {
-        throw new TypeError(`[StandardOpenapiLinkCodec] Invalid input.params shape for "detailed" structure when has dynamic params at ${path.join(".")}.`);
-      }
-      for (const param of dynamicParams) {
-        const value2 = input.params[param.name];
-        httpPath = httpPath.replace(param.raw, `/${encodeURIComponent(`${this.serializer.serialize(value2)}`)}`);
-      }
-    }
-    let mergedHeaders = headers;
-    if (input?.headers !== void 0) {
-      if (!isObject(input.headers)) {
-        throw new TypeError(`[StandardOpenapiLinkCodec] Invalid input.headers shape for "detailed" structure at ${path.join(".")}.`);
-      }
-      mergedHeaders = mergeStandardHeaders(input.headers, headers);
-    }
-    const method = fallbackContractConfig("defaultMethod", procedure["~orpc"].route.method);
-    const url2 = new URL(baseUrl);
-    url2.pathname = `${url2.pathname.replace(/\/$/, "")}${httpPath}`;
-    if (input?.query !== void 0) {
-      const query = this.serializer.serialize(input.query, { outputFormat: "URLSearchParams" });
-      for (const [key, value2] of query) {
-        url2.searchParams.append(key, value2);
-      }
-    }
-    if (method === "GET") {
-      return {
-        url: url2,
-        method,
-        headers: mergedHeaders,
-        body: void 0,
-        signal: options.signal
-      };
-    }
-    return {
-      url: url2,
-      method,
-      headers: mergedHeaders,
-      body: this.serializer.serialize(input?.body),
-      signal: options.signal
-    };
-  }
-  async decode(response, _options, path) {
-    const isOk = !isORPCErrorStatus(response.status);
-    const deserialized = await (async () => {
-      let isBodyOk = false;
-      try {
-        const body = await response.body();
-        isBodyOk = true;
-        return this.serializer.deserialize(body);
-      } catch (error51) {
-        if (!isBodyOk) {
-          throw new Error("Cannot parse response body, please check the response body and content-type.", {
-            cause: error51
-          });
-        }
-        throw new Error("Invalid OpenAPI response format.", {
-          cause: error51
-        });
-      }
-    })();
-    if (!isOk) {
-      const error51 = this.customErrorResponseBodyDecoder?.(deserialized, response);
-      if (error51 !== null && error51 !== void 0) {
-        throw error51;
-      }
-      if (isORPCErrorJson(deserialized)) {
-        throw createORPCErrorFromJson(deserialized);
-      }
-      throw new ORPCError(getMalformedResponseErrorCode(response.status), {
-        status: response.status,
-        data: { ...response, body: deserialized }
-      });
-    }
-    const procedure = get(this.contract, path);
-    if (!isContractProcedure(procedure)) {
-      throw new Error(`[StandardOpenapiLinkCodec] expect a contract procedure at ${path.join(".")}`);
-    }
-    const outputStructure = fallbackContractConfig("defaultOutputStructure", procedure["~orpc"].route.outputStructure);
-    if (outputStructure === "compact") {
-      return deserialized;
-    }
-    return {
-      status: response.status,
-      headers: response.headers,
-      body: deserialized
-    };
-  }
-};
-var StandardOpenAPISerializer = class {
-  constructor(jsonSerializer, bracketNotation) {
-    this.jsonSerializer = jsonSerializer;
-    this.bracketNotation = bracketNotation;
-  }
-  serialize(data, options = {}) {
-    if (isAsyncIteratorObject(data) && !options.outputFormat) {
-      return mapEventIterator(data, {
-        value: async (value2) => this.#serialize(value2, { outputFormat: "plain" }),
-        error: async (e) => {
-          return new ErrorEvent({
-            data: this.#serialize(toORPCError(e).toJSON(), { outputFormat: "plain" }),
-            cause: e
-          });
-        }
-      });
-    }
-    return this.#serialize(data, options);
-  }
-  #serialize(data, options) {
-    const [json2, hasBlob] = this.jsonSerializer.serialize(data);
-    if (options.outputFormat === "plain") {
-      return json2;
-    }
-    if (options.outputFormat === "URLSearchParams") {
-      const params = new URLSearchParams();
-      for (const [path, value2] of this.bracketNotation.serialize(json2)) {
-        if (typeof value2 === "string" || typeof value2 === "number" || typeof value2 === "boolean") {
-          params.append(path, value2.toString());
-        }
-      }
-      return params;
-    }
-    if (json2 instanceof Blob || json2 === void 0 || !hasBlob) {
-      return json2;
-    }
-    const form = new FormData();
-    for (const [path, value2] of this.bracketNotation.serialize(json2)) {
-      if (typeof value2 === "string" || typeof value2 === "number" || typeof value2 === "boolean") {
-        form.append(path, value2.toString());
-      } else if (value2 instanceof Blob) {
-        form.append(path, value2);
-      }
-    }
-    return form;
-  }
-  deserialize(data) {
-    if (data instanceof URLSearchParams || data instanceof FormData) {
-      return this.bracketNotation.deserialize(Array.from(data.entries()));
-    }
-    if (isAsyncIteratorObject(data)) {
-      return mapEventIterator(data, {
-        value: async (value2) => value2,
-        error: async (e) => {
-          if (e instanceof ErrorEvent && isORPCErrorJson(e.data)) {
-            return createORPCErrorFromJson(e.data, { cause: e });
-          }
-          return e;
-        }
-      });
-    }
-    return data;
-  }
-};
-var StandardOpenAPILink = class extends StandardLink {
-  constructor(contract, linkClient, options) {
-    const jsonSerializer = new StandardOpenAPIJsonSerializer(options);
-    const bracketNotationSerializer = new StandardBracketNotationSerializer({ maxBracketNotationArrayIndex: 4294967294 });
-    const serializer = new StandardOpenAPISerializer(jsonSerializer, bracketNotationSerializer);
-    const linkCodec = new StandardOpenapiLinkCodec(contract, serializer, options);
-    super(linkCodec, linkClient, options);
-  }
-};
-
-// node_modules/.pnpm/@orpc+openapi-client@1.15.0/node_modules/@orpc/openapi-client/dist/adapters/fetch/index.mjs
-var OpenAPILink = class extends StandardOpenAPILink {
-  constructor(contract, options) {
-    const linkClient = new LinkFetchClient(options);
-    super(contract, linkClient, options);
-  }
-};
-
 // node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/classic/external.js
 var external_exports = {};
 __export(external_exports, {
@@ -2570,7 +640,7 @@ __export(util_exports, {
   getParsedType: () => getParsedType,
   getSizableOrigin: () => getSizableOrigin,
   hexToUint8Array: () => hexToUint8Array,
-  isObject: () => isObject2,
+  isObject: () => isObject,
   isPlainObject: () => isPlainObject,
   issue: () => issue,
   joinValues: () => joinValues,
@@ -2733,7 +803,7 @@ function slugify(input) {
 }
 var captureStackTrace = "captureStackTrace" in Error ? Error.captureStackTrace : (..._args) => {
 };
-function isObject2(data) {
+function isObject(data) {
   return typeof data === "object" && data !== null && !Array.isArray(data);
 }
 var allowsEval = /* @__PURE__ */ cached(() => {
@@ -2752,7 +822,7 @@ var allowsEval = /* @__PURE__ */ cached(() => {
   }
 });
 function isPlainObject(o) {
-  if (isObject2(o) === false)
+  if (isObject(o) === false)
     return false;
   const ctor = o.constructor;
   if (ctor === void 0)
@@ -2760,7 +830,7 @@ function isPlainObject(o) {
   if (typeof ctor !== "function")
     return true;
   const prot = ctor.prototype;
-  if (isObject2(prot) === false)
+  if (isObject(prot) === false)
     return false;
   if (Object.prototype.hasOwnProperty.call(prot, "isPrototypeOf") === false) {
     return false;
@@ -4973,7 +3043,7 @@ var $ZodObject = /* @__PURE__ */ $constructor("$ZodObject", (inst, def) => {
     }
     return propValues;
   });
-  const isObject3 = isObject2;
+  const isObject3 = isObject;
   const catchall = def.catchall;
   let value2;
   inst._zod.parse = (payload, ctx) => {
@@ -5106,7 +3176,7 @@ var $ZodObjectJIT = /* @__PURE__ */ $constructor("$ZodObjectJIT", (inst, def) =>
     return (payload, ctx) => fn(shape, payload, ctx);
   };
   let fastpass;
-  const isObject3 = isObject2;
+  const isObject3 = isObject;
   const jit = !globalConfig.jitless;
   const allowsEval2 = allowsEval;
   const fastEnabled = jit && allowsEval2.value;
@@ -5291,7 +3361,7 @@ var $ZodDiscriminatedUnion = /* @__PURE__ */ $constructor("$ZodDiscriminatedUnio
   });
   inst._zod.parse = (payload, ctx) => {
     const input = payload.value;
-    if (!isObject2(input)) {
+    if (!isObject(input)) {
       payload.issues.push({
         code: "invalid_type",
         expected: "object",
@@ -16449,7 +14519,2119 @@ function date4(params) {
 // node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/classic/external.js
 config(en_default());
 
-// node_modules/.pnpm/busabase-sdk@0.17.1/node_modules/busabase-sdk/dist/index.js
+// node_modules/.pnpm/busabase-sdk@0.80.0/node_modules/busabase-sdk/dist/template-DRMp6tKv.js
+async function hashBytes(bytes) {
+  const subtle = globalThis.crypto?.subtle;
+  if (!subtle) return void 0;
+  const buffer = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
+  const digest = await subtle.digest("SHA-256", buffer);
+  return `sha256:${Array.from(new Uint8Array(digest)).map((byte) => byte.toString(16).padStart(2, "0")).join("")}`;
+}
+async function uploadAsset(client, bytes, options, fetchImpl = fetch) {
+  const { fileName, mimeType, context, spaceId } = options;
+  if (!bytes.byteLength) throw new Error(`uploadAsset: ${fileName} is empty \u2014 there are no bytes to upload`);
+  const contentHash = await hashBytes(bytes);
+  const upload = await client.assets.createUploadUrl({
+    fileName,
+    mimeType,
+    sizeBytes: bytes.byteLength,
+    ...context ? { context } : {},
+    ...spaceId ? { spaceId } : {},
+    ...contentHash ? { contentHash } : {}
+  });
+  if (upload.duplicate && upload.attachmentId) return {
+    ...upload.assetId ? { assetId: upload.assetId } : {},
+    attachmentId: upload.attachmentId,
+    url: upload.publicUrl,
+    fileName,
+    mimeType,
+    size: bytes.byteLength,
+    ...contentHash ? { contentHash } : {}
+  };
+  const response = await fetchImpl(upload.uploadUrl, {
+    method: "PUT",
+    headers: { "content-type": mimeType },
+    body: bytes
+  });
+  if (!response.ok) {
+    const detail = await response.text().catch(() => "");
+    throw new Error(`uploadAsset: presigned upload of ${fileName} failed (${response.status} ${response.statusText})${detail ? `: ${detail}` : ""}`);
+  }
+  const confirmed = await client.assets.confirm({
+    storageKey: upload.storageKey,
+    fileName,
+    mimeType,
+    sizeBytes: bytes.byteLength,
+    ...context ? { context } : {},
+    ...spaceId ? { spaceId } : {},
+    ...contentHash ? { contentHash } : {}
+  });
+  return {
+    ...confirmed.assetId ? { assetId: confirmed.assetId } : {},
+    attachmentId: confirmed.attachmentId,
+    url: confirmed.publicUrl,
+    fileName,
+    mimeType,
+    size: bytes.byteLength,
+    ...contentHash ? { contentHash } : {}
+  };
+}
+var SkillFrontmatterSchema$1 = external_exports.object({
+  /** Identity. For a Skill inside a package this must equal the package name. */
+  name: external_exports.string().min(1),
+  /**
+  * How an agent decides whether to reach for this Skill at all — so an empty one
+  * is not a cosmetic omission, it is a Skill that never gets picked.
+  */
+  description: external_exports.string().default(""),
+  metadata: external_exports.object({}).passthrough().optional()
+});
+var TemplateAirAppRefSchema = external_exports.object({
+  /** Slug of the `content/<dir>` holding the AirApp. */
+  slug: external_exports.string().min(1),
+  role: external_exports.enum([
+    "primary",
+    "admin",
+    "public",
+    "tool"
+  ]),
+  label: external_exports.string().optional()
+});
+var TemplateSecretSchema = external_exports.object({
+  key: external_exports.string().min(1),
+  description: external_exports.string().default(""),
+  required: external_exports.boolean().default(true)
+});
+external_exports.object({
+  /** Template Center category, e.g. `"crm"`, `"email"`, `"content"`. */
+  category: external_exports.string().min(1),
+  tags: external_exports.array(external_exports.string()).default([]),
+  /** Card/detail screenshots, package-relative (`assets/screenshots/overview.webp`). */
+  screenshots: external_exports.array(external_exports.string()).default([]),
+  /**
+  * Optional demo clip, package-relative (`assets/recordings/busa-crm.mp4`).
+  *
+  * No companion poster field on purpose: the detail page uses
+  * `screenshots[0]`, which the catalog already requires to be the cover. One
+  * declared path instead of two that can disagree with each other.
+  *
+  * Note for anyone adding a sibling field here: this is a plain `z.object`, so
+  * an unrecognized key in `busabase.json` is silently stripped rather than
+  * rejected. A template cannot declare a field ahead of the schema landing —
+  * it just vanishes, with no error from `busabase-cli check`.
+  */
+  video: external_exports.string().optional(),
+  /**
+  * Ready-made prompts shown after install ("Ask agent" prefills the first).
+  *
+  * They are the difference between a folder of tables and something a user can
+  * *use*: the point of a template is that the agent already knows the job, and
+  * these are how that is made visible rather than left for the user to guess.
+  */
+  agentPrompts: external_exports.array(external_exports.string()).default([]),
+  /** Single-AirApp shorthand. Mutually exclusive with `airapps`. */
+  airapp: external_exports.string().optional(),
+  /** Multi-AirApp form. Exactly one entry must have `role: "primary"`. */
+  airapps: external_exports.array(TemplateAirAppRefSchema).optional(),
+  /**
+  * Bumped by the author when the declared resource shape changes.
+  *
+  * Part of the ownership stamp, so BOTH doors must agree on it: the installer
+  * writes it, and a skill's own `setup.mjs` compares against it to decide
+  * whether a node it finds is its own current shape or an older one to repair.
+  * Defaulted rather than required so an author who never versions their app
+  * still gets a stamp both sides recognise.
+  */
+  schemaVersion: external_exports.number().int().nonnegative().default(1),
+  vaultNamespace: external_exports.string().optional(),
+  secrets: external_exports.array(TemplateSecretSchema).default([]),
+  requires: external_exports.object({ airapp: external_exports.boolean().optional() }).default({})
+});
+var TemplateRiskLevelSchema = external_exports.enum([
+  "gated-write",
+  "local-write",
+  "read-only",
+  "sandbox"
+]);
+var SkillBusabaseMetadataSchema = external_exports.object({
+  template: external_exports.boolean().default(false),
+  folderSlug: external_exports.string().optional(),
+  /** Resource keys the manual talks about; each must exist under `content/`. */
+  resources: external_exports.array(external_exports.string()).default([]),
+  /**
+  * Free-form on purpose — see `parseTemplateRisk`. Validating this to the enum
+  * here would turn a stranger's typo or a retired term into a hard parse
+  * failure for the whole frontmatter, which is a worse outcome than a card
+  * that cannot show a risk badge.
+  */
+  risk: external_exports.string().optional()
+});
+SkillFrontmatterSchema$1.extend({ metadata: external_exports.object({ busabase: SkillBusabaseMetadataSchema.optional() }).passthrough().optional() });
+var AppResourceOwnershipSchema = external_exports.object({
+  appId: external_exports.string().min(1),
+  /** Stable internal handle (`"contacts"`), NOT the installed slug. */
+  resourceKey: external_exports.string().min(1),
+  schemaVersion: external_exports.number().int().nonnegative()
+});
+var APP_ROOT_RESOURCE_KEY = "app-root";
+AppResourceOwnershipSchema.extend({
+  resourceKey: external_exports.literal(APP_ROOT_RESOURCE_KEY),
+  version: external_exports.string().optional(),
+  source: external_exports.object({
+    repo: external_exports.string().optional(),
+    ref: external_exports.string().optional(),
+    subdir: external_exports.string().optional()
+  }).optional(),
+  installedAt: external_exports.string().optional()
+});
+external_exports.object({
+  appId: external_exports.string().min(1),
+  ["isTemplateSkill"]: external_exports.literal(true)
+});
+
+// node_modules/.pnpm/busabase-sdk@0.80.0/node_modules/busabase-sdk/dist/url-B8GMXalA.js
+function normalizeBaseUrl(raw) {
+  return raw.replace(/\/+$/, "").replace(/\/api\/v1$/, "");
+}
+
+// node_modules/.pnpm/@orpc+shared@1.15.0/node_modules/@orpc/shared/dist/index.mjs
+function resolveMaybeOptionalOptions(rest) {
+  return rest[0] ?? {};
+}
+function toArray(value2) {
+  return Array.isArray(value2) ? value2 : value2 === void 0 || value2 === null ? [] : [value2];
+}
+var ORPC_NAME = "orpc";
+var ORPC_SHARED_PACKAGE_NAME = "@orpc/shared";
+var ORPC_SHARED_PACKAGE_VERSION = "1.15.0";
+var AbortError = class extends Error {
+  constructor(...rest) {
+    super(...rest);
+    this.name = "AbortError";
+  }
+};
+function once(fn) {
+  let cached2;
+  return () => {
+    if (cached2) {
+      return cached2.result;
+    }
+    const result = fn();
+    cached2 = { result };
+    return result;
+  };
+}
+function sequential(fn) {
+  let lastOperationPromise = Promise.resolve();
+  return (...args) => {
+    return lastOperationPromise = lastOperationPromise.catch(() => {
+    }).then(() => {
+      return fn(...args);
+    });
+  };
+}
+var SPAN_ERROR_STATUS = 2;
+var GLOBAL_OTEL_CONFIG_KEY = `__${ORPC_SHARED_PACKAGE_NAME}@${ORPC_SHARED_PACKAGE_VERSION}/otel/config__`;
+function getGlobalOtelConfig() {
+  return globalThis[GLOBAL_OTEL_CONFIG_KEY];
+}
+function startSpan(name, options = {}, context) {
+  const tracer = getGlobalOtelConfig()?.tracer;
+  return tracer?.startSpan(name, options, context);
+}
+function setSpanError(span, error51, options = {}) {
+  if (!span) {
+    return;
+  }
+  const exception = toOtelException(error51);
+  span.recordException(exception);
+  if (!options.signal?.aborted || options.signal.reason !== error51) {
+    span.setStatus({
+      code: SPAN_ERROR_STATUS,
+      message: exception.message
+    });
+  }
+}
+function toOtelException(error51) {
+  if (error51 instanceof Error) {
+    const exception = {
+      message: error51.message,
+      name: error51.name,
+      stack: error51.stack
+    };
+    if ("code" in error51 && (typeof error51.code === "string" || typeof error51.code === "number")) {
+      exception.code = error51.code;
+    }
+    return exception;
+  }
+  return { message: String(error51) };
+}
+async function runWithSpan({ name, context, ...options }, fn) {
+  const tracer = getGlobalOtelConfig()?.tracer;
+  if (!tracer) {
+    return fn();
+  }
+  const callback = async (span) => {
+    try {
+      return await fn(span);
+    } catch (e) {
+      setSpanError(span, e, options);
+      throw e;
+    } finally {
+      span.end();
+    }
+  };
+  if (context) {
+    return tracer.startActiveSpan(name, options, context, callback);
+  } else {
+    return tracer.startActiveSpan(name, options, callback);
+  }
+}
+async function runInSpanContext(span, fn) {
+  const otelConfig = getGlobalOtelConfig();
+  if (!span || !otelConfig) {
+    return fn();
+  }
+  const ctx = otelConfig.trace.setSpan(otelConfig.context.active(), span);
+  return otelConfig.context.with(ctx, fn);
+}
+function isAsyncIteratorObject(maybe) {
+  if (!maybe || typeof maybe !== "object") {
+    return false;
+  }
+  return "next" in maybe && typeof maybe.next === "function" && Symbol.asyncIterator in maybe && typeof maybe[Symbol.asyncIterator] === "function";
+}
+var fallbackAsyncDisposeSymbol = /* @__PURE__ */ Symbol.for("asyncDispose");
+var asyncDisposeSymbol = Symbol.asyncDispose ?? fallbackAsyncDisposeSymbol;
+var AsyncIteratorClass = class {
+  #isDone = false;
+  #isExecuteComplete = false;
+  #cleanup;
+  #next;
+  constructor(next, cleanup) {
+    this.#cleanup = cleanup;
+    this.#next = sequential(async () => {
+      if (this.#isDone) {
+        return { done: true, value: void 0 };
+      }
+      try {
+        const result = await next();
+        if (result.done) {
+          this.#isDone = true;
+        }
+        return result;
+      } catch (err) {
+        this.#isDone = true;
+        throw err;
+      } finally {
+        if (this.#isDone && !this.#isExecuteComplete) {
+          this.#isExecuteComplete = true;
+          await this.#cleanup("next");
+        }
+      }
+    });
+  }
+  next() {
+    return this.#next();
+  }
+  async return(value2) {
+    this.#isDone = true;
+    if (!this.#isExecuteComplete) {
+      this.#isExecuteComplete = true;
+      await this.#cleanup("return");
+    }
+    return { done: true, value: value2 };
+  }
+  async throw(err) {
+    this.#isDone = true;
+    if (!this.#isExecuteComplete) {
+      this.#isExecuteComplete = true;
+      await this.#cleanup("throw");
+    }
+    throw err;
+  }
+  /**
+   * asyncDispose symbol only available in esnext, we should fallback to Symbol.for('asyncDispose')
+   */
+  async [asyncDisposeSymbol]() {
+    this.#isDone = true;
+    if (!this.#isExecuteComplete) {
+      this.#isExecuteComplete = true;
+      await this.#cleanup("dispose");
+    }
+  }
+  [Symbol.asyncIterator]() {
+    return this;
+  }
+};
+function asyncIteratorWithSpan({ name, ...options }, iterator) {
+  let span;
+  return new AsyncIteratorClass(
+    async () => {
+      span ??= startSpan(name);
+      try {
+        const result = await runInSpanContext(span, () => iterator.next());
+        span?.addEvent(result.done ? "completed" : "yielded");
+        return result;
+      } catch (err) {
+        setSpanError(span, err, options);
+        throw err;
+      }
+    },
+    async (reason) => {
+      try {
+        if (reason !== "next") {
+          await runInSpanContext(span, () => iterator.return?.());
+        }
+      } catch (err) {
+        setSpanError(span, err, options);
+        throw err;
+      } finally {
+        span?.end();
+      }
+    }
+  );
+}
+function intercept(interceptors, options, main) {
+  const next = (options2, index) => {
+    const interceptor = interceptors[index];
+    if (!interceptor) {
+      return main(options2);
+    }
+    return interceptor({
+      ...options2,
+      next: (newOptions = options2) => next(newOptions, index + 1)
+    });
+  };
+  return next(options, 0);
+}
+function parseEmptyableJSON(text) {
+  if (!text) {
+    return void 0;
+  }
+  return JSON.parse(text);
+}
+function stringifyJSON(value2) {
+  return JSON.stringify(value2);
+}
+function getConstructor(value2) {
+  if (!isTypescriptObject(value2)) {
+    return null;
+  }
+  return Object.getPrototypeOf(value2)?.constructor;
+}
+function isObject2(value2) {
+  if (!value2 || typeof value2 !== "object") {
+    return false;
+  }
+  const proto = Object.getPrototypeOf(value2);
+  return proto === Object.prototype || !proto || !proto.constructor;
+}
+function isTypescriptObject(value2) {
+  return !!value2 && (typeof value2 === "object" || typeof value2 === "function");
+}
+function get(object2, path) {
+  let current = object2;
+  for (const key of path) {
+    if (!isTypescriptObject(current)) {
+      return void 0;
+    }
+    current = current[key];
+  }
+  return current;
+}
+var NullProtoObj = /* @__PURE__ */ (() => {
+  const e = function() {
+  };
+  e.prototype = /* @__PURE__ */ Object.create(null);
+  Object.freeze(e.prototype);
+  return e;
+})();
+function value(value2, ...args) {
+  if (typeof value2 === "function") {
+    return value2(...args);
+  }
+  return value2;
+}
+function preventNativeAwait(target) {
+  return new Proxy(target, {
+    get(target2, prop, receiver) {
+      const value2 = Reflect.get(target2, prop, receiver);
+      if (prop !== "then" || typeof value2 !== "function") {
+        return value2;
+      }
+      return new Proxy(value2, {
+        apply(targetFn, thisArg, args) {
+          if (args.length !== 2 || args.some((arg) => !isNativeFunction(arg))) {
+            return Reflect.apply(targetFn, thisArg, args);
+          }
+          let shouldOmit = true;
+          args[0].call(thisArg, preventNativeAwait(new Proxy(target2, {
+            get: (target3, prop2, receiver2) => {
+              if (shouldOmit && prop2 === "then") {
+                shouldOmit = false;
+                return void 0;
+              }
+              return Reflect.get(target3, prop2, receiver2);
+            }
+          })));
+        }
+      });
+    }
+  });
+}
+var NATIVE_FUNCTION_REGEX = /^\s*function\s*\(\)\s*\{\s*\[native code\]\s*\}\s*$/;
+function isNativeFunction(fn) {
+  return typeof fn === "function" && NATIVE_FUNCTION_REGEX.test(fn.toString());
+}
+function tryDecodeURIComponent(value2) {
+  try {
+    return decodeURIComponent(value2);
+  } catch {
+    return value2;
+  }
+}
+
+// node_modules/.pnpm/@orpc+client@1.15.0/node_modules/@orpc/client/dist/shared/client.CZlviB0y.mjs
+var ORPC_CLIENT_PACKAGE_NAME = "@orpc/client";
+var ORPC_CLIENT_PACKAGE_VERSION = "1.15.0";
+var RECURSIVE_CLIENT_UNWRAP_KEYS = /* @__PURE__ */ new Set([
+  /**
+   * Commonly used by libraries to bind functions to a specific `this`
+   * context.
+   */
+  "bind",
+  /**
+   * Commonly accessed during primitive conversion, inspection, and logging.
+   */
+  "valueOf",
+  /**
+   * Commonly accessed during string conversion, inspection, and logging.
+   */
+  "toString",
+  /**
+   * Commonly accessed by serializers such as `JSON.stringify`.
+   */
+  "toJSON"
+]);
+var COMMON_ORPC_ERROR_DEFS = {
+  BAD_REQUEST: {
+    status: 400,
+    message: "Bad Request"
+  },
+  UNAUTHORIZED: {
+    status: 401,
+    message: "Unauthorized"
+  },
+  FORBIDDEN: {
+    status: 403,
+    message: "Forbidden"
+  },
+  NOT_FOUND: {
+    status: 404,
+    message: "Not Found"
+  },
+  METHOD_NOT_SUPPORTED: {
+    status: 405,
+    message: "Method Not Supported"
+  },
+  NOT_ACCEPTABLE: {
+    status: 406,
+    message: "Not Acceptable"
+  },
+  TIMEOUT: {
+    status: 408,
+    message: "Request Timeout"
+  },
+  CONFLICT: {
+    status: 409,
+    message: "Conflict"
+  },
+  PRECONDITION_FAILED: {
+    status: 412,
+    message: "Precondition Failed"
+  },
+  PAYLOAD_TOO_LARGE: {
+    status: 413,
+    message: "Payload Too Large"
+  },
+  UNSUPPORTED_MEDIA_TYPE: {
+    status: 415,
+    message: "Unsupported Media Type"
+  },
+  UNPROCESSABLE_CONTENT: {
+    status: 422,
+    message: "Unprocessable Content"
+  },
+  TOO_MANY_REQUESTS: {
+    status: 429,
+    message: "Too Many Requests"
+  },
+  CLIENT_CLOSED_REQUEST: {
+    status: 499,
+    message: "Client Closed Request"
+  },
+  INTERNAL_SERVER_ERROR: {
+    status: 500,
+    message: "Internal Server Error"
+  },
+  NOT_IMPLEMENTED: {
+    status: 501,
+    message: "Not Implemented"
+  },
+  BAD_GATEWAY: {
+    status: 502,
+    message: "Bad Gateway"
+  },
+  SERVICE_UNAVAILABLE: {
+    status: 503,
+    message: "Service Unavailable"
+  },
+  GATEWAY_TIMEOUT: {
+    status: 504,
+    message: "Gateway Timeout"
+  }
+};
+function fallbackORPCErrorStatus(code, status) {
+  return status ?? COMMON_ORPC_ERROR_DEFS[code]?.status ?? 500;
+}
+function fallbackORPCErrorMessage(code, message) {
+  return message || COMMON_ORPC_ERROR_DEFS[code]?.message || code;
+}
+var globalORPCErrorConstructors;
+var ORPCError = class _ORPCError extends Error {
+  defined;
+  code;
+  status;
+  data;
+  static {
+    const GLOBAL_ORPC_ERROR_CONSTRUCTORS_SYMBOL = /* @__PURE__ */ Symbol.for(`__${ORPC_CLIENT_PACKAGE_NAME}@${ORPC_CLIENT_PACKAGE_VERSION}/error/ORPC_ERROR_CONSTRUCTORS__`);
+    void (globalThis[GLOBAL_ORPC_ERROR_CONSTRUCTORS_SYMBOL] ??= /* @__PURE__ */ new WeakSet());
+    globalORPCErrorConstructors = globalThis[GLOBAL_ORPC_ERROR_CONSTRUCTORS_SYMBOL];
+    globalORPCErrorConstructors.add(_ORPCError);
+  }
+  constructor(code, ...rest) {
+    const options = resolveMaybeOptionalOptions(rest);
+    if (options.status !== void 0 && !isORPCErrorStatus(options.status)) {
+      throw new Error("[ORPCError] Invalid error status code.");
+    }
+    const message = fallbackORPCErrorMessage(code, options.message);
+    super(message, options);
+    this.code = code;
+    this.status = fallbackORPCErrorStatus(code, options.status);
+    this.defined = options.defined ?? false;
+    this.data = options.data;
+  }
+  toJSON() {
+    return {
+      defined: this.defined,
+      code: this.code,
+      status: this.status,
+      message: this.message,
+      data: this.data
+    };
+  }
+  /**
+   * Workaround for Next.js where different contexts use separate
+   * dependency graphs, causing multiple ORPCError constructors existing and breaking
+   * `instanceof` checks across contexts.
+   *
+   * This is particularly problematic with "Optimized SSR", where orpc-client
+   * executes in one context but is invoked from another. When an error is thrown
+   * in the execution context, `instanceof ORPCError` checks fail in the
+   * invocation context due to separate class constructors.
+   *
+   * @todo Remove this and related code if Next.js resolves the multiple dependency graph issue.
+   */
+  static [Symbol.hasInstance](instance) {
+    if (globalORPCErrorConstructors.has(this)) {
+      const constructor = getConstructor(instance);
+      if (constructor && globalORPCErrorConstructors.has(constructor)) {
+        return true;
+      }
+    }
+    return super[Symbol.hasInstance](instance);
+  }
+};
+function toORPCError(error51) {
+  return error51 instanceof ORPCError ? error51 : new ORPCError("INTERNAL_SERVER_ERROR", {
+    message: "Internal server error",
+    cause: error51
+  });
+}
+function isORPCErrorStatus(status) {
+  return status < 200 || status >= 400;
+}
+function isORPCErrorJson(json2) {
+  if (!isObject2(json2)) {
+    return false;
+  }
+  const validKeys = ["defined", "code", "status", "message", "data"];
+  if (Object.keys(json2).some((k) => !validKeys.includes(k))) {
+    return false;
+  }
+  return "defined" in json2 && typeof json2.defined === "boolean" && "code" in json2 && typeof json2.code === "string" && "status" in json2 && typeof json2.status === "number" && isORPCErrorStatus(json2.status) && "message" in json2 && typeof json2.message === "string";
+}
+function createORPCErrorFromJson(json2, options = {}) {
+  return new ORPCError(json2.code, {
+    ...options,
+    ...json2
+  });
+}
+
+// node_modules/.pnpm/@orpc+standard-server@1.15.0/node_modules/@orpc/standard-server/dist/index.mjs
+var EventEncoderError = class extends TypeError {
+};
+var EventDecoderError = class extends TypeError {
+};
+var ErrorEvent = class extends Error {
+  data;
+  constructor(options) {
+    super(options?.message ?? "An error event was received", options);
+    this.data = options?.data;
+  }
+};
+var LINE_ENDING_REGEX$1 = /\r\n|\r(?!\n)|\n/;
+var MESSAGE_DELIMITER_REGEX = /(?:\r\n|\r(?!\n)|\n){2}/;
+var MESSAGE_DELIMITER_GLOBAL_REGEX = /(?:\r\n|\r(?!\n)|\n){2}/g;
+var CR = 13;
+var LF = 10;
+var SPACE = 32;
+function decodeEventMessage(encoded) {
+  const message = {
+    data: void 0,
+    event: void 0,
+    id: void 0,
+    retry: void 0,
+    comments: []
+  };
+  for (const line of encoded.split(LINE_ENDING_REGEX$1)) {
+    if (line === "") {
+      continue;
+    }
+    const index = line.indexOf(":");
+    const value2 = index === -1 ? "" : line.slice(line.charCodeAt(index + 1) === SPACE ? index + 2 : index + 1);
+    if (index === 0) {
+      message.comments.push(value2);
+      continue;
+    }
+    switch (index === -1 ? line : line.slice(0, index)) {
+      case "data":
+        message.data = message.data === void 0 ? value2 : `${message.data}
+${value2}`;
+        break;
+      case "event":
+        message.event = value2;
+        break;
+      case "id":
+        message.id = value2;
+        break;
+      case "retry": {
+        const maybeInteger = Number.parseInt(value2, 10);
+        if (maybeInteger >= 0 && maybeInteger.toString() === value2) {
+          message.retry = maybeInteger;
+        }
+        break;
+      }
+    }
+  }
+  return message;
+}
+var EventDecoder = class {
+  constructor(options = {}) {
+    this.options = options;
+  }
+  pending = [];
+  // Last up-to-3 characters of the pending buffer, prefixed to the next chunk
+  // so a delimiter straddling the boundary is still found.
+  tail = "";
+  // Set when a chunk-ending '\r' was already consumed as a line ending, so a
+  // leading '\n' in the next chunk is the second half of that CRLF pair.
+  discardLeadingLF = false;
+  feed(chunk) {
+    if (chunk === "") {
+      return;
+    }
+    if (this.discardLeadingLF) {
+      this.discardLeadingLF = false;
+      if (chunk.charCodeAt(0) === LF) {
+        chunk = chunk.slice(1);
+        if (chunk === "") {
+          return;
+        }
+      }
+    }
+    const scan = this.tail + chunk;
+    if (!MESSAGE_DELIMITER_REGEX.test(scan)) {
+      this.pending.push(chunk);
+      this.tail = scan.slice(-3);
+      return;
+    }
+    this.pending.push(chunk);
+    const buffered = this.pending.length === 1 ? chunk : this.pending.join("");
+    const offset = buffered.length - scan.length;
+    const parts = [];
+    let start = 0;
+    for (const match of scan.matchAll(MESSAGE_DELIMITER_GLOBAL_REGEX)) {
+      parts.push(buffered.slice(start, offset + match.index));
+      start = offset + match.index + match[0].length;
+    }
+    const incomplete = buffered.slice(start);
+    this.pending.length = 0;
+    this.tail = incomplete.slice(-3);
+    if (incomplete === "") {
+      this.discardLeadingLF = chunk.charCodeAt(chunk.length - 1) === CR;
+    } else {
+      this.pending.push(incomplete);
+    }
+    for (const encoded of parts) {
+      const message = decodeEventMessage(encoded);
+      if (this.options.onEvent) {
+        this.options.onEvent(message);
+      }
+    }
+  }
+  end() {
+    if (this.pending.length !== 0) {
+      throw new EventDecoderError("Event Iterator ended before complete");
+    }
+  }
+};
+var EventDecoderStream = class extends TransformStream {
+  constructor() {
+    let decoder;
+    super({
+      start(controller) {
+        decoder = new EventDecoder({
+          onEvent: (event) => {
+            controller.enqueue(event);
+          }
+        });
+      },
+      transform(chunk) {
+        decoder.feed(chunk);
+      },
+      flush() {
+        decoder.end();
+      }
+    });
+  }
+};
+var LINE_ENDING_REGEX = /\r\n|[\n\r]/;
+var LINE_ENDING_GLOBAL_REGEX = /\r\n|[\n\r]/g;
+function containsLineBreak(value2) {
+  return LINE_ENDING_REGEX.test(value2);
+}
+function assertEventId(id) {
+  if (containsLineBreak(id)) {
+    throw new EventEncoderError("Event's id must not contain a carriage return or newline character");
+  }
+}
+function assertEventName(event) {
+  if (containsLineBreak(event)) {
+    throw new EventEncoderError("Event's event must not contain a carriage return or newline character");
+  }
+}
+function assertEventRetry(retry) {
+  if (!Number.isInteger(retry) || retry < 0) {
+    throw new EventEncoderError("Event's retry must be a integer and >= 0");
+  }
+}
+function assertEventComment(comment) {
+  if (containsLineBreak(comment)) {
+    throw new EventEncoderError("Event's comment must not contain a carriage return or newline character");
+  }
+}
+function encodeEventData(data) {
+  if (data === void 0) {
+    return "";
+  }
+  return `data: ${data.replace(LINE_ENDING_GLOBAL_REGEX, "\ndata: ")}
+`;
+}
+function encodeEventComments(comments) {
+  let output = "";
+  for (const comment of comments ?? []) {
+    assertEventComment(comment);
+    output += `: ${comment}
+`;
+  }
+  return output;
+}
+function encodeEventMessage(message) {
+  let output = "";
+  output += encodeEventComments(message.comments);
+  if (message.event !== void 0) {
+    assertEventName(message.event);
+    output += `event: ${message.event}
+`;
+  }
+  if (message.retry !== void 0) {
+    assertEventRetry(message.retry);
+    output += `retry: ${message.retry}
+`;
+  }
+  if (message.id !== void 0) {
+    assertEventId(message.id);
+    output += `id: ${message.id}
+`;
+  }
+  output += encodeEventData(message.data);
+  output += "\n";
+  return output;
+}
+var EVENT_SOURCE_META_SYMBOL = /* @__PURE__ */ Symbol("ORPC_EVENT_SOURCE_META");
+function withEventMeta(container, meta3) {
+  if (meta3.id === void 0 && meta3.retry === void 0 && !meta3.comments?.length) {
+    return container;
+  }
+  if (meta3.id !== void 0) {
+    assertEventId(meta3.id);
+  }
+  if (meta3.retry !== void 0) {
+    assertEventRetry(meta3.retry);
+  }
+  if (meta3.comments !== void 0) {
+    for (const comment of meta3.comments) {
+      assertEventComment(comment);
+    }
+  }
+  return new Proxy(container, {
+    get(target, prop, receiver) {
+      if (prop === EVENT_SOURCE_META_SYMBOL) {
+        return meta3;
+      }
+      return Reflect.get(target, prop, receiver);
+    }
+  });
+}
+function getEventMeta(container) {
+  return isTypescriptObject(container) ? Reflect.get(container, EVENT_SOURCE_META_SYMBOL) : void 0;
+}
+function generateContentDisposition(filename, disposition = "inline") {
+  const encodedFileName = filename.replace(/[^\x20-\x7E]/g, "_").replace(/"/g, '\\"');
+  const encodedFilenameStar = encodeURIComponent(filename).replace(/['()*]/g, (c) => `%${c.charCodeAt(0).toString(16).toUpperCase()}`).replace(/%(7C|60|5E)/g, (str, hex3) => String.fromCharCode(Number.parseInt(hex3, 16)));
+  return `${disposition}; filename="${encodedFileName}"; filename*=utf-8''${encodedFilenameStar}`;
+}
+function getFilenameFromContentDisposition(contentDisposition) {
+  const encodedFilenameStarMatch = contentDisposition.match(/filename\*=(UTF-8'')?([^;]*)/i);
+  if (encodedFilenameStarMatch && typeof encodedFilenameStarMatch[2] === "string") {
+    return tryDecodeURIComponent(encodedFilenameStarMatch[2]);
+  }
+  const encodedFilenameMatch = contentDisposition.match(/filename="((?:\\"|[^"])*)"/i);
+  if (encodedFilenameMatch && typeof encodedFilenameMatch[1] === "string") {
+    return encodedFilenameMatch[1].replace(/\\"/g, '"');
+  }
+}
+function mergeStandardHeaders(a, b) {
+  const merged = { ...a };
+  for (const key in b) {
+    if (Array.isArray(b[key])) {
+      merged[key] = [...toArray(merged[key]), ...b[key]];
+    } else if (b[key] !== void 0) {
+      if (Array.isArray(merged[key])) {
+        merged[key] = [...merged[key], b[key]];
+      } else if (merged[key] !== void 0) {
+        merged[key] = [merged[key], b[key]];
+      } else {
+        merged[key] = b[key];
+      }
+    }
+  }
+  return merged;
+}
+
+// node_modules/.pnpm/@orpc+client@1.15.0/node_modules/@orpc/client/dist/shared/client.BLtwTQUg.mjs
+function mapEventIterator(iterator, maps) {
+  const mapError = async (error51) => {
+    let mappedError = await maps.error(error51);
+    if (mappedError !== error51) {
+      const meta3 = getEventMeta(error51);
+      if (meta3 && isTypescriptObject(mappedError)) {
+        mappedError = withEventMeta(mappedError, meta3);
+      }
+    }
+    return mappedError;
+  };
+  return new AsyncIteratorClass(async () => {
+    const { done, value: value2 } = await (async () => {
+      try {
+        return await iterator.next();
+      } catch (error51) {
+        throw await mapError(error51);
+      }
+    })();
+    let mappedValue = await maps.value(value2, done);
+    if (mappedValue !== value2) {
+      const meta3 = getEventMeta(value2);
+      if (meta3 && isTypescriptObject(mappedValue)) {
+        mappedValue = withEventMeta(mappedValue, meta3);
+      }
+    }
+    return { done, value: mappedValue };
+  }, async () => {
+    try {
+      await iterator.return?.();
+    } catch (error51) {
+      throw await mapError(error51);
+    }
+  });
+}
+
+// node_modules/.pnpm/@orpc+client@1.15.0/node_modules/@orpc/client/dist/index.mjs
+function resolveFriendlyClientOptions(options) {
+  return {
+    ...options,
+    context: options.context ?? {}
+    // Context only optional if all fields are optional
+  };
+}
+function createORPCClient(link, options = {}) {
+  const path = options.path ?? [];
+  const procedureClient = async (...[input, options2 = {}]) => {
+    return await link.call(path, input, resolveFriendlyClientOptions(options2));
+  };
+  const recursive = new Proxy(procedureClient, {
+    get(target, key) {
+      if (typeof key !== "string" || RECURSIVE_CLIENT_UNWRAP_KEYS.has(key)) {
+        return Reflect.get(target, key);
+      }
+      return createORPCClient(link, {
+        ...options,
+        path: [...path, key]
+      });
+    }
+  });
+  return preventNativeAwait(recursive);
+}
+
+// node_modules/.pnpm/@orpc+standard-server-fetch@1.15.0/node_modules/@orpc/standard-server-fetch/dist/index.mjs
+function toEventIterator(stream, options = {}) {
+  const eventStream = stream?.pipeThrough(new TextDecoderStream()).pipeThrough(new EventDecoderStream());
+  const reader = eventStream?.getReader();
+  let span;
+  let isCancelled = false;
+  return new AsyncIteratorClass(async () => {
+    span ??= startSpan("consume_event_iterator_stream");
+    try {
+      while (true) {
+        if (reader === void 0) {
+          return { done: true, value: void 0 };
+        }
+        const { done, value: value2 } = await runInSpanContext(span, () => reader.read());
+        if (done) {
+          if (isCancelled) {
+            throw new AbortError("Stream was cancelled");
+          }
+          return { done: true, value: void 0 };
+        }
+        switch (value2.event) {
+          case "message": {
+            let message = parseEmptyableJSON(value2.data);
+            if (isTypescriptObject(message)) {
+              message = withEventMeta(message, value2);
+            }
+            span?.addEvent("message");
+            return { done: false, value: message };
+          }
+          case "error": {
+            let error51 = new ErrorEvent({
+              data: parseEmptyableJSON(value2.data)
+            });
+            error51 = withEventMeta(error51, value2);
+            span?.addEvent("error");
+            throw error51;
+          }
+          case "done": {
+            let done2 = parseEmptyableJSON(value2.data);
+            if (isTypescriptObject(done2)) {
+              done2 = withEventMeta(done2, value2);
+            }
+            span?.addEvent("done");
+            return { done: true, value: done2 };
+          }
+          default: {
+            span?.addEvent("maybe_keepalive");
+          }
+        }
+      }
+    } catch (e) {
+      if (!(e instanceof ErrorEvent)) {
+        setSpanError(span, e, options);
+      }
+      throw e;
+    }
+  }, async (reason) => {
+    try {
+      if (reason !== "next") {
+        isCancelled = true;
+        span?.addEvent("cancelled");
+      }
+      await runInSpanContext(span, () => reader?.cancel());
+    } catch (e) {
+      setSpanError(span, e, options);
+      throw e;
+    } finally {
+      span?.end();
+    }
+  });
+}
+function toEventStream(iterator, options = {}) {
+  const keepAliveEnabled = options.eventIteratorKeepAliveEnabled ?? true;
+  const keepAliveInterval = options.eventIteratorKeepAliveInterval ?? 5e3;
+  const keepAliveComment = options.eventIteratorKeepAliveComment ?? "";
+  const initialCommentEnabled = options.eventIteratorInitialCommentEnabled ?? true;
+  const initialComment = options.eventIteratorInitialComment ?? "";
+  let cancelled = false;
+  let timeout;
+  let span;
+  const stream = new ReadableStream({
+    start(controller) {
+      span = startSpan("stream_event_iterator");
+      if (initialCommentEnabled) {
+        controller.enqueue(encodeEventMessage({
+          comments: [initialComment]
+        }));
+      }
+    },
+    async pull(controller) {
+      try {
+        if (keepAliveEnabled) {
+          timeout = setInterval(() => {
+            controller.enqueue(encodeEventMessage({
+              comments: [keepAliveComment]
+            }));
+            span?.addEvent("keepalive");
+          }, keepAliveInterval);
+        }
+        const value2 = await runInSpanContext(span, () => iterator.next());
+        clearInterval(timeout);
+        if (cancelled) {
+          return;
+        }
+        const meta3 = getEventMeta(value2.value);
+        if (!value2.done || value2.value !== void 0 || meta3 !== void 0) {
+          const event = value2.done ? "done" : "message";
+          controller.enqueue(encodeEventMessage({
+            ...meta3,
+            event,
+            data: stringifyJSON(value2.value)
+          }));
+          span?.addEvent(event);
+        }
+        if (value2.done) {
+          controller.close();
+          span?.end();
+        }
+      } catch (err) {
+        clearInterval(timeout);
+        if (cancelled) {
+          return;
+        }
+        if (err instanceof ErrorEvent) {
+          controller.enqueue(encodeEventMessage({
+            ...getEventMeta(err),
+            event: "error",
+            data: stringifyJSON(err.data)
+          }));
+          span?.addEvent("error");
+          controller.close();
+        } else {
+          setSpanError(span, err);
+          controller.error(err);
+        }
+        span?.end();
+      }
+    },
+    async cancel() {
+      try {
+        cancelled = true;
+        clearInterval(timeout);
+        span?.addEvent("cancelled");
+        await runInSpanContext(span, () => iterator.return?.());
+      } catch (e) {
+        setSpanError(span, e);
+        throw e;
+      } finally {
+        span?.end();
+      }
+    }
+  }).pipeThrough(new TextEncoderStream());
+  return stream;
+}
+function toStandardBody(re, options = {}) {
+  return runWithSpan(
+    { name: "parse_standard_body", signal: options.signal },
+    async () => {
+      const contentDisposition = re.headers.get("content-disposition");
+      if (typeof contentDisposition === "string") {
+        const fileName = getFilenameFromContentDisposition(contentDisposition) ?? "blob";
+        const blob2 = await re.blob();
+        return new File([blob2], fileName, {
+          type: blob2.type
+        });
+      }
+      const contentType = re.headers.get("content-type");
+      if (!contentType || contentType.startsWith("application/json")) {
+        const text = await re.text();
+        return parseEmptyableJSON(text);
+      }
+      if (contentType.startsWith("multipart/form-data")) {
+        return await re.formData();
+      }
+      if (contentType.startsWith("application/x-www-form-urlencoded")) {
+        const text = await re.text();
+        return new URLSearchParams(text);
+      }
+      if (contentType.startsWith("text/event-stream")) {
+        return toEventIterator(re.body, options);
+      }
+      if (contentType.startsWith("text/plain")) {
+        return await re.text();
+      }
+      const blob = await re.blob();
+      return new File([blob], "blob", {
+        type: blob.type
+      });
+    }
+  );
+}
+function toFetchBody(body, headers, options = {}) {
+  if (body instanceof ReadableStream) {
+    return body;
+  }
+  const currentContentDisposition = headers.get("content-disposition");
+  headers.delete("content-type");
+  headers.delete("content-disposition");
+  if (body === void 0) {
+    return void 0;
+  }
+  if (body instanceof Blob) {
+    headers.set("content-type", body.type);
+    headers.set("content-length", body.size.toString());
+    headers.set(
+      "content-disposition",
+      currentContentDisposition ?? generateContentDisposition(body instanceof File ? body.name : "blob")
+    );
+    return body;
+  }
+  if (body instanceof FormData) {
+    return body;
+  }
+  if (body instanceof URLSearchParams) {
+    return body;
+  }
+  if (isAsyncIteratorObject(body)) {
+    headers.set("content-type", "text/event-stream");
+    return toEventStream(body, options);
+  }
+  headers.set("content-type", "application/json");
+  return stringifyJSON(body);
+}
+function toStandardHeaders(headers, standardHeaders = {}) {
+  headers.forEach((value2, key) => {
+    if (Array.isArray(standardHeaders[key])) {
+      standardHeaders[key].push(value2);
+    } else if (standardHeaders[key] !== void 0) {
+      standardHeaders[key] = [standardHeaders[key], value2];
+    } else {
+      standardHeaders[key] = value2;
+    }
+  });
+  return standardHeaders;
+}
+function toFetchHeaders(headers, fetchHeaders = new Headers()) {
+  for (const [key, value2] of Object.entries(headers)) {
+    if (Array.isArray(value2)) {
+      for (const v of value2) {
+        fetchHeaders.append(key, v);
+      }
+    } else if (value2 !== void 0) {
+      fetchHeaders.append(key, value2);
+    }
+  }
+  return fetchHeaders;
+}
+function toFetchRequest(request, options = {}) {
+  const headers = toFetchHeaders(request.headers);
+  const body = toFetchBody(request.body, headers, options);
+  return new Request(request.url, {
+    signal: request.signal,
+    method: request.method,
+    headers,
+    body
+  });
+}
+function toStandardLazyResponse(response, options = {}) {
+  return {
+    body: once(() => toStandardBody(response, options)),
+    status: response.status,
+    get headers() {
+      const headers = toStandardHeaders(response.headers);
+      Object.defineProperty(this, "headers", { value: headers, writable: true });
+      return headers;
+    },
+    set headers(value2) {
+      Object.defineProperty(this, "headers", { value: value2, writable: true });
+    }
+  };
+}
+
+// node_modules/.pnpm/@orpc+client@1.15.0/node_modules/@orpc/client/dist/shared/client.BtiuJPEa.mjs
+var CompositeStandardLinkPlugin = class {
+  plugins;
+  constructor(plugins = []) {
+    this.plugins = [...plugins].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+  }
+  init(options) {
+    for (const plugin of this.plugins) {
+      plugin.init?.(options);
+    }
+  }
+};
+var StandardLink = class {
+  constructor(codec2, sender, options = {}) {
+    this.codec = codec2;
+    this.sender = sender;
+    const plugin = new CompositeStandardLinkPlugin(options.plugins);
+    plugin.init(options);
+    this.interceptors = toArray(options.interceptors);
+    this.clientInterceptors = toArray(options.clientInterceptors);
+  }
+  interceptors;
+  clientInterceptors;
+  call(path, input, options) {
+    return runWithSpan(
+      { name: `${ORPC_NAME}.${path.join("/")}`, signal: options.signal },
+      (span) => {
+        span?.setAttribute("rpc.system", ORPC_NAME);
+        span?.setAttribute("rpc.method", path.join("."));
+        if (isAsyncIteratorObject(input)) {
+          input = asyncIteratorWithSpan(
+            { name: "consume_event_iterator_input", signal: options.signal },
+            input
+          );
+        }
+        return intercept(this.interceptors, { ...options, path, input }, async ({ path: path2, input: input2, ...options2 }) => {
+          const otelConfig = getGlobalOtelConfig();
+          let otelContext;
+          const currentSpan = otelConfig?.trace.getActiveSpan() ?? span;
+          if (currentSpan && otelConfig) {
+            otelContext = otelConfig?.trace.setSpan(otelConfig.context.active(), currentSpan);
+          }
+          const request = await runWithSpan(
+            { name: "encode_request", context: otelContext },
+            () => this.codec.encode(path2, input2, options2)
+          );
+          const response = await intercept(
+            this.clientInterceptors,
+            { ...options2, input: input2, path: path2, request },
+            ({ input: input3, path: path3, request: request2, ...options3 }) => {
+              return runWithSpan(
+                { name: "send_request", signal: options3.signal, context: otelContext },
+                () => this.sender.call(request2, options3, path3, input3)
+              );
+            }
+          );
+          const output = await runWithSpan(
+            { name: "decode_response", context: otelContext },
+            () => this.codec.decode(response, options2, path2, input2)
+          );
+          if (isAsyncIteratorObject(output)) {
+            return asyncIteratorWithSpan(
+              { name: "consume_event_iterator_output", signal: options2.signal },
+              output
+            );
+          }
+          return output;
+        });
+      }
+    );
+  }
+};
+function toHttpPath(path) {
+  return `/${path.map(encodeURIComponent).join("/")}`;
+}
+function toStandardHeaders2(headers) {
+  if (typeof headers.forEach === "function") {
+    return toStandardHeaders(headers);
+  }
+  return headers;
+}
+function getMalformedResponseErrorCode(status) {
+  return Object.entries(COMMON_ORPC_ERROR_DEFS).find(([, def]) => def.status === status)?.[0] ?? "MALFORMED_ORPC_ERROR_RESPONSE";
+}
+
+// node_modules/.pnpm/@orpc+client@1.15.0/node_modules/@orpc/client/dist/adapters/fetch/index.mjs
+var CompositeLinkFetchPlugin = class extends CompositeStandardLinkPlugin {
+  initRuntimeAdapter(options) {
+    for (const plugin of this.plugins) {
+      plugin.initRuntimeAdapter?.(options);
+    }
+  }
+};
+var LinkFetchClient = class {
+  fetch;
+  toFetchRequestOptions;
+  adapterInterceptors;
+  constructor(options) {
+    const plugin = new CompositeLinkFetchPlugin(options.plugins);
+    plugin.initRuntimeAdapter(options);
+    this.fetch = options.fetch ?? globalThis.fetch.bind(globalThis);
+    this.toFetchRequestOptions = options;
+    this.adapterInterceptors = toArray(options.adapterInterceptors);
+  }
+  async call(standardRequest, options, path, input) {
+    const request = toFetchRequest(standardRequest, this.toFetchRequestOptions);
+    const fetchResponse = await intercept(
+      this.adapterInterceptors,
+      { ...options, request, path, input, init: { redirect: "manual" } },
+      ({ request: request2, path: path2, input: input2, init, ...options2 }) => this.fetch(request2, init, options2, path2, input2)
+    );
+    const lazyResponse = toStandardLazyResponse(fetchResponse, { signal: request.signal });
+    return lazyResponse;
+  }
+};
+
+// node_modules/.pnpm/@orpc+openapi-client@1.15.0/node_modules/@orpc/openapi-client/dist/shared/openapi-client.t9fCAe3x.mjs
+var StandardBracketNotationSerializer = class {
+  maxArrayIndex;
+  constructor(options = {}) {
+    this.maxArrayIndex = options.maxBracketNotationArrayIndex ?? 9999;
+  }
+  serialize(data, segments = [], result = []) {
+    if (Array.isArray(data)) {
+      data.forEach((item, i) => {
+        this.serialize(item, [...segments, i], result);
+      });
+    } else if (isObject2(data)) {
+      for (const key in data) {
+        this.serialize(data[key], [...segments, key], result);
+      }
+    } else {
+      result.push([this.stringifyPath(segments), data]);
+    }
+    return result;
+  }
+  deserialize(serialized) {
+    if (serialized.length === 0) {
+      return {};
+    }
+    const arrayPushStyles = /* @__PURE__ */ new WeakSet();
+    const ref = { value: [] };
+    for (const [path, value2] of serialized) {
+      const segments = this.parsePath(path);
+      let currentRef = ref;
+      let nextSegment = "value";
+      segments.forEach((segment, i) => {
+        if (!Array.isArray(currentRef[nextSegment]) && !isObject2(currentRef[nextSegment])) {
+          currentRef[nextSegment] = [];
+        }
+        if (i !== segments.length - 1) {
+          if (Array.isArray(currentRef[nextSegment]) && !isValidArrayIndex(segment, this.maxArrayIndex)) {
+            if (arrayPushStyles.has(currentRef[nextSegment])) {
+              arrayPushStyles.delete(currentRef[nextSegment]);
+              currentRef[nextSegment] = pushStyleArrayToObject(currentRef[nextSegment]);
+            } else {
+              currentRef[nextSegment] = arrayToObject(currentRef[nextSegment]);
+            }
+          }
+        } else {
+          if (Array.isArray(currentRef[nextSegment])) {
+            if (segment === "") {
+              if (currentRef[nextSegment].length && !arrayPushStyles.has(currentRef[nextSegment])) {
+                currentRef[nextSegment] = arrayToObject(currentRef[nextSegment]);
+              }
+            } else {
+              if (arrayPushStyles.has(currentRef[nextSegment])) {
+                arrayPushStyles.delete(currentRef[nextSegment]);
+                currentRef[nextSegment] = pushStyleArrayToObject(currentRef[nextSegment]);
+              } else if (!isValidArrayIndex(segment, this.maxArrayIndex)) {
+                currentRef[nextSegment] = arrayToObject(currentRef[nextSegment]);
+              }
+            }
+          }
+        }
+        currentRef = currentRef[nextSegment];
+        nextSegment = segment;
+      });
+      if (Array.isArray(currentRef) && nextSegment === "") {
+        arrayPushStyles.add(currentRef);
+        currentRef.push(value2);
+      } else if (nextSegment in currentRef) {
+        if (Array.isArray(currentRef[nextSegment])) {
+          currentRef[nextSegment].push(value2);
+        } else {
+          currentRef[nextSegment] = [currentRef[nextSegment], value2];
+        }
+      } else {
+        currentRef[nextSegment] = value2;
+      }
+    }
+    return ref.value;
+  }
+  stringifyPath(segments) {
+    return segments.map((segment) => {
+      return segment.toString().replace(/[\\[\]]/g, (match) => {
+        switch (match) {
+          case "\\":
+            return "\\\\";
+          case "[":
+            return "\\[";
+          case "]":
+            return "\\]";
+          /* v8 ignore next 2 */
+          default:
+            return match;
+        }
+      });
+    }).reduce((result, segment, i) => {
+      if (i === 0) {
+        return segment;
+      }
+      return `${result}[${segment}]`;
+    }, "");
+  }
+  parsePath(path) {
+    const segments = [];
+    let inBrackets = false;
+    let currentSegment = "";
+    let backslashCount = 0;
+    for (let i = 0; i < path.length; i++) {
+      const char = path[i];
+      const nextChar = path[i + 1];
+      if (inBrackets && char === "]" && (nextChar === void 0 || nextChar === "[") && backslashCount % 2 === 0) {
+        if (nextChar === void 0) {
+          inBrackets = false;
+        }
+        segments.push(currentSegment);
+        currentSegment = "";
+        i++;
+      } else if (segments.length === 0 && char === "[" && backslashCount % 2 === 0) {
+        inBrackets = true;
+        segments.push(currentSegment);
+        currentSegment = "";
+      } else if (char === "\\") {
+        backslashCount++;
+      } else {
+        currentSegment += "\\".repeat(backslashCount / 2) + char;
+        backslashCount = 0;
+      }
+    }
+    return inBrackets || segments.length === 0 ? [path] : segments;
+  }
+};
+function isValidArrayIndex(value2, maxIndex) {
+  return /^0$|^[1-9]\d*$/.test(value2) && Number(value2) <= maxIndex;
+}
+function arrayToObject(array2) {
+  const obj = new NullProtoObj();
+  array2.forEach((item, i) => {
+    obj[i] = item;
+  });
+  return obj;
+}
+function pushStyleArrayToObject(array2) {
+  const obj = new NullProtoObj();
+  obj[""] = array2.length === 1 ? array2[0] : array2;
+  return obj;
+}
+
+// node_modules/.pnpm/@orpc+contract@1.15.0/node_modules/@orpc/contract/dist/shared/contract.D_dZrO__.mjs
+var ValidationError = class extends Error {
+  issues;
+  data;
+  constructor(options) {
+    super(options.message, options);
+    this.issues = options.issues;
+    this.data = options.data;
+  }
+};
+function mergeErrorMap(errorMap1, errorMap2) {
+  return { ...errorMap1, ...errorMap2 };
+}
+var ContractProcedure = class {
+  /**
+   * This property holds the defined options for the contract procedure.
+   */
+  "~orpc";
+  constructor(def) {
+    if (def.route?.successStatus && isORPCErrorStatus(def.route.successStatus)) {
+      throw new Error("[ContractProcedure] Invalid successStatus.");
+    }
+    if (Object.values(def.errorMap).some((val) => val && val.status && !isORPCErrorStatus(val.status))) {
+      throw new Error("[ContractProcedure] Invalid error status code.");
+    }
+    this["~orpc"] = def;
+  }
+};
+function isContractProcedure(item) {
+  if (item instanceof ContractProcedure) {
+    return true;
+  }
+  return (typeof item === "object" || typeof item === "function") && item !== null && "~orpc" in item && typeof item["~orpc"] === "object" && item["~orpc"] !== null && "errorMap" in item["~orpc"] && "route" in item["~orpc"] && "meta" in item["~orpc"];
+}
+
+// node_modules/.pnpm/@orpc+contract@1.15.0/node_modules/@orpc/contract/dist/index.mjs
+function mergeMeta(meta1, meta22) {
+  return { ...meta1, ...meta22 };
+}
+function mergeRoute(a, b) {
+  return { ...a, ...b };
+}
+function prefixRoute(route, prefix) {
+  if (!route.path) {
+    return route;
+  }
+  return {
+    ...route,
+    path: `${prefix}${route.path}`
+  };
+}
+function unshiftTagRoute(route, tags) {
+  return {
+    ...route,
+    tags: [...tags, ...route.tags ?? []]
+  };
+}
+function mergePrefix(a, b) {
+  return a ? `${a}${b}` : b;
+}
+function mergeTags(a, b) {
+  return a ? [...a, ...b] : b;
+}
+function enhanceRoute(route, options) {
+  let router = route;
+  if (options.prefix) {
+    router = prefixRoute(router, options.prefix);
+  }
+  if (options.tags?.length) {
+    router = unshiftTagRoute(router, options.tags);
+  }
+  return router;
+}
+function enhanceContractRouter(router, options) {
+  if (isContractProcedure(router)) {
+    const enhanced2 = new ContractProcedure({
+      ...router["~orpc"],
+      errorMap: mergeErrorMap(options.errorMap, router["~orpc"].errorMap),
+      route: enhanceRoute(router["~orpc"].route, options)
+    });
+    return enhanced2;
+  }
+  if (typeof router !== "object" || router === null) {
+    return router;
+  }
+  const enhanced = {};
+  for (const key in router) {
+    enhanced[key] = enhanceContractRouter(router[key], options);
+  }
+  return enhanced;
+}
+var ContractBuilder = class _ContractBuilder extends ContractProcedure {
+  constructor(def) {
+    super(def);
+    this["~orpc"].prefix = def.prefix;
+    this["~orpc"].tags = def.tags;
+  }
+  /**
+   * Sets or overrides the initial meta.
+   *
+   * @see {@link https://orpc.dev/docs/metadata Metadata Docs}
+   */
+  $meta(initialMeta) {
+    return new _ContractBuilder({
+      ...this["~orpc"],
+      meta: initialMeta
+    });
+  }
+  /**
+   * Sets or overrides the initial route.
+   * This option is typically relevant when integrating with OpenAPI.
+   *
+   * @see {@link https://orpc.dev/docs/openapi/routing OpenAPI Routing Docs}
+   * @see {@link https://orpc.dev/docs/openapi/input-output-structure OpenAPI Input/Output Structure Docs}
+   */
+  $route(initialRoute) {
+    return new _ContractBuilder({
+      ...this["~orpc"],
+      route: initialRoute
+    });
+  }
+  /**
+   * Sets or overrides the initial input schema.
+   *
+   * @see {@link https://orpc.dev/docs/procedure#initial-configuration Initial Procedure Configuration Docs}
+   */
+  $input(initialInputSchema) {
+    return new _ContractBuilder({
+      ...this["~orpc"],
+      inputSchema: initialInputSchema
+    });
+  }
+  /**
+   * Adds type-safe custom errors to the contract.
+   * The provided errors are spared-merged with any existing errors in the contract.
+   *
+   * @see {@link https://orpc.dev/docs/error-handling#type%E2%80%90safe-error-handling Type-Safe Error Handling Docs}
+   */
+  errors(errors) {
+    return new _ContractBuilder({
+      ...this["~orpc"],
+      errorMap: mergeErrorMap(this["~orpc"].errorMap, errors)
+    });
+  }
+  /**
+   * Sets or updates the metadata for the contract.
+   * The provided metadata is spared-merged with any existing metadata in the contract.
+   *
+   * @see {@link https://orpc.dev/docs/metadata Metadata Docs}
+   */
+  meta(meta3) {
+    return new _ContractBuilder({
+      ...this["~orpc"],
+      meta: mergeMeta(this["~orpc"].meta, meta3)
+    });
+  }
+  /**
+   * Sets or updates the route definition for the contract.
+   * The provided route is spared-merged with any existing route in the contract.
+   * This option is typically relevant when integrating with OpenAPI.
+   *
+   * @see {@link https://orpc.dev/docs/openapi/routing OpenAPI Routing Docs}
+   * @see {@link https://orpc.dev/docs/openapi/input-output-structure OpenAPI Input/Output Structure Docs}
+   */
+  route(route) {
+    return new _ContractBuilder({
+      ...this["~orpc"],
+      route: mergeRoute(this["~orpc"].route, route)
+    });
+  }
+  /**
+   * Defines the input validation schema for the contract.
+   *
+   * @see {@link https://orpc.dev/docs/procedure#input-output-validation Input Validation Docs}
+   */
+  input(schema) {
+    return new _ContractBuilder({
+      ...this["~orpc"],
+      inputSchema: schema
+    });
+  }
+  /**
+   * Defines the output validation schema for the contract.
+   *
+   * @see {@link https://orpc.dev/docs/procedure#input-output-validation Output Validation Docs}
+   */
+  output(schema) {
+    return new _ContractBuilder({
+      ...this["~orpc"],
+      outputSchema: schema
+    });
+  }
+  /**
+   * Prefixes all procedures in the contract router.
+   * The provided prefix is post-appended to any existing router prefix.
+   *
+   * @note This option does not affect procedures that do not define a path in their route definition.
+   *
+   * @see {@link https://orpc.dev/docs/openapi/routing#route-prefixes OpenAPI Route Prefixes Docs}
+   */
+  prefix(prefix) {
+    return new _ContractBuilder({
+      ...this["~orpc"],
+      prefix: mergePrefix(this["~orpc"].prefix, prefix)
+    });
+  }
+  /**
+   * Adds tags to all procedures in the contract router.
+   * This helpful when you want to group procedures together in the OpenAPI specification.
+   *
+   * @see {@link https://orpc.dev/docs/openapi/openapi-specification#operation-metadata OpenAPI Operation Metadata Docs}
+   */
+  tag(...tags) {
+    return new _ContractBuilder({
+      ...this["~orpc"],
+      tags: mergeTags(this["~orpc"].tags, tags)
+    });
+  }
+  /**
+   * Applies all of the previously defined options to the specified contract router.
+   *
+   * @see {@link https://orpc.dev/docs/router#extending-router Extending Router Docs}
+   */
+  router(router) {
+    return enhanceContractRouter(router, this["~orpc"]);
+  }
+};
+var oc = new ContractBuilder({
+  errorMap: {},
+  route: {},
+  meta: {}
+});
+var DEFAULT_CONFIG = {
+  defaultMethod: "POST",
+  defaultSuccessStatus: 200,
+  defaultSuccessDescription: "OK",
+  defaultInputStructure: "compact",
+  defaultOutputStructure: "compact"
+};
+function fallbackContractConfig(key, value2) {
+  if (value2 === void 0) {
+    return DEFAULT_CONFIG[key];
+  }
+  return value2;
+}
+var EVENT_ITERATOR_DETAILS_SYMBOL = /* @__PURE__ */ Symbol("ORPC_EVENT_ITERATOR_DETAILS");
+function eventIterator(yields, returns) {
+  return {
+    "~standard": {
+      [EVENT_ITERATOR_DETAILS_SYMBOL]: { yields, returns },
+      vendor: "orpc",
+      version: 1,
+      validate(iterator) {
+        if (!isAsyncIteratorObject(iterator)) {
+          return { issues: [{ message: "Expect event iterator", path: [] }] };
+        }
+        const mapped = mapEventIterator(iterator, {
+          async value(value2, done) {
+            const schema = done ? returns : yields;
+            if (!schema) {
+              return value2;
+            }
+            const result = await schema["~standard"].validate(value2);
+            if (result.issues) {
+              throw new ORPCError("EVENT_ITERATOR_VALIDATION_FAILED", {
+                message: "Event iterator validation failed",
+                cause: new ValidationError({
+                  issues: result.issues,
+                  message: "Event iterator validation failed",
+                  data: value2
+                })
+              });
+            }
+            return result.value;
+          },
+          error: async (error51) => error51
+        });
+        return { value: mapped };
+      }
+    }
+  };
+}
+
+// node_modules/.pnpm/@orpc+openapi-client@1.15.0/node_modules/@orpc/openapi-client/dist/shared/openapi-client.B2Q9qU5m.mjs
+var StandardOpenAPIJsonSerializer = class {
+  customSerializers;
+  constructor(options = {}) {
+    this.customSerializers = options.customJsonSerializers ?? [];
+  }
+  serialize(data, hasBlobRef = { value: false }) {
+    for (const custom2 of this.customSerializers) {
+      if (custom2.condition(data)) {
+        const result = this.serialize(custom2.serialize(data), hasBlobRef);
+        return result;
+      }
+    }
+    if (data instanceof Blob) {
+      hasBlobRef.value = true;
+      return [data, hasBlobRef.value];
+    }
+    if (data instanceof Set) {
+      return this.serialize(Array.from(data), hasBlobRef);
+    }
+    if (data instanceof Map) {
+      return this.serialize(Array.from(data.entries()), hasBlobRef);
+    }
+    if (Array.isArray(data)) {
+      const json2 = data.map((v) => v === void 0 ? null : this.serialize(v, hasBlobRef)[0]);
+      return [json2, hasBlobRef.value];
+    }
+    if (isObject2(data)) {
+      const json2 = {};
+      for (const k in data) {
+        if (k === "toJSON" && typeof data[k] === "function") {
+          continue;
+        }
+        json2[k] = this.serialize(data[k], hasBlobRef)[0];
+      }
+      return [json2, hasBlobRef.value];
+    }
+    if (typeof data === "bigint" || data instanceof RegExp || data instanceof URL) {
+      return [data.toString(), hasBlobRef.value];
+    }
+    if (data instanceof Date) {
+      return [Number.isNaN(data.getTime()) ? null : data.toISOString(), hasBlobRef.value];
+    }
+    if (Number.isNaN(data)) {
+      return [null, hasBlobRef.value];
+    }
+    return [data, hasBlobRef.value];
+  }
+};
+function standardizeHTTPPath(path) {
+  return `/${path.replace(/\/{2,}/g, "/").replace(/^\/|\/$/g, "")}`;
+}
+function getDynamicParams(path) {
+  return path ? standardizeHTTPPath(path).match(/\/\{[^}]+\}/g)?.map((v) => ({
+    raw: v,
+    name: v.match(/\{\+?([^}]+)\}/)[1]
+  })) : void 0;
+}
+var StandardOpenapiLinkCodec = class {
+  constructor(contract, serializer, options) {
+    this.contract = contract;
+    this.serializer = serializer;
+    this.baseUrl = options.url;
+    this.headers = options.headers ?? {};
+    this.customErrorResponseBodyDecoder = options.customErrorResponseBodyDecoder;
+  }
+  baseUrl;
+  headers;
+  customErrorResponseBodyDecoder;
+  async encode(path, input, options) {
+    let headers = toStandardHeaders2(await value(this.headers, options, path, input));
+    if (options.lastEventId !== void 0) {
+      headers = mergeStandardHeaders(headers, { "last-event-id": options.lastEventId });
+    }
+    const baseUrl = await value(this.baseUrl, options, path, input);
+    const procedure = get(this.contract, path);
+    if (!isContractProcedure(procedure)) {
+      throw new Error(`[StandardOpenapiLinkCodec] expect a contract procedure at ${path.join(".")}`);
+    }
+    const inputStructure = fallbackContractConfig("defaultInputStructure", procedure["~orpc"].route.inputStructure);
+    return inputStructure === "compact" ? this.#encodeCompact(procedure, path, input, options, baseUrl, headers) : this.#encodeDetailed(procedure, path, input, options, baseUrl, headers);
+  }
+  #encodeCompact(procedure, path, input, options, baseUrl, headers) {
+    let httpPath = standardizeHTTPPath(procedure["~orpc"].route.path ?? toHttpPath(path));
+    let httpBody = input;
+    const dynamicParams = getDynamicParams(httpPath);
+    if (dynamicParams?.length) {
+      if (!isObject2(input)) {
+        throw new TypeError(`[StandardOpenapiLinkCodec] Invalid input shape for "compact" structure when has dynamic params at ${path.join(".")}.`);
+      }
+      const body = { ...input };
+      for (const param of dynamicParams) {
+        const value2 = input[param.name];
+        httpPath = httpPath.replace(param.raw, `/${encodeURIComponent(`${this.serializer.serialize(value2)}`)}`);
+        delete body[param.name];
+      }
+      httpBody = Object.keys(body).length ? body : void 0;
+    }
+    const method = fallbackContractConfig("defaultMethod", procedure["~orpc"].route.method);
+    const url2 = new URL(baseUrl);
+    url2.pathname = `${url2.pathname.replace(/\/$/, "")}${httpPath}`;
+    if (method === "GET") {
+      const serialized = this.serializer.serialize(httpBody, { outputFormat: "URLSearchParams" });
+      for (const [key, value2] of serialized) {
+        url2.searchParams.append(key, value2);
+      }
+      return {
+        url: url2,
+        method,
+        headers,
+        body: void 0,
+        signal: options.signal
+      };
+    }
+    return {
+      url: url2,
+      method,
+      headers,
+      body: this.serializer.serialize(httpBody),
+      signal: options.signal
+    };
+  }
+  #encodeDetailed(procedure, path, input, options, baseUrl, headers) {
+    let httpPath = standardizeHTTPPath(procedure["~orpc"].route.path ?? toHttpPath(path));
+    const dynamicParams = getDynamicParams(httpPath);
+    if (!isObject2(input) && input !== void 0) {
+      throw new TypeError(`[StandardOpenapiLinkCodec] Invalid input shape for "detailed" structure at ${path.join(".")}.`);
+    }
+    if (dynamicParams?.length) {
+      if (!isObject2(input?.params)) {
+        throw new TypeError(`[StandardOpenapiLinkCodec] Invalid input.params shape for "detailed" structure when has dynamic params at ${path.join(".")}.`);
+      }
+      for (const param of dynamicParams) {
+        const value2 = input.params[param.name];
+        httpPath = httpPath.replace(param.raw, `/${encodeURIComponent(`${this.serializer.serialize(value2)}`)}`);
+      }
+    }
+    let mergedHeaders = headers;
+    if (input?.headers !== void 0) {
+      if (!isObject2(input.headers)) {
+        throw new TypeError(`[StandardOpenapiLinkCodec] Invalid input.headers shape for "detailed" structure at ${path.join(".")}.`);
+      }
+      mergedHeaders = mergeStandardHeaders(input.headers, headers);
+    }
+    const method = fallbackContractConfig("defaultMethod", procedure["~orpc"].route.method);
+    const url2 = new URL(baseUrl);
+    url2.pathname = `${url2.pathname.replace(/\/$/, "")}${httpPath}`;
+    if (input?.query !== void 0) {
+      const query = this.serializer.serialize(input.query, { outputFormat: "URLSearchParams" });
+      for (const [key, value2] of query) {
+        url2.searchParams.append(key, value2);
+      }
+    }
+    if (method === "GET") {
+      return {
+        url: url2,
+        method,
+        headers: mergedHeaders,
+        body: void 0,
+        signal: options.signal
+      };
+    }
+    return {
+      url: url2,
+      method,
+      headers: mergedHeaders,
+      body: this.serializer.serialize(input?.body),
+      signal: options.signal
+    };
+  }
+  async decode(response, _options, path) {
+    const isOk = !isORPCErrorStatus(response.status);
+    const deserialized = await (async () => {
+      let isBodyOk = false;
+      try {
+        const body = await response.body();
+        isBodyOk = true;
+        return this.serializer.deserialize(body);
+      } catch (error51) {
+        if (!isBodyOk) {
+          throw new Error("Cannot parse response body, please check the response body and content-type.", {
+            cause: error51
+          });
+        }
+        throw new Error("Invalid OpenAPI response format.", {
+          cause: error51
+        });
+      }
+    })();
+    if (!isOk) {
+      const error51 = this.customErrorResponseBodyDecoder?.(deserialized, response);
+      if (error51 !== null && error51 !== void 0) {
+        throw error51;
+      }
+      if (isORPCErrorJson(deserialized)) {
+        throw createORPCErrorFromJson(deserialized);
+      }
+      throw new ORPCError(getMalformedResponseErrorCode(response.status), {
+        status: response.status,
+        data: { ...response, body: deserialized }
+      });
+    }
+    const procedure = get(this.contract, path);
+    if (!isContractProcedure(procedure)) {
+      throw new Error(`[StandardOpenapiLinkCodec] expect a contract procedure at ${path.join(".")}`);
+    }
+    const outputStructure = fallbackContractConfig("defaultOutputStructure", procedure["~orpc"].route.outputStructure);
+    if (outputStructure === "compact") {
+      return deserialized;
+    }
+    return {
+      status: response.status,
+      headers: response.headers,
+      body: deserialized
+    };
+  }
+};
+var StandardOpenAPISerializer = class {
+  constructor(jsonSerializer, bracketNotation) {
+    this.jsonSerializer = jsonSerializer;
+    this.bracketNotation = bracketNotation;
+  }
+  serialize(data, options = {}) {
+    if (isAsyncIteratorObject(data) && !options.outputFormat) {
+      return mapEventIterator(data, {
+        value: async (value2) => this.#serialize(value2, { outputFormat: "plain" }),
+        error: async (e) => {
+          return new ErrorEvent({
+            data: this.#serialize(toORPCError(e).toJSON(), { outputFormat: "plain" }),
+            cause: e
+          });
+        }
+      });
+    }
+    return this.#serialize(data, options);
+  }
+  #serialize(data, options) {
+    const [json2, hasBlob] = this.jsonSerializer.serialize(data);
+    if (options.outputFormat === "plain") {
+      return json2;
+    }
+    if (options.outputFormat === "URLSearchParams") {
+      const params = new URLSearchParams();
+      for (const [path, value2] of this.bracketNotation.serialize(json2)) {
+        if (typeof value2 === "string" || typeof value2 === "number" || typeof value2 === "boolean") {
+          params.append(path, value2.toString());
+        }
+      }
+      return params;
+    }
+    if (json2 instanceof Blob || json2 === void 0 || !hasBlob) {
+      return json2;
+    }
+    const form = new FormData();
+    for (const [path, value2] of this.bracketNotation.serialize(json2)) {
+      if (typeof value2 === "string" || typeof value2 === "number" || typeof value2 === "boolean") {
+        form.append(path, value2.toString());
+      } else if (value2 instanceof Blob) {
+        form.append(path, value2);
+      }
+    }
+    return form;
+  }
+  deserialize(data) {
+    if (data instanceof URLSearchParams || data instanceof FormData) {
+      return this.bracketNotation.deserialize(Array.from(data.entries()));
+    }
+    if (isAsyncIteratorObject(data)) {
+      return mapEventIterator(data, {
+        value: async (value2) => value2,
+        error: async (e) => {
+          if (e instanceof ErrorEvent && isORPCErrorJson(e.data)) {
+            return createORPCErrorFromJson(e.data, { cause: e });
+          }
+          return e;
+        }
+      });
+    }
+    return data;
+  }
+};
+var StandardOpenAPILink = class extends StandardLink {
+  constructor(contract, linkClient, options) {
+    const jsonSerializer = new StandardOpenAPIJsonSerializer(options);
+    const bracketNotationSerializer = new StandardBracketNotationSerializer({ maxBracketNotationArrayIndex: 4294967294 });
+    const serializer = new StandardOpenAPISerializer(jsonSerializer, bracketNotationSerializer);
+    const linkCodec = new StandardOpenapiLinkCodec(contract, serializer, options);
+    super(linkCodec, linkClient, options);
+  }
+};
+
+// node_modules/.pnpm/@orpc+openapi-client@1.15.0/node_modules/@orpc/openapi-client/dist/adapters/fetch/index.mjs
+var OpenAPILink = class extends StandardOpenAPILink {
+  constructor(contract, options) {
+    const linkClient = new LinkFetchClient(options);
+    super(contract, linkClient, options);
+  }
+};
+
+// node_modules/.pnpm/busabase-sdk@0.80.0/node_modules/busabase-sdk/dist/index.js
+var normalizeOrigin = (raw) => raw.trim().replace(/\/+$/, "").replace(/\/api\/v1$/, "");
+function nodeWebUrl({ webOrigin, spaceId, nodeType, nodeSlug, extraSegments = [] }) {
+  const origin = normalizeOrigin(webOrigin);
+  const { origin: base } = new URL(origin);
+  return `${base}/${[
+    "dashboard",
+    ...spaceId ? [spaceId] : [],
+    nodeType,
+    nodeSlug,
+    ...extraSegments
+  ].filter((segment) => segment != null && segment !== "").map((segment) => encodeURIComponent(segment)).join("/")}`;
+}
 var toUnifiedFilesGrepInput = (input) => ({
   pattern: input.pattern,
   flags: input.flags,
@@ -16484,8 +16666,16 @@ var AgentCatalogEntryVOSchema = external_exports.object({
   version: external_exports.string().nullable().default(null),
   /** Whether this entry can be launched right now (binary present / URL configured). */
   available: external_exports.boolean().default(false),
+  /** Whether this integration is listed for discovery but not available yet. */
+  comingSoon: external_exports.boolean().default(false),
   /** Human-readable reason when `available` is false — never a bare "failed". */
-  unavailableReason: external_exports.string().nullable().default(null)
+  unavailableReason: external_exports.string().nullable().default(null),
+  connectionRequired: external_exports.boolean().default(false),
+  connectedAgentName: external_exports.string().nullable().default(null),
+  connectedAgents: external_exports.array(external_exports.object({
+    slug: external_exports.string(),
+    name: external_exports.string()
+  })).default([])
 });
 var AgentSessionStatusSchema = external_exports.enum([
   "connecting",
@@ -16506,6 +16696,16 @@ var AgentPermissionRequestVOSchema = external_exports.object({
   description: external_exports.string().optional(),
   options: external_exports.array(AgentPermissionOptionVOSchema)
 });
+var AgentSessionModelOptionVOSchema = external_exports.object({
+  /** The ACP `configId` to send back on `session/set_config_option`. */
+  id: external_exports.string(),
+  name: external_exports.string(),
+  currentValue: external_exports.string(),
+  options: external_exports.array(external_exports.object({
+    value: external_exports.string(),
+    name: external_exports.string()
+  }))
+});
 var AgentSessionVOSchema = external_exports.object({
   /** Busabase's own id for the session; not the agent's ACP sessionId. */
   id: external_exports.string(),
@@ -16517,13 +16717,47 @@ var AgentSessionVOSchema = external_exports.object({
   createdAt: external_exports.string(),
   lastActivityAt: external_exports.string(),
   /** Set when status is "failed"; surfaced verbatim to the user. */
-  error: external_exports.string().nullable().default(null)
+  error: external_exports.string().nullable().default(null),
+  /**
+  * Present only while the agent's `session/new` (or a later
+  * `config_option_update`) has advertised a `category: "model"` select.
+  * `null` for agents that offer no model choice, and for every session
+  * loaded from history — a finished process cannot take a config change,
+  * so there is nothing to render a picker for.
+  */
+  modelOption: AgentSessionModelOptionVOSchema.nullable().default(null)
+});
+var ListAgentSessionsPagedInputSchema = external_exports.object({
+  slug: external_exports.string().min(1),
+  limit: external_exports.number().int().min(1).max(50).default(20),
+  cursor: external_exports.string().min(1).optional()
+});
+var AgentSessionsPageVOSchema = external_exports.object({
+  items: AgentSessionVOSchema.array(),
+  nextCursor: external_exports.string().nullable()
+});
+var AgentConnectionVOSchema = external_exports.object({
+  slug: external_exports.string(),
+  agentName: external_exports.string(),
+  transport: AgentTransportSchema,
+  sessionCount: external_exports.number().int().nonnegative(),
+  latest: AgentSessionVOSchema.nullable(),
+  /** Whether Busabase can start another conversation with this agent right now. */
+  connected: external_exports.boolean(),
+  /** Controls owner-only actions such as deleting the saved OAuth grant. */
+  ownedByCurrentUser: external_exports.boolean()
 });
 var AgentSessionEventVOSchema = external_exports.object({
   sessionId: external_exports.string(),
   /** Monotonic per session, so a reconnecting client can tell what it missed. */
   seq: external_exports.number().int(),
-  kind: external_exports.enum(["acpUpdate", "status", "error", "permissionRequest", "permissionResolved"]),
+  kind: external_exports.enum([
+    "acpUpdate",
+    "status",
+    "error",
+    "permissionRequest",
+    "permissionResolved"
+  ]),
   acpUpdate: external_exports.unknown().optional(),
   status: AgentSessionStatusSchema.optional(),
   message: external_exports.string().optional(),
@@ -16533,61 +16767,141 @@ var AgentSessionEventVOSchema = external_exports.object({
   permissionOptionId: external_exports.string().optional(),
   at: external_exports.string()
 });
+var AgentConnectionScopeSchema = external_exports.enum(["mine", "space"]);
+var ListAgentConnectionsInputSchema = external_exports.object({ scope: AgentConnectionScopeSchema.default("mine") });
 var CreateAgentSessionInputSchema = external_exports.object({
   /** Must name a catalog entry. Deliberately NOT a command line — see below. */
   slug: external_exports.string().min(1)
 });
+var DisconnectAgentInputSchema = external_exports.object({
+  /** The exact connected-agent slug shown by the sessions/catalog surfaces. */
+  slug: external_exports.string().min(1)
+});
+var DeleteAgentHistoryInputSchema = external_exports.object({
+  /** Deletes only the current actor's sessions for this agent in the active space. */
+  slug: external_exports.string().min(1)
+});
+var PromptAttachmentInputSchema = external_exports.object({
+  kind: external_exports.enum([
+    "image",
+    "audio",
+    "file"
+  ]),
+  data: external_exports.string().min(1).max(2e7),
+  mimeType: external_exports.string().min(1),
+  /** The original filename, carried for `file` so the agent and the transcript can name it. */
+  filename: external_exports.string().max(255).optional()
+});
 var PromptAgentSessionInputSchema = external_exports.object({
   sessionId: external_exports.string().min(1),
-  text: external_exports.string().min(1)
-});
+  text: external_exports.string(),
+  attachments: external_exports.array(PromptAttachmentInputSchema).optional()
+}).refine((value2) => value2.text.trim().length > 0 || (value2.attachments?.length ?? 0) > 0, { message: "A prompt needs text, an attachment, or both." });
 var AgentSessionIdInputSchema = external_exports.object({ sessionId: external_exports.string().min(1) });
 var RespondToAgentPermissionInputSchema = external_exports.object({
   sessionId: external_exports.string().min(1),
   requestId: external_exports.string().min(1),
   optionId: external_exports.string().min(1)
 });
+var SetAgentSessionConfigOptionInputSchema = external_exports.object({
+  sessionId: external_exports.string().min(1),
+  configId: external_exports.string().min(1),
+  value: external_exports.string().min(1)
+});
 var agentsContract = {
   /** Connectable backends. Availability is resolved per request, not cached in the client. */
   catalog: oc.output(AgentCatalogEntryVOSchema.array()),
+  disconnect: oc.input(DisconnectAgentInputSchema).output(external_exports.object({
+    ok: external_exports.boolean(),
+    endedSessionCount: external_exports.number().int().nonnegative()
+  })),
+  deleteHistory: oc.input(DeleteAgentHistoryInputSchema).output(external_exports.object({
+    ok: external_exports.boolean(),
+    deletedSessionCount: external_exports.number().int().nonnegative()
+  })),
+  connections: {
+    /** Connected backends in the current user's personal or active-space scope. */
+    list: oc.input(ListAgentConnectionsInputSchema).output(AgentConnectionVOSchema.array())
+  },
   sessions: {
     list: oc.output(AgentSessionVOSchema.array()),
+    listPaged: oc.input(ListAgentSessionsPagedInputSchema).output(AgentSessionsPageVOSchema),
     create: oc.input(CreateAgentSessionInputSchema).output(AgentSessionVOSchema),
     /**
-     * Send a message. Returns as soon as the turn is accepted — the reply arrives
-     * on `subscribe`, not here, so a slow agent never blocks the caller.
-     */
-    prompt: oc.input(PromptAgentSessionInputSchema).output(external_exports.object({ accepted: external_exports.boolean(), sessionId: external_exports.string() })),
+    * Accept a message for asynchronous execution. `accepted: true` means the
+    * prompt is durable and the turn slot is owned; progress and completion
+    * arrive through `subscribe`, so this RPC never spans the whole agent run.
+    * A terminal session returns `accepted: false` instead of relying on error
+    * text; `promptRecorded` tells the caller whether automatic continuation
+    * can resend without duplicating a server echo.
+    */
+    prompt: oc.input(PromptAgentSessionInputSchema).output(external_exports.discriminatedUnion("accepted", [external_exports.object({
+      accepted: external_exports.literal(true),
+      sessionId: external_exports.string()
+    }), external_exports.object({
+      accepted: external_exports.literal(false),
+      sessionId: external_exports.string(),
+      status: AgentSessionStatusSchema.extract(["ended", "failed"]),
+      promptRecorded: external_exports.boolean(),
+      message: external_exports.string()
+    })])),
     cancel: oc.input(AgentSessionIdInputSchema).output(external_exports.object({ ok: external_exports.boolean() })),
     close: oc.input(AgentSessionIdInputSchema).output(external_exports.object({ ok: external_exports.boolean() })),
     /**
-     * Answer a pending `session/request_permission`. There is no auto-approve
-     * and no "remember this choice" in this pass (deliberate, see spec) — every
-     * request blocks the turn until a human calls this.
-     */
+    * Answer a pending `session/request_permission`. There is no auto-approve
+    * and no "remember this choice" in this pass (deliberate, see spec) — every
+    * request blocks the turn until a human calls this.
+    */
     respondToPermission: oc.input(RespondToAgentPermissionInputSchema).output(external_exports.object({ ok: external_exports.boolean() })),
     /**
-     * Live event stream for one session. Replays buffered events from `afterSeq`
-     * first so a client that reconnects mid-turn does not lose the tokens it
-     * missed, then follows live.
-     */
-    subscribe: oc.input(external_exports.object({ sessionId: external_exports.string().min(1), afterSeq: external_exports.number().int().default(-1) })).output(eventIterator(AgentSessionEventVOSchema))
+    * Change the session's advertised model via ACP `session/set_config_option`.
+    * `value` is validated against the session's currently advertised options
+    * server-side — this is not a passthrough to the agent.
+    */
+    setConfigOption: oc.input(SetAgentSessionConfigOptionInputSchema).output(AgentSessionVOSchema),
+    /**
+    * Live event stream for one session. Replays buffered events from `afterSeq`
+    * first so a client that reconnects mid-turn does not lose the tokens it
+    * missed, then follows live.
+    */
+    subscribe: oc.input(external_exports.object({
+      sessionId: external_exports.string().min(1),
+      afterSeq: external_exports.number().int().default(-1)
+    })).output(eventIterator(AgentSessionEventVOSchema))
   }
 };
-var i18n = {
-  locales: ["en", "zh-CN", "zh-TW", "ja", "ko", "de", "fr", "es", "pt"]
-};
-var LocaleSchema = external_exports.enum(i18n.locales);
+var LocaleSchema = external_exports.enum({
+  defaultLocale: "en",
+  locales: [
+    "en",
+    "zh-CN",
+    "zh-TW",
+    "ja",
+    "ko",
+    "de",
+    "fr",
+    "es",
+    "pt"
+  ],
+  extendLocales: [
+    "en",
+    "zh-CN",
+    "zh-TW",
+    "ja",
+    "ko",
+    "fr",
+    "de",
+    "es",
+    "ru",
+    "it",
+    "vi",
+    "pt"
+  ]
+}.locales);
 var iStringRecordSchema = external_exports.partialRecord(LocaleSchema, external_exports.string());
-external_exports.union([external_exports.string(), iStringRecordSchema]).describe("i18n string");
-var autoMergeNotAccepted = (reason) => external_exports.literal(false, { error: `\`autoMerge: true\` is not accepted here: ${reason}` }).optional().describe(`Only \`false\` (or omitted) is accepted. ${reason}`);
-var fieldNameSchema = external_exports.union([
-  external_exports.string().min(1),
-  iStringRecordSchema.refine(
-    (record2) => Object.values(record2).some((value2) => value2 && value2.trim().length > 0),
-    "field name must have at least one non-empty locale value"
-  )
-]);
+var iStringSchema = external_exports.union([external_exports.string(), iStringRecordSchema]).describe("i18n string");
+var destructiveAutoMerge = (undoNote) => external_exports.boolean().optional().describe(`Whether to approve and merge this change immediately. Omitted defaults to merging immediately if the actor has write access on the target node, otherwise falling back to a pending Change Request; pass explicit false to force review even with write access. ${undoNote}`);
+var fieldNameSchema = external_exports.union([external_exports.string().min(1), iStringRecordSchema.refine((record2) => Object.values(record2).some((value2) => value2 && value2.trim().length > 0), "field name must have at least one non-empty locale value")]);
 var fieldTypeSchema = external_exports.enum([
   "text",
   "longtext",
@@ -16595,6 +16909,7 @@ var fieldTypeSchema = external_exports.enum([
   "html",
   "attachment",
   "relation",
+  "member",
   "number",
   "date",
   "checkbox",
@@ -16618,7 +16933,15 @@ var fieldTypeSchema = external_exports.enum([
   "lookup",
   "whiteboard"
 ]);
-var lookupRollupSchema = external_exports.enum(["values", "count", "sum", "average", "min", "max", "concatenate"]).default("values");
+var lookupRollupSchema = external_exports.enum([
+  "values",
+  "count",
+  "sum",
+  "average",
+  "min",
+  "max",
+  "concatenate"
+]).default("values");
 var fieldOptionsSchema = external_exports.object({
   ai: external_exports.object({
     model: external_exports.string().optional(),
@@ -16626,42 +16949,28 @@ var fieldOptionsSchema = external_exports.object({
     reviewRequired: external_exports.boolean().optional(),
     sourceFieldIds: external_exports.array(external_exports.string()).optional()
   }).optional(),
-  // Per-field config for `attachment` columns (all optional; logic enforces a
-  // 25MB ceiling regardless).
   attachment: external_exports.object({
     maxFiles: external_exports.number().int().positive().optional(),
     allowedMimeTypes: external_exports.array(external_exports.string()).optional(),
     maxFileSize: external_exports.number().int().positive().optional()
   }).optional(),
-  choices: external_exports.array(
-    external_exports.object({
-      color: external_exports.string().optional(),
-      id: external_exports.string(),
-      name: external_exports.string()
-    })
-  ).optional(),
-  code: external_exports.object({
-    language: external_exports.string().optional()
-  }).optional(),
+  choices: external_exports.array(external_exports.object({
+    color: external_exports.string().optional(),
+    id: external_exports.string(),
+    name: external_exports.string()
+  })).optional(),
+  code: external_exports.object({ language: external_exports.string().optional() }).optional(),
   embed: external_exports.object({
-    aspectRatio: external_exports.enum(["16:9", "4:3", "1:1"]).optional(),
+    aspectRatio: external_exports.enum([
+      "16:9",
+      "4:3",
+      "1:1"
+    ]).optional(),
     height: external_exports.number().int().positive().max(1200).optional(),
     providers: external_exports.array(external_exports.string()).optional()
   }).optional(),
-  // `formula` fields are server-computed (like the other computed types) from
-  // `expression` at record write time — see packages/busabase-core's
-  // domains/base/formula/ engine. `{slug}` references a sibling field, including
-  // another `formula` field (chained formulas) — a dependency graph orders
-  // computation and rejects cycles at field create/edit time.
-  formula: external_exports.object({
-    expression: external_exports.string().min(1)
-  }).optional(),
+  formula: external_exports.object({ expression: external_exports.string().min(1) }).optional(),
   inverseFieldId: external_exports.string().optional(),
-  // `lookup` fields pull a field's values across a `relation` field on the same
-  // Base, optionally rolling them up into one scalar. Unlike every other computed
-  // type they are NOT stored on the commit: a lookup's value depends on OTHER
-  // records, which can change without this record ever being written, so it is
-  // resolved at read time (see busabase-core's domains/base/logic/lookup-values.ts).
   lookup: external_exports.object({
     relationFieldSlug: external_exports.string().min(1).describe("Slug of a `relation` field on THIS Base \u2014 the hop to follow."),
     targetFieldSlug: external_exports.string().min(1).describe("Slug of the field on the related Base whose values are pulled over."),
@@ -16669,17 +16978,13 @@ var fieldOptionsSchema = external_exports.object({
     limit: external_exports.enum(["all", "first"]).optional().describe("`first` looks at only the first linked record; default `all`.")
   }).optional(),
   multiple: external_exports.boolean().optional(),
-  // Display formatting for `number` columns (Notion-style: one number type,
-  // a format option). `currency` renders via Intl.NumberFormat.
   number: external_exports.object({
     format: external_exports.enum(["plain", "currency"]).optional(),
     currency: external_exports.string().optional(),
     locale: external_exports.string().optional()
   }).optional(),
   targetBaseId: external_exports.string().optional().describe("Relation target Base id (bse_\u2026). Or pass targetBaseSlug to name it by slug."),
-  targetBaseSlug: external_exports.string().optional().describe(
-    "Relation target Base by slug \u2014 a convenience alias for targetBaseId, resolved server-side (active bases in the current space). If both are given, targetBaseId wins."
-  )
+  targetBaseSlug: external_exports.string().optional().describe("Relation target Base by slug \u2014 a convenience alias for targetBaseId, resolved server-side (active bases in the current space). If both are given, targetBaseId wins.")
 }).default({});
 var baseFieldSchema = external_exports.object({
   id: external_exports.string(),
@@ -16705,40 +17010,27 @@ var baseSchema = external_exports.object({
   fields: external_exports.array(baseFieldSchema)
 });
 var createBaseInputSchema = external_exports.object({
-  parentNodeId: external_exports.string().optional().describe(
-    "Parent node id. Must be a folder or the space root; container-incapable node types (Base, Doc, AirApp, etc.) cannot hold children."
-  ),
+  parentNodeId: external_exports.string().optional().describe("Parent node id. Must be a folder or the space root; container-incapable node types (Base, Doc, AirApp, etc.) cannot hold children."),
   slug: external_exports.string().min(1).regex(/^[a-z0-9-]+$/),
   name: external_exports.string().min(1),
   description: external_exports.string().optional().default(""),
-  fields: external_exports.array(
-    external_exports.object({
-      slug: external_exports.string().min(1),
-      name: fieldNameSchema,
-      type: fieldTypeSchema.default("text"),
-      required: external_exports.boolean().default(false),
-      options: fieldOptionsSchema.optional().default({})
-    })
-  ).default([]),
-  // Permission-aware default: omitted merges immediately if the actor has
-  // write access on the parent node, otherwise falls back to a pending
-  // ChangeRequest (status "in_review"). Pass explicit `autoMerge: false` to
-  // force review even with write access.
+  fields: external_exports.array(external_exports.object({
+    slug: external_exports.string().min(1),
+    name: fieldNameSchema,
+    type: fieldTypeSchema.default("text"),
+    required: external_exports.boolean().default(false),
+    options: fieldOptionsSchema.optional().default({})
+  })).default([]),
   autoMerge: external_exports.boolean().optional()
 });
 var createBaseFieldInputSchema = external_exports.object({
   name: fieldNameSchema,
-  // Field slugs are snake_case identifiers (e.g. `cover_image`, `publish_date`) — the
-  // seed and the inline-fields path on `POST /bases` already allow underscores, so the
-  // add-field endpoint must too. (Base/folder/view slugs stay kebab-case: they go in URLs.)
   slug: external_exports.string().min(1).regex(/^[a-z0-9_-]+$/),
   type: fieldTypeSchema.default("text"),
   required: external_exports.boolean().optional().default(false),
   options: fieldOptionsSchema.optional().default({})
 });
-var fieldAutoMergeSchema = external_exports.boolean().optional().describe(
-  "Whether to approve and merge this field change immediately. Omitted defaults to merging immediately if the actor has write access on the Base's node, otherwise falling back to a pending Change Request; pass explicit false to force review even with write access. Not accepted by the delete and convert operations, which always require review."
-);
+var fieldAutoMergeSchema = external_exports.boolean().optional().describe("Whether to approve and merge this field change immediately. Omitted defaults to merging immediately if the actor has write access on the Base's node, otherwise falling back to a pending Change Request; pass explicit false to force review even with write access.");
 var createFieldChangeRequestInputSchema = createBaseFieldInputSchema.extend({
   message: external_exports.string().optional().default("Add field"),
   submittedBy: external_exports.string().optional().default("local-editor"),
@@ -16748,16 +17040,33 @@ var deleteFieldChangeRequestInputSchema = external_exports.object({
   fieldId: external_exports.string().min(1),
   message: external_exports.string().optional(),
   submittedBy: external_exports.string().optional().default("local-editor"),
-  autoMerge: autoMergeNotAccepted(
-    "deleting a field soft-deletes its stored values with it, so it always requires review. Omit the flag."
-  )
+  autoMerge: destructiveAutoMerge("A deleted field is soft-deleted with its stored values and is brought back by the `restore` operation.")
 });
 var updateFieldChangeRequestInputSchema = external_exports.object({
   fieldId: external_exports.string().min(1),
   patch: external_exports.object({
     name: fieldNameSchema.optional(),
     required: external_exports.boolean().optional(),
-    options: fieldOptionsSchema.optional()
+    options: fieldOptionsSchema.optional(),
+    /**
+    * Not a patch key — rejected on purpose, and the only key here that is.
+    *
+    * `update` cannot change a field's type; `convert` does, after
+    * `previewFieldConversion` has shown what happens to the stored values.
+    * But `patch` is a plain (non-strict) object, so `{ type: "markdown" }`
+    * used to be stripped silently: the request validated, the change request
+    * merged, `ok: true` came back, and the field was still whatever it was.
+    * A caller reaching for the obvious-but-wrong shape got a successful
+    * no-op, which reads exactly like a successful conversion.
+    *
+    * Blanket `.strict()` is not the fix here — see `contract/auto-merge.ts`
+    * on why these schemas stay open: the SDK ships on its own cadence
+    * against self-hosted servers, so a newer client sending a newer optional
+    * key is normal traffic, and strictness would 400 all of them to catch
+    * this one. Naming the single key that will never be legitimate keeps
+    * that forward compatibility intact.
+    */
+    type: external_exports.never({ message: 'A field type cannot be changed with `update`. Use operation: "convert" with `newType`, and call `previewFieldConversion` first to see how many stored values survive it.' }).optional()
   }),
   message: external_exports.string().optional(),
   submittedBy: external_exports.string().optional().default("local-editor"),
@@ -16765,13 +17074,24 @@ var updateFieldChangeRequestInputSchema = external_exports.object({
 });
 var previewFieldConversionInputSchema = external_exports.object({
   fieldId: external_exports.string().min(1),
-  newType: fieldTypeSchema
+  newType: fieldTypeSchema,
+  /**
+  * Mirrors `convertFieldChangeRequest.selectChoiceMode` so the dry run models the
+  * conversion the caller is actually going to submit. Under `auto_create` a value with
+  * no matching choice is not a conflict — the merge mints a choice for it — while under
+  * `null_on_missing` the same value is dropped. Defaults to `null_on_missing`, matching
+  * the mutation's own default.
+  */
+  selectChoiceMode: external_exports.enum(["auto_create", "null_on_missing"]).default("null_on_missing")
 });
 var previewFieldConversionOutputSchema = external_exports.object({
   totalCount: external_exports.number(),
   convertibleCount: external_exports.number(),
   nullCount: external_exports.number(),
-  conflicts: external_exports.array(external_exports.object({ recordId: external_exports.string(), currentValue: external_exports.unknown() }))
+  conflicts: external_exports.array(external_exports.object({
+    recordId: external_exports.string(),
+    currentValue: external_exports.unknown()
+  }))
 });
 var convertFieldChangeRequestInputSchema = external_exports.object({
   fieldId: external_exports.string().min(1),
@@ -16779,9 +17099,7 @@ var convertFieldChangeRequestInputSchema = external_exports.object({
   selectChoiceMode: external_exports.enum(["auto_create", "null_on_missing"]).default("null_on_missing"),
   message: external_exports.string().optional(),
   submittedBy: external_exports.string().optional().default("local-editor"),
-  autoMerge: autoMergeNotAccepted(
-    "converting a field's type can drop values, so it always requires review. Run previewFieldConversion first to see what would change, then omit the flag."
-  )
+  autoMerge: destructiveAutoMerge("A convert can drop values that do not fit the new type \u2014 call `previewFieldConversion` first to see exactly which, and pass `autoMerge: false` if you want a human to sign off on that preview.")
 });
 var reorderFieldsChangeRequestInputSchema = external_exports.object({
   fieldIds: external_exports.array(external_exports.string()).min(1),
@@ -16792,18 +17110,11 @@ var reorderFieldsChangeRequestInputSchema = external_exports.object({
 var archiveBaseInputSchema = external_exports.object({
   message: external_exports.string().optional(),
   submittedBy: external_exports.string().optional().default("local-editor"),
-  autoMerge: autoMergeNotAccepted(
-    "archiving a Base removes it and every record in it from every listing at once, so it always requires review. Omit the flag."
-  )
+  autoMerge: destructiveAutoMerge('Archiving takes the Base and every record in it out of every listing at once. That is reversible via `operation: "restore"`, but it is the widest-blast-radius write in this family \u2014 pass `autoMerge: false` when it should stop for a human.')
 });
 var restoreBaseInputSchema = external_exports.object({
   message: external_exports.string().optional(),
   submittedBy: external_exports.string().optional().default("local-editor"),
-  // Restoring an archived Base is the undo of a destructive act — nothing is at
-  // risk, so it takes the same permission-aware default as everything else.
-  // `archiveBaseInputSchema` above deliberately has no `autoMerge`: archiving
-  // takes a whole Base and every record in it out of every listing at once,
-  // which is strictly larger than the record `delete` that is already review-only.
   autoMerge: external_exports.boolean().optional()
 });
 var restoreFieldChangeRequestInputSchema = external_exports.object({
@@ -16814,17 +17125,38 @@ var restoreFieldChangeRequestInputSchema = external_exports.object({
 });
 var withBaseId = { baseId: external_exports.string().min(1) };
 var fieldChangeRequestInputSchema = external_exports.discriminatedUnion("operation", [
-  createFieldChangeRequestInputSchema.extend({ operation: external_exports.literal("create"), ...withBaseId }),
-  updateFieldChangeRequestInputSchema.extend({ operation: external_exports.literal("update"), ...withBaseId }),
-  deleteFieldChangeRequestInputSchema.extend({ operation: external_exports.literal("delete"), ...withBaseId }),
-  convertFieldChangeRequestInputSchema.extend({ operation: external_exports.literal("convert"), ...withBaseId }),
-  reorderFieldsChangeRequestInputSchema.extend({ operation: external_exports.literal("reorder"), ...withBaseId }),
-  restoreFieldChangeRequestInputSchema.extend({ operation: external_exports.literal("restore"), ...withBaseId })
+  createFieldChangeRequestInputSchema.extend({
+    operation: external_exports.literal("create"),
+    ...withBaseId
+  }),
+  updateFieldChangeRequestInputSchema.extend({
+    operation: external_exports.literal("update"),
+    ...withBaseId
+  }),
+  deleteFieldChangeRequestInputSchema.extend({
+    operation: external_exports.literal("delete"),
+    ...withBaseId
+  }),
+  convertFieldChangeRequestInputSchema.extend({
+    operation: external_exports.literal("convert"),
+    ...withBaseId
+  }),
+  reorderFieldsChangeRequestInputSchema.extend({
+    operation: external_exports.literal("reorder"),
+    ...withBaseId
+  }),
+  restoreFieldChangeRequestInputSchema.extend({
+    operation: external_exports.literal("restore"),
+    ...withBaseId
+  })
 ]);
-var baseLifecycleChangeRequestInputSchema = external_exports.discriminatedUnion("operation", [
-  archiveBaseInputSchema.extend({ operation: external_exports.literal("archive"), ...withBaseId }),
-  restoreBaseInputSchema.extend({ operation: external_exports.literal("restore"), ...withBaseId })
-]);
+var baseLifecycleChangeRequestInputSchema = external_exports.discriminatedUnion("operation", [archiveBaseInputSchema.extend({
+  operation: external_exports.literal("archive"),
+  ...withBaseId
+}), restoreBaseInputSchema.extend({
+  operation: external_exports.literal("restore"),
+  ...withBaseId
+})]);
 var fileTreeOperations = (type) => [
   {
     kind: `${type}_file_create`,
@@ -16851,27 +17183,48 @@ var makeFileTreeNodeType = (config2) => ({
   type: config2.type,
   label: config2.label,
   icon: config2.icon,
-  capabilities: { hasDetail: true, creatable: true },
+  capabilities: {
+    hasDetail: true,
+    creatable: true,
+    publicAccess: config2.publicAccess
+  },
   operations: fileTreeOperations(config2.type)
 });
 var airappNodeType = makeFileTreeNodeType({
   type: "airapp",
   label: "AirApp",
-  icon: "app-window"
+  icon: "app-window",
+  routeBase: "airapps",
+  tag: "AirApps",
+  entryFile: "package.json",
+  publicAccess: "no"
 });
 var baseNodeType = {
   type: "base",
   label: "Base",
   icon: "table",
-  capabilities: { hasDetail: true, creatable: true },
+  capabilities: {
+    hasDetail: true,
+    creatable: true,
+    commonlyCreated: true,
+    publicAccess: "detail"
+  },
   operations: [
     {
       kind: "record_create",
       label: "Create",
       tone: "border-emerald-200 bg-emerald-50 text-emerald-800"
     },
-    { kind: "record_update", label: "Update", tone: "border-sky-200 bg-sky-50 text-sky-800" },
-    { kind: "record_delete", label: "Delete", tone: "border-red-200 bg-red-50 text-red-800" },
+    {
+      kind: "record_update",
+      label: "Update",
+      tone: "border-sky-200 bg-sky-50 text-sky-800"
+    },
+    {
+      kind: "record_delete",
+      label: "Delete",
+      tone: "border-red-200 bg-red-50 text-red-800"
+    },
     {
       kind: "record_variant",
       label: "Variant",
@@ -16882,8 +17235,16 @@ var baseNodeType = {
       label: "Create view",
       tone: "border-indigo-200 bg-indigo-50 text-indigo-800"
     },
-    { kind: "view_update", label: "Update view", tone: "border-blue-200 bg-blue-50 text-blue-800" },
-    { kind: "view_delete", label: "Delete view", tone: "border-rose-200 bg-rose-50 text-rose-800" },
+    {
+      kind: "view_update",
+      label: "Update view",
+      tone: "border-blue-200 bg-blue-50 text-blue-800"
+    },
+    {
+      kind: "view_delete",
+      label: "Delete view",
+      tone: "border-rose-200 bg-rose-50 text-rose-800"
+    },
     {
       kind: "view_restore",
       label: "Restore view",
@@ -16940,84 +17301,141 @@ var docNodeType = {
   type: "doc",
   label: "Doc",
   icon: "file-text",
-  capabilities: { hasDetail: true, creatable: true },
-  operations: [
-    {
-      kind: "doc_update",
-      label: "Update doc",
-      tone: "border-blue-200 bg-blue-50 text-blue-800"
-    }
-  ]
+  capabilities: {
+    hasDetail: true,
+    creatable: true,
+    commonlyCreated: true,
+    publicAccess: "detail"
+  },
+  operations: [{
+    kind: "doc_update",
+    label: "Update doc",
+    tone: "border-blue-200 bg-blue-50 text-blue-800"
+  }]
 };
 var driveNodeType = makeFileTreeNodeType({
   type: "drive",
   label: "Drive",
-  icon: "hard-drive"
+  icon: "hard-drive",
+  routeBase: "drives",
+  tag: "Drives",
+  entryFile: "README.md",
+  publicAccess: "no"
 });
 var fileNodeType = {
   type: "file",
   label: "File",
   icon: "file",
-  capabilities: { hasDetail: true, creatable: true },
+  capabilities: {
+    hasDetail: true,
+    creatable: true,
+    commonlyCreated: true,
+    publicAccess: "detail"
+  },
   operations: []
 };
 var folderNodeType = {
   type: "folder",
   label: "Folder",
   icon: "folder",
-  capabilities: { container: true, creatable: true, hasDetail: true },
+  capabilities: {
+    container: true,
+    creatable: true,
+    commonlyCreated: true,
+    hasDetail: true,
+    publicAccess: "detail"
+  },
   operations: []
 };
 var formNodeType = {
   type: "form",
   label: "Form",
   icon: "form",
-  capabilities: { hasDetail: true, creatable: true },
+  /**
+  * No longer `hidden`. The two conditions that hid it are both met:
+  *
+  * 1. The New-item flow ASKS FOR THE TARGET BASE — `create-node-modal.tsx`
+  *    renders a "Writes into" Base picker (plus the field checklist) whenever
+  *    `form` is the selected type, and keeps its submit disabled until one is
+  *    chosen, the same way it already does for `file` and its asset.
+  * 2. A MATERIALIZER WRITES THE CONFIG ROW — `materializeFormNode`
+  *    (busabase-core `domains/form/logic/form-ops.ts`) inserts the
+  *    `busabase_forms` row inside the merge transaction, from the
+  *    `node_create` operation's `metadata.targetBaseId` / `metadata.formBindings`.
+  *    Both create paths run it, so a Form merged after review is configured
+  *    exactly like one created immediately.
+  *
+  * A Form that still arrives unconfigured (an API caller that sent only the
+  * generic node fields) is no longer a dead end either: the detail view's
+  * "not set up yet" state now carries a "Connect this form to a Base" action.
+  *
+  * `hidden` is read by THREE create surfaces — web's `create-node-modal.tsx`,
+  * `node-agent-prompts.ts`, and React Native's
+  * `apps/busabase-mobile/.../CreateNodeModal.tsx`. Mobile has no Base picker,
+  * so it names `form` in its own `UNSUPPORTED_TYPES` set (alongside `file`,
+  * which is excluded there for the same "can't collect the required input"
+  * reason) rather than re-creating the dead end on another platform.
+  */
+  capabilities: {
+    hasDetail: true,
+    creatable: true,
+    publicAccess: "submit"
+  },
   operations: []
 };
 var htmlNodeType = {
   type: "html",
   label: "HTML",
   icon: "code-xml",
-  capabilities: { hasDetail: true, creatable: true },
-  operations: [
-    {
-      kind: "html_document_update",
-      label: "Update HTML",
-      tone: "border-blue-200 bg-blue-50 text-blue-800"
-    }
-  ]
+  capabilities: {
+    hasDetail: true,
+    creatable: true,
+    publicAccess: "no"
+  },
+  operations: [{
+    kind: "html_document_update",
+    label: "Update HTML",
+    tone: "border-blue-200 bg-blue-50 text-blue-800"
+  }]
 };
 var skillNodeType = makeFileTreeNodeType({
   type: "skill",
   label: "Skill",
-  icon: "sparkles"
+  icon: "sparkles",
+  routeBase: "skills",
+  tag: "Skills",
+  entryFile: "SKILL.md",
+  publicAccess: "no"
 });
 var whiteboardNodeType = {
   type: "whiteboard",
   label: "Whiteboard",
   icon: "pen-tool",
-  capabilities: { hasDetail: true, creatable: true },
-  operations: [
-    {
-      kind: "whiteboard_document_update",
-      label: "Update whiteboard",
-      tone: "border-blue-200 bg-blue-50 text-blue-800"
-    }
-  ]
+  capabilities: {
+    hasDetail: true,
+    creatable: true,
+    publicAccess: "detail"
+  },
+  operations: [{
+    kind: "whiteboard_document_update",
+    label: "Update whiteboard",
+    tone: "border-blue-200 bg-blue-50 text-blue-800"
+  }]
 };
 var workflowNodeType = {
   type: "workflow",
   label: "Workflow",
   icon: "workflow",
-  capabilities: { hasDetail: true, creatable: true },
-  operations: [
-    {
-      kind: "workflow_document_update",
-      label: "Update workflow",
-      tone: "border-blue-200 bg-blue-50 text-blue-800"
-    }
-  ]
+  capabilities: {
+    hasDetail: true,
+    creatable: true,
+    publicAccess: "detail"
+  },
+  operations: [{
+    kind: "workflow_document_update",
+    label: "Update workflow",
+    tone: "border-blue-200 bg-blue-50 text-blue-800"
+  }]
 };
 var GENERIC_NODE_OPERATIONS = [
   {
@@ -17025,14 +17443,26 @@ var GENERIC_NODE_OPERATIONS = [
     label: "Create node",
     tone: "border-emerald-200 bg-emerald-50 text-emerald-800"
   },
-  { kind: "node_rename", label: "Rename node", tone: "border-sky-200 bg-sky-50 text-sky-800" },
-  { kind: "node_delete", label: "Delete node", tone: "border-red-200 bg-red-50 text-red-800" },
+  {
+    kind: "node_rename",
+    label: "Rename node",
+    tone: "border-sky-200 bg-sky-50 text-sky-800"
+  },
+  {
+    kind: "node_delete",
+    label: "Delete node",
+    tone: "border-red-200 bg-red-50 text-red-800"
+  },
   {
     kind: "node_restore",
     label: "Restore node",
     tone: "border-emerald-200 bg-emerald-50 text-emerald-800"
   },
-  { kind: "node_move", label: "Move node", tone: "border-indigo-200 bg-indigo-50 text-indigo-800" }
+  {
+    kind: "node_move",
+    label: "Move node",
+    tone: "border-indigo-200 bg-indigo-50 text-indigo-800"
+  }
 ];
 var registry2 = /* @__PURE__ */ new Map();
 function registerNodeType(definition) {
@@ -17051,53 +17481,110 @@ var BUILTIN_NODE_TYPES = [
   workflowNodeType,
   htmlNodeType
 ];
-for (const definition of BUILTIN_NODE_TYPES) {
-  registerNodeType(definition);
-}
+for (const definition of BUILTIN_NODE_TYPES) registerNodeType(definition);
 var NODE_TYPES = BUILTIN_NODE_TYPES.map((definition) => definition.type);
-var CREATABLE_NODE_TYPES = BUILTIN_NODE_TYPES.filter(
-  (definition) => Boolean(definition.capabilities.creatable)
-).map((definition) => definition.type);
-var ALL_OPERATIONS = [
-  ...GENERIC_NODE_OPERATIONS,
-  ...BUILTIN_NODE_TYPES.flatMap(
-    (definition) => definition.operations
-  )
-];
+var CREATABLE_NODE_TYPES = BUILTIN_NODE_TYPES.filter((definition) => Boolean(definition.capabilities.creatable)).map((definition) => definition.type);
+var ALL_OPERATIONS = [...GENERIC_NODE_OPERATIONS, ...BUILTIN_NODE_TYPES.flatMap((definition) => definition.operations)];
 var OPERATION_KINDS = ALL_OPERATIONS.map((operation) => operation.kind);
-GENERIC_NODE_OPERATIONS.map(
-  (operation) => operation.kind
-);
-Object.fromEntries(
-  ALL_OPERATIONS.map((operation) => [
-    operation.kind,
-    { label: operation.label, tone: operation.tone }
-  ])
-);
-var nodeSchema = external_exports.lazy(
-  () => external_exports.object({
-    id: external_exports.string(),
-    parentId: external_exports.string().nullable(),
-    type: external_exports.enum(NODE_TYPES),
-    slug: external_exports.string(),
-    name: external_exports.string(),
-    description: external_exports.string(),
-    metadata: external_exports.object({ version: external_exports.string().optional() }).catchall(external_exports.unknown()).default({}),
-    explicitVisibility: external_exports.enum(["private", "workspace", "public"]).nullable().default(null),
-    position: external_exports.number(),
-    createdAt: external_exports.string(),
-    updatedAt: external_exports.string(),
-    baseId: external_exports.string().nullable(),
-    children: external_exports.array(nodeSchema),
-    hasChildren: external_exports.boolean().optional()
-  })
-);
+GENERIC_NODE_OPERATIONS.map((operation) => operation.kind);
+Object.fromEntries(ALL_OPERATIONS.map((operation) => [operation.kind, {
+  label: operation.label,
+  tone: operation.tone
+}]));
+var NodeIconSchema = external_exports.discriminatedUnion("type", [external_exports.object({
+  type: external_exports.literal("emoji"),
+  value: external_exports.string()
+}), external_exports.object({
+  type: external_exports.literal("attachment"),
+  url: external_exports.string(),
+  attachmentId: external_exports.string(),
+  originalUrl: external_exports.string().optional(),
+  originalAttachmentId: external_exports.string().optional(),
+  crop: external_exports.object({
+    x: external_exports.number(),
+    y: external_exports.number(),
+    zoom: external_exports.number()
+  }).optional()
+})]);
+var CUSTOM_AGENT_PROMPT_LIMITS = {
+  /** Max custom prompts per node. */
+  maxPrompts: 50,
+  /** Max characters per localized `label` value. */
+  maxLabelChars: 80,
+  /** Max bytes (UTF-8) per localized `body` value. */
+  maxBodyBytes: 8192
+};
+var customPromptIntentSchema = external_exports.enum(["read-only", "change"]);
+var iStringLocaleValues = (value2) => typeof value2 === "string" ? [value2] : Object.values(value2);
+var utf8ByteLength = (value2) => new TextEncoder().encode(value2).length;
+var customPromptLabelSchema = iStringSchema.refine((value2) => iStringLocaleValues(value2).every((v) => v.length <= CUSTOM_AGENT_PROMPT_LIMITS.maxLabelChars), { message: `label must be at most ${CUSTOM_AGENT_PROMPT_LIMITS.maxLabelChars} characters per locale` });
+var customPromptBodySchema = iStringSchema.refine((value2) => iStringLocaleValues(value2).every((v) => utf8ByteLength(v) <= CUSTOM_AGENT_PROMPT_LIMITS.maxBodyBytes), { message: `body must be at most ${CUSTOM_AGENT_PROMPT_LIMITS.maxBodyBytes} bytes (UTF-8) per locale` });
+var customPromptDefSchema = external_exports.object({
+  /** Stable id, unique within this node's custom list. */
+  key: external_exports.string().trim().min(1, { message: "key must not be empty" }),
+  /** Defaults to `change` (same default the curated prompts use) so a prompt
+  * cannot silently opt out of the change-request path by omission — whether that
+  * path then merges immediately or waits for review is the permission layer's
+  * call, not the prompt's. */
+  intent: customPromptIntentSchema.optional(),
+  /** Short title shown in the dialog's left list. */
+  label: customPromptLabelSchema,
+  /** Template text; "{target}" is substituted with the rendered target line. */
+  body: customPromptBodySchema
+});
+var customAgentPromptsSchema = external_exports.array(customPromptDefSchema).max(CUSTOM_AGENT_PROMPT_LIMITS.maxPrompts, { message: `at most ${CUSTOM_AGENT_PROMPT_LIMITS.maxPrompts} custom prompts per node` }).superRefine((prompts, ctx) => {
+  const firstIndexByKey = /* @__PURE__ */ new Map();
+  prompts.forEach((prompt, index) => {
+    const firstIndex = firstIndexByKey.get(prompt.key);
+    if (firstIndex === void 0) {
+      firstIndexByKey.set(prompt.key, index);
+      return;
+    }
+    ctx.addIssue({
+      code: "custom",
+      path: [index, "key"],
+      message: `duplicate key "${prompt.key}" \u2014 already used at entry ${firstIndex + 1}`
+    });
+  });
+});
+var nodeSchema = external_exports.lazy(() => external_exports.object({
+  id: external_exports.string(),
+  parentId: external_exports.string().nullable(),
+  type: external_exports.enum(NODE_TYPES),
+  slug: external_exports.string(),
+  name: external_exports.string(),
+  description: external_exports.string(),
+  metadata: external_exports.object({ version: external_exports.string().optional() }).catchall(external_exports.unknown()).default({}),
+  settings: nodeSettingsSchema.default({}),
+  explicitVisibility: external_exports.enum([
+    "private",
+    "workspace",
+    "public"
+  ]).nullable().default(null),
+  icon: NodeIconSchema.nullable().default(null),
+  position: external_exports.number(),
+  createdAt: external_exports.string(),
+  updatedAt: external_exports.string(),
+  baseId: external_exports.string().nullable(),
+  children: external_exports.array(nodeSchema),
+  hasChildren: external_exports.boolean().optional(),
+  shared: external_exports.boolean().optional()
+}));
 var nodePrincipalSchema = external_exports.object({
   id: external_exports.string(),
   nodeId: external_exports.string(),
-  principalType: external_exports.enum(["user", "team", "space"]),
+  principalType: external_exports.enum([
+    "user",
+    "team",
+    "space"
+  ]),
   principalId: external_exports.string(),
-  role: external_exports.enum(["read", "changeRequest", "write", "manage"]),
+  role: external_exports.enum([
+    "read",
+    "changeRequest",
+    "write",
+    "manage"
+  ]),
   grantedBy: external_exports.string(),
   createdAt: external_exports.string(),
   updatedAt: external_exports.string()
@@ -17106,67 +17593,100 @@ var nodeShareSchema = external_exports.object({
   nodeId: external_exports.string(),
   scope: external_exports.enum(["none", "public"]),
   capability: external_exports.enum(["read", "submit"]),
-  // Derived from `passwordHash != null` — the hash itself is never serialized.
   hasPassword: external_exports.boolean(),
   expiresAt: external_exports.string().nullable(),
   updatedAt: external_exports.string()
 });
+var sharedNodeSchema = external_exports.object({
+  nodeId: external_exports.string(),
+  name: external_exports.string(),
+  slug: external_exports.string(),
+  type: external_exports.enum(NODE_TYPES),
+  icon: NodeIconSchema.nullable().default(null),
+  capability: external_exports.enum(["read", "submit"]),
+  hasPassword: external_exports.boolean(),
+  expiresAt: external_exports.string().nullable(),
+  /**
+  * When this share ROW was first created — NOT "public continuously since".
+  * `disableNodeShare` flips `scope` to `"none"` and keeps the row, so a node
+  * that was shared, revoked, and shared again still reports the original
+  * date. There is no column recording when `scope` last became `"public"`,
+  * so the UI says "first shared {time}" rather than claiming an exposure
+  * window the data cannot support. Adding that column is the follow-up.
+  */
+  createdAt: external_exports.string()
+});
 var listNodesInputSchema = external_exports.object({
   parentId: external_exports.string().nullable().optional().describe("Node to start from. Omit or null to start from the space root."),
-  depth: external_exports.coerce.number().int().min(1).max(5).optional().describe(
-    "How many levels beneath the start point to eagerly include (default 2 once either field is set). Capped at 5."
-  ),
+  depth: external_exports.coerce.number().int().min(1).max(5).optional().describe("How many levels beneath the start point to eagerly include (default 2 once either field is set). Capped at 5."),
+  status: external_exports.enum(["active", "archived"]).optional().default("active").describe("`active` walks the live TREE. `archived` returns a FLAT list of soft-archived nodes (the Trash view) with no parent/depth walk \u2014 so the response shape you can rely on differs between the two, not just the rows."),
   /**
-   * `active` (default) walks the live tree. `archived` returns the flat set of
-   * soft-archived nodes for the Trash view — no `parentId`/`depth` walk, since
-   * archived nodes are shown as a list, not a tree.
-   */
-  status: external_exports.enum(["active", "archived"]).optional().default("active"),
-  /**
-   * Narrow to specific node types and return a FLAT list of lightweight node
-   * summaries (`children: []`) instead of walking the tree. This is what
-   * replaced the four retired narrow listings (`GET /docs`, `/files`,
-   * `/folders`, `/file-trees`); file-trees are selected with their real
-   * discriminators `skill` / `drive` / `airapp`, since there is no synthetic
-   * "file-tree" node type.
-   *
-   * Omitting `types` leaves every existing caller on exactly today's
-   * behaviour (full tree, or a `parentId`/`depth`-bounded walk, or the
-   * archived flat list) — the two modes never interfere.
-   *
-   * NOTE — no `projection` parameter, deliberately. The consolidation roadmap
-   * sketched `?projection=summary`, but it also rules out adding
-   * `projection=detail` in this batch (the retired detail lists were the
-   * N+1 payloads this change exists to remove). That would leave a parameter
-   * with exactly one legal value, which is noise in OpenAPI/MCP/CLI rather
-   * than a decision a caller gets to make. Detail is `GET /nodes/{nodeId}`.
-   *
-   * A GET query param that occurs exactly once (`?types=doc`) arrives as a
-   * bare string, not a 1-element array — only a REPEATED occurrence
-   * (`?types=doc&types=file`) becomes an array. Accept both and normalize.
-   */
-  types: external_exports.union([external_exports.array(external_exports.enum(NODE_TYPES)), external_exports.enum(NODE_TYPES)]).transform((value2) => Array.isArray(value2) ? value2 : [value2]).optional().describe(
-    "Return a flat list of lightweight summaries for these node types instead of the tree. Read one node's full detail with GET /nodes/{nodeId}."
-  )
+  * Narrow to specific node types and return a FLAT list of lightweight node
+  * summaries (`children: []`) instead of walking the tree. This is what
+  * replaced the four retired narrow listings (`GET /docs`, `/files`,
+  * `/folders`, `/file-trees`); file-trees are selected with their real
+  * discriminators `skill` / `drive` / `airapp`, since there is no synthetic
+  * "file-tree" node type.
+  *
+  * Omitting `types` leaves every existing caller on exactly today's
+  * behaviour (full tree, or a `parentId`/`depth`-bounded walk, or the
+  * archived flat list) — the two modes never interfere.
+  *
+  * NOTE — no `projection` parameter, deliberately. The consolidation roadmap
+  * sketched `?projection=summary`, but it also rules out adding
+  * `projection=detail` in this batch (the retired detail lists were the
+  * N+1 payloads this change exists to remove). That would leave a parameter
+  * with exactly one legal value, which is noise in OpenAPI/MCP/CLI rather
+  * than a decision a caller gets to make. Detail is `GET /nodes/{nodeId}`.
+  *
+  * A GET query param that occurs exactly once (`?types=doc`) arrives as a
+  * bare string, not a 1-element array — only a REPEATED occurrence
+  * (`?types=doc&types=file`) becomes an array. Accept both and normalize.
+  */
+  types: external_exports.union([external_exports.array(external_exports.enum(NODE_TYPES)), external_exports.enum(NODE_TYPES)]).transform((value2) => Array.isArray(value2) ? value2 : [value2]).optional().describe("Return a flat list of lightweight summaries for these node types instead of the tree. Read one node's full detail with GET /nodes/{nodeId}.")
 }).optional();
 var isDescendantInputSchema = external_exports.object({
-  nodeId: external_exports.string(),
-  potentialAncestorId: external_exports.string()
+  nodeId: external_exports.string().describe("The node walked UPWARDS from \u2014 the possible descendant."),
+  potentialAncestorId: external_exports.string().describe('The node looked for on the way up. Answers "is `nodeId` inside this one?", not the reverse \u2014 swapping the two silently returns the wrong answer rather than an error.')
 });
-var isDescendantOutputSchema = external_exports.object({
-  isDescendant: external_exports.boolean()
-});
+var isDescendantOutputSchema = external_exports.object({ isDescendant: external_exports.boolean() });
 var updateNodeMetadataInputSchema = external_exports.object({
   nodeId: external_exports.string(),
   metadata: external_exports.record(external_exports.string(), external_exports.unknown())
 });
+var nodeSettingsSchema = external_exports.strictObject({
+  /**
+  * Which engine an AirApp runs on, when a human has chosen.
+  *
+  * `undefined` means "follow the app" — `airapp.json`'s `preferredEngine`
+  * decides, or the default does. A value means somebody overrode it in the
+  * node settings dialog, and it outranks the manifest from then on. So absence
+  * must stay distinguishable from any particular value; `null` clears an
+  * override and returns the node to following the app.
+  */
+  airappEngine: external_exports.enum([
+    "browser",
+    "local",
+    "remote"
+  ]).nullish()
+});
+var updateNodeSettingsInputSchema = external_exports.object({
+  nodeId: external_exports.string(),
+  settings: nodeSettingsSchema
+});
+var getNodeAgentPromptsInputSchema = external_exports.object({ nodeId: external_exports.string() });
+var nodeAgentPromptsSchema = external_exports.object({
+  nodeId: external_exports.string(),
+  agentPrompts: customAgentPromptsSchema.nullable()
+});
+var updateNodeAgentPromptsInputSchema = external_exports.object({
+  nodeId: external_exports.string(),
+  /** Replaces the whole list — this is not a merge. Send `null` to clear. */
+  agentPrompts: customAgentPromptsSchema.nullable()
+});
 var searchNodesByNameInputSchema = external_exports.object({
-  query: external_exports.string().min(1),
-  // GET route — query params arrive as strings, and oRPC's OpenAPI handler
-  // does not coerce them. A bare `z.number()` here rejected every real
-  // `?limit=` call with "expected number, received string"; every other
-  // limit/page field on a GET route in this file already uses `z.coerce`.
-  limit: external_exports.coerce.number().int().min(1).max(50).optional().default(20)
+  query: external_exports.string().min(1).describe("Matched against node NAMES only. Use `/api/v1/search` to search content."),
+  limit: external_exports.coerce.number().int().min(1).max(50).optional().default(20).describe("Results to return. Capped at 50 here, unlike most listings' 100.")
 });
 var nodeSearchResultSchema = external_exports.object({
   id: external_exports.string(),
@@ -17174,7 +17694,14 @@ var nodeSearchResultSchema = external_exports.object({
   name: external_exports.string(),
   slug: external_exports.string(),
   path: external_exports.string(),
-  updatedAt: external_exports.string()
+  updatedAt: external_exports.string(),
+  /**
+  * The node's own custom avatar, same shape as `NodeVO.icon`. Optional so an
+  * older server that predates this field is still a valid response — a
+  * caller that doesn't know it falls back to the type icon exactly as it
+  * always has.
+  */
+  icon: NodeIconSchema.nullable().optional()
 });
 var userRefSchema = external_exports.object({
   id: external_exports.string(),
@@ -17183,6 +17710,23 @@ var userRefSchema = external_exports.object({
   image: external_exports.string().nullable(),
   role: external_exports.string().nullable().optional()
 });
+var sourceChannelSchema = external_exports.enum([
+  "web_ui",
+  "browser",
+  "openapi",
+  "sdk",
+  "cli",
+  "mcp",
+  "skill",
+  "webhook",
+  "automation",
+  "import"
+]);
+var sourceAttributionSchema = external_exports.object({
+  displayName: external_exports.string().nullable(),
+  ownerName: external_exports.string().nullable(),
+  channel: sourceChannelSchema.nullable()
+});
 var commitSchema = external_exports.object({
   id: external_exports.string(),
   baseId: external_exports.string().nullable(),
@@ -17190,16 +17734,6 @@ var commitSchema = external_exports.object({
   nodeId: external_exports.string().nullable(),
   operationId: external_exports.string().nullable(),
   parentCommitId: external_exports.string().nullable(),
-  // Deliberately loose (`z.record`), NOT a discriminated union keyed on `operation`.
-  //
-  // Do not "tighten" this. Commits already in the database were written before
-  // per-operation payload validation existed, so their shapes carry no guarantee.
-  // The write path (`insertCommit`) and the merge path (`parseCommitPayload`) are
-  // strict precisely because they only ever touch freshly-written payloads; this VO
-  // is also used to render *history* and approval detail pages, which read arbitrarily
-  // old commits. Making it strict would turn any legacy-shaped row into a 500 on a
-  // read-only screen. This is not a compatibility shim — it is the requirement not to
-  // break reading data that already exists.
   payload: external_exports.record(external_exports.string(), external_exports.unknown()),
   operation: external_exports.enum(OPERATION_KINDS),
   message: external_exports.string(),
@@ -17214,7 +17748,12 @@ var operationSchema = external_exports.object({
   targetType: external_exports.enum(["base", "node"]),
   nodeId: external_exports.string().nullable(),
   operation: external_exports.enum(OPERATION_KINDS),
-  status: external_exports.enum(["pending", "merged", "archived", "failed"]),
+  status: external_exports.enum([
+    "pending",
+    "merged",
+    "archived",
+    "failed"
+  ]),
   targetRecordId: external_exports.string().nullable(),
   targetViewId: external_exports.string().nullable(),
   filePath: external_exports.string().nullable(),
@@ -17229,11 +17768,6 @@ var operationSchema = external_exports.object({
   createdAt: external_exports.string(),
   updatedAt: external_exports.string(),
   headCommit: commitSchema,
-  // Resolved canonical "before" values for the operation's target, so the UI can
-  // render a true before → after field diff. Null for creations (no prior state)
-  // and for kinds whose prior state isn't a field map (e.g. skill files, whose
-  // previous content lives in storage). Records resolve from the base commit;
-  // views resolve from the current view row ({ name, description, config }).
   baseFields: external_exports.record(external_exports.string(), external_exports.unknown()).nullable()
 });
 var reviewSchema = external_exports.object({
@@ -17246,7 +17780,38 @@ var reviewSchema = external_exports.object({
   visibleOperationHeads: external_exports.record(external_exports.string(), external_exports.string()),
   createdAt: external_exports.string()
 });
-var commentSubjectTypeSchema = external_exports.enum(["record", "change_request", "operation", "commit"]);
+var commentSubjectTypeSchema = external_exports.enum([
+  "record",
+  "change_request",
+  "operation",
+  "commit"
+]);
+var commentMentionTargetTypeSchema = external_exports.enum(["member", "agent"]);
+var commentMentionDispatchStatusSchema = external_exports.enum([
+  "not_applicable",
+  "queued",
+  "linked",
+  "failed"
+]);
+var commentMentionInputSchema = external_exports.object({
+  type: commentMentionTargetTypeSchema,
+  /** Member/actor id, or launchable agent slug (`claude-acp`, `buda:<agentId>`). */
+  id: external_exports.string().min(1),
+  start: external_exports.number().int().min(0),
+  end: external_exports.number().int().min(0)
+});
+var commentMentionSchema = external_exports.object({
+  id: external_exports.string(),
+  type: commentMentionTargetTypeSchema,
+  targetId: external_exports.string(),
+  /** Server-resolved display name. Falls back to the raw target id. */
+  label: external_exports.string(),
+  start: external_exports.number().int(),
+  end: external_exports.number().int(),
+  dispatchStatus: commentMentionDispatchStatusSchema,
+  sessionId: external_exports.string().nullable(),
+  error: external_exports.string().nullable()
+});
 var commentSchema = external_exports.object({
   id: external_exports.string(),
   subjectType: commentSubjectTypeSchema,
@@ -17258,9 +17823,47 @@ var commentSchema = external_exports.object({
   authorId: external_exports.string(),
   author: userRefSchema.nullable().optional().default(null),
   body: external_exports.string(),
-  mentionsAi: external_exports.boolean(),
+  mentions: external_exports.array(commentMentionSchema).default([]),
   createdAt: external_exports.string(),
   updatedAt: external_exports.string()
+});
+var mentionInboxItemSchema = external_exports.object({
+  commentId: external_exports.string(),
+  subjectType: commentSubjectTypeSchema,
+  /** Comment body, for the row's preview line. */
+  body: external_exports.string(),
+  authorId: external_exports.string(),
+  author: userRefSchema.nullable().optional().default(null),
+  createdAt: external_exports.string(),
+  /** Null once read. The newest unread stamp across this comment's mentions. */
+  unread: external_exports.boolean(),
+  /**
+  * Dashboard-relative path to the comment's context, or null when the subject
+  * has no page of its own (a `commit`-scoped comment on a comment that is not
+  * attached to a change request — the repo has no commit detail route).
+  * A null href still renders a row: swallowing the notification because we
+  * cannot link it would leave the recipient never knowing they were mentioned.
+  */
+  href: external_exports.string().nullable()
+});
+var mentionInboxPageSchema = external_exports.object({
+  items: external_exports.array(mentionInboxItemSchema),
+  total: external_exports.number().int(),
+  /** Distinct unread comments — what the tab badge shows. */
+  unreadCount: external_exports.number().int()
+});
+var listMentionInboxInputSchema = external_exports.object({
+  page: external_exports.number().int().min(1).optional().default(1).describe("1-indexed, not 0-indexed."),
+  pageSize: external_exports.number().int().min(1).max(100).optional().default(50).describe("Mentions per page. Capped at 100.")
+});
+var markMentionsReadInputSchema = external_exports.object({
+  /** Stamps every unread mention row this caller has on that comment. */
+  commentId: external_exports.string()
+});
+var markMentionsReadOutputSchema = external_exports.object({
+  /** How many rows were stamped; 0 when it was already read. */
+  marked: external_exports.number().int(),
+  unreadCount: external_exports.number().int()
 });
 var changeRequestStatusSchema = external_exports.enum([
   "in_review",
@@ -17279,6 +17882,7 @@ var changeRequestSchema = external_exports.object({
   status: changeRequestStatusSchema,
   submittedBy: external_exports.string(),
   submittedByUser: userRefSchema.nullable().optional().default(null),
+  sourceAttribution: sourceAttributionSchema.nullable().optional(),
   sourceMeta: external_exports.record(external_exports.string(), external_exports.unknown()),
   reviewPolicySnapshot: external_exports.record(external_exports.string(), external_exports.unknown()),
   mergeSummary: external_exports.record(external_exports.string(), external_exports.unknown()),
@@ -17302,20 +17906,81 @@ var agentTaskSchema = external_exports.object({
 });
 var searchResultSchema = external_exports.object({
   id: external_exports.string(),
-  kind: external_exports.enum(["record", "change_request", "base", "file"]),
+  /**
+  * `node` covers the CONTENT of a content-bearing node (doc / html /
+  * whiteboard / workflow). Purely additive — callers that do not know it can
+  * ignore the kind, and callers that never asked for it (an explicit
+  * `sources` list without `nodes`) never receive it.
+  */
+  kind: external_exports.enum([
+    "record",
+    "change_request",
+    "base",
+    "file",
+    "node"
+  ]),
   title: external_exports.string(),
   body: external_exports.string(),
   eyebrow: external_exports.string(),
   href: external_exports.string(),
-  updatedAt: external_exports.string().nullable()
+  updatedAt: external_exports.string().nullable(),
+  /**
+  * The actor that created this, or null when the source cannot say.
+  *
+  * Present so a result can SHOW its author and so the author filter can be
+  * driven by clicking one — you can only filter by a creator you can actually
+  * see, which beats a free-text box you have to guess the spelling of. Null is
+  * rendered as "unknown", never as a person.
+  */
+  createdBy: external_exports.string().nullable().default(null)
 });
 var searchResponseSchema = external_exports.object({
   query: external_exports.string(),
   limit: external_exports.number(),
   offset: external_exports.number(),
   hasMore: external_exports.boolean(),
-  results: external_exports.array(searchResultSchema)
+  results: external_exports.array(searchResultSchema),
+  /**
+  * True when at least one in-scope node's content was indexed only up to the
+  * projection cap, so this search could not see all of it.
+  *
+  * Exists so an empty result can be reported honestly: without it, "no
+  * results" is ambiguous between "the workspace does not contain this" and
+  * "we did not look at all of it". Clients should surface it — and point at
+  * `grep`, which has no such cap — rather than implying absence.
+  */
+  contentTruncated: external_exports.boolean().default(false)
 });
+var searchInteractionInputSchema = external_exports.discriminatedUnion("event", [
+  external_exports.object({
+    event: external_exports.literal("result_click"),
+    sessionId: external_exports.string().uuid(),
+    surface: external_exports.enum(["quick", "advanced"]),
+    position: external_exports.number().int().min(1).max(100),
+    resultKind: external_exports.enum([
+      "record",
+      "change_request",
+      "base",
+      "file",
+      "node"
+    ])
+  }).strict(),
+  external_exports.object({
+    event: external_exports.literal("quick_to_advanced"),
+    sessionId: external_exports.string().uuid(),
+    surface: external_exports.literal("quick"),
+    resultCount: external_exports.number().int().min(0).max(100)
+  }).strict(),
+  external_exports.object({
+    event: external_exports.literal("results_shown"),
+    sessionId: external_exports.string().uuid(),
+    surface: external_exports.enum(["quick", "advanced"]),
+    resultCount: external_exports.number().int().min(0).max(100),
+    durationMs: external_exports.number().int().min(0).max(12e4),
+    hasMore: external_exports.boolean()
+  }).strict()
+]);
+var searchInteractionResponseSchema = external_exports.object({ accepted: external_exports.literal(true) });
 var liveEventSchema = external_exports.object({
   kind: external_exports.enum([
     "change_request.created",
@@ -17323,24 +17988,12 @@ var liveEventSchema = external_exports.object({
     "change_request.deleted",
     "change_request.reviewed",
     "change_request.merged",
-    // Fired only when a CONTENT change request freshly enters human review
-    // (record_* ops created via record-ops.ts) — never for structural ops
-    // that auto-merge instantly (those still fire "change_request.created"
-    // via the audit funnel, but nothing needs reviewing). Consumed by
-    // `use-live-sync.ts` to pop a desktop Notification, and by
-    // busabase-cloud's host hook to persist an inbox notification row.
     "change_request.pending_review",
-    // A node's metadata was written directly, outside the change-request flow
-    // (`PATCH /api/v1/nodes/{nodeId}/metadata` — agents, the SDK, an MCP tool,
-    // and every rich-node editor's own Save). Carries the touched node in
-    // `nodeIds` so open dashboards refetch the node tree instead of showing a
-    // stale whiteboard/workflow/HTML document until the next reload.
-    "node.metadata_updated"
+    "node.metadata_updated",
+    "node.settings_updated"
   ]),
   spaceId: external_exports.string(),
   actorId: external_exports.string(),
-  // Null for events that aren't about a change request at all
-  // (`node.metadata_updated`), which is every direct, auto-audited write.
   changeRequestId: external_exports.string().nullable(),
   baseId: external_exports.string().nullable(),
   nodeIds: external_exports.array(external_exports.string()),
@@ -17355,9 +18008,6 @@ var auditActionSchema = external_exports.enum([
   "change_request.deleted",
   "change_request.reviewed",
   "change_request.merged",
-  // Direct (non-change-request) mutations — recorded so the audit trail stays
-  // complete even for operations that bypass the propose → review → merge flow
-  // (container bootstrap, direct edits, library/asset deletes, trash purge).
   "base.created",
   "field.created",
   "doc.created",
@@ -17371,6 +18021,8 @@ var auditActionSchema = external_exports.enum([
   "asset.text_written",
   "asset.text_marked_none",
   "node.metadata_updated",
+  "node.settings_updated",
+  "node.agent_prompts_updated",
   "node.purged"
 ]);
 var auditEventSchema = external_exports.object({
@@ -17378,6 +18030,7 @@ var auditEventSchema = external_exports.object({
   action: auditActionSchema,
   actorId: external_exports.string(),
   actor: userRefSchema.nullable().optional().default(null),
+  sourceAttribution: sourceAttributionSchema.nullable().optional(),
   baseId: external_exports.string().nullable(),
   recordId: external_exports.string().nullable(),
   changeRequestId: external_exports.string().nullable(),
@@ -17399,35 +18052,39 @@ var createAuditEventInputSchema = external_exports.object({
 var nodeOperationInputSchema = external_exports.discriminatedUnion("kind", [
   external_exports.object({
     kind: external_exports.literal("create"),
-    ref: external_exports.string().min(1).optional().describe(
-      'Optional in-change-request temp id for this node. A later operation can set parentNodeRef to this value to nest under it \u2014 e.g. create a folder with ref "growth", then create Bases with parentNodeRef "growth", all in one change request.'
-    ),
+    ref: external_exports.string().min(1).optional().describe('Optional in-change-request temp id for this node. A later operation can set parentNodeRef to this value to nest under it \u2014 e.g. create a folder with ref "growth", then create Bases with parentNodeRef "growth", all in one change request.'),
     parentNodeId: external_exports.string().optional(),
-    parentNodeRef: external_exports.string().min(1).optional().describe(
-      "Parent this node under a node an EARLIER operation in the same change request created (matched by its ref). Mutually exclusive with parentNodeId."
-    ),
+    parentNodeRef: external_exports.string().min(1).optional().describe("Parent this node under a node an EARLIER operation in the same change request created (matched by its ref). Mutually exclusive with parentNodeId."),
     nodeType: external_exports.enum(CREATABLE_NODE_TYPES),
     slug: external_exports.string().min(1).regex(/^[a-z0-9-]+$/),
     name: external_exports.string().min(1),
     description: external_exports.string().optional().default(""),
     metadata: external_exports.record(external_exports.string(), external_exports.unknown()).optional().default({}),
-    // Base fields (nodeType "base" only); a base needs at least one field.
-    fields: external_exports.array(
-      external_exports.object({
-        slug: external_exports.string().min(1).regex(/^[a-z0-9-]+$/),
-        name: fieldNameSchema,
-        type: fieldTypeSchema.default("text"),
-        required: external_exports.boolean().optional().default(false),
-        options: fieldOptionsSchema.optional().default({})
-      })
-    ).optional()
+    fields: external_exports.array(external_exports.object({
+      slug: external_exports.string().min(1).regex(/^[a-z0-9-]+$/),
+      name: fieldNameSchema,
+      type: fieldTypeSchema.default("text"),
+      required: external_exports.boolean().optional().default(false),
+      options: fieldOptionsSchema.optional().default({})
+    })).optional()
   }),
   external_exports.object({
     kind: external_exports.literal("rename"),
     nodeId: external_exports.string(),
     slug: external_exports.string().min(1).regex(/^[a-z0-9-]+$/).optional(),
     name: external_exports.string().min(1).optional(),
-    description: external_exports.string().optional()
+    description: external_exports.string().optional(),
+    /**
+    * Reuses the "rename" kind rather than adding a dedicated operation kind:
+    * `rename` is already a generic "update this node's basic properties"
+    * operation (every field above is optional, so a caller can send just one),
+    * and the node-settings General tab already submits name+description
+    * together — adding the icon here is the smallest change that keeps a
+    * single-operation "save General tab" change request. `undefined` leaves
+    * the node's current icon untouched; `null` explicitly clears it back to
+    * the type default.
+    */
+    icon: NodeIconSchema.nullable().optional()
   }),
   external_exports.object({
     kind: external_exports.literal("delete"),
@@ -17440,20 +18097,15 @@ var nodeOperationInputSchema = external_exports.discriminatedUnion("kind", [
   external_exports.object({
     kind: external_exports.literal("move"),
     nodeId: external_exports.string(),
-    // Exactly one of parentNodeId / parentNodeRef (a ref created earlier in this CR).
     parentNodeId: external_exports.string().optional(),
     parentNodeRef: external_exports.string().min(1).optional(),
     position: external_exports.number().int().optional()
   })
 ]);
 var createNodeChangeRequestInputSchema = external_exports.object({
-  message: external_exports.string().optional().default("Update node tree").describe(
-    'Explanation shown to the human reviewer. Write a conventional-commit style subject \u2014 imperative verb + what + why, e.g. "Reorganize marketing docs under a Campaigns folder".'
-  ),
+  message: external_exports.string().optional().default("Update node tree").describe('Explanation shown to the human reviewer. Write a conventional-commit style subject \u2014 imperative verb + what + why, e.g. "Reorganize marketing docs under a Campaigns folder".'),
   submittedBy: external_exports.string().optional().default("local-producer"),
-  autoMerge: external_exports.boolean().optional().describe(
-    "Whether to approve and merge this structural node change immediately. Omitted defaults to merging immediately if the actor has write access on every target node, otherwise falling back to a pending Change Request; pass explicit false to force review even with write access."
-  ),
+  autoMerge: external_exports.boolean().optional().describe("Whether to approve and merge this structural node change immediately. Omitted defaults to merging immediately if the actor has write access on every target node, otherwise falling back to a pending Change Request; pass explicit false to force review even with write access."),
   operations: external_exports.array(nodeOperationInputSchema).min(1)
 });
 var moveNodeInputSchema = external_exports.object({
@@ -17464,24 +18116,14 @@ var moveNodeInputSchema = external_exports.object({
   submittedBy: external_exports.string().optional()
 });
 var createDeleteChangeRequestInputSchema = external_exports.object({
-  message: external_exports.string().optional().default("Delete record").describe(
-    'Explanation shown to the human reviewer. Say what is being removed and why, e.g. "Archive duplicate contact \u2014 merged into Acme Corp".'
-  ),
+  message: external_exports.string().optional().default("Delete record").describe('Explanation shown to the human reviewer. Say what is being removed and why, e.g. "Archive duplicate contact \u2014 merged into Acme Corp".'),
   submittedBy: external_exports.string().optional().default("local-producer"),
-  // Only "archive" is supported — hard delete after retention was never
-  // implemented, so the API no longer accepts it (breaking change).
   deleteMode: external_exports.enum(["archive"]).optional().default("archive"),
-  autoMerge: autoMergeNotAccepted(
-    "archiving a record removes user content from every listing, so it always requires review. Omit the flag."
-  )
+  autoMerge: destructiveAutoMerge('Archiving is reversible: the record leaves every listing but is restored intact by `operation: "restore"`.')
 });
 var reviseOperationInputSchema = external_exports.object({
-  fields: external_exports.record(external_exports.string(), external_exports.unknown()).describe(
-    "Updated field values keyed by field slug. If you set the base's PRIMARY field (its first field), keep it a short human-readable name \u2014 it is the record's display title everywhere."
-  ),
-  message: external_exports.string().optional().default("Revise operation").describe(
-    'Explanation shown to the human reviewer. Write a conventional-commit style subject \u2014 imperative verb + what + why, e.g. "Update deal stage to qualified \u2014 demo booked for July 8".'
-  ),
+  fields: external_exports.record(external_exports.string(), external_exports.unknown()).describe("Updated field values keyed by field slug. If you set the base's PRIMARY field (its first field), keep it a short human-readable name \u2014 it is the record's display title everywhere."),
+  message: external_exports.string().optional().default("Revise operation").describe('Explanation shown to the human reviewer. Write a conventional-commit style subject \u2014 imperative verb + what + why, e.g. "Update deal stage to qualified \u2014 demo booked for July 8".'),
   author: external_exports.string().optional().default("local-producer"),
   baseCommitId: external_exports.string().optional()
 });
@@ -17490,37 +18132,49 @@ var reviewChangeRequestInputSchema = external_exports.object({
   reason: external_exports.string().optional()
 });
 var commentSubjectInputSchema = external_exports.object({
-  subjectType: commentSubjectTypeSchema,
-  subjectId: external_exports.string().min(1)
+  subjectType: commentSubjectTypeSchema.describe("What the comment thread hangs off, which decides how `subjectId` is interpreted."),
+  subjectId: external_exports.string().min(1).describe("The subject's id, interpreted according to `subjectType`.")
 });
 var createCommentInputSchema = commentSubjectInputSchema.extend({
   authorId: external_exports.string().optional().default("local-admin"),
   body: external_exports.string().trim().min(1),
-  mentionsAi: external_exports.boolean().optional().default(false)
+  /**
+  * Structured mentions, owned by the composer. Never inferred from the body by
+  * regex: display names contain spaces and collide with ordinary prose, so
+  * "ask codex about this" must not invoke Codex.
+  */
+  mentions: external_exports.array(commentMentionInputSchema).optional().default([])
 });
-var listInputSchema = external_exports.object({
-  limit: external_exports.coerce.number().int().min(1).max(100).optional().default(50)
-}).optional().default({ limit: 50 });
-var listByStatusInputSchema = external_exports.object({
-  status: external_exports.enum(["active", "archived"]).optional().default("active")
-});
+var listInputSchema = external_exports.object({ limit: external_exports.coerce.number().int().min(1).max(100).optional().default(50).describe("Rows to return, most recent first. Capped at 100; this listing has no cursor.") }).optional().default({ limit: 50 });
+var listByStatusInputSchema = external_exports.object({ status: external_exports.enum(["active", "archived"]).optional().default("active").describe("`active` (default) or the soft-archived set. Archived rows have the SAME shape as live ones \u2014 this is a predicate, not a different resource.") });
 var listChangeRequestsPagedInputSchema = external_exports.object({
-  limit: external_exports.coerce.number().int().min(1).max(100).optional().default(50),
-  /** Opaque base64 cursor (`createdAt|id`) for keyset pagination. */
-  cursor: external_exports.string().optional(),
-  status: external_exports.array(changeRequestStatusSchema).optional(),
-  mine: external_exports.boolean().optional()
+  limit: external_exports.coerce.number().int().min(1).max(100).optional().default(50).describe("Change requests per page. Capped at 100; ask for the next page with `cursor`."),
+  cursor: external_exports.string().optional().describe("Opaque page cursor: pass back the `nextCursor` from the previous response. Do not construct or parse it."),
+  status: external_exports.array(changeRequestStatusSchema).optional().describe("Keep only these statuses. Omitting it returns every status, not just open ones."),
+  mine: external_exports.boolean().optional().describe("Only change requests CREATED by the acting user \u2014 not ones awaiting their review."),
+  affectsNodeId: external_exports.string().min(1).optional().describe("Only change requests whose target, or any of their operations, touches this node \u2014 including Base-backed nodes. To ask whether a resource already has an unfinished change request, pass this with `limit: 1` rather than paging the space: an empty result is conclusive.")
 }).optional().default({ limit: 50 });
 var listChangeRequestsResponseSchema = external_exports.object({
   changeRequests: external_exports.array(changeRequestSchema),
   nextCursor: external_exports.string().nullable()
 });
+var changeRequestPageInputShape = {
+  page: external_exports.coerce.number().int().min(1).optional().default(1).describe("1-indexed, not 0-indexed."),
+  pageSize: external_exports.coerce.number().int().min(1).max(100).optional().default(50).describe("Change requests per page. Capped at 100."),
+  status: external_exports.array(changeRequestStatusSchema).optional().describe("Keep only these statuses. Omitting it returns every status, not just open ones."),
+  mine: external_exports.boolean().optional().describe("Only change requests CREATED by the acting user \u2014 not ones awaiting their review.")
+};
 var listChangeRequestsPageInputSchema = external_exports.object({
-  page: external_exports.coerce.number().int().min(1).optional().default(1),
-  pageSize: external_exports.coerce.number().int().min(1).max(100).optional().default(50),
-  status: external_exports.array(changeRequestStatusSchema).optional(),
-  mine: external_exports.boolean().optional()
-}).optional().default({ page: 1, pageSize: 50 });
+  ...changeRequestPageInputShape,
+  affectsNodeId: external_exports.string().min(1).optional().describe("Only change requests whose target, or any of their operations, touches this node \u2014 including Base-backed nodes.")
+}).optional().default({
+  page: 1,
+  pageSize: 50
+});
+var inboxSnapshotInputSchema = external_exports.object(changeRequestPageInputShape).optional().default({
+  page: 1,
+  pageSize: 50
+});
 var listChangeRequestsPageResponseSchema = external_exports.object({
   changeRequests: external_exports.array(changeRequestSchema),
   total: external_exports.number().int().nonnegative(),
@@ -17536,21 +18190,72 @@ var changeRequestCountsSchema = external_exports.object({
   merged: external_exports.number().int().nonnegative(),
   rejected: external_exports.number().int().nonnegative()
 });
-var SEARCH_SOURCES = ["records", "files", "names"];
+var inboxSnapshotResponseSchema = listChangeRequestsPageResponseSchema.extend({ counts: changeRequestCountsSchema });
+var SEARCH_SOURCES = [
+  "records",
+  "files",
+  "names",
+  "nodes"
+];
+var SearchSortSchema = external_exports.enum([
+  "relevance",
+  "updated_desc",
+  "updated_asc",
+  "created_desc",
+  "created_asc"
+]);
 var searchInputSchema = external_exports.object({
-  query: external_exports.string().default(""),
-  limit: external_exports.coerce.number().int().min(1).max(100).optional().default(20),
-  offset: external_exports.coerce.number().int().min(0).optional().default(0),
+  query: external_exports.string().default("").describe("Full-text query. An empty string matches nothing."),
+  mode: external_exports.enum(["quick", "full"]).optional().default("full").describe("Search depth. `quick` skips live file-body scans for typeahead; `full` preserves complete search behavior."),
+  surface: external_exports.enum(["quick", "advanced"]).optional().describe("Optional first-party UI surface for aggregate quality metrics. API/CLI callers should omit it."),
+  limit: external_exports.coerce.number().int().min(1).max(100).optional().default(20).describe("Results per page. Capped at 100; note the default is 20, not 50."),
+  offset: external_exports.coerce.number().int().min(0).optional().default(0).describe("0-indexed skip count. This endpoint pages by offset, not by cursor."),
   /**
-   * Restrict which content this call searches. Omitted means all three
-   * (unchanged behavior for every caller before this parameter existed).
-   *
-   * A GET query param that occurs exactly once (`?sources=records`) arrives
-   * as a bare string, not a 1-element array — only a REPEATED occurrence
-   * (`?sources=records&sources=files`) becomes an array. Accept both shapes
-   * and normalize to an array.
-   */
-  sources: external_exports.union([external_exports.array(external_exports.enum(SEARCH_SOURCES)), external_exports.enum(SEARCH_SOURCES)]).transform((value2) => Array.isArray(value2) ? value2 : [value2]).optional()
+  * Restrict which content this call searches. Omitted means all three
+  * (unchanged behavior for every caller before this parameter existed).
+  *
+  * A GET query param that occurs exactly once (`?sources=records`) arrives
+  * as a bare string, not a 1-element array — only a REPEATED occurrence
+  * (`?sources=records&sources=files`) becomes an array. Accept both shapes
+  * and normalize to an array.
+  */
+  sources: external_exports.union([external_exports.array(external_exports.enum(SEARCH_SOURCES)), external_exports.enum(SEARCH_SOURCES)]).transform((value2) => Array.isArray(value2) ? value2 : [value2]).optional().describe("Restrict which content is searched. Omitting it searches ALL sources. Repeat the parameter to pass several (`?sources=records&sources=files`); a single occurrence is accepted as a bare value."),
+  sort: SearchSortSchema.optional().default("relevance").describe("Result order. `relevance` (default) keeps each source's own ranking \u2014 for records that is the full-text rank, for everything else most-recently-updated first. The four explicit orders sort every source by the same column so a mixed result set is comparable."),
+  /**
+  * Both bounds are inclusive ISO 8601 instants, and both are optional — one
+  * on its own is an open-ended range, which is what "since last Monday" and
+  * "before the migration" each need.
+  *
+  * Filters the same timestamp `sort` orders by, so "edited this week, newest
+  * first" reads as one coherent question rather than two unrelated knobs.
+  */
+  updatedAfter: external_exports.string().datetime({ offset: true }).optional().describe("Inclusive lower bound, ISO 8601. A UTC `Z` or an explicit offset; not a bare local time."),
+  updatedBefore: external_exports.string().datetime({ offset: true }).optional().describe("Inclusive upper bound, ISO 8601. A UTC `Z` or an explicit offset; not a bare local time."),
+  /**
+  * Restrict to what one actor created.
+  *
+  * Every source answers from a real column, which is what made this filter
+  * shippable: records and assets carry their own `created_by`, node CONTENT
+  * reads `busabase_nodes.created_by` (added with this change, backfilled from
+  * each node's `node_create` commit), and Bases resolve through the owning
+  * node the Base query already joins for its dates and sort.
+  *
+  * A free-form actor id, not a user id — agents and API keys create things
+  * too, and filtering by "user" would silently drop everything an agent made.
+  *
+  * Nodes whose creating commit is gone have a NULL `created_by` and match no
+  * author. That is deliberate: "this row cannot tell" must not render as
+  * "nobody made it".
+  */
+  createdBy: external_exports.string().optional().describe("Restrict to one creator. Matches the actor id, which may be an agent or API key."),
+  /**
+  * Restrict to a subtree: this node and everything beneath it.
+  *
+  * Resolved by walking the tree in application code (`collectSubtreeIds`),
+  * the same way `isDescendantOf` and permanent-delete already do — workspace
+  * trees are shallow and this repo has no recursive-CTE precedent.
+  */
+  inNodeId: external_exports.string().optional().describe("Limit to this node and its descendants.")
 });
 var authSpaceSchema = external_exports.object({
   id: external_exports.string(),
@@ -17558,20 +18263,20 @@ var authSpaceSchema = external_exports.object({
   slug: external_exports.string().nullable(),
   plan: external_exports.string().nullable(),
   /**
-   * The space's DEFAULT content visibility for its members — the same
-   * `spaces.nodeVisibilityMode` the cloud dashboard reads. `"open"` = a node
-   * with no explicit visibility anywhere in its ancestor chain is visible to
-   * every member; `"restricted"` = such a node is hidden from non-managers
-   * until it is explicitly opened (per-node visibility or a grant).
-   *
-   * Clients need it to describe a node's EFFECTIVE access truthfully ("everyone
-   * in this space can see this" is a lie in a restricted space) and to decide
-   * whether per-node grants are meaningful to show at all.
-   *
-   * OPTIONAL on purpose: it was added after this VO shipped, so an older server
-   * (or a host that doesn't model a space default at all) simply omits it.
-   * Treat an absent value as `"open"` — the historical behaviour.
-   */
+  * The space's DEFAULT content visibility for its members — the same
+  * `spaces.nodeVisibilityMode` the cloud dashboard reads. `"open"` = a node
+  * with no explicit visibility anywhere in its ancestor chain is visible to
+  * every member; `"restricted"` = such a node is hidden from non-managers
+  * until it is explicitly opened (per-node visibility or a grant).
+  *
+  * Clients need it to describe a node's EFFECTIVE access truthfully ("everyone
+  * in this space can see this" is a lie in a restricted space) and to decide
+  * whether per-node grants are meaningful to show at all.
+  *
+  * OPTIONAL on purpose: it was added after this VO shipped, so an older server
+  * (or a host that doesn't model a space default at all) simply omits it.
+  * Treat an absent value as `"open"` — the historical behaviour.
+  */
   nodeVisibilityMode: external_exports.enum(["open", "restricted"]).optional()
 });
 var authUserSchema = external_exports.object({
@@ -17591,15 +18296,29 @@ var authInfoSchema = external_exports.object({
   user: authUserSchema,
   member: authMemberSchema,
   /**
-   * Every space the authenticated user belongs to. An API key is user-scoped, not
-   * space-scoped — when this has more than one entry, callers should confirm the
-   * intended space and target it explicitly via the `x-busabase-space` header.
-   */
+  * Every space the authenticated user belongs to. An API key is user-scoped, not
+  * space-scoped — when this has more than one entry, callers should confirm the
+  * intended space and target it explicitly via the `x-busabase-space` header.
+  */
   spaces: external_exports.array(authSpaceSchema),
   /** Cloud only: the server created this user's first Space during this exact request. */
   createdSpace: external_exports.boolean().optional(),
   /** Cloud only: this auto-created Space still needs its idempotent starter initialization. */
-  bootstrapRequired: external_exports.boolean().optional()
+  bootstrapRequired: external_exports.boolean().optional(),
+  /** Cloud only: effective permission ceiling of the credential used for this request. */
+  credentialPermissionLevel: external_exports.enum([
+    "read",
+    "changeRequest",
+    "write",
+    "manage"
+  ]).optional(),
+  /** Cloud only: credential ceiling capped by the selected Space membership role. */
+  effectivePermissionLevel: external_exports.enum([
+    "read",
+    "changeRequest",
+    "write",
+    "manage"
+  ]).optional()
 });
 var fileTreeFileSchema = external_exports.object({
   path: external_exports.string(),
@@ -17610,9 +18329,7 @@ var fileTreeFileSchema = external_exports.object({
   assetId: external_exports.string(),
   displayName: external_exports.string().nullable()
 });
-var baseContentHashSchema = external_exports.string().regex(/^sha256:[a-f0-9]{64}$/, "must be sha256:<64 lowercase hex characters>").optional().describe(
-  "Optimistic-concurrency baseline hash of the file's current content, formatted exactly as `sha256:<64 lowercase hex characters>` (matches the `contentHash` on the file's backing Asset). Omit to skip the conflict check."
-);
+var baseContentHashSchema = external_exports.string().regex(/^sha256:[a-f0-9]{64}$/, "must be sha256:<64 lowercase hex characters>").optional().describe("Optimistic-concurrency baseline hash of the file's current content, formatted exactly as `sha256:<64 lowercase hex characters>` (matches the `contentHash` on the file's backing Asset). Omit to skip the conflict check.");
 var assetFileInputSchema = external_exports.object({
   path: external_exports.string().min(1),
   assetId: external_exports.string().min(1),
@@ -17642,38 +18359,39 @@ var textFileOperationInputSchema = external_exports.object({
 var fileTreeNodeSchema = external_exports.object({
   node: nodeSchema,
   entryFile: external_exports.string(),
-  visibility: external_exports.enum(["private", "workspace", "public"]),
+  visibility: external_exports.enum([
+    "private",
+    "workspace",
+    "public"
+  ]),
   version: external_exports.string(),
   files: external_exports.array(fileTreeFileSchema),
-  // Paths silently dropped from this create call by an uploaded `.gitignore`
-  // (upload-safety layer 1 — see `logic/upload-safety.ts`). Empty on
-  // ordinary get/list responses and on creates that didn't include a
-  // `.gitignore`.
   skippedGitignorePaths: external_exports.array(external_exports.string()).optional().default([])
 });
 var createFileTreeInputSchema = external_exports.object({
-  parentNodeId: external_exports.string().optional().describe(
-    "Parent node id. Must be a folder or the space root; container-incapable node types (Base, Doc, AirApp, etc.) cannot hold children."
-  ),
+  parentNodeId: external_exports.string().optional().describe("Parent node id. Must be a folder or the space root; container-incapable node types (Base, Doc, AirApp, etc.) cannot hold children."),
   slug: external_exports.string().min(1).regex(/^[a-z0-9-]+$/),
   name: external_exports.string().min(1),
   description: external_exports.string().optional().default(""),
-  visibility: external_exports.enum(["private", "workspace", "public"]).optional().default("private"),
+  visibility: external_exports.enum([
+    "private",
+    "workspace",
+    "public"
+  ]).optional().default("private"),
   version: external_exports.string().optional().default("0.1.0"),
+  /**
+  * Extra node metadata, stored alongside the server-owned keys.
+  *
+  * Rides along the change request on the review-first path, so it lands when a
+  * human merges. That is the whole point: an ownership stamp applied only
+  * after an immediate create would silently never be applied to a node that
+  * was proposed instead — leaving the app unable to recognise its own
+  * resources on the DEFAULT install path. Server-owned keys (`visibility`,
+  * `version`) always win, so a caller cannot use this to rewrite them.
+  */
+  metadata: external_exports.record(external_exports.string(), external_exports.unknown()).optional(),
   files: external_exports.array(external_exports.union([assetFileInputSchema, textFileInputSchema])).optional().default([]),
-  // Permission-aware default: omitted merges immediately if the actor has
-  // write access on the parent node, otherwise falls back to a pending
-  // ChangeRequest (status "in_review"). Pass explicit `autoMerge: false` to
-  // force review even with write access.
   autoMerge: external_exports.boolean().optional(),
-  // "merge" (default): `files` is layered on top of the config's default seed
-  // files by path — a caller supplying just a couple of extra files (e.g. a
-  // Skill's own reference doc) still gets the default scaffold (SKILL.md,
-  // skill.json, ...) for any path they didn't provide themselves. "replace":
-  // `files` replaces the defaults entirely — for a caller handing over a
-  // complete, different-shaped project (e.g. an AirApp seeded with a Vite
-  // project instead of the default Hono template) who does NOT want leftover
-  // default files with unrelated content mixed in.
   mergeMode: external_exports.enum(["merge", "replace"]).optional().default("merge")
 });
 var fileTreeFileOperationInputSchema = external_exports.union([
@@ -17688,46 +18406,105 @@ var fileTreeFileOperationInputSchema = external_exports.union([
     kind: external_exports.literal("metadata_update"),
     metadata: external_exports.object({
       entryFile: external_exports.string().optional(),
-      visibility: external_exports.enum(["private", "workspace", "public"]).optional(),
+      visibility: external_exports.enum([
+        "private",
+        "workspace",
+        "public"
+      ]).optional(),
       version: external_exports.string().optional()
     }).default({})
   }).strict()
 ]);
 var createFileTreeChangeRequestInputSchema = external_exports.object({
-  message: external_exports.string().optional().default("Update file tree").describe(
-    'Explanation shown to the human reviewer. Write a conventional-commit style subject \u2014 imperative verb + what + why, e.g. "Rewrite README.md quickstart for the new auth flow".'
-  ),
+  message: external_exports.string().optional().default("Update file tree").describe('Explanation shown to the human reviewer. Write a conventional-commit style subject \u2014 imperative verb + what + why, e.g. "Rewrite README.md quickstart for the new auth flow".'),
   submittedBy: external_exports.string().optional().default("local-producer"),
   operations: external_exports.array(fileTreeFileOperationInputSchema).min(1),
-  // Honoured only when EVERY operation in the batch is non-destructive
-  // (create / update / metadata_update). A batch containing a `delete` stays
-  // review-first no matter what this says, because deleting a mounted file
-  // destroys content — the same line that keeps record `delete` review-only.
-  // Server-side enforcement lives in the filetree handler, not here: the check
-  // is over the operations array, which a per-field schema cannot express.
-  autoMerge: external_exports.boolean().optional().describe(
-    "Whether to approve and merge these file changes immediately. Omitted defaults to merging immediately if the actor has write access on the node, otherwise falling back to a pending Change Request; pass explicit false to force review even with write access. IGNORED when any operation is a delete \u2014 those batches always require review."
-  )
+  autoMerge: external_exports.boolean().optional().describe("Whether to approve and merge these file changes immediately. Omitted defaults to merging immediately if the actor has write access on the node, otherwise falling back to a pending Change Request; pass explicit false to force review even with write access. Applies to every operation kind, deletes included.")
 });
-var FILE_TREE_NODE_TYPES = ["skill", "drive", "airapp"];
-var fileTreeNodeTypeSchema = external_exports.enum(FILE_TREE_NODE_TYPES);
+var fileTreeNodeTypeSchema = external_exports.enum([
+  "skill",
+  "drive",
+  "airapp"
+]);
+var filePreviewProviderSchema = external_exports.enum(["builtin", "previewfile"]);
+var filePreviewCredentialSourceSchema = external_exports.enum([
+  "environment",
+  "vault",
+  "none"
+]);
+var filePreviewConfigurationStatusSchema = external_exports.enum([
+  "ready",
+  "not_configured",
+  "invalid_configuration"
+]);
+var filePreviewUnavailableReasonSchema = external_exports.enum([
+  "not_configured",
+  "invalid_configuration",
+  "file_too_large",
+  "unsupported",
+  "authentication_failed",
+  "rate_limited",
+  "timeout",
+  "service_unavailable",
+  "invalid_response"
+]);
+var filePreviewConfigSchema = external_exports.object({
+  provider: filePreviewProviderSchema,
+  status: filePreviewConfigurationStatusSchema,
+  credentialSource: filePreviewCredentialSourceSchema,
+  credentialConfigured: external_exports.boolean(),
+  maxFileSizeBytes: external_exports.number().int().positive(),
+  sessionTtlMinutes: external_exports.number().int().positive(),
+  vaultEncryptionConfigured: external_exports.boolean().nullable()
+});
+var filePreviewSchema = external_exports.discriminatedUnion("state", [
+  external_exports.object({
+    state: external_exports.literal("builtin"),
+    provider: external_exports.literal("builtin")
+  }),
+  external_exports.object({
+    state: external_exports.literal("ready"),
+    provider: external_exports.literal("previewfile"),
+    previewUrl: external_exports.string().url(),
+    expiresAt: external_exports.string().datetime()
+  }),
+  external_exports.object({
+    state: external_exports.literal("unavailable"),
+    provider: external_exports.literal("previewfile"),
+    reason: filePreviewUnavailableReasonSchema,
+    retryable: external_exports.boolean()
+  })
+]);
 var fileTreeRefSchema = external_exports.object({
-  nodeId: external_exports.string(),
-  type: fileTreeNodeTypeSchema.optional()
+  nodeId: external_exports.string().describe("A node id OR a slug. A slug is only unique WITHIN a type, so pass `type` alongside one; a node id needs no hint."),
+  type: fileTreeNodeTypeSchema.optional().describe("Disambiguates a slug. Unnecessary \u2014 and ignored \u2014 when `nodeId` is an id.")
 });
 var fileTreeContract = {
+  previewConfig: oc.route({
+    method: "GET",
+    path: "/file-trees/preview-config",
+    tags: ["File Trees"],
+    summary: "Get Drive file preview configuration",
+    successDescription: "Resolved preview provider state without exposing the configured API key."
+  }).output(filePreviewConfigSchema),
+  preparePreview: oc.route({
+    method: "POST",
+    path: "/file-trees/{nodeId}/preview",
+    tags: ["File Trees"],
+    summary: "Prepare a Drive file preview",
+    successDescription: "Returns the built-in provider, a short-lived PreviewFile URL, or a recoverable provider failure."
+  }).input(external_exports.object({
+    nodeId: external_exports.string().min(1),
+    filePath: external_exports.string().min(1),
+    type: external_exports.literal("drive")
+  })).output(filePreviewSchema),
   create: oc.route({
     method: "POST",
     path: "/file-trees",
     tags: ["File Trees"],
     summary: "Create file-tree node",
-    successDescription: "Review-first by default: a pending ChangeRequest proposing the node (`materialized: false`). Returns the materialized node instead (`materialized: true`) when `autoMerge: true` is passed."
-  }).input(createFileTreeInputSchema.extend({ type: fileTreeNodeTypeSchema })).output(
-    external_exports.union([
-      fileTreeNodeSchema.extend({ materialized: external_exports.literal(true) }),
-      changeRequestSchema.extend({ materialized: external_exports.literal(false) })
-    ])
-  ),
+    successDescription: "Merged in the same call when the actor has write access on the target node \u2014 the materialized node comes back (`materialized: true`). Review-first when the actor lacks write access or passes `autoMerge: false`: a pending ChangeRequest proposing the node (`materialized: false`)."
+  }).input(createFileTreeInputSchema.extend({ type: fileTreeNodeTypeSchema })).output(external_exports.union([fileTreeNodeSchema.extend({ materialized: external_exports.literal(true) }), changeRequestSchema.extend({ materialized: external_exports.literal(false) })])),
   listFiles: oc.route({
     method: "GET",
     path: "/file-trees/{nodeId}/files",
@@ -17741,19 +18518,17 @@ var fileTreeContract = {
     tags: ["File Trees"],
     summary: "Read file-tree file",
     successDescription: "File content and content hash."
-  }).input(fileTreeRefSchema.extend({ filePath: external_exports.string() })).output(
-    external_exports.object({
-      nodeId: external_exports.string(),
-      path: external_exports.string(),
-      encoding: external_exports.enum(["utf8", "url"]),
-      content: external_exports.string(),
-      mimeType: external_exports.string(),
-      assetId: external_exports.string(),
-      displayName: external_exports.string().nullable(),
-      assetUrl: external_exports.string().nullable(),
-      contentHash: external_exports.string()
-    })
-  ),
+  }).input(fileTreeRefSchema.extend({ filePath: external_exports.string() })).output(external_exports.object({
+    nodeId: external_exports.string(),
+    path: external_exports.string(),
+    encoding: external_exports.enum(["utf8", "url"]),
+    content: external_exports.string(),
+    mimeType: external_exports.string(),
+    assetId: external_exports.string(),
+    displayName: external_exports.string().nullable(),
+    assetUrl: external_exports.string().nullable(),
+    contentHash: external_exports.string()
+  })),
   createChangeRequest: oc.route({
     method: "POST",
     path: "/file-trees/{nodeId}/change-requests",
@@ -17762,35 +18537,58 @@ var fileTreeContract = {
     successDescription: "Created file-tree change request for the node."
   }).input(createFileTreeChangeRequestInputSchema.extend(fileTreeRefSchema.shape)).output(changeRequestSchema)
 };
-var airAppRunLocalNodeInputSchema = external_exports.object({
+var airAppRunLocalInputSchema = external_exports.object({
   nodeId: external_exports.string(),
   /** Text files to mount into the sandbox workdir before installing, keyed by
-   *  path (same shape `RunPanel` already assembles for `NodepodRunner.mount`). */
+  *  path (same shape `RunPanel` already assembles for `NodepodRunner.mount`). */
   files: external_exports.record(external_exports.string(), external_exports.string()),
   /** Binary (asset-backed) files — images, fonts, sample data — keyed by the
-   *  same path, base64-encoded because this input crosses a JSON boundary that
-   *  `Uint8Array` cannot. Separate from `files` rather than a tagged union so
-   *  an older client that sends only `files` keeps working unchanged.
-   *
-   *  The in-browser Nodepod engine never uses this field: it hands raw bytes to
-   *  `Nodepod.boot({ files })` directly and skips the base64 round trip. */
+  *  same path, base64-encoded because this input crosses a JSON boundary that
+  *  `Uint8Array` cannot. Separate from `files` rather than a tagged union so
+  *  an older client that sends only `files` keeps working unchanged.
+  *
+  *  The in-browser Nodepod engine never uses this field: it hands raw bytes to
+  *  `Nodepod.boot({ files })` directly and skips the base64 round trip. */
   binaryFiles: external_exports.record(external_exports.string(), external_exports.string()).optional().default({}),
-  /** Server-side execution mode. `"local-node"` spawns a bare host Node.js
-   *  process (previewable, data bridge via reverse proxy, NOT OS-isolated);
-   *  `"srt"` wraps the same commands in the OS sandbox (isolated execution,
-   *  but live preview is unreachable). `"nodepod"` never calls this endpoint —
-   *  it runs entirely in-browser. */
-  engine: external_exports.enum(["local-node", "srt"]).default("local-node")
+  /** Where the server should run it. `"local"` spawns a bare process on the
+  *  Busabase host (previewable, data bridge via reverse proxy, NOT isolated);
+  *  `"remote"` runs the same lifecycle on a provisioned machine elsewhere.
+  *  `"browser"` never reaches this endpoint — it runs entirely in the tab.
+  *
+  *  Required, deliberately. This used to default to `"local"`, so a call that
+  *  simply omitted the field asked the server to spawn a host process — the
+  *  most privileged of the two options, reached by saying nothing. Naming the
+  *  engine is now the caller's job, and the handler independently refuses one
+  *  this deployment does not offer. */
+  engine: external_exports.enum(["local", "remote"])
 });
 var airAppRuntimeEventSchema = external_exports.discriminatedUnion("type", [
-  external_exports.object({ type: external_exports.literal("log"), line: external_exports.string() }),
+  external_exports.object({
+    type: external_exports.literal("log"),
+    line: external_exports.string()
+  }),
   external_exports.object({ type: external_exports.literal("installed") }),
-  external_exports.object({ type: external_exports.literal("ready"), previewUrl: external_exports.string() }),
-  external_exports.object({ type: external_exports.literal("exit"), code: external_exports.number().nullable() }),
-  external_exports.object({ type: external_exports.literal("error"), message: external_exports.string() })
+  external_exports.object({
+    type: external_exports.literal("ready"),
+    previewUrl: external_exports.string()
+  }),
+  external_exports.object({
+    type: external_exports.literal("exit"),
+    code: external_exports.number().nullable()
+  }),
+  external_exports.object({
+    type: external_exports.literal("error"),
+    message: external_exports.string()
+  })
 ]);
+var airAppStopLocalInputSchema = external_exports.object({ nodeId: external_exports.string() });
+var airAppStopLocalOutputSchema = external_exports.object({
+  /** `false` when nothing was running — stopping twice is not an error. */
+  stopped: external_exports.boolean()
+});
 var airappRuntimeContract = {
-  runLocalNode: oc.input(airAppRunLocalNodeInputSchema).output(eventIterator(airAppRuntimeEventSchema))
+  runLocal: oc.input(airAppRunLocalInputSchema).output(eventIterator(airAppRuntimeEventSchema)),
+  stopLocal: oc.input(airAppStopLocalInputSchema).output(airAppStopLocalOutputSchema)
 };
 var AttachmentMetadataSchema = external_exports.record(external_exports.string(), external_exports.unknown());
 external_exports.object({
@@ -17826,10 +18624,10 @@ var RequestUploadUrlVOSchema = external_exports.object({
   publicUrl: external_exports.string(),
   expiresIn: external_exports.number(),
   /**
-   * True when an identical file (same contentHash, same scope) already exists.
-   * The client should SKIP the byte upload and the confirm step, and use
-   * `attachmentId`/`publicUrl` directly. `uploadUrl` is empty in this case.
-   */
+  * True when an identical file (same contentHash, same scope) already exists.
+  * The client should SKIP the byte upload and the confirm step, and use
+  * `attachmentId`/`publicUrl` directly. `uploadUrl` is empty in this case.
+  */
   duplicate: external_exports.boolean().optional(),
   /** Existing attachment id — present only when `duplicate` is true. */
   attachmentId: external_exports.string().optional(),
@@ -17844,7 +18642,12 @@ var ConfirmUploadVOSchema = external_exports.object({
   storageKey: external_exports.string(),
   publicUrl: external_exports.string()
 });
-var AssetTextStatusSchema = external_exports.enum(["missing", "present", "none", "stale"]);
+var AssetTextStatusSchema = external_exports.enum([
+  "missing",
+  "present",
+  "none",
+  "stale"
+]);
 var AssetVOSchema = external_exports.object({
   id: external_exports.string(),
   attachmentId: external_exports.string(),
@@ -17862,8 +18665,19 @@ var AssetVOSchema = external_exports.object({
   textStatus: AssetTextStatusSchema,
   createdAt: external_exports.string()
 });
+var ListAssetsInputSchema = external_exports.object({
+  limit: external_exports.coerce.number().int().min(1).max(200).optional().describe("Page size, 1-200. Omit to return every asset (the historical behaviour)."),
+  cursor: external_exports.string().optional().describe("Asset id of the last row of the previous page. Requires `limit`.")
+}).optional();
 var AssetUsageVOSchema = external_exports.object({
-  ownerType: external_exports.enum(["drive", "skill", "airapp", "base", "doc", "file_node"]),
+  ownerType: external_exports.enum([
+    "drive",
+    "skill",
+    "airapp",
+    "base",
+    "doc",
+    "file_node"
+  ]),
   nodeId: external_exports.string(),
   nodeName: external_exports.string(),
   nodeType: external_exports.string(),
@@ -17890,12 +18704,12 @@ var PutTextInputSchema = external_exports.object({
   /** Bind a presigned-uploaded text object (a temp `asset-texts/pending/*.txt` key). */
   storageKey: external_exports.string().optional(),
   /**
-   * Claimed content hash for the `storageKey` bind path (`sha256:<hex>`, echoing
-   * `createTextUploadUrl`'s input like `open-domains/attachments`' confirm step).
-   * The server always computes the ACTUAL hash from the bytes during the
-   * confirm scan and rejects a mismatch (hash-poisoning defense) — this field
-   * is only an optional early-mismatch check, never trusted for addressing.
-   */
+  * Claimed content hash for the `storageKey` bind path (`sha256:<hex>`, echoing
+  * `createTextUploadUrl`'s input like `open-domains/attachments`' confirm step).
+  * The server always computes the ACTUAL hash from the bytes during the
+  * confirm scan and rejects a mismatch (hash-poisoning defense) — this field
+  * is only an optional early-mismatch check, never trusted for addressing.
+  */
   contentHash: external_exports.string().optional(),
   /** Mark as having no extractable text (e.g. a scanned, image-only PDF). */
   none: external_exports.boolean().optional()
@@ -17924,17 +18738,14 @@ var GrepScopeSchema = external_exports.object({
   drivePath: external_exports.string().optional(),
   mimeTypes: external_exports.array(external_exports.string()).optional()
 });
-var GREP_DEFAULT_MAX_MATCHES = 100;
 var GREP_HARD_MAX_MATCHES = 1e3;
-var GREP_DEFAULT_CONTEXT_LINES = 0;
-var GREP_MAX_CONTEXT_LINES = 10;
 external_exports.object({
   pattern: external_exports.string().min(1),
   /** JS RegExp flags, e.g. `"i"` for case-insensitive. `g`/`y` are ignored (grep always scans every match per line). */
   flags: external_exports.string().optional().default(""),
   scope: GrepScopeSchema.optional(),
-  maxMatches: external_exports.coerce.number().int().min(1).max(GREP_HARD_MAX_MATCHES).optional().default(GREP_DEFAULT_MAX_MATCHES),
-  contextLines: external_exports.coerce.number().int().min(0).max(GREP_MAX_CONTEXT_LINES).optional().default(GREP_DEFAULT_CONTEXT_LINES)
+  maxMatches: external_exports.coerce.number().int().min(1).max(GREP_HARD_MAX_MATCHES).optional().default(100),
+  contextLines: external_exports.coerce.number().int().min(0).max(10).optional().default(0)
 });
 var GrepMatchVOSchema = external_exports.object({
   assetId: external_exports.string(),
@@ -17959,24 +18770,24 @@ external_exports.object({
   /** Count of assets in scope explicitly marked `none` (no extractable text). */
   unsearchable: external_exports.number().int().nonnegative(),
   /**
-   * Asset ids whose scan was attempted but failed (storage error, corrupt
-   * cache file, object deleted mid-flight) — NOT counted in `filesScanned`.
-   * Honest coverage: these were not actually searched, so a caller must not
-   * treat their absence from `matches` as a clean "no match".
-   */
+  * Asset ids whose scan was attempted but failed (storage error, corrupt
+  * cache file, object deleted mid-flight) — NOT counted in `filesScanned`.
+  * Honest coverage: these were not actually searched, so a caller must not
+  * treat their absence from `matches` as a clean "no match".
+  */
   errored: external_exports.array(external_exports.string()),
   /**
-   * Count of in-scope, present-and-searchable assets the scan never even
-   * reached because the deadline or `maxMatches` budget ran out first. Only
-   * nonzero when `truncated` is true.
-   */
+  * Count of in-scope, present-and-searchable assets the scan never even
+  * reached because the deadline or `maxMatches` budget ran out first. Only
+  * nonzero when `truncated` is true.
+  */
   notReached: external_exports.number().int().nonnegative(),
   truncated: external_exports.boolean()
 });
 var ReadTextLinesInputSchema = external_exports.object({
   assetId: external_exports.string(),
-  startLine: external_exports.coerce.number().int().min(1),
-  endLine: external_exports.coerce.number().int().min(1)
+  startLine: external_exports.coerce.number().int().min(1).describe("First line to read. 1-indexed, and INCLUSIVE."),
+  endLine: external_exports.coerce.number().int().min(1).describe("Last line to read, INCLUSIVE. A range wider than 2000 lines is silently narrowed to the first 2000 rather than rejected \u2014 the response reports `lineCountCapped` when that happened, so check it before concluding the file ends there.")
 });
 var ReadLinesVOSchema = external_exports.object({
   lines: external_exports.array(external_exports.string()),
@@ -17994,13 +18805,9 @@ var AssetContentEditSchema = external_exports.object({
 var EditAssetContentInputSchema = external_exports.object({
   assetId: external_exports.string(),
   edits: external_exports.array(AssetContentEditSchema).min(1),
-  message: external_exports.string().optional().default("Edit file content").describe(
-    'Explanation shown to the human reviewer. Write a conventional-commit style subject \u2014 imperative verb + what + why, e.g. "Fix typo in setup instructions".'
-  ),
+  message: external_exports.string().optional().default("Edit file content").describe('Explanation shown to the human reviewer. Write a conventional-commit style subject \u2014 imperative verb + what + why, e.g. "Fix typo in setup instructions".'),
   submittedBy: external_exports.string().optional().default("agent"),
-  autoMerge: autoMergeNotAccepted(
-    "editContent rewrites the real mounted file bytes, so it always requires review. Omit the flag."
-  )
+  autoMerge: destructiveAutoMerge("This rewrites the real mounted file bytes; the previous content stays in the Change Request history, so it is recoverable but not one-click undoable.")
 });
 var AssetDownloadInputSchema = external_exports.object({ assetId: external_exports.string() });
 var AssetDownloadVOSchema = external_exports.object({
@@ -18036,8 +18843,8 @@ var assetsContract = {
     path: "/assets",
     tags: ["Assets"],
     summary: "List assets",
-    successDescription: "Every asset in the space, with file metadata and usage counts."
-  }).output(external_exports.array(AssetVOSchema)),
+    successDescription: "Assets in the space, newest first, with file metadata and usage counts. Every asset when `limit` is omitted; otherwise one page, where `cursor` is the previous page's last asset id and a short page means the end."
+  }).input(ListAssetsInputSchema).output(external_exports.array(AssetVOSchema)),
   get: oc.route({
     method: "GET",
     path: "/assets/{assetId}",
@@ -18066,10 +18873,6 @@ var assetsContract = {
     summary: "Get an asset's binary content download URL",
     successDescription: "A resolved, time-bounded download URL for the asset's raw bytes (local dev: the existing static /uploads route; cloud/S3: a presigned URL) plus its file metadata \u2014 see AssetDownloadVOSchema for why this returns a URL, not a raw-binary oRPC response."
   }).input(AssetDownloadInputSchema).output(AssetDownloadVOSchema),
-  // ── Drive Grep Retrieval ─────────────────────────────────────────────────
-  // Busabase stores, indexes, and searches text; it never generates it. Text
-  // always arrives via putText — an agent's own extractor, or (future) an
-  // Outgoing-Hook-triggered service — never a bundled parser/OCR library.
   putText: oc.route({
     method: "PUT",
     path: "/assets/{assetId}/text",
@@ -18091,20 +18894,14 @@ var assetsContract = {
     summary: "Read an exact line range from an asset's text",
     successDescription: "Lines [startLine, endLine] (range capped at 2000 lines / ~2MB response) read via a storage byte-range request \u2014 the server never loads the whole object, even for a multi-GB file."
   }).input(ReadTextLinesInputSchema).output(ReadLinesVOSchema),
-  // ── editContent — edit an asset's REAL file content via ChangeRequest ──────
-  // Unlike putText (derived/extracted text, direct write, disposable), this
-  // edits the asset's actual mounted Drive/Skill file bytes and always goes
-  // through the existing filetree ChangeRequest pipeline — never auto-merged.
   editContent: oc.route({
     method: "POST",
     path: "/assets/{assetId}/edit-content",
     tags: ["Assets", "Change Requests"],
     summary: "Edit an asset's file content via string-replace edits, as a ChangeRequest",
-    successDescription: `Applied the string-replace edits (coding-agent Edit-tool semantics: unique-match or replaceAll) to the asset's current mounted Drive/Skill file content and proposed the result as a ChangeRequest (status "in_review") for human review. Reuses the existing filetree update-via-CR pipeline end to end, including baseContentHash optimistic-concurrency conflict protection at merge time. Requires the asset to be mounted in exactly one editable Drive/Skill location.`
+    successDescription: 'Applied the string-replace edits (coding-agent Edit-tool semantics: unique-match or replaceAll) to the asset\'s current mounted Drive/Skill file content and recorded the result as a ChangeRequest \u2014 merged immediately when the actor has write access on the mounting node, left "in_review" otherwise or when `autoMerge: false` is passed. Reuses the existing filetree update-via-CR pipeline end to end, including baseContentHash optimistic-concurrency conflict protection at merge time. Requires the asset to be mounted in exactly one editable Drive/Skill location.'
   }).input(EditAssetContentInputSchema).output(changeRequestSchema)
 };
-var VIEW_FIELD_MIN_WIDTH = 92;
-var VIEW_FIELD_MAX_WIDTH = 640;
 var viewFilterOperatorSchema = external_exports.enum([
   "contains",
   "equals",
@@ -18115,7 +18912,6 @@ var viewFilterOperatorSchema = external_exports.enum([
 ]);
 var viewFilterSchema = external_exports.object({
   fieldSlug: external_exports.string(),
-  // Stable field identity — survives slug reuse; populated on merge.
   fieldId: external_exports.string().optional(),
   operator: viewFilterOperatorSchema,
   value: external_exports.unknown().optional()
@@ -18125,28 +18921,31 @@ var viewSortSchema = external_exports.object({
   fieldSlug: external_exports.string(),
   fieldId: external_exports.string().optional()
 });
-var viewTypeSchema = external_exports.enum(["table", "gallery", "kanban", "calendar", "gantt"]);
+var viewTypeSchema = external_exports.enum([
+  "table",
+  "gallery",
+  "kanban",
+  "calendar",
+  "gantt"
+]);
 var ganttScaleSchema = external_exports.enum(["week", "month"]);
 var galleryCoverFitSchema = external_exports.enum(["cover", "fit"]);
-var galleryCardSizeSchema = external_exports.enum(["small", "medium", "large"]);
+var galleryCardSizeSchema = external_exports.enum([
+  "small",
+  "medium",
+  "large"
+]);
 var viewConfigSchema = external_exports.object({
   filters: external_exports.array(viewFilterSchema).default([]),
   sorts: external_exports.array(viewSortSchema).default([]),
   visibleFieldSlugs: external_exports.array(external_exports.string()).nullable().optional(),
-  fieldWidths: external_exports.record(external_exports.string().min(1), external_exports.number().int().min(VIEW_FIELD_MIN_WIDTH).max(VIEW_FIELD_MAX_WIDTH)).optional(),
-  // ── Gallery-only presentation config (ignored by table views) ──
-  // Which attachment field supplies the cover image (null = no cover).
+  fieldWidths: external_exports.record(external_exports.string().min(1), external_exports.number().int().min(92).max(640)).optional(),
   coverFieldSlug: external_exports.string().nullable().optional(),
   coverFit: galleryCoverFitSchema.optional(),
   cardSize: galleryCardSizeSchema.optional(),
-  // Whether to render the field label above each value on a card.
   showFieldLabels: external_exports.boolean().optional(),
-  // ── Kanban-only: which single-select field stacks records into columns.
   stackByFieldSlug: external_exports.string().nullable().optional(),
-  // ── Calendar-only: which date field positions records on the month grid.
   dateFieldSlug: external_exports.string().nullable().optional(),
-  // ── Gantt-only: the start/end date fields bounding each record's bar, plus
-  // the time-axis granularity.
   startFieldSlug: external_exports.string().nullable().optional(),
   endFieldSlug: external_exports.string().nullable().optional(),
   ganttScale: ganttScaleSchema.optional()
@@ -18166,11 +18965,12 @@ var viewSchema = external_exports.object({
   createdAt: external_exports.string(),
   updatedAt: external_exports.string()
 });
-var autoMergeSchema = external_exports.boolean().optional().describe(
-  "Whether to approve and merge this view change immediately. Omitted defaults to merging immediately if the actor has write access on the Base's node, otherwise falling back to a pending Change Request; pass explicit false to force review even with write access."
-);
+var autoMergeSchema = external_exports.boolean().optional().describe("Whether to approve and merge this view change immediately. Omitted defaults to merging immediately if the actor has write access on the Base's node, otherwise falling back to a pending Change Request; pass explicit false to force review even with write access.");
 var createViewInputSchema = external_exports.object({
-  config: viewConfigSchema.optional().default({ filters: [], sorts: [] }),
+  config: viewConfigSchema.optional().default({
+    filters: [],
+    sorts: []
+  }),
   description: external_exports.string().optional().default(""),
   message: external_exports.string().optional().default("Create view"),
   name: external_exports.string().min(1),
@@ -18225,6 +19025,7 @@ var recordSchema = external_exports.object({
   status: external_exports.enum(["active", "archived"]),
   createdBy: external_exports.string(),
   createdByUser: userRefSchema.nullable().optional().default(null),
+  fieldUsers: external_exports.record(external_exports.string(), userRefSchema).optional().default({}),
   archivedAt: external_exports.string().nullable(),
   createdAt: external_exports.string(),
   updatedAt: external_exports.string(),
@@ -18242,31 +19043,88 @@ var listRecordsSortSchema = external_exports.object({
   fieldType: external_exports.string().optional(),
   direction: external_exports.enum(["asc", "desc"]).optional().default("asc")
 });
-var listRecordsInputSchema = external_exports.object({
-  limit: external_exports.coerce.number().int().min(1).max(100).optional().default(50),
-  baseId: external_exports.string().optional(),
-  /** Opaque base64 cursor for keyset pagination (createdAt-keyed, or sort-keyed when `sort` is set). */
-  cursor: external_exports.string().optional(),
+var listRecordsValueFilterSchema = external_exports.object({
+  fieldSlug: external_exports.string(),
+  operator: external_exports.enum([
+    "eq",
+    "ne",
+    "gt",
+    "gte",
+    "lt",
+    "lte"
+  ]),
   /**
-   * `active` (default) is the live table; `archived` is the Base's trash — the
-   * same keyset pagination either way, which is why these are one endpoint
-   * rather than a `/records/archived` twin.
-   */
-  status: external_exports.enum(["active", "archived"]).optional().default("active"),
-  /** View filters for server-side push-down (superset; client still narrows). */
-  filters: external_exports.array(listRecordsFilterSchema).optional(),
-  /** View sort for server-side push-down (number/date fields only). */
-  sort: listRecordsSortSchema.optional()
-}).optional().default({ limit: 50, status: "active" });
+  * A number for number fields, an ISO 8601 string for date fields, a boolean
+  * for checkbox, and a string for the text-like families (where only `eq`/`ne`
+  * are exact — see `buildExactValueFilter`).
+  */
+  value: external_exports.union([
+    external_exports.number(),
+    external_exports.string(),
+    external_exports.boolean()
+  ])
+});
+var listRecordsValueFilterNodeSchema = external_exports.union([listRecordsValueFilterSchema, external_exports.object({ any: external_exports.array(listRecordsValueFilterSchema).min(1) })]);
+var listRecordsInputSchema = external_exports.object({
+  limit: external_exports.coerce.number().int().min(1).max(100).optional().default(50).describe("Records per page. Capped at 100; ask for the next page with `cursor`."),
+  baseId: external_exports.string().optional().describe("Restrict to one Base. OMITTING it lists records across the WHOLE SPACE, which is rarely what a caller means and is easy to miss \u2014 every other parameter still applies, so an unscoped query looks like it worked."),
+  cursor: external_exports.string().optional().describe("Opaque page cursor: pass back the `nextCursor` from the previous response. Do not construct or parse it \u2014 it is keyed on `createdAt`, or on the sort field when `sort` is given, and that is an implementation detail."),
+  status: external_exports.enum(["active", "archived"]).optional().default("active").describe("`active` is the live table; `archived` is the Base's trash."),
+  filters: external_exports.array(listRecordsFilterSchema).optional().describe('View filters \u2014 a best-effort SUPERSET, not an exact answer. They mean what the grid means (a currency number reads as "$1,234.00", a select as its choice label), and the server may return records that do not match, so the caller must narrow them again and must NOT trust `limit` alongside them. Use `valueFilters` when you need an exact row set.'),
+  /**
+  * Exact value comparisons. Unlike `filters` these are authoritative — the
+  * returned rows are exactly those that match, so a caller can page and
+  * limit against them. ANDed together (and with `filters` when both are
+  * given); an entry may be a disjunction, making the list a CNF.
+  */
+  valueFilters: external_exports.array(listRecordsValueFilterNodeSchema).optional().describe("EXACT value comparisons, unlike `filters` which are a best-effort superset. The returned rows are exactly those that match, so `limit` can be trusted alongside them. Entries are ANDed; an entry may instead be `{ any: [...] }` to OR its comparisons, which makes the list a CNF and can express any boolean combination. Requires `baseId`. Compares number, date, checkbox and text-like fields (text and select support eq/ne only); anything else is a 400 rather than a silently dropped condition."),
+  sort: listRecordsSortSchema.optional().describe("Sort by one field. Only number and date fields sort authoritatively (their typed value column matches a client's own ordering); any other field type is returned in the default order and left for the caller to sort.")
+}).optional().default({
+  limit: 50,
+  status: "active"
+});
 var listRecordsResponseSchema = external_exports.object({
   records: external_exports.array(recordSchema),
   nextCursor: external_exports.string().nullable()
 });
 var listRecordsPageInputSchema = external_exports.object({
-  baseId: external_exports.string().min(1),
-  viewId: external_exports.string().min(1).optional(),
-  page: external_exports.coerce.number().int().min(1).optional().default(1),
-  pageSize: external_exports.coerce.number().int().min(1).max(100).optional().default(50)
+  baseId: external_exports.string().min(1).describe("Required here, unlike `records.list` where omitting it spans the whole space."),
+  viewId: external_exports.string().min(1).optional().describe("Show only what this saved View would: its filters and its sort."),
+  /**
+  * Extra conditions ANDed with the View's own filters — "this View, further
+  * narrowed". The motivating case is one board column: the saved View's
+  * filters plus `stackField equals <choice>`, paged independently of the
+  * other columns.
+  *
+  * Unlike `records.list`'s `filters` (a SUPERSET push-down the client then
+  * narrows), these are applied with the same authority as a saved View's:
+  * every returned page is exactly what the client's own matcher would keep.
+  * That distinction is the whole point — a *superset* page can be missing
+  * records, and a board column that silently drops cards reads as data loss.
+  */
+  filters: external_exports.array(listRecordsFilterSchema).optional().describe("Extra conditions ANDed with the View's own \u2014 \"this View, further narrowed\". Unlike `records.list`'s `filters`, these are EXACT: every page is precisely what the client's own matcher would keep, so a page is never missing records it should hold."),
+  /**
+  * Scope the page to records whose `date`/`created_time`/`updated_time` field
+  * falls in `[gte, lt)` — an absolute UTC instant range, not a `filters`
+  * condition. It is deliberately NOT an operator on `listRecordsFilterSchema`:
+  * that model mirrors the client's label-based view-filter matching (see
+  * `recordMatchesViewFilter`), which for a date renders via
+  * `toLocaleDateString()` — meaningless without knowing the viewer's
+  * timezone, which the server never has. A UTC instant range has no such
+  * ambiguity, so it is resolved once here, by the caller (who DOES know the
+  * viewer's timezone), and applied as a real timestamp comparison.
+  *
+  * The motivating case is a Calendar month grid: the client computes the UTC
+  * bounds of its own local 42-day grid and asks for only that slice, instead
+  * of every record in the Base.
+  */
+  dateRange: external_exports.object({
+    fieldSlug: external_exports.string().min(1),
+    gte: external_exports.string().describe("Inclusive lower bound, ISO 8601 UTC instant."),
+    lt: external_exports.string().describe("EXCLUSIVE upper bound, ISO 8601 UTC instant.")
+  }).optional().describe("Scope the page to a `date`/`created_time`/`updated_time` field falling in `[gte, lt)` \u2014 a half-open range of absolute UTC instants, not a `filters` condition. Resolve the bounds yourself: a day or a month only means something in a timezone, and the server does not know the viewer's."),
+  page: external_exports.coerce.number().int().min(1).optional().default(1).describe("1-indexed, not 0-indexed."),
+  pageSize: external_exports.coerce.number().int().min(1).max(100).optional().default(50).describe("Records per page. Capped at 100.")
 });
 var listRecordsPageResponseSchema = external_exports.object({
   records: external_exports.array(recordSchema),
@@ -18275,107 +19133,199 @@ var listRecordsPageResponseSchema = external_exports.object({
   page: external_exports.number().int().min(1),
   pageSize: external_exports.number().int().min(1).max(100)
 });
-var countRecordsShapeSchema = external_exports.object({
-  baseId: external_exports.string().optional(),
+var countRecordsInputSchema = external_exports.object({
+  baseId: external_exports.string().optional().describe("Restrict to one Base. Omitting it counts every record in the space. Required as soon as `viewId`, `filters` or `valueFilters` is given \u2014 a field slug only means something within one Base."),
+  viewId: external_exports.string().optional().describe("Count only what this saved View would display. Its filters apply; its sort is ignored, since a count has no order. Requires `baseId`."),
   /**
-   * Count only the rows a saved View would display (the View's filters
-   * applied; its sort is ignored — a count doesn't need an order). A View
-   * belongs to exactly one Base, so this requires `baseId`.
-   */
-  viewId: external_exports.string().optional(),
+  * Ad-hoc filter conditions — same shape `records.list`'s `filters` uses —
+  * for composing a condition set without a saved View (e.g. an AirApp
+  * summary tile like "main-branch PRs"). Combined with the View's own
+  * filters (AND) when `viewId` is also given. Requires `baseId`: a field
+  * slug is only unambiguous within one Base, and proving a filter exact
+  * (see `countRecords`) requires that Base's real field definitions —
+  * never the caller-supplied `fieldType` hint, which elsewhere is only a
+  * pushdown hint and isn't trustworthy enough for an exact count.
+  */
+  filters: external_exports.array(listRecordsFilterSchema).optional().describe("Ad-hoc conditions, ANDed with the View's own when `viewId` is also given. Unlike `records.list`'s superset `filters`, the COUNT is exact either way \u2014 but a condition whose exactness cannot be proven makes the server read every candidate row instead of running one aggregate, so prefer `valueFilters` where it fits. Requires `baseId`."),
   /**
-   * Ad-hoc filter conditions — same shape `records.list`'s `filters` uses —
-   * for composing a condition set without a saved View (e.g. an AirApp
-   * summary tile like "main-branch PRs"). Combined with the View's own
-   * filters (AND) when `viewId` is also given. Requires `baseId`: a field
-   * slug is only unambiguous within one Base, and proving a filter exact
-   * (see `countRecords`) requires that Base's real field definitions —
-   * never the caller-supplied `fieldType` hint, which elsewhere is only a
-   * pushdown hint and isn't trustworthy enough for an exact count.
-   */
-  filters: external_exports.array(listRecordsFilterSchema).optional()
+  * Exact value comparisons, same shape and meaning as `records.list`'s.
+  *
+  * Worth having here specifically because they are ALWAYS exact: a count
+  * scoped only by these stays a single SQL `count(*)`, where an ad-hoc view
+  * `filters` set that cannot be proven exact falls back to reading every
+  * candidate row and counting the survivors. Requires `baseId` for the same
+  * reason `filters` does — a field slug is only unambiguous within one Base.
+  */
+  valueFilters: external_exports.array(listRecordsValueFilterNodeSchema).optional().describe("EXACT value comparisons, same shape as `records.list`'s. Always exact, so a count scoped only by these stays a single SQL count instead of reading every candidate row. Requires `baseId`.")
 }).superRefine((value2, ctx) => {
-  if (value2.viewId && !value2.baseId) {
-    ctx.addIssue({
-      code: "custom",
-      path: ["baseId"],
-      message: "baseId is required when viewId is given"
-    });
-  }
-  if (value2.filters?.length && !value2.baseId) {
-    ctx.addIssue({
-      code: "custom",
-      path: ["baseId"],
-      message: "baseId is required when filters is given"
-    });
-  }
-});
-var countRecordsInputSchema = countRecordsShapeSchema.optional().default({});
+  if (value2.valueFilters?.length && !value2.baseId) ctx.addIssue({
+    code: "custom",
+    path: ["baseId"],
+    message: "baseId is required when valueFilters is given"
+  });
+  if (value2.viewId && !value2.baseId) ctx.addIssue({
+    code: "custom",
+    path: ["baseId"],
+    message: "baseId is required when viewId is given"
+  });
+  if (value2.filters?.length && !value2.baseId) ctx.addIssue({
+    code: "custom",
+    path: ["baseId"],
+    message: "baseId is required when filters is given"
+  });
+}).optional().default({});
 var countRecordsResponseSchema = external_exports.object({
   /** Total active records in the space (optionally scoped to a base). */
   total: external_exports.number().int().nonnegative()
 });
+var recordAggregateSchema = external_exports.object({
+  fn: external_exports.enum([
+    "sum",
+    "avg",
+    "min",
+    "max",
+    "count"
+  ]),
+  fieldSlug: external_exports.string().min(1)
+});
+var groupRecordsInputSchema = external_exports.object({
+  baseId: external_exports.string().min(1).describe("Required: a field slug is only unambiguous within one Base."),
+  /**
+  * The field to group by. Restricted to `select` and `checkbox`: their stored
+  * value IS the grouping key (a choice id / a boolean), so a SQL GROUP BY
+  * returns exactly the buckets a client would build. Text/number keys would
+  * be truncated at the projection limit, and date keys would bucket by the
+  * server's timezone rather than the viewer's — both would report a
+  * confidently wrong split, so they're rejected instead of approximated.
+  *
+  * OMIT it to aggregate the whole filtered set as a single bucket. That is the
+  * shape a summary tile wants ("total pipeline value"), and it costs one query
+  * instead of reading every record to add them up client-side.
+  */
+  fieldSlug: external_exports.string().min(1).optional().describe("The field to group by. OMIT it to aggregate the whole filtered set as a single bucket, which is what a summary tile wants. Under the default `grid` bucketing only `select` and `checkbox` can be grouped; `sql` bucketing also allows number and date fields."),
+  /**
+  * Which bucketing rules to use, and they genuinely differ.
+  *
+  * `grid` (the default, and what this endpoint has always done) buckets the
+  * way the GRID renders: an unset checkbox folds in with `false`, and an empty
+  * string folds into the null bucket. That is right for a Kanban column header
+  * — a card with no value belongs under "false", not in a fourth column.
+  *
+  * `sql` buckets the way `GROUP BY` does: a missing value gets its OWN bucket
+  * and nothing is folded. That is right for a caller reproducing SQL — an ORM
+  * driver, or anything comparing this against a database — and it is what lets
+  * such a caller trust the server's answer instead of re-grouping locally.
+  *
+  * The two disagree on real data, which is why this is a choice rather than a
+  * fix: neither is a better version of the other.
+  */
+  bucketing: external_exports.enum(["grid", "sql"]).optional().default("grid").describe("How records are bucketed, and the two modes disagree on real data. `grid` (default) buckets the way the grid renders: an unset checkbox counts as `false` and an empty string falls in the null bucket \u2014 right for a Kanban column header. `sql` buckets the way GROUP BY does: a missing value gets its OWN bucket and nothing is folded \u2014 right for anything reproducing SQL. `sql` also returns keys in their own type (a number for a number field) rather than as strings."),
+  /**
+  * Numeric aggregates evaluated per group, keyed in the response as
+  * `"<fn>:<fieldSlug>"`. Without this the response is counts only, exactly as
+  * before.
+  */
+  aggregates: external_exports.array(recordAggregateSchema).optional().describe('Numeric aggregates evaluated per group, keyed in the response as `"<fn>:<fieldSlug>"`. Only number-shaped fields can be aggregated; anything else is a 400. `sum`/`avg`/`min`/`max` of a group holding no values are NULL rather than 0, and `count` over a FIELD counts present values \u2014 which is not the same as the group\'s own `count`, which counts records.'),
+  viewId: external_exports.string().min(1).optional().describe("Group only what this saved View would display. Its filters apply; its sort is ignored."),
+  filters: external_exports.array(listRecordsFilterSchema).optional().describe("Ad-hoc conditions, ANDed with the View's own when both are given. The grouping is exact either way, but a condition whose exactness cannot be proven makes the server read every candidate row instead of running one GROUP BY."),
+  /**
+  * Exact value comparisons, ANDed with everything above. Always exact, so a
+  * grouping scoped only by these stays a single SQL GROUP BY.
+  */
+  valueFilters: external_exports.array(listRecordsValueFilterNodeSchema).optional().describe("EXACT value comparisons, same shape as `records.list`'s. Always exact, so a grouping scoped only by these stays a single SQL GROUP BY.")
+});
+var groupRecordsResponseSchema = external_exports.object({
+  groups: external_exports.array(external_exports.object({
+    /**
+    * The raw stored key.
+    *
+    * Under `grid` bucketing (the default) this is always a string or null: a
+    * `select` choice id, or `"true"`/`"false"` for a checkbox, where `null`
+    * is the bucket of records with no value (a Kanban board's
+    * "Uncategorized" column) and an unset checkbox counts as `"false"`.
+    *
+    * Under `sql` bucketing it is the STORED value in its own type — a number
+    * for a number field, a boolean for a checkbox, an ISO string for a date
+    * — and `null` means the record has no value for that field, which under
+    * these rules is a bucket of its own rather than folded into another.
+    *
+    * Choice LABELS are deliberately not resolved here — the client already
+    * holds the Base's field definitions and renders labels itself, and
+    * returning ids keeps this response stable across a choice rename.
+    */
+    value: external_exports.union([
+      external_exports.string(),
+      external_exports.number(),
+      external_exports.boolean()
+    ]).nullable().describe('The bucket key. Under `grid` bucketing always a string or null (a select\'s choice, or `"true"`/`"false"` for a checkbox, with null meaning "no value"). Under `sql` bucketing it is the stored value in its own type, and null is the bucket of records that have no value for the field.'),
+    count: external_exports.number().int().nonnegative().describe("Records in this bucket."),
+    /**
+    * Present only when `aggregates` was requested. Keyed `"<fn>:<fieldSlug>"`.
+    * A value of `null` means the group held no rows with that field set —
+    * which is NOT the same as `0`, and a dashboard renders them differently.
+    */
+    aggregates: external_exports.record(external_exports.string(), external_exports.number().nullable()).optional().describe('Present only when `aggregates` was requested, keyed `"<fn>:<fieldSlug>"`. A null value means the bucket held no records with that field set \u2014 not zero.')
+  })),
+  /** Sum of every group's count — the same number `records.count` would return. */
+  total: external_exports.number().int().nonnegative()
+});
 var createChangeRequestInputSchema = external_exports.object({
-  fields: external_exports.record(external_exports.string(), external_exports.unknown()).describe(
-    "Record field values keyed by field slug. The base's PRIMARY field (its first field) becomes the record's display name and the change request title everywhere \u2014 always give it a short, human-readable value, never an id or placeholder."
-  ),
-  message: external_exports.string().optional().default("Initial change request").describe(
-    'Explanation shown to the human reviewer. Write a conventional-commit style subject \u2014 imperative verb + what + why, e.g. "Add Acme Corp \u2014 qualified lead from the June webinar".'
-  ),
+  fields: external_exports.record(external_exports.string(), external_exports.unknown()).describe("Record field values keyed by field slug. The base's PRIMARY field (its first field) becomes the record's display name and the change request title everywhere \u2014 always give it a short, human-readable value, never an id or placeholder."),
+  message: external_exports.string().optional().default("Initial change request").describe('Explanation shown to the human reviewer. Write a conventional-commit style subject \u2014 imperative verb + what + why, e.g. "Add Acme Corp \u2014 qualified lead from the June webinar".'),
   submittedBy: external_exports.string().optional().default("local-producer"),
-  idempotencyKey: external_exports.string().optional().describe(
-    "Optional client-supplied key that dedupes retries. Scoped per base + submitter: calling this endpoint again with the SAME idempotencyKey (e.g. after a timeout or a 5xx where you couldn't tell if the first call succeeded) returns the change request created by the first call instead of creating a duplicate. Omit for normal one-shot calls; only set it when you might retry."
-  ),
-  // Permission-aware default: omitted merges immediately if the actor has
-  // write access on the Base's node, otherwise falls back to a pending
-  // ChangeRequest (status "in_review"). Pass explicit `autoMerge: false` to
-  // force review even with write access; `autoMerge: true` approves and
-  // merges right away, returning the materialized record instead of the
-  // pending ChangeRequest (gracefully falls back to a pending CR if the
-  // actor doesn't actually have write access).
+  idempotencyKey: external_exports.string().optional().describe("Optional client-supplied key that dedupes retries. Scoped per base + submitter: calling this endpoint again with the SAME idempotencyKey (e.g. after a timeout or a 5xx where you couldn't tell if the first call succeeded) returns the change request created by the first call instead of creating a duplicate. Omit for normal one-shot calls; only set it when you might retry."),
   autoMerge: external_exports.boolean().optional()
 });
 var createBulkChangeRequestInputSchema = external_exports.object({
-  records: external_exports.array(external_exports.record(external_exports.string(), external_exports.unknown())).min(1).max(1e3).describe(
-    "Field-value maps, one per record to create, each keyed by field slug. All records are proposed as a SINGLE change request (one review, one merge) \u2014 use this to import/seed many rows at once instead of one change request per record. Capped at 1000; for very large loads prefer a dedicated import job. Always give each record's PRIMARY field a short human-readable value."
-  ),
-  message: external_exports.string().optional().default("Bulk create records").describe(
-    'Explanation shown to the human reviewer for the whole batch \u2014 e.g. "Import 240 June webinar leads".'
-  ),
+  records: external_exports.array(external_exports.record(external_exports.string(), external_exports.unknown())).min(1).max(1e3).describe("Field-value maps, one per record to create, each keyed by field slug. All records are proposed as a SINGLE change request (one review, one merge) \u2014 use this to import/seed many rows at once instead of one change request per record. Capped at 1000; for very large loads prefer a dedicated import job. Always give each record's PRIMARY field a short human-readable value."),
+  message: external_exports.string().optional().default("Bulk create records").describe('Explanation shown to the human reviewer for the whole batch \u2014 e.g. "Import 240 June webinar leads".'),
   submittedBy: external_exports.string().optional().default("local-producer"),
-  idempotencyKey: external_exports.string().optional().describe(
-    "Optional client-supplied key that dedupes retries. Scoped per base + submitter: calling this endpoint again with the SAME idempotencyKey returns the bulk change request created by the first call instead of creating a duplicate. Omit for normal one-shot calls; only set it when you might retry."
-  ),
-  // Same permission-aware tri-state as the single-record endpoint above. N record
-  // CREATES are purely additive, so there is nothing here the review gate is
-  // protecting — and until now the published skill doc told agents to send N
-  // separate single-record calls precisely because this one could not merge,
-  // which is slower and produces N change requests instead of one.
+  idempotencyKey: external_exports.string().optional().describe("Optional client-supplied key that dedupes retries. Scoped per base + submitter: calling this endpoint again with the SAME idempotencyKey returns the bulk change request created by the first call instead of creating a duplicate. Omit for normal one-shot calls; only set it when you might retry."),
   autoMerge: external_exports.boolean().optional()
 });
+var bulkRecordUpdateSchema = external_exports.object({
+  recordId: external_exports.string().min(1),
+  fields: external_exports.record(external_exports.string(), external_exports.unknown()).refine((fields) => Object.keys(fields).length > 0, "fields must contain at least one field"),
+  baseCommitId: external_exports.string().min(1).optional(),
+  message: external_exports.string().min(1).optional()
+});
+var createBulkUpdateChangeRequestInputSchema = external_exports.object({
+  updates: external_exports.array(bulkRecordUpdateSchema).min(1).max(1e3),
+  message: external_exports.string().optional().default("Bulk update records"),
+  submittedBy: external_exports.string().optional().default("local-producer"),
+  idempotencyKey: external_exports.string().optional(),
+  autoMerge: external_exports.boolean().optional()
+}).superRefine(({ updates }, ctx) => {
+  const seen = /* @__PURE__ */ new Set();
+  for (const [index, update] of updates.entries()) {
+    if (seen.has(update.recordId)) ctx.addIssue({
+      code: "custom",
+      path: [
+        "updates",
+        index,
+        "recordId"
+      ],
+      message: `Duplicate recordId in batch: ${update.recordId}`
+    });
+    seen.add(update.recordId);
+  }
+});
 var recordFieldFilterInputSchema = external_exports.object({
-  baseId: external_exports.string().optional(),
-  fieldSlug: external_exports.string().min(1),
-  valueText: external_exports.string().min(1),
-  limit: external_exports.coerce.number().int().min(1).max(100).optional().default(50)
+  baseId: external_exports.string().optional().describe("Restrict to one Base. Omitting it searches the whole space."),
+  fieldSlug: external_exports.string().min(1).describe("The field's SLUG, not its display name \u2014 visible in the Base's field settings."),
+  valueText: external_exports.string().min(1).describe("Matched by EXACT equality, not substring or fuzzy \u2014 this is the de-dup-by-key lookup. Use `/api/v1/search` for full-text."),
+  limit: external_exports.coerce.number().int().min(1).max(100).optional().default(50).describe("Maximum matches to return. Capped at 100.")
 });
 var recordFieldGetInputSchema = external_exports.object({
   baseId: external_exports.string().describe("Field selector: Base id. Requires fieldSlug and valueText."),
   fieldSlug: external_exports.string().min(1).describe("Field selector: exact field slug. Requires baseId and valueText."),
   valueText: external_exports.string().min(1).describe("Field selector: exact text value. Requires baseId and fieldSlug.")
 });
-var recordGetInputSchema = external_exports.union([
-  external_exports.object({
-    recordId: external_exports.string().min(1).describe("Record id selector. Use alone; do not combine with field selector fields.")
-  }).strict(),
-  recordFieldGetInputSchema.strict()
-]);
+var recordGetInputSchema = external_exports.union([external_exports.object({ recordId: external_exports.string().min(1).describe("Record id selector. Use alone; do not combine with field selector fields.") }).strict(), recordFieldGetInputSchema.strict()]);
 var restoreRecordInputSchema = external_exports.object({
   message: external_exports.string().optional(),
   submittedBy: external_exports.string().optional().default("local-editor"),
-  autoMerge: autoMergeNotAccepted(
-    "restoring a record brings archived content back into every listing, so it always requires review. Omit the flag."
-  )
+  autoMerge: destructiveAutoMerge('Restoring is itself the undo of an archive, and is undone again by `operation: "delete"`.')
 });
 var withRecordId = { recordId: external_exports.string().min(1) };
 var recordChangeRequestInputSchema = external_exports.discriminatedUnion("operation", [
@@ -18384,8 +19334,14 @@ var recordChangeRequestInputSchema = external_exports.discriminatedUnion("operat
     autoMerge: external_exports.boolean().optional(),
     ...withRecordId
   }),
-  createDeleteChangeRequestInputSchema.extend({ operation: external_exports.literal("delete"), ...withRecordId }),
-  restoreRecordInputSchema.extend({ operation: external_exports.literal("restore"), ...withRecordId })
+  createDeleteChangeRequestInputSchema.extend({
+    operation: external_exports.literal("delete"),
+    ...withRecordId
+  }),
+  restoreRecordInputSchema.extend({
+    operation: external_exports.literal("restore"),
+    ...withRecordId
+  })
 ]);
 var recordLinkSchema = external_exports.object({
   id: external_exports.string(),
@@ -18434,25 +19390,15 @@ var baseContract = {
     path: "/bases",
     tags: ["Bases"],
     summary: "Create Base",
-    successDescription: "Review-first by default: a pending ChangeRequest proposing the Base (`materialized: false`). Returns the materialized Base instead (`materialized: true`) when `autoMerge: true` is passed."
-  }).input(createBaseInputSchema).output(
-    external_exports.union([
-      baseSchema.extend({ materialized: external_exports.literal(true) }),
-      changeRequestSchema.extend({ materialized: external_exports.literal(false) })
-    ])
-  ),
+    successDescription: "Merged in the same call when the actor has write access on the parent node \u2014 the materialized Base comes back (`materialized: true`). Review-first when the actor lacks write access or passes `autoMerge: false`: a pending ChangeRequest proposing the Base (`materialized: false`)."
+  }).input(createBaseInputSchema).output(external_exports.union([baseSchema.extend({ materialized: external_exports.literal(true) }), changeRequestSchema.extend({ materialized: external_exports.literal(false) })])),
   createChangeRequest: oc.route({
     method: "POST",
     path: "/bases/{baseId}/change-requests",
     tags: ["Bases", "Change Requests"],
     summary: "Create Change Request in Base",
-    successDescription: "Review-first by default: a pending ChangeRequest proposing the record (`materialized: false`). Returns the materialized record instead (`materialized: true`) when `autoMerge: true` is passed."
-  }).input(createChangeRequestInputSchema.extend({ baseId: external_exports.string() })).output(
-    external_exports.union([
-      recordSchema.extend({ materialized: external_exports.literal(true) }),
-      changeRequestSchema.extend({ materialized: external_exports.literal(false) })
-    ])
-  ),
+    successDescription: "Merged in the same call when the actor has write access on the Base's node \u2014 the materialized record comes back (`materialized: true`). Review-first when the actor lacks write access or passes `autoMerge: false`: a pending ChangeRequest proposing the record (`materialized: false`)."
+  }).input(createChangeRequestInputSchema.extend({ baseId: external_exports.string() })).output(external_exports.union([recordSchema.extend({ materialized: external_exports.literal(true) }), changeRequestSchema.extend({ materialized: external_exports.literal(false) })])),
   createBulkChangeRequest: oc.route({
     method: "POST",
     path: "/bases/{baseId}/records/bulk-change-request",
@@ -18460,6 +19406,13 @@ var baseContract = {
     summary: "Create bulk record Change Request in Base",
     successDescription: "Created one change request proposing many record creates."
   }).input(createBulkChangeRequestInputSchema.extend({ baseId: external_exports.string() })).output(changeRequestSchema),
+  createBulkUpdateChangeRequest: oc.route({
+    method: "POST",
+    path: "/bases/{baseId}/records/bulk-update-change-request",
+    tags: ["Bases", "Change Requests"],
+    summary: "Create bulk record update Change Request in Base",
+    successDescription: "Created one change request proposing many record updates."
+  }).input(createBulkUpdateChangeRequestInputSchema.extend({ baseId: external_exports.string() })).output(changeRequestSchema),
   createField: oc.route({
     method: "POST",
     path: "/bases/{baseId}/fields",
@@ -18490,10 +19443,6 @@ var baseContract = {
   }).input(baseLifecycleChangeRequestInputSchema).output(changeRequestSchema)
 };
 var recordContract = {
-  // One listing for records: always keyset-paginated, `baseId` always honoured,
-  // `status` picking live rows or the trash. The old unpaginated `/records`
-  // silently dropped `baseId` (its schema had no such field), so a caller
-  // scoping to one Base quietly got the whole space back.
   list: oc.route({
     method: "GET",
     path: "/records",
@@ -18506,7 +19455,7 @@ var recordContract = {
     path: "/records/page",
     tags: ["Records"],
     summary: "List a numbered record page",
-    successDescription: "A random-access page of active records. When viewId is supplied, the saved view is authoritatively filtered and sorted before total and page slicing are calculated."
+    successDescription: "A random-access page of active records. When viewId is supplied, the saved view is authoritatively filtered and sorted before total and page slicing are calculated. `dateRange` additionally scopes to a `[gte, lt)` UTC instant window on a date/created_time/updated_time field."
   }).input(listRecordsPageInputSchema).output(listRecordsPageResponseSchema),
   count: oc.route({
     method: "GET",
@@ -18516,6 +19465,23 @@ var recordContract = {
     description: "A real SQL COUNT \u2014 always the exact total, never a partial or capped number, so it's safe to render as a canonical figure (e.g. a dashboard summary tile). Plain `baseId` scoping is always cheap. Adding `viewId` and/or `filters` is exact too \u2014 provably-exact conditions (e.g. text equals/contains, not_empty/is_empty, checkbox is_true/is_false) stay a cheap SQL COUNT; everything else falls back to evaluating every matching row server-side, which is exact but not free on a large Base. Both `viewId` and `filters` require `baseId`.",
     successDescription: "Total active records matching the scope: the whole space, one Base, a saved View, an ad-hoc filter set, or a combination."
   }).input(countRecordsInputSchema).output(countRecordsResponseSchema),
+  groupBy: oc.route({
+    method: "GET",
+    path: "/records/group-by",
+    tags: ["Records"],
+    summary: "Count records per group",
+    description: "One SQL GROUP BY returning every bucket's exact count \u2014 the split a board column header or a summary tile needs, without reading the records themselves. `fieldSlug` must name a `select` or `checkbox` field: their stored value IS the grouping key, so the buckets are exactly the ones a client would build. Grouping by a text, number or date field is rejected rather than approximated (text keys are truncated at the projection limit; date keys would bucket by the server's timezone, not the viewer's). `viewId` and `filters` narrow the set first, with the same exactness rules as `records.count`: provably-exact conditions stay a cheap SQL aggregate, anything else falls back to evaluating every matching row server-side \u2014 exact, but not free on a large Base. Groups come back keyed by raw choice id (or `\"true\"`/`\"false\"`), with `null` for records that have no value; labels are the client's to render.",
+    successDescription: "Every group's exact count, plus the total across all groups. Groups with zero records are omitted \u2014 a Base's full choice list lives in its field definition, so the client already knows which buckets to render empty."
+  }).errors({
+    BAD_REQUEST: {
+      status: 400,
+      message: "Field is not groupable"
+    },
+    NOT_FOUND: {
+      status: 404,
+      message: "Base or field not found"
+    }
+  }).input(groupRecordsInputSchema).output(groupRecordsResponseSchema),
   get: oc.route({
     method: "GET",
     path: "/records/get",
@@ -18524,8 +19490,14 @@ var recordContract = {
     description: "Provide exactly one selector: recordId alone, or the complete baseId + fieldSlug + valueText tuple. Other combinations return 400.",
     successDescription: "One canonical record selected by id or exact field value."
   }).errors({
-    BAD_REQUEST: { status: 400, message: "Exactly one record selector is required" },
-    NOT_FOUND: { status: 404, message: "Record not found" }
+    BAD_REQUEST: {
+      status: 400,
+      message: "Exactly one record selector is required"
+    },
+    NOT_FOUND: {
+      status: 404,
+      message: "Record not found"
+    }
   }).input(recordGetInputSchema).output(recordSchema),
   search: oc.route({
     method: "GET",
@@ -18539,13 +19511,8 @@ var recordContract = {
     path: "/records/{recordId}/change-requests",
     tags: ["Records", "Change Requests"],
     summary: "Create record change request",
-    successDescription: "Creates a record change request selected by `operation`. Updates auto-merge when the actor has write access unless `autoMerge: false`; delete and restore remain review-first."
-  }).input(recordChangeRequestInputSchema).output(
-    external_exports.union([
-      recordSchema.extend({ materialized: external_exports.literal(true) }),
-      changeRequestSchema.extend({ materialized: external_exports.literal(false) })
-    ])
-  ),
+    successDescription: "Creates a record change request selected by `operation`. All three operations are permission-aware: they merge immediately when the actor has write access on the Base's node, and land as a pending Change Request otherwise or when `autoMerge: false` is passed."
+  }).input(recordChangeRequestInputSchema).output(external_exports.union([recordSchema.extend({ materialized: external_exports.literal(true) }), changeRequestSchema.extend({ materialized: external_exports.literal(false) })])),
   listChangeRequests: oc.route({
     method: "GET",
     path: "/records/{recordId}/change-requests",
@@ -18561,69 +19528,40 @@ var recordContract = {
     successDescription: "Active outbound links from a canonical record."
   }).input(external_exports.object({ recordId: external_exports.string() })).output(external_exports.array(recordLinkSchema))
 };
-var viewContract = {
-  changeRequest: oc.route({
-    method: "POST",
-    path: "/views/change-requests",
-    tags: ["Views", "Change Requests"],
-    summary: "Create view change request",
-    successDescription: "Proposes a view change. `operation` selects what to propose: `create` (addressed by `baseId`), or `update` / `delete` / `restore` (addressed by `viewId`). Review-first when the actor lacks write access or passes `autoMerge: false` \u2014 a pending ChangeRequest (`materialized: false`). Otherwise the change is approved and merged in the same call and the materialized View comes back instead (`materialized: true`)."
-  }).input(viewChangeRequestInputSchema).output(
-    external_exports.union([
-      viewSchema.extend({ materialized: external_exports.literal(true) }),
-      changeRequestSchema.extend({ materialized: external_exports.literal(false) })
-    ])
-  )
-};
-var ReadDocLinesInputSchema = external_exports.object({
-  nodeId: external_exports.string(),
-  startLine: external_exports.coerce.number().int().min(1),
-  endLine: external_exports.coerce.number().int().min(1)
-});
+var viewContract = { changeRequest: oc.route({
+  method: "POST",
+  path: "/views/change-requests",
+  tags: ["Views", "Change Requests"],
+  summary: "Create view change request",
+  successDescription: "Proposes a view change. `operation` selects what to propose: `create` (addressed by `baseId`), or `update` / `delete` / `restore` (addressed by `viewId`). Review-first when the actor lacks write access or passes `autoMerge: false` \u2014 a pending ChangeRequest (`materialized: false`). Otherwise the change is approved and merged in the same call and the materialized View comes back instead (`materialized: true`)."
+}).input(viewChangeRequestInputSchema).output(external_exports.union([viewSchema.extend({ materialized: external_exports.literal(true) }), changeRequestSchema.extend({ materialized: external_exports.literal(false) })])) };
 var docSchema = external_exports.object({
   node: nodeSchema,
   storagePrefix: external_exports.string(),
   body: external_exports.string()
 });
 var createDocInputSchema = external_exports.object({
-  parentNodeId: external_exports.string().optional().describe(
-    "Parent node id. Must be a folder or the space root; container-incapable node types (Base, Doc, AirApp, etc.) cannot hold children."
-  ),
+  parentNodeId: external_exports.string().optional().describe("Parent node id. Must be a folder or the space root; container-incapable node types (Base, Doc, AirApp, etc.) cannot hold children."),
   slug: external_exports.string().min(1).regex(/^[a-z0-9-]+$/),
   name: external_exports.string().min(1),
   description: external_exports.string().optional().default(""),
   body: external_exports.string().optional().default(""),
-  // Permission-aware default: omitted merges immediately if the actor has
-  // write access on the parent node, otherwise falls back to a pending
-  // ChangeRequest (status "in_review"). Pass explicit `autoMerge: false` to
-  // force review even with write access.
   autoMerge: external_exports.boolean().optional()
 });
-var docContract = {
-  create: oc.route({
-    method: "POST",
-    path: "/docs",
-    tags: ["Docs"],
-    summary: "Create Doc node",
-    successDescription: "Review-first by default: a pending ChangeRequest proposing the Doc (`materialized: false`). Returns the materialized Doc node instead (`materialized: true`) when `autoMerge: true` is passed."
-  }).input(createDocInputSchema).output(
-    external_exports.union([
-      docSchema.extend({ materialized: external_exports.literal(true) }),
-      changeRequestSchema.extend({ materialized: external_exports.literal(false) })
-    ])
-  ),
-  readLines: oc.route({
-    method: "GET",
-    path: "/docs/{nodeId}/lines",
-    tags: ["Docs"],
-    summary: "Read an exact line range from a Doc body",
-    successDescription: "Lines [startLine, endLine] (range capped at 2000 lines / ~2MB response) sliced from the Doc's full body \u2014 Docs are KB-scale, so the whole body is read in memory; no byte-range/checkpoint machinery like assets.readTextLines uses for potentially multi-GB files. The Doc-domain follow-up to a Unified Grep match with `source: \"docs\"`, so an agent can read just the lines around a match instead of `nodes.get`'s entire body."
-  }).input(ReadDocLinesInputSchema).output(ReadLinesVOSchema)
-};
+var docContract = { create: oc.route({
+  method: "POST",
+  path: "/docs",
+  tags: ["Docs"],
+  summary: "Create Doc node",
+  successDescription: "Merged in the same call when the actor has write access on the parent node \u2014 the materialized Doc node comes back (`materialized: true`). Review-first when the actor lacks write access or passes `autoMerge: false`: a pending ChangeRequest proposing the Doc (`materialized: false`)."
+}).input(createDocInputSchema).output(external_exports.union([docSchema.extend({ materialized: external_exports.literal(true) }), changeRequestSchema.extend({ materialized: external_exports.literal(false) })])) };
+var ReadNodeLinesInputSchema = external_exports.object({
+  nodeId: external_exports.string(),
+  startLine: external_exports.coerce.number().int().min(1).describe("First line to read. 1-indexed, and INCLUSIVE."),
+  endLine: external_exports.coerce.number().int().min(1).describe("Last line to read, INCLUSIVE. A range wider than 2000 lines is silently narrowed to the first 2000 rather than rejected \u2014 the response reports `lineCountCapped` when that happened, so check it before concluding the file ends there.")
+});
 var DumpTableSchema = external_exports.enum([
   "nodes",
-  /** Node-level access grants (permissions). Not secret — restore must keep them
-   * so a backed-up space's sharing/permission config survives a full restore. */
   "nodePrincipals",
   "bases",
   "baseFields",
@@ -18631,7 +19569,6 @@ var DumpTableSchema = external_exports.enum([
   "records",
   "fieldValues",
   "recordLinks",
-  /** The physical bytes registry (open-domains/attachments) an Asset's `attachmentId` FKs into. */
   "attachments",
   "assets",
   "assetUsages",
@@ -18660,22 +19597,70 @@ var ExportAssetTextVOSchema = external_exports.object({
   /** The row's `text_storage_key` — the exact key a restore must write back to. */
   textStorageKey: external_exports.string(),
   /**
-   * `null` when this row owns no separate text object and therefore needs no
-   * blob in the archive:
-   *  - auto-registered text-kind rows (`writtenBy: "auto"`), whose
-   *    `textStorageKey` IS the owning attachment's own key — those bytes are
-   *    already archived by the attachment-blob pass, and re-archiving them
-   *    would duplicate bytes and collide on restore;
-   *  - `status: "none"` rows (no extractable text), whose key is `""`.
-   */
+  * `null` when this row owns no separate text object and therefore needs no
+  * blob in the archive:
+  *  - auto-registered text-kind rows (`writtenBy: "auto"`), whose
+  *    `textStorageKey` IS the owning attachment's own key — those bytes are
+  *    already archived by the attachment-blob pass, and re-archiving them
+  *    would duplicate bytes and collide on restore;
+  *  - `status: "none"` rows (no extractable text), whose key is `""`.
+  */
   downloadUrl: external_exports.string().nullable(),
   /** `sha256:<hex>` of the text bytes, so a backup can verify what it downloaded. */
   textContentHash: external_exports.string().nullable(),
   byteCount: external_exports.number().int().nonnegative()
 });
-var ImportBeginVOSchema = external_exports.object({
-  sessionId: external_exports.string()
+var ExportDocBodiesInputSchema = external_exports.object({ nodeIds: external_exports.array(external_exports.string()).min(1).max(25) });
+var ExportDocBodiesVOSchema = external_exports.object({
+  /**
+  * One entry per requested node that is a Doc in this space. A node id that
+  * does not resolve is simply absent (not an error): the caller asked for a
+  * batch, and one bad id must not cost it the other 24. A Doc that exists but
+  * has no body object yet yields `markdown: ""`, matching what a read through
+  * the Doc domain would return.
+  */
+  bodies: external_exports.array(external_exports.object({
+    nodeId: external_exports.string(),
+    markdown: external_exports.string()
+  }))
 });
+var ImportBeginInputSchema = external_exports.object({
+  /**
+  * The space id the archive was ORIGINALLY exported from (`manifest.spaceId`
+  * in the `.bbdump`, already integrity-verified before this is called).
+  * `importTableRows`'s "nodes" handling needs this to recognize the
+  * archive's own root-node row deterministically (`rootNodeIdForSpace`) —
+  * scanning each batch's rows for "the one with a null `parentId`" only
+  * works when that row happens to land in the SAME batch as its children,
+  * which cursor pagination (id-ordered, not tree-ordered) does not
+  * guarantee once a space has more nodes than one page. See the matching
+  * comment in `import-logic.ts`.
+  */
+  sourceSpaceId: external_exports.string(),
+  /**
+  * Continue a restore that was interrupted partway through, instead of
+  * requiring an empty space.
+  *
+  * A restore that FAILS rolls itself back (`importAbort`), so the target is
+  * left clean and a plain re-run works. What cannot roll itself back is a
+  * restore whose process died — Ctrl-C, OOM, a dropped connection, the
+  * machine rebooting. That leaves the space holding however many of the
+  * archive's rows had landed, and every subsequent attempt is refused
+  * ("requires an empty target space") with no way forward except wiping it.
+  *
+  * In this mode the empty-space guard is skipped and inserts become
+  * `ON CONFLICT DO NOTHING`, so replaying the same archive re-lands only what
+  * is missing. Blobs and doc bodies are content-addressed writes to object
+  * storage and were already idempotent.
+  *
+  * DANGEROUS if pointed at the wrong space: rows that collide are silently
+  * skipped rather than reported, so restoring archive A into a space holding
+  * archive B's data would interleave the two instead of refusing. Only pass
+  * it to continue the SAME archive into the SAME space.
+  */
+  resume: external_exports.boolean().optional().default(false)
+});
+var ImportBeginVOSchema = external_exports.object({ sessionId: external_exports.string() });
 var ImportTablesInputSchema = external_exports.object({
   sessionId: external_exports.string(),
   table: external_exports.union([
@@ -18686,19 +19671,13 @@ var ImportTablesInputSchema = external_exports.object({
   ]),
   rows: external_exports.array(external_exports.record(external_exports.string(), external_exports.unknown()))
 });
-var ImportTablesVOSchema = external_exports.object({
-  inserted: external_exports.number().int().nonnegative()
-});
-var ImportSessionInputSchema = external_exports.object({
-  sessionId: external_exports.string()
-});
+var ImportTablesVOSchema = external_exports.object({ inserted: external_exports.number().int().nonnegative() });
+var ImportSessionInputSchema = external_exports.object({ sessionId: external_exports.string() });
 var ImportCommitVOSchema = external_exports.object({
   ok: external_exports.boolean(),
   warnings: external_exports.array(external_exports.string())
 });
-var ImportAbortVOSchema = external_exports.object({
-  ok: external_exports.boolean()
-});
+var ImportAbortVOSchema = external_exports.object({ ok: external_exports.boolean() });
 var dumpContract = {
   exportTables: oc.route({
     method: "POST",
@@ -18714,13 +19693,20 @@ var dumpContract = {
     summary: "Resolve the download URL for one asset's extracted-text object",
     successDescription: "A resolved download URL for the asset's DERIVED text blob (`asset-texts/blobs/sha256/\u2026`) plus its `textStorageKey` and `textContentHash`, so a backup can archive the exact bytes and verify them. `downloadUrl` is null when the row owns no separate object (auto-registered text-kind rows point at their attachment's own key, already covered by the attachment blobs; `status: \"none\"` rows have no text at all)."
   }).input(ExportAssetTextInputSchema).output(ExportAssetTextVOSchema),
+  exportDocBodies: oc.route({
+    method: "POST",
+    path: "/dump/export/doc-bodies",
+    tags: ["Dump"],
+    summary: "Read the raw markdown for a batch of Doc nodes",
+    successDescription: "The raw body behind each requested Doc, read straight from object storage \u2014 archived Docs included, which the ordinary `nodes.get` deliberately refuses. Ids that do not resolve to a Doc in this space are omitted rather than failing the batch."
+  }).input(ExportDocBodiesInputSchema).output(ExportDocBodiesVOSchema),
   importBegin: oc.route({
     method: "POST",
     path: "/dump/import/begin",
     tags: ["Dump"],
     summary: "Begin a full-fidelity import session",
     successDescription: "Created an import session for the current space. Refused unless the space's node tree is empty (full-fidelity import preserves original ids and cannot merge into existing data)."
-  }).output(ImportBeginVOSchema),
+  }).input(ImportBeginInputSchema).output(ImportBeginVOSchema),
   importTables: oc.route({
     method: "POST",
     path: "/dump/import/tables",
@@ -18743,41 +19729,26 @@ var dumpContract = {
     successDescription: "Best-effort cleanup of everything written so far in this session. Only ever touches the target space validated empty at `importBegin` time."
   }).input(ImportSessionInputSchema).output(ImportAbortVOSchema)
 };
-external_exports.object({
-  assetId: external_exports.string()
-});
+external_exports.object({ assetId: external_exports.string() });
 var FileNodeVOSchema = external_exports.object({
   node: nodeSchema,
   asset: AssetVOSchema
 });
 var createFileNodeInputSchema = external_exports.object({
-  parentNodeId: external_exports.string().optional().describe(
-    "Parent node id. Must be a folder or the space root; container-incapable node types (Base, Doc, AirApp, etc.) cannot hold children."
-  ),
+  parentNodeId: external_exports.string().optional().describe("Parent node id. Must be a folder or the space root; container-incapable node types (Base, Doc, AirApp, etc.) cannot hold children."),
   slug: external_exports.string().min(1).regex(/^[a-z0-9-]+$/),
   name: external_exports.string().min(1),
   description: external_exports.string().optional().default(""),
   assetId: external_exports.string().min(1),
-  // Permission-aware default: omitted merges immediately if the actor has
-  // write access on the parent node, otherwise falls back to a pending
-  // ChangeRequest (status "in_review"). Pass explicit `autoMerge: false` to
-  // force review even with write access.
   autoMerge: external_exports.boolean().optional()
 });
-var fileContract = {
-  create: oc.route({
-    method: "POST",
-    path: "/files",
-    tags: ["Files"],
-    summary: "Create File node",
-    successDescription: "Review-first by default: a pending ChangeRequest proposing the File node (`materialized: false`). Returns the materialized File node instead (`materialized: true`) when `autoMerge: true` is passed."
-  }).input(createFileNodeInputSchema).output(
-    external_exports.union([
-      FileNodeVOSchema.extend({ materialized: external_exports.literal(true) }),
-      changeRequestSchema.extend({ materialized: external_exports.literal(false) })
-    ])
-  )
-};
+var fileContract = { create: oc.route({
+  method: "POST",
+  path: "/files",
+  tags: ["Files"],
+  summary: "Create File node",
+  successDescription: "Merged in the same call when the actor has write access on the parent node \u2014 the materialized File node comes back (`materialized: true`). Review-first when the actor lacks write access or passes `autoMerge: false`: a pending ChangeRequest proposing the File node (`materialized: false`)."
+}).input(createFileNodeInputSchema).output(external_exports.union([FileNodeVOSchema.extend({ materialized: external_exports.literal(true) }), changeRequestSchema.extend({ materialized: external_exports.literal(false) })])) };
 var FormFieldBindingSchema = external_exports.object({
   inputName: external_exports.string().min(1),
   fieldSlug: external_exports.string().min(1),
@@ -18789,12 +19760,10 @@ var FormBoundFieldSchema = external_exports.object({
   slug: external_exports.string(),
   name: fieldNameSchema,
   type: fieldTypeSchema,
-  choices: external_exports.array(
-    external_exports.object({
-      id: external_exports.string(),
-      name: external_exports.string()
-    })
-  ).default([])
+  choices: external_exports.array(external_exports.object({
+    id: external_exports.string(),
+    name: external_exports.string()
+  })).default([])
 });
 var FormThemeSchema = external_exports.object({
   logoUrl: external_exports.string().optional(),
@@ -18831,10 +19800,9 @@ var FormVOSchema = external_exports.object({
   updatedAt: external_exports.string()
 });
 var ListFormsInputSchema = external_exports.object({
-  targetBaseId: external_exports.string().min(1),
-  limit: external_exports.coerce.number().int().min(1).max(100).optional().default(50),
-  /** Opaque createdAt/id keyset cursor. */
-  cursor: external_exports.string().optional()
+  targetBaseId: external_exports.string().min(1).describe("The Base the forms WRITE INTO \u2014 required; this is not a space-wide listing."),
+  limit: external_exports.coerce.number().int().min(1).max(100).optional().default(50).describe("Forms per page. Capped at 100; ask for the next page with `cursor`."),
+  cursor: external_exports.string().optional().describe("Opaque page cursor: pass back the `nextCursor` from the previous response. Do not construct or parse it.")
 });
 var ListFormsVOSchema = external_exports.object({
   forms: external_exports.array(FormVOSchema),
@@ -18847,7 +19815,10 @@ var CreateFormInputSchema = external_exports.object({
   description: external_exports.string().optional().default(""),
   bindings: external_exports.array(FormFieldBindingSchema).optional().default([]),
   page: FormPageSourceSchema.optional().default({}),
-  share: FormShareSchema.optional().default({ isPublic: false, anonymousSubmit: false })
+  share: FormShareSchema.optional().default({
+    isPublic: false,
+    anonymousSubmit: false
+  })
 });
 var UpdateFormInputSchema = external_exports.object({
   name: external_exports.string().min(1).optional(),
@@ -18862,7 +19833,9 @@ var SubmitFormInputSchema = external_exports.object({
 });
 var FormSubmitResultSchema = external_exports.object({
   changeRequestId: external_exports.string(),
-  status: external_exports.literal("pending_review")
+  status: external_exports.enum(["pending_review", "merged"]),
+  /** The created record's id, present only when `status` is `merged`. */
+  recordId: external_exports.string().optional()
 });
 var formContract = {
   list: oc.route({
@@ -18898,8 +19871,42 @@ var formContract = {
     path: "/forms/{nodeId}/submit",
     tags: ["Forms"],
     summary: "Submit a filled-in form",
-    successDescription: "Creates an approval-first record-create ChangeRequest on the target Base."
+    successDescription: 'Creates a record-create ChangeRequest on the target Base. Merged in the same call when the submitter holds write access on that Base (`status: "merged"`); otherwise it waits for a reviewer (`status: "pending_review"`). A visitor arriving through the form\'s public link is capped at read and therefore always waits.'
   }).input(SubmitFormInputSchema.extend({ nodeId: external_exports.string() })).output(FormSubmitResultSchema)
+};
+var GuideKindSchema = external_exports.enum(["reference", "walkthrough"]);
+var GuideTopicVOSchema = external_exports.object({
+  topic: external_exports.string(),
+  title: external_exports.string(),
+  /** `reference` = read it and apply it. `walkthrough` = a workflow to run WITH the user. */
+  kind: GuideKindSchema,
+  summary: external_exports.string()
+});
+var GuideVOSchema = external_exports.object({
+  topic: external_exports.string(),
+  title: external_exports.string(),
+  kind: GuideKindSchema,
+  /** The document itself, markdown. */
+  content: external_exports.string(),
+  /** The other topics this deployment serves, so one call is enough to keep going. */
+  otherTopics: external_exports.array(external_exports.string())
+});
+var ReadGuideInputSchema = external_exports.object({ topic: external_exports.string().min(1).describe("Guide topic. Call `GET /guides` for the ones served here.") });
+var guidesContract = {
+  list: oc.route({
+    method: "GET",
+    path: "/guides",
+    tags: ["Guides"],
+    summary: "List the guides this deployment serves",
+    successDescription: "The guide catalog: topic, title, kind, and a one-line summary. Read one with `GET /guides/{topic}`."
+  }).output(external_exports.array(GuideTopicVOSchema)),
+  read: oc.route({
+    method: "GET",
+    path: "/guides/{topic}",
+    tags: ["Guides"],
+    summary: "Read one guide",
+    successDescription: "The full markdown document, plus the other topics served here. Read `workspace` before proposing changes and `airapp` before writing any AirApp file."
+  }).input(ReadGuideInputSchema).output(GuideVOSchema)
 };
 var InstallPlanNodeTypeSchema = external_exports.enum([
   "folder",
@@ -18945,7 +19952,12 @@ var InstallPlanCountsVOSchema = external_exports.object({
 });
 var InstallPackageInfoVOSchema = external_exports.object({
   name: external_exports.string(),
-  description: external_exports.string().default(""),
+  /** Optional human-facing title — falls back to `name` when the package
+  * didn't declare one. Same rendering rule as `description` below. */
+  displayName: iStringSchema.optional(),
+  /** iString: `busabase.json`'s own description may be locale-keyed; render
+  * with `iStringParse(value, locale)`, never inserted into JSX directly. */
+  description: iStringSchema.default(""),
   version: external_exports.string().optional(),
   author: external_exports.string().optional(),
   license: external_exports.string().optional(),
@@ -18967,29 +19979,33 @@ var InstallPlanVOSchema = external_exports.object({
   collisions: external_exports.array(InstallCollisionVOSchema).default([]),
   warnings: external_exports.array(external_exports.string()).default([]),
   /**
-   * True when a record carries a relation VALUE. A relation stores the ids of the
-   * records it points at, and those exist only once the records are merged — so a
-   * review-first install would land every relation empty. `autoMerge` is required
-   * in that case, and the UI must say why.
-   */
+  * True when a record carries a relation VALUE. A relation stores the ids of the
+  * records it points at, and those exist only once the records are merged — so an
+  * install left for review would land every relation empty. Such a package cannot
+  * be installed by a caller whose content would queue (no write access, or an
+  * explicit `autoMerge: false`), and the UI must say why.
+  */
   requiresAutoMerge: external_exports.boolean(),
   /**
-   * Whether installing with **the options this plan was asked for** would work:
-   * false when a collision is unresolved, or when `requiresAutoMerge` is unmet
-   * for the `autoMerge` the caller passed.
-   *
-   * It is therefore an answer to "what happens if I install like this", not a
-   * property of the package — a package whose records carry relation values
-   * reports `applicable: false` when planned WITHOUT `autoMerge` and true WITH
-   * it. A client that offers an auto-merge toggle must re-plan when it changes
-   * (the same way it re-plans when `rename` or `intoFolder` change), rather than
-   * treating one plan's `applicable` as final.
-   *
-   * There is deliberately no `blockedReason` string here: the reason is already
-   * carried structurally by `collisions[]` (with `renamedTo`) and
-   * `requiresAutoMerge`, and each client words it for its own surface — a CLI
-   * says "re-run with --auto-merge", a dialog points at its own checkbox.
-   */
+  * Whether installing with **the options this plan was asked for** would work:
+  * false when a collision is unresolved, or when `requiresAutoMerge` is unmet
+  * for the `autoMerge` the caller passed.
+  *
+  * It is therefore an answer to "what happens if I install like this", not a
+  * property of the package — a package whose records carry relation values
+  * reports `applicable: false` when this caller's content would QUEUE and true
+  * when it would merge. Note the plan resolves that the same permission-aware
+  * way the install itself does, so omitting `autoMerge` reports what the caller
+  * would actually get rather than assuming review. A client that offers an
+  * auto-merge toggle must re-plan when it changes (the same way it re-plans when
+  * `rename` or `intoFolder` change), rather than treating one plan's
+  * `applicable` as final.
+  *
+  * There is deliberately no `blockedReason` string here: the reason is already
+  * carried structurally by `collisions[]` (with `renamedTo`) and
+  * `requiresAutoMerge`, and each client words it for its own surface — a CLI
+  * says "re-run with --auto-merge", a dialog points at its own checkbox.
+  */
   applicable: external_exports.boolean()
 });
 var InstallCreatedCountsVOSchema = external_exports.object({
@@ -19006,44 +20022,53 @@ var InstallResultVOSchema = external_exports.object({
   targetFolderNodeId: external_exports.string(),
   created: InstallCreatedCountsVOSchema,
   /**
-   * Change requests left for a human to review. Structure (folders, Bases, their
-   * fields and views) is always created immediately — a pending Base has no id, so
-   * there would be nowhere to attach a view or a record. Content (records, docs,
-   * skills, AirApps) is what lands here for review.
-   */
+  * Change requests left for a human to review. Structure (folders, Bases, their
+  * fields and views) is always created immediately — a pending Base has no id, so
+  * there would be nowhere to attach a view or a record. Content (records, docs,
+  * skills, AirApps) is what lands here for review.
+  */
   pendingChangeRequests: external_exports.number().int().min(0),
   warnings: external_exports.array(external_exports.string()).default([])
 });
-var repoUrlField = external_exports.string().min(1).describe(
-  "GitHub repo URL: https://github.com/<owner>/<repo>[/tree/<ref>[/<subdir>]]. Only GitHub hosts are accepted."
-);
+var InstallEventVOSchema = external_exports.discriminatedUnion("kind", [external_exports.object({
+  kind: external_exports.literal("progress"),
+  /** Human-readable, already localized by the caller's own copy — display as-is. */
+  message: external_exports.string()
+}), external_exports.object({
+  kind: external_exports.literal("done"),
+  result: InstallResultVOSchema
+})]);
+external_exports.object({
+  /** Which of the five passes stopped, e.g. `Pass 4/5 (sample records)`. */
+  phase: external_exports.string(),
+  targetFolderSlug: external_exports.string(),
+  created: InstallCreatedCountsVOSchema,
+  pendingChangeRequests: external_exports.number().int().min(0)
+});
+var repoUrlField = external_exports.string().min(1).describe("GitHub repo URL: https://github.com/<owner>/<repo>[/tree/<ref>[/<subdir>]]. Only GitHub hosts are accepted.");
 var intoFolderField = external_exports.string().optional().describe("Slug of the folder to install into. Defaults to the package manifest's name.");
-var renameField = external_exports.boolean().optional().describe(
-  "Resolve slug collisions by suffixing (-2, -3, \u2026) instead of refusing. Never overwrites anything."
-);
+var renameField = external_exports.boolean().optional().describe("Resolve slug collisions by suffixing (-2, -3, \u2026) instead of refusing. Never overwrites anything.");
 var InstallPlanFromGithubDTOSchema = external_exports.object({
   repoUrl: repoUrlField,
   intoFolder: intoFolderField,
   rename: renameField,
   /**
-   * Plan as if installing with auto-merge. Only affects the returned
-   * `applicable` (see `InstallPlanVOSchema`) — a dry run never writes either
-   * way. A client with an auto-merge toggle passes the toggle's current value so
-   * the preview answers the question the user is actually about to ask.
-   *
-   * `.optional()` with no `.default()`, matching `rename` above: `z.infer` gives
-   * the OUTPUT type, so a default would make this REQUIRED for every caller.
-   * Omitted means "plan without auto-merge" (applied in the logic layer).
-   */
+  * Plan as if installing with auto-merge. Only affects the returned
+  * `applicable` (see `InstallPlanVOSchema`) — a dry run never writes either
+  * way. A client with an auto-merge toggle passes the toggle's current value so
+  * the preview answers the question the user is actually about to ask.
+  *
+  * `.optional()` with no `.default()`, matching `rename` above: `z.infer` gives
+  * the OUTPUT type, so a default would make this REQUIRED for every caller.
+  * Omitted means "plan without auto-merge" (applied in the logic layer).
+  */
   autoMerge: external_exports.boolean().optional()
 });
 var InstallFromGithubDTOSchema = external_exports.object({
   repoUrl: repoUrlField,
   intoFolder: intoFolderField,
   rename: renameField,
-  autoMerge: external_exports.boolean().optional().describe(
-    "Merge the content change requests on the spot instead of leaving them for review. This trusts the package author: a package can carry skills and AirApps, i.e. code this space's agents will execute."
-  )
+  autoMerge: external_exports.boolean().optional().describe("Whether the package's content change requests merge on the spot. Omitted defaults to merging immediately when the caller holds write access (installing is already a space owner/admin operation, so normally they do), otherwise leaving them for review; pass explicit false to force review even with write access. Either way, installing trusts the package author: a package can carry skills and AirApps, i.e. code this space's agents will execute.")
 });
 var installContract = {
   planFromGithub: oc.route({
@@ -19059,8 +20084,101 @@ var installContract = {
     tags: ["Install"],
     summary: "Install a package from a GitHub repo",
     successDescription: "Created counts plus the number of change requests left for review. Structure (folders, Bases, fields, views) is created immediately \u2014 a pending Base has no id to attach a view or record to; content (records, docs, skills, AirApps) lands as change requests unless `autoMerge` is set."
-  }).input(InstallFromGithubDTOSchema).output(InstallResultVOSchema)
+  }).input(InstallFromGithubDTOSchema).output(InstallResultVOSchema),
+  /**
+  * The same install, streamed.
+  *
+  * Kept alongside `fromGithub` rather than replacing it: that route is in the
+  * public OpenAPI surface and a plain request/response is the right shape for
+  * a script. This one exists for a human waiting at a dashboard, where the
+  * install is long enough that a silent connection gets closed by whatever
+  * proxy sits in front of the app — and long enough that a progress line is
+  * worth showing regardless.
+  */
+  fromGithubStream: oc.input(InstallFromGithubDTOSchema).output(eventIterator(InstallEventVOSchema))
 };
+var TemplateStatsVOSchema = external_exports.object({
+  folders: external_exports.number().int(),
+  docs: external_exports.number().int(),
+  bases: external_exports.number().int(),
+  records: external_exports.number().int(),
+  files: external_exports.number().int(),
+  airapps: external_exports.number().int(),
+  skill: external_exports.boolean()
+});
+var TemplateCardVOSchema = external_exports.object({
+  /** Stable across a catalog: `<repo>/<subdir>`. What a route keys on. */
+  id: external_exports.string(),
+  /**
+  * The package's identity/slug — route key, install-folder name, CLI sort
+  * key. Deliberately plain string, never iString: see the long comment on
+  * `PackageManifestSchema.name` in the package domain (re-declared here per
+  * this file's own convention, not imported, but the reasoning is shared).
+  */
+  name: external_exports.string(),
+  /**
+  * Optional human-facing card title, shown instead of `name` — never for
+  * identity, `name` still keys the route/install-folder/CLI sort. Absent
+  * when the author didn't declare one; the card then falls back to `name`.
+  */
+  displayName: iStringSchema.optional(),
+  /** The catalog card's blurb. iString: `busabase.json`'s own description can
+  * be locale-keyed (`{ en: "...", "zh-CN": "..." }`); a plain string is still
+  * valid forever. */
+  description: iStringSchema,
+  category: external_exports.string(),
+  /** Absent when undeclared or unrecognized — the card shows "undeclared", never a guess. */
+  risk: TemplateRiskLevelSchema.optional(),
+  tags: external_exports.array(external_exports.string()).default([]),
+  /**
+  * Absolute URLs, resolved server-side.
+  *
+  * The catalog stores package-relative paths; turning them into URLs needs to
+  * know the repo and ref, which the server already has and the browser would
+  * otherwise have to re-derive. Doing it once here also means a card cannot
+  * accidentally point at a different ref than the one it installs.
+  */
+  screenshots: external_exports.array(external_exports.string()).default([]),
+  /**
+  * Absolute URL of the demo clip, or absent. Resolved against a different host
+  * than the screenshots — see `videoUrl` in the catalog logic.
+  */
+  video: external_exports.string().optional(),
+  agentPrompts: external_exports.array(external_exports.string()).default([]),
+  version: external_exports.string().optional(),
+  author: external_exports.string().optional(),
+  license: external_exports.string().optional(),
+  stats: TemplateStatsVOSchema,
+  /** Exactly what the install dialog needs — no URL assembly in the client. */
+  install: external_exports.object({
+    repoUrl: external_exports.string(),
+    intoFolder: external_exports.string()
+  }),
+  /** Where a curious user goes to read it before installing. */
+  sourceUrl: external_exports.string()
+});
+var TemplateCatalogVOSchema = external_exports.object({
+  templates: external_exports.array(TemplateCardVOSchema),
+  /** `owner/repo` and ref the catalog was built from — shown as provenance. */
+  repo: external_exports.string(),
+  ref: external_exports.string(),
+  /**
+  * Why the catalog is empty or stale, in the server's own words.
+  *
+  * A gallery that silently shows nothing is indistinguishable from one that is
+  * broken, and the difference matters: "the catalog could not be fetched" is a
+  * thing a user can act on, "no templates" is not.
+  */
+  error: external_exports.string().optional()
+});
+var ListTemplatesDTOSchema = external_exports.object({ refresh: external_exports.boolean().optional().describe("Bypass the cache and re-fetch the catalogue \u2014 what the refresh button does. Slower; leave it off for ordinary reads.") }).optional().default({});
+var templatesContract = { list: oc.route({
+  method: "GET",
+  path: "/templates",
+  tags: ["Templates"],
+  summary: "List the Template Center catalog",
+  successDescription: "The templates this server's configured catalog publishes, with provenance and per-template stats. `error` is set when the catalog could not be fetched, so an empty gallery can say why."
+}).input(ListTemplatesDTOSchema).output(TemplateCatalogVOSchema) };
 var VaultItemKeySchema = external_exports.string().trim().min(1).max(128).regex(/^[A-Z_][A-Z0-9_]*$/, "Use uppercase letters, numbers, and underscores");
 var VaultItemValueSchema = external_exports.string().max(8192);
 var VaultItemKindSchema = external_exports.enum(["secret", "variable"]);
@@ -19072,7 +20190,12 @@ var VaultScopeTypeSchema = external_exports.enum([
   "tool",
   "api_key"
 ]);
-var VaultEnvironmentSchema = external_exports.enum(["local", "development", "staging", "production"]);
+var VaultEnvironmentSchema = external_exports.enum([
+  "local",
+  "development",
+  "staging",
+  "production"
+]);
 var VaultAccessPolicySchema = external_exports.object({
   runtime: external_exports.boolean().default(true),
   reveal: external_exports.boolean().default(true),
@@ -19095,9 +20218,8 @@ var VaultItemInputSchema = external_exports.object({
     share: false
   })
 });
-var UpdateVaultSettingsInputSchema = external_exports.object({
-  items: external_exports.array(VaultItemInputSchema).max(200)
-});
+var UpdateVaultSettingsInputSchema = external_exports.object({ items: external_exports.array(VaultItemInputSchema).max(200) });
+var UpdatePreviewFileCredentialInputSchema = external_exports.object({ apiKey: VaultItemValueSchema.trim().min(1).nullable() });
 var VaultItemVOSchema = VaultItemInputSchema.extend({
   id: external_exports.string(),
   scopeId: external_exports.string().nullable(),
@@ -19127,6 +20249,13 @@ var vaultContract = {
     summary: "Replace local Vault settings",
     successDescription: "Updated local Vault secrets and variables."
   }).input(UpdateVaultSettingsInputSchema).output(VaultSettingsVOSchema),
+  updatePreviewFileCredential: oc.route({
+    method: "PUT",
+    path: "/vault/previewfile",
+    tags: ["Vault"],
+    summary: "Set or remove the local PreviewFile credential",
+    successDescription: "The credential was updated without returning its value."
+  }).input(UpdatePreviewFileCredentialInputSchema).output(VaultSuccessSchema),
   clear: oc.route({
     method: "DELETE",
     path: "/vault",
@@ -19137,12 +20266,21 @@ var vaultContract = {
 };
 var WebhookEventTypeSchema = external_exports.enum([
   "record.created",
+  "record.updated",
   "ai_mention",
   "changes_requested",
   "asset.uploaded"
 ]);
-external_exports.enum(["webhook", "notify_agent", "run_function"]);
-var WebhookDeliveryStatusSchema = external_exports.enum(["success", "failed", "skipped"]);
+external_exports.enum([
+  "webhook",
+  "notify_agent",
+  "run_function"
+]);
+var WebhookDeliveryStatusSchema = external_exports.enum([
+  "success",
+  "failed",
+  "skipped"
+]);
 var WebhookHttpConfigSchema = external_exports.object({
   targetUrl: external_exports.string().url(),
   secret: external_exports.string().min(1).max(256).optional(),
@@ -19244,7 +20382,7 @@ var WebhookDeliveryVOSchema = external_exports.object({
 external_exports.object({}).optional().default({});
 var ListWebhookDeliveriesInputSchema = external_exports.object({
   ruleId: external_exports.string(),
-  limit: external_exports.coerce.number().int().min(1).max(100).default(20)
+  limit: external_exports.coerce.number().int().min(1).max(100).default(20).describe("Delivery attempts to return, newest first.")
 });
 var webhookContract = {
   list: oc.route({
@@ -19322,22 +20460,155 @@ var activityItemSchema = external_exports.discriminatedUnion("kind", [
   })
 ]);
 var listActivityPagedInputSchema = external_exports.object({
-  limit: external_exports.coerce.number().int().min(1).max(100).optional().default(50),
-  cursor: external_exports.string().optional()
+  limit: external_exports.coerce.number().int().min(1).max(100).optional().default(50).describe("Items per page. Capped at 100; ask for the next page with `cursor`."),
+  cursor: external_exports.string().optional().describe("Opaque page cursor: pass back the `nextCursor` from the previous response. Do not construct or parse it.")
 }).optional().default({ limit: 50 });
 var listActivityResponseSchema = external_exports.object({
   items: external_exports.array(activityItemSchema),
   nextCursor: external_exports.string().nullable()
 });
-var GrepSourceSchema = external_exports.enum(["files", "docs", "records"]);
+var listNodeActivityInputSchema = external_exports.object({
+  nodeId: external_exports.string().min(1).describe("Activity is scoped to this node alone, not its subtree."),
+  limit: external_exports.coerce.number().int().min(1).max(100).optional().default(50).describe("Most recent events to return, capped at 100. This stream has NO cursor \u2014 it is a recent window, not a pageable history; use `/api/v1/activity/paged` to walk further back.")
+});
+var listRecordActivityInputSchema = external_exports.object({
+  recordId: external_exports.string().min(1).describe("Activity for this record's own history."),
+  limit: external_exports.coerce.number().int().min(1).max(100).optional().default(50).describe("Most recent events to return, capped at 100. This stream has NO cursor \u2014 it is a recent window, not a pageable history; use `/api/v1/activity/paged` to walk further back.")
+});
+var EMBED_LINK_MAX_MINUTES = 1440;
+var EmbedNodeTypeSchema = external_exports.enum([
+  "base",
+  "doc",
+  "file",
+  "drive",
+  "skill",
+  "folder",
+  "airapp"
+]);
+var EmbedTargetTypeSchema = external_exports.enum([
+  "node",
+  "change-request",
+  "record-detail"
+]);
+var EmbedFrameModeSchema = external_exports.enum([
+  "anywhere",
+  "origins",
+  "top-level-only"
+]);
+var EmbedAllowedOriginSchema = external_exports.string().trim().min(1).superRefine((value2, ctx) => {
+  let url2;
+  try {
+    url2 = new URL(value2);
+  } catch {
+    ctx.addIssue({
+      code: "custom",
+      message: "Allowed origins must be valid URLs"
+    });
+    return;
+  }
+  const isLocalHttp = url2.protocol === "http:" && (url2.hostname === "localhost" || url2.hostname === "127.0.0.1" || url2.hostname === "[::1]");
+  if (url2.protocol !== "https:" && !isLocalHttp) ctx.addIssue({
+    code: "custom",
+    message: "Allowed origins must use HTTPS"
+  });
+  if (url2.username || url2.password || url2.pathname !== "/" || url2.search || url2.hash || url2.hostname.includes("*")) ctx.addIssue({
+    code: "custom",
+    message: "Allowed origins must be exact origins"
+  });
+}).transform((value2) => new URL(value2).origin);
+var EmbedFramePolicyInputSchema = external_exports.discriminatedUnion("mode", [
+  external_exports.object({
+    mode: external_exports.literal("anywhere"),
+    allowedOrigins: external_exports.array(EmbedAllowedOriginSchema).max(0).optional()
+  }),
+  external_exports.object({
+    mode: external_exports.literal("origins"),
+    allowedOrigins: external_exports.array(EmbedAllowedOriginSchema).min(1).max(20)
+  }),
+  external_exports.object({
+    mode: external_exports.literal("top-level-only"),
+    allowedOrigins: external_exports.array(EmbedAllowedOriginSchema).max(0).optional()
+  })
+]).transform((policy) => ({
+  mode: policy.mode,
+  allowedOrigins: [...new Set(policy.allowedOrigins ?? [])]
+}));
+var EmbedFramePolicyVOSchema = external_exports.object({
+  mode: EmbedFrameModeSchema,
+  allowedOrigins: external_exports.array(external_exports.string().url())
+}).superRefine((policy, ctx) => {
+  if (!(policy.mode === "origins" ? policy.allowedOrigins.length > 0 : policy.allowedOrigins.length === 0)) ctx.addIssue({
+    code: "custom",
+    message: "Stored frame policy is invalid"
+  });
+});
+var CreateEmbedLinkInputSchema = external_exports.object({
+  type: EmbedTargetTypeSchema,
+  typeId: external_exports.string().min(1),
+  expiresInMinutes: external_exports.number().int().min(1).max(EMBED_LINK_MAX_MINUTES).optional().default(15),
+  framePolicy: EmbedFramePolicyInputSchema.optional().default({
+    mode: "anywhere",
+    allowedOrigins: []
+  })
+});
+var ListEmbedLinksInputSchema = external_exports.object({
+  type: EmbedTargetTypeSchema.optional().describe("Which kind of target the links point at. Omitting it returns links of every kind."),
+  typeId: external_exports.string().min(1).optional().describe("The target's id, interpreted according to `type`.")
+}).optional().default({});
+var EmbedLinkAuditStatusSchema = external_exports.enum([
+  "active",
+  "expired",
+  "revoked",
+  "all"
+]);
+var ListEmbedLinksPagedInputSchema = external_exports.object({
+  status: EmbedLinkAuditStatusSchema.optional().default("active").describe("Filter the workspace audit to active, expired, revoked, or all embed links."),
+  limit: external_exports.coerce.number().int().min(1).max(100).optional().default(50).describe("Embed links per page. Capped at 100; continue with `cursor`."),
+  cursor: external_exports.string().optional().describe("Opaque page cursor: pass back the `nextCursor` from the previous response. Do not construct or parse it.")
+});
+var RevokeEmbedLinkInputSchema = external_exports.object({ id: external_exports.string().min(1) });
+var EmbedLinkVOSchema = external_exports.object({
+  id: external_exports.string(),
+  type: EmbedTargetTypeSchema,
+  typeId: external_exports.string(),
+  targetName: external_exports.string(),
+  nodeType: EmbedNodeTypeSchema.nullable(),
+  createdAt: external_exports.string().datetime(),
+  expiresAt: external_exports.string().datetime(),
+  revokedAt: external_exports.string().datetime().nullable(),
+  active: external_exports.boolean(),
+  framePolicy: EmbedFramePolicyVOSchema
+});
+var EmbedLinksPageVOSchema = external_exports.object({
+  items: external_exports.array(EmbedLinkVOSchema),
+  nextCursor: external_exports.string().nullable()
+});
+var CreatedEmbedLinkVOSchema = EmbedLinkVOSchema.extend({
+  url: external_exports.string().url(),
+  iframeUrl: external_exports.string().url()
+});
+var RevokeEmbedLinkVOSchema = external_exports.object({ revoked: external_exports.literal(true) });
+var GrepSourceSchema = external_exports.enum([
+  "files",
+  "nodes",
+  "records"
+]);
 var UnifiedGrepFilesScopeSchema = external_exports.object({
   assetIds: external_exports.array(external_exports.string()).optional(),
   /** Drive/Skill mounted path prefix (matches `busabase_asset_usages.path`). */
   drivePath: external_exports.string().optional(),
   mimeTypes: external_exports.array(external_exports.string()).optional()
 });
-var UnifiedGrepDocsScopeSchema = external_exports.object({
-  nodeIds: external_exports.array(external_exports.string()).optional()
+var SearchableNodeTypeSchema = external_exports.enum([
+  "doc",
+  "html",
+  "whiteboard",
+  "workflow"
+]);
+var UnifiedGrepNodesScopeSchema = external_exports.object({
+  nodeIds: external_exports.array(external_exports.string()).optional(),
+  /** Narrow to specific node types. Omitted = every type that has content. */
+  types: external_exports.array(SearchableNodeTypeSchema).optional()
 });
 var UnifiedGrepRecordsScopeSchema = external_exports.object({
   baseIds: external_exports.array(external_exports.string()).optional(),
@@ -19345,19 +20616,19 @@ var UnifiedGrepRecordsScopeSchema = external_exports.object({
 });
 var UnifiedGrepScopeSchema = external_exports.object({
   files: UnifiedGrepFilesScopeSchema.optional(),
-  docs: UnifiedGrepDocsScopeSchema.optional(),
+  nodes: UnifiedGrepNodesScopeSchema.optional(),
   records: UnifiedGrepRecordsScopeSchema.optional()
 });
 var UnifiedGrepInputSchema = external_exports.object({
   pattern: external_exports.string().min(1),
   /** JS RegExp flags, e.g. `"i"` for case-insensitive. */
   flags: external_exports.string().optional().default(""),
-  /** Which sources to scan. Omitted = all three (`files`, `docs`, `records`). */
+  /** Which sources to scan. Omitted = all three (`files`, `nodes`, `records`). */
   sources: external_exports.array(GrepSourceSchema).optional(),
   scope: UnifiedGrepScopeSchema.optional(),
-  /** Shared across every scanned source — files run to completion first, then docs, then whatever remains goes to records. */
-  maxMatches: external_exports.coerce.number().int().min(1).max(GREP_HARD_MAX_MATCHES).optional().default(GREP_DEFAULT_MAX_MATCHES),
-  contextLines: external_exports.coerce.number().int().min(0).max(GREP_MAX_CONTEXT_LINES).optional().default(GREP_DEFAULT_CONTEXT_LINES)
+  /** Shared across every scanned source — files run to completion first, then nodes, then whatever remains goes to records. */
+  maxMatches: external_exports.coerce.number().int().min(1).max(GREP_HARD_MAX_MATCHES).optional().default(100),
+  contextLines: external_exports.coerce.number().int().min(0).max(10).optional().default(0)
 });
 var grepHitFields = {
   line: external_exports.number().int().positive(),
@@ -19376,8 +20647,15 @@ var UnifiedGrepFileMatchVOSchema = external_exports.object({
   drivePath: external_exports.string(),
   ...grepHitFields
 });
-var UnifiedGrepDocMatchVOSchema = external_exports.object({
-  source: external_exports.literal("docs"),
+var UnifiedGrepNodeMatchVOSchema = external_exports.object({
+  source: external_exports.literal("nodes"),
+  /**
+  * Which node type matched. Also tells you how to read `line`: for `doc` and
+  * `html` it is a real source line; for `whiteboard` and `workflow` the stored
+  * object is JSON, so it indexes the EXTRACTED text (one line per authored
+  * string, document order) and is not a position to open the file at.
+  */
+  type: SearchableNodeTypeSchema,
   nodeId: external_exports.string(),
   slug: external_exports.string(),
   name: external_exports.string(),
@@ -19393,7 +20671,7 @@ var UnifiedGrepRecordMatchVOSchema = external_exports.object({
 });
 var UnifiedGrepMatchVOSchema = external_exports.discriminatedUnion("source", [
   UnifiedGrepFileMatchVOSchema,
-  UnifiedGrepDocMatchVOSchema,
+  UnifiedGrepNodeMatchVOSchema,
   UnifiedGrepRecordMatchVOSchema
 ]);
 var UnifiedGrepFilesCoverageSchema = external_exports.object({
@@ -19404,11 +20682,11 @@ var UnifiedGrepFilesCoverageSchema = external_exports.object({
   errored: external_exports.array(external_exports.string()),
   notReached: external_exports.number().int().nonnegative()
 });
-var UnifiedGrepDocsCoverageSchema = external_exports.object({
+var UnifiedGrepNodesCoverageSchema = external_exports.object({
   scanned: external_exports.number().int().nonnegative(),
-  /** Doc node ids whose body read/scan was attempted but failed — NOT a clean "scanned, no match". */
+  /** Node ids whose content read/scan was attempted but failed — NOT a clean "scanned, no match". */
   errored: external_exports.array(external_exports.string()),
-  /** Count of in-scope docs the scan never reached because the deadline/maxMatches budget ran out first. */
+  /** Count of in-scope nodes the scan never reached because the deadline/maxMatches budget ran out first. */
   notReached: external_exports.number().int().nonnegative()
 });
 var UnifiedGrepRecordsCoverageSchema = external_exports.object({
@@ -19420,11 +20698,11 @@ var UnifiedGrepRecordsCoverageSchema = external_exports.object({
 });
 var UnifiedGrepCoverageSchema = external_exports.object({
   files: UnifiedGrepFilesCoverageSchema,
-  docs: UnifiedGrepDocsCoverageSchema,
+  nodes: UnifiedGrepNodesCoverageSchema,
   records: UnifiedGrepRecordsCoverageSchema
 });
 var UnifiedGrepResultVOSchema = external_exports.object({
-  /** Deterministic order: every `files` match, then every `docs` match, then every `records` match. */
+  /** Deterministic order: every `files` match, then every `nodes` match, then every `records` match. */
   matches: external_exports.array(UnifiedGrepMatchVOSchema),
   coverage: UnifiedGrepCoverageSchema,
   /** True when any source truncated, or any source has `notReached > 0`. */
@@ -19454,7 +20732,13 @@ var WorkflowNodeSchema = external_exports.discriminatedUnion("kind", [
   external_exports.object({
     ...workflowNodeBase,
     kind: external_exports.literal("webhook"),
-    method: external_exports.enum(["GET", "POST", "PUT", "PATCH", "DELETE"]).default("POST"),
+    method: external_exports.enum([
+      "GET",
+      "POST",
+      "PUT",
+      "PATCH",
+      "DELETE"
+    ]).default("POST"),
     url: external_exports.string().max(2e3).default("")
   }),
   external_exports.object({
@@ -19472,7 +20756,11 @@ var WorkflowNodeSchema = external_exports.discriminatedUnion("kind", [
     ...workflowNodeBase,
     kind: external_exports.literal("wait"),
     duration: external_exports.number().int().min(0).max(525600).default(1),
-    unit: external_exports.enum(["minutes", "hours", "days"]).default("hours")
+    unit: external_exports.enum([
+      "minutes",
+      "hours",
+      "days"
+    ]).default("hours")
   }),
   external_exports.object({
     ...workflowNodeBase,
@@ -19490,12 +20778,11 @@ var WorkflowNodeSchema = external_exports.discriminatedUnion("kind", [
     outcome: external_exports.string().max(160).default("completed")
   })
 ]);
-var GraphEdgeSchema = external_exports.object({
+var WorkflowEdgeSchema = external_exports.object({
   id: external_exports.string().min(1),
   source: external_exports.string().min(1),
   target: external_exports.string().min(1)
-});
-var WorkflowEdgeSchema = GraphEdgeSchema.extend({
+}).extend({
   label: external_exports.string().max(120).default(""),
   outcome: external_exports.string().max(120).default("default")
 });
@@ -19521,10 +20808,22 @@ var HtmlDocumentSchema = external_exports.object({
   source: external_exports.string().max(5e5)
 });
 var NODE_CONTENT_VARIANTS = {
-  doc: external_exports.object({ kind: external_exports.literal("doc"), body: external_exports.string() }),
-  whiteboard: external_exports.object({ kind: external_exports.literal("whiteboard"), document: WhiteboardDocumentSchema }),
-  workflow: external_exports.object({ kind: external_exports.literal("workflow"), document: WorkflowDocumentSchema }),
-  html: external_exports.object({ kind: external_exports.literal("html"), document: HtmlDocumentSchema })
+  doc: external_exports.object({
+    kind: external_exports.literal("doc"),
+    body: external_exports.string()
+  }),
+  whiteboard: external_exports.object({
+    kind: external_exports.literal("whiteboard"),
+    document: WhiteboardDocumentSchema
+  }),
+  workflow: external_exports.object({
+    kind: external_exports.literal("workflow"),
+    document: WorkflowDocumentSchema
+  }),
+  html: external_exports.object({
+    kind: external_exports.literal("html"),
+    document: HtmlDocumentSchema
+  })
 };
 var nodeContentInputSchema = external_exports.discriminatedUnion("kind", [
   NODE_CONTENT_VARIANTS.doc,
@@ -19535,16 +20834,8 @@ var nodeContentInputSchema = external_exports.discriminatedUnion("kind", [
 var updateNodeContentInputSchema = external_exports.object({
   nodeId: external_exports.string(),
   content: nodeContentInputSchema,
-  message: external_exports.string().optional().default("Update content").describe(
-    'Explanation shown to the human reviewer. Write a conventional-commit style subject \u2014 imperative verb + what + why, e.g. "Add rollback steps to the deploy runbook".'
-  ),
+  message: external_exports.string().optional().default("Update content").describe('Explanation shown to the human reviewer. Write a conventional-commit style subject \u2014 imperative verb + what + why, e.g. "Add rollback steps to the deploy runbook".'),
   submittedBy: external_exports.string().optional().default("local-producer"),
-  // Server-decided, not client-decided: `shouldAutoMerge(autoMerge, hasWrite) =
-  // autoMerge !== false && hasWrite`. Omitted/true merges immediately IF the
-  // actor holds `write` on the node; otherwise (or with explicit `false`) the
-  // content lands as a pending ChangeRequest instead. A `changeRequest`-level
-  // caller passing `autoMerge: true` still lands in review — the server never
-  // lets the client escalate past its own permission.
   autoMerge: external_exports.boolean().optional()
 });
 var folderSchema = external_exports.object({
@@ -19564,9 +20855,6 @@ var NODE_DETAIL_VARIANTS = {
   folder: folderSchema.extend({ type: external_exports.literal("folder") }),
   doc: docSchema.extend({ type: external_exports.literal("doc") }),
   file: FileNodeVOSchema.extend({ type: external_exports.literal("file") }),
-  // Skills, Drives, and AirApps are one server-side shape (`fileTreeNodeSchema`)
-  // but three real node types — there is no synthetic "file-tree" node type, so
-  // each gets its own discriminated variant rather than a shared alias.
   skill: fileTreeNodeSchema.extend({ type: external_exports.literal("skill") }),
   drive: fileTreeNodeSchema.extend({ type: external_exports.literal("drive") }),
   airapp: fileTreeNodeSchema.extend({ type: external_exports.literal("airapp") }),
@@ -19589,12 +20877,29 @@ var NodeDetailVOSchema = external_exports.discriminatedUnion("type", [
   NODE_DETAIL_VARIANTS.workflow,
   NODE_DETAIL_VARIANTS.html
 ]);
+var nodeAncestorsVOSchema = external_exports.object({ ancestorIds: external_exports.array(external_exports.string()) });
 var getNodeInputSchema = external_exports.object({
   nodeId: external_exports.string().describe("Node id, or a slug that is unique within its type."),
-  type: external_exports.enum(NODE_TYPES).optional().describe(
-    "Optional disambiguation hint, only needed when `nodeId` is a slug that exists under more than one node type."
-  )
+  type: external_exports.enum(NODE_TYPES).optional().describe("Optional disambiguation hint, only needed when `nodeId` is a slug that exists under more than one node type.")
 });
+var NodeIconUploadUrlInputSchema = RequestUploadUrlInputSchema.extend({ nodeId: external_exports.string() });
+var NodeIconConfirmInputSchema = ConfirmUploadInputSchema.extend({ nodeId: external_exports.string() });
+var NodeRouteStateVOSchema = external_exports.discriminatedUnion("status", [
+  external_exports.object({
+    status: external_exports.literal("active"),
+    nodeId: external_exports.string()
+  }),
+  external_exports.object({
+    status: external_exports.literal("archived"),
+    nodeId: external_exports.string(),
+    type: external_exports.enum(NODE_TYPES),
+    name: external_exports.string(),
+    slug: external_exports.string(),
+    archivedAt: external_exports.string(),
+    canRestore: external_exports.boolean()
+  }),
+  external_exports.object({ status: external_exports.literal("unavailable") })
+]);
 var changeRequestBatchFailureSchema = external_exports.object({
   changeRequestId: external_exports.string(),
   ok: external_exports.literal(false),
@@ -19602,44 +20907,51 @@ var changeRequestBatchFailureSchema = external_exports.object({
   code: external_exports.string().optional(),
   data: external_exports.unknown().optional()
 });
-var changeRequestReviewBatchResultSchema = external_exports.object({
-  results: external_exports.array(
-    external_exports.discriminatedUnion("ok", [
-      external_exports.object({
-        changeRequestId: external_exports.string(),
-        ok: external_exports.literal(true),
-        status: external_exports.string(),
-        changeRequest: changeRequestSchema
-      }),
-      changeRequestBatchFailureSchema
-    ])
-  )
-});
-var changeRequestMergeBatchResultSchema = external_exports.object({
-  results: external_exports.array(
-    external_exports.discriminatedUnion("ok", [
-      external_exports.object({
-        changeRequestId: external_exports.string(),
-        ok: external_exports.literal(true),
-        status: external_exports.string(),
-        changeRequest: changeRequestSchema,
-        record: recordSchema.nullable(),
-        view: viewSchema.nullable()
-      }),
-      changeRequestBatchFailureSchema
-    ])
-  )
-});
-var busabaseContractRoutes = {
-  auth: {
-    verify: oc.route({
-      method: "GET",
-      path: "/auth",
-      tags: ["Auth"],
-      summary: "Verify auth and get the targeted space, user, membership, and all spaces",
-      successDescription: "The space this request targets, the acting user, their membership, and every space the user belongs to (`spaces`). Open source returns the local space/user; the cloud resolves the real ones from the user API key \u2014 when `spaces` has more than one entry, target a specific space with the `x-busabase-space` header instead of relying on the default."
-    }).output(authInfoSchema)
+var embedLinkErrorResponseSchema = external_exports.object({ error: external_exports.string() });
+var embedLinkErrors = {
+  BAD_REQUEST: {
+    status: 400,
+    message: "Bad Request",
+    data: embedLinkErrorResponseSchema
   },
+  UNAUTHORIZED: {
+    status: 401,
+    message: "Unauthorized",
+    data: embedLinkErrorResponseSchema
+  },
+  FORBIDDEN: {
+    status: 403,
+    message: "Forbidden",
+    data: embedLinkErrorResponseSchema
+  },
+  NOT_FOUND: {
+    status: 404,
+    message: "Not Found",
+    data: embedLinkErrorResponseSchema
+  }
+};
+var changeRequestReviewBatchResultSchema = external_exports.object({ results: external_exports.array(external_exports.discriminatedUnion("ok", [external_exports.object({
+  changeRequestId: external_exports.string(),
+  ok: external_exports.literal(true),
+  status: external_exports.string(),
+  changeRequest: changeRequestSchema
+}), changeRequestBatchFailureSchema])) });
+var changeRequestMergeBatchResultSchema = external_exports.object({ results: external_exports.array(external_exports.discriminatedUnion("ok", [external_exports.object({
+  changeRequestId: external_exports.string(),
+  ok: external_exports.literal(true),
+  status: external_exports.string(),
+  changeRequest: changeRequestSchema,
+  record: recordSchema.nullable(),
+  view: viewSchema.nullable()
+}), changeRequestBatchFailureSchema])) });
+var busabaseContractRoutes = {
+  auth: { verify: oc.route({
+    method: "GET",
+    path: "/auth",
+    tags: ["Auth"],
+    summary: "Verify auth and get the targeted space, user, membership, and all spaces",
+    successDescription: "The space this request targets, the acting user, their membership, and every space the user belongs to (`spaces`). Open source returns the local space/user; the cloud resolves the real ones from the user API key \u2014 when `spaces` has more than one entry, target a specific space with the `x-busabase-space` header instead of relying on the default."
+  }).output(authInfoSchema) },
   search: oc.route({
     method: "GET",
     path: "/search",
@@ -19647,9 +20959,7 @@ var busabaseContractRoutes = {
     summary: "Search Busabase",
     successDescription: "Paginated search results across records, change requests, Bases, File nodes, and Assets."
   }).input(searchInputSchema).output(searchResponseSchema),
-  // Unified Grep (P2a files+docs, P2b records) — the single public pattern
-  // search endpoint. Files-only callers use `sources: ["files"]` and retain
-  // the full missing/stale/unsearchable coverage block.
+  searchMetrics: { report: oc.input(searchInteractionInputSchema).output(searchInteractionResponseSchema) },
   grep: oc.route({
     method: "POST",
     path: "/grep",
@@ -19657,6 +20967,36 @@ var busabaseContractRoutes = {
     summary: "Search files, Docs, and Base records with one pattern (unified grep)",
     successDescription: "Streaming regex/literal matches across every in-scope source \u2014 Drive/Skill files, Doc bodies, and Base records (canonical headCommit.payload, never the truncated search projection) \u2014 with one shared pattern, one shared maxMatches/deadline budget (files scanned first, then docs, then whatever budget remains goes to records), and a per-source honest coverage report (files keeps its existing missing/stale/unsearchable/errored/notReached; docs and records report scanned/errored/notReached). truncated is set when any source truncated or has notReached > 0."
   }).input(UnifiedGrepInputSchema).output(UnifiedGrepResultVOSchema),
+  embedLinks: {
+    create: oc.route({
+      method: "POST",
+      path: "/embed-links",
+      tags: ["Embed Links"],
+      summary: "Create a polymorphic read-only embed link",
+      successDescription: "The capability URL is returned once; only its secret hash is stored."
+    }).errors(embedLinkErrors).input(CreateEmbedLinkInputSchema).output(CreatedEmbedLinkVOSchema),
+    list: oc.route({
+      method: "GET",
+      path: "/embed-links",
+      tags: ["Embed Links"],
+      summary: "List embed links the caller can manage",
+      successDescription: "Embed link metadata without capability secrets."
+    }).errors(embedLinkErrors).input(ListEmbedLinksInputSchema).output(external_exports.array(EmbedLinkVOSchema)),
+    listPaged: oc.route({
+      method: "GET",
+      path: "/embed-links/paged",
+      tags: ["Embed Links"],
+      summary: "Audit workspace embed links with status filtering and keyset pagination",
+      successDescription: "A bounded page of manageable embed-link metadata without capability secrets."
+    }).errors(embedLinkErrors).input(ListEmbedLinksPagedInputSchema).output(EmbedLinksPageVOSchema),
+    revoke: oc.route({
+      method: "DELETE",
+      path: "/embed-links/{id}",
+      tags: ["Embed Links"],
+      summary: "Revoke an embed link",
+      successDescription: "The capability stops resolving immediately."
+    }).errors(embedLinkErrors).input(RevokeEmbedLinkInputSchema).output(RevokeEmbedLinkVOSchema)
+  },
   nodes: {
     list: oc.route({
       method: "GET",
@@ -19670,7 +21010,7 @@ var busabaseContractRoutes = {
       path: "/nodes/search",
       tags: ["Nodes", "Search"],
       summary: "Search nodes by name/slug (cheap, name-only quick-jump)",
-      successDescription: "Plain ilike match on name/slug across every registered node type, scoped by the same node-visibility ACL as `nodes.list`. No content scan and no full-text ranking \u2014 ordered exact-slug-match first, then by name. Backs the dashboard search dialog's 'Recent' tab cache-miss path; the heavier `search` endpoint remains the dedicated full-text content search."
+      successDescription: "Plain ilike match on name/slug across every registered node type, scoped by the same node-visibility ACL as `nodes.list`. No content scan and no full-text ranking \u2014 ordered exact-slug-match first, then by name. Backs the dashboard search dialog's 'Recent' tab cache-miss path. To search what is written INSIDE nodes, use `search` with the `nodes` source (indexed, paginated) or `grep` (exhaustive, no index)."
     }).input(searchNodesByNameInputSchema).output(external_exports.array(nodeSearchResultSchema)),
     isDescendant: oc.route({
       method: "GET",
@@ -19679,6 +21019,20 @@ var busabaseContractRoutes = {
       summary: "Check whether a node is a descendant of another",
       successDescription: "Server-authoritative parentId-chain walk from nodeId up to potentialAncestorId. Used to gate cross-branch drag-and-drop drops in the sidebar, since the full tree is no longer guaranteed to be loaded client-side (depth-bounded lazy load) \u2014 a purely local walk could wrongly allow dropping a folder into its own unloaded descendant."
     }).input(isDescendantInputSchema).output(isDescendantOutputSchema),
+    ancestors: oc.route({
+      method: "GET",
+      path: "/nodes/{nodeId}/ancestors",
+      tags: ["Nodes"],
+      summary: "List a node's ancestor ids",
+      successDescription: "The node's ancestor ids, root-first, excluding the node itself (`[]` directly under the workspace root). `nodeId` accepts an id or a slug, same as `nodes.get`; pass `type` when a slug exists under more than one type. Lets a depth-bounded, lazily-expanded tree open straight to a deep node on a cold load (a refresh, a bookmark, a shared link) without one round trip per level."
+    }).input(getNodeInputSchema).output(nodeAncestorsVOSchema),
+    resolveRouteState: oc.route({
+      method: "GET",
+      path: "/nodes/route-state/{nodeId}",
+      tags: ["Nodes"],
+      summary: "Resolve whether a dashboard node route is active, archived, or unavailable",
+      successDescription: "A lightweight route state. Archived nodes return only tombstone metadata, never node content. Hidden, deleted, ambiguous, and anonymous archived nodes are all unavailable."
+    }).input(getNodeInputSchema).output(NodeRouteStateVOSchema),
     createChangeRequest: oc.route({
       method: "POST",
       path: "/nodes/change-requests",
@@ -19700,6 +21054,27 @@ var busabaseContractRoutes = {
       summary: "Update node metadata",
       successDescription: "Shallow-merged the supplied top-level keys into the active node's existing metadata. Requires write access on the node. Node CONTENT (a Doc body, or a whiteboard/workflow/html document) does not go through here \u2014 use PUT /nodes/{nodeId}/content instead."
     }).input(updateNodeMetadataInputSchema).output(nodeSchema),
+    updateSettings: oc.route({
+      method: "PATCH",
+      path: "/nodes/{nodeId}/settings",
+      tags: ["Nodes"],
+      summary: "Update node system settings",
+      successDescription: "Replaced the node's system settings. Unlike metadata this is a closed set of keys Busabase itself acts on, so an unknown key is rejected rather than stored. Send a key as null to clear it \u2014 for an AirApp's engine that returns the node to following its airapp.json. Requires write access on the node."
+    }).input(updateNodeSettingsInputSchema).output(nodeSchema),
+    getAgentPrompts: oc.route({
+      method: "GET",
+      path: "/nodes/{nodeId}/agent-prompts",
+      tags: ["Nodes"],
+      summary: "Get node custom agent prompts",
+      successDescription: "This node's custom scenario prompts, which appear alongside the node type's built-in prompts in the Ask-agent dialog. `null` means the node has never had any set, which is not the same as an empty list. Read separately from the node itself because the list is large enough (50 prompts x 8 KiB per locale) that carrying it on every node listing would be its own problem. Requires read access on the node."
+    }).input(getNodeAgentPromptsInputSchema).output(nodeAgentPromptsSchema),
+    updateAgentPrompts: oc.route({
+      method: "PUT",
+      path: "/nodes/{nodeId}/agent-prompts",
+      tags: ["Nodes"],
+      summary: "Replace node custom agent prompts",
+      successDescription: "Replaced this node's custom scenario prompts \u2014 the whole custom list, not a merge. Send `null` to clear custom prompts; built-in prompts are always retained. Requires write access on the node."
+    }).input(updateNodeAgentPromptsInputSchema).output(nodeAgentPromptsSchema),
     updateContent: oc.route({
       method: "PUT",
       path: "/nodes/{nodeId}/content",
@@ -19707,6 +21082,13 @@ var busabaseContractRoutes = {
       summary: "Update node content",
       successDescription: "ChangeRequest carrying the proposed content. Merged immediately when the actor holds write access on the node and `autoMerge` was not explicitly `false`; otherwise left `in_review` for a human. Accepts doc, whiteboard, workflow, and html nodes \u2014 the types that own exactly one document."
     }).input(updateNodeContentInputSchema).output(changeRequestSchema),
+    readLines: oc.route({
+      method: "GET",
+      path: "/nodes/{nodeId}/lines",
+      tags: ["Nodes"],
+      summary: "Read an exact line range from a node's content",
+      successDescription: 'Lines [startLine, endLine] (range capped at 2000 lines / ~2MB response) from any node type that stores content \u2014 doc, html, whiteboard, workflow. The follow-up to a Unified Grep match with `source: "nodes"`, so an agent can read just the lines around a match instead of `nodes.get`\'s entire document. Line numbers mean whatever they mean for that node type: real source lines for doc/html, positions within the extracted text for the JSON-backed types. Replaces `GET /docs/{nodeId}/lines`, which resolved doc nodes only.'
+    }).input(ReadNodeLinesInputSchema).output(ReadLinesVOSchema),
     purge: oc.route({
       method: "DELETE",
       path: "/nodes/{nodeId}",
@@ -19720,12 +21102,14 @@ var busabaseContractRoutes = {
       tags: ["Nodes", "Permissions"],
       summary: "Set a node's visibility (private / workspace / public)",
       successDescription: "Updated the node's own explicit visibility and re-materialized the subtree's effective visibility (a child can only ever be as open as its strictest ancestor). Requires `manage` level on the node. The workspace root cannot be made private. `public` currently behaves as `workspace` (no anonymous surface yet)."
-    }).input(
-      external_exports.object({
-        nodeId: external_exports.string(),
-        visibility: external_exports.enum(["private", "workspace", "public"]).nullable()
-      })
-    ).output(external_exports.object({ updated: external_exports.boolean() })),
+    }).input(external_exports.object({
+      nodeId: external_exports.string(),
+      visibility: external_exports.enum([
+        "private",
+        "workspace",
+        "public"
+      ]).nullable()
+    })).output(external_exports.object({ updated: external_exports.boolean() })),
     toggleFavorite: oc.route({
       method: "POST",
       path: "/nodes/{nodeId}/favorite",
@@ -19740,14 +21124,6 @@ var busabaseContractRoutes = {
       summary: "List the current actor's favorited nodes",
       successDescription: "The acting user's favorited nodes, newest-favorited first, filtered through the same archived/deleted/visibility rules as the main tree \u2014 a favorited node that's later archived, purged, or (cloud) hidden from this actor silently drops out rather than erroring."
     }).output(external_exports.array(nodeSchema)),
-    // Registered LAST among the `/nodes/...` GETs on purpose. `GET /nodes/search`
-    // and `GET /nodes/favorites` are literal paths that now share a prefix with
-    // this template. The oRPC OpenAPI matcher is a rou3 radix trie, which
-    // prefers a static segment over a param segment independently of insertion
-    // order — but keeping the literals declared first means the source order
-    // matches the resolution order, so nobody has to know that to read this
-    // file. `tests/openapi-node-routes.test.ts` proves the literals still win
-    // against a real handler rather than resolving as `nodeId: "search"`.
     get: oc.route({
       method: "GET",
       path: "/nodes/{nodeId}",
@@ -19769,35 +21145,43 @@ var busabaseContractRoutes = {
         tags: ["Nodes", "Permissions"],
         summary: "Grant (or update) a principal's access level on a node",
         successDescription: "Upserted one direct grant (same principal twice updates its level) and re-materialized inherited copies down the subtree. Requires `manage` level on the node."
-      }).input(
-        external_exports.object({
-          nodeId: external_exports.string(),
-          principalType: external_exports.enum(["user", "space"]),
-          principalId: external_exports.string().min(1),
-          role: external_exports.enum(["read", "changeRequest", "write", "manage"])
-        })
-      ).output(external_exports.object({ granted: external_exports.boolean() })),
+      }).input(external_exports.object({
+        nodeId: external_exports.string(),
+        principalType: external_exports.enum(["user", "space"]),
+        principalId: external_exports.string().min(1),
+        role: external_exports.enum([
+          "read",
+          "changeRequest",
+          "write",
+          "manage"
+        ])
+      })).output(external_exports.object({ granted: external_exports.boolean() })),
       remove: oc.route({
         method: "DELETE",
         path: "/nodes/{nodeId}/principals",
         tags: ["Nodes", "Permissions"],
         summary: "Revoke a principal's access grant on a node",
         successDescription: "Removed the direct grant (and its materialized inherited copies). Requires `manage` level on the node."
-      }).input(
-        external_exports.object({
-          nodeId: external_exports.string(),
-          principalType: external_exports.enum(["user", "space"]),
-          principalId: external_exports.string().min(1)
-        })
-      ).output(external_exports.object({ removed: external_exports.boolean() }))
+      }).input(external_exports.object({
+        nodeId: external_exports.string(),
+        principalType: external_exports.enum(["user", "space"]),
+        principalId: external_exports.string().min(1)
+      })).output(external_exports.object({ removed: external_exports.boolean() }))
     },
     share: {
+      list: oc.route({
+        method: "GET",
+        path: "/node-shares",
+        tags: ["Nodes", "Sharing"],
+        summary: "List every node in the space carrying its own live public share",
+        successDescription: 'One row per node that someone explicitly published and that is still live \u2014 `scope: "public"` and unexpired \u2014 joined to just enough of the node (name, slug, type, icon) to render and open it. Rows the caller cannot see are omitted (same node-visibility ACL as `nodes.list`), and the stored share password is never returned, only a `hasPassword` flag. Deliberately does NOT include nodes that are merely reachable because an ANCESTOR is shared: this is the list of grants a person made, each revocable on its own with `nodes.share.disable`, which is the same set the workbench sidebar marks with a globe (`NodeVO.shared`).'
+      }).output(external_exports.array(sharedNodeSchema)),
       get: oc.route({
         method: "GET",
         path: "/nodes/{nodeId}/share",
         tags: ["Nodes", "Sharing"],
         summary: "Read a node's public link-sharing settings",
-        successDescription: "The node's public-share settings, or null when the node was never shared. The stored password is never returned \u2014 only a `hasPassword` flag."
+        successDescription: "The node's public-share settings, or null when the node was never shared. The stored password is never returned \u2014 only a `hasPassword` flag. No URL is returned: the shared node keeps its own canonical address, and only the caller knows which origin its reader should use (see `nodeWebUrl` in busabase-sdk)."
       }).input(external_exports.object({ nodeId: external_exports.string() })).output(nodeShareSchema.nullable()),
       set: oc.route({
         method: "POST",
@@ -19805,22 +21189,36 @@ var busabaseContractRoutes = {
         tags: ["Nodes", "Sharing"],
         summary: "Enable or update a node's public link sharing",
         successDescription: "Turned public sharing on (or updated its capability/password/expiry) and re-materialized the effective public scope down the subtree. Requires `manage` level on the node."
-      }).input(
-        external_exports.object({
-          nodeId: external_exports.string(),
-          scope: external_exports.enum(["none", "public"]),
-          capability: external_exports.enum(["read", "submit"]).optional(),
-          password: external_exports.string().nullable().optional(),
-          expiresAt: external_exports.string().datetime().nullable().optional()
-        })
-      ).output(nodeShareSchema.nullable()),
+      }).input(external_exports.object({
+        nodeId: external_exports.string(),
+        scope: external_exports.enum(["none", "public"]),
+        capability: external_exports.enum(["read", "submit"]).optional(),
+        password: external_exports.string().nullable().optional(),
+        expiresAt: external_exports.string().datetime().nullable().optional()
+      })).output(nodeShareSchema.nullable()),
       disable: oc.route({
         method: "DELETE",
         path: "/nodes/{nodeId}/share",
         tags: ["Nodes", "Sharing"],
         summary: "Revoke a node's public link sharing",
-        successDescription: "Flipped the share scope to none in place (the link is kept so re-enabling produces the same URL). Requires `manage` level on the node."
+        successDescription: "Flipped the share scope to none in place, keeping the row, so re-enabling reopens the node's same canonical address rather than minting a new one. Requires `manage` level on the node."
       }).input(external_exports.object({ nodeId: external_exports.string() })).output(nodeShareSchema.nullable())
+    },
+    icon: {
+      createUploadUrl: oc.route({
+        method: "POST",
+        path: "/nodes/icon/upload-urls",
+        tags: ["Nodes"],
+        summary: "Request a node-icon upload URL",
+        successDescription: "Presigned (or dev) upload URL plus the public URL, scoped to this node's own dedup namespace so it can never resolve onto (or be deleted alongside) a Drive Asset's attachment row."
+      }).input(NodeIconUploadUrlInputSchema).output(RequestUploadUrlVOSchema),
+      confirm: oc.route({
+        method: "POST",
+        path: "/nodes/icon/confirmations",
+        tags: ["Nodes"],
+        summary: "Confirm a node-icon upload",
+        successDescription: "Recorded the uploaded file as an attachment for this node's icon."
+      }).input(NodeIconConfirmInputSchema).output(ConfirmUploadVOSchema)
     }
   },
   auditEvents: {
@@ -19846,7 +21244,21 @@ var busabaseContractRoutes = {
       tags: ["Activity"],
       summary: "List the activity feed with keyset pagination",
       successDescription: "A page of activity items (change requests, operations, records and audit events merged, newest first) plus an opaque nextCursor (null at the end)."
-    }).input(listActivityPagedInputSchema).output(listActivityResponseSchema)
+    }).input(listActivityPagedInputSchema).output(listActivityResponseSchema),
+    listForNode: oc.route({
+      method: "GET",
+      path: "/activity/node",
+      tags: ["Activity"],
+      summary: "List a single node's raw activity stream",
+      successDescription: "A flat, newest-first list of the node's own change requests, operations and (Base only) audit events \u2014 no version-number aggregation."
+    }).input(listNodeActivityInputSchema).output(external_exports.array(activityItemSchema)),
+    listForRecord: oc.route({
+      method: "GET",
+      path: "/activity/record",
+      tags: ["Activity"],
+      summary: "List a single record's raw activity stream",
+      successDescription: "A flat, newest-first list of the record's own operations and audit events \u2014 no version-number aggregation."
+    }).input(listRecordActivityInputSchema).output(external_exports.array(activityItemSchema))
   },
   comments: {
     list: oc.route({
@@ -19862,35 +21274,55 @@ var busabaseContractRoutes = {
       tags: ["Comments"],
       summary: "Create comment",
       successDescription: "Created comment attached to a Busabase subject."
-    }).input(createCommentInputSchema).output(commentSchema)
-  },
-  agent: {
-    listTasks: oc.route({
+    }).input(createCommentInputSchema).output(commentSchema),
+    /**
+    * The Inbox's Mentions tab: comments this caller was `@`-mentioned in.
+    *
+    * Scoped to the caller — there is no "whose mentions" input, because a
+    * mention inbox that could be pointed at somebody else would be a way to
+    * read comments across the workspace by proxy.
+    */
+    listMentions: oc.route({
       method: "GET",
-      path: "/agent/tasks",
-      tags: ["Agent"],
-      summary: "List agent revision tasks",
-      successDescription: "Change requests awaiting an external agent (request-changes or @ai mentions)."
-    }).output(external_exports.array(agentTaskSchema))
+      path: "/comments/mentions",
+      tags: ["Comments"],
+      summary: "List comments that mention me",
+      successDescription: "One entry per comment the caller is mentioned in, newest first, with the unread count for the tab badge."
+    }).input(listMentionInboxInputSchema).output(mentionInboxPageSchema),
+    markMentionsRead: oc.route({
+      method: "POST",
+      path: "/comments/mentions/read",
+      tags: ["Comments"],
+      summary: "Mark my mentions on a comment as read",
+      successDescription: "Stamps every unread mention this caller has on that comment, and returns the remaining unread count."
+    }).input(markMentionsReadInputSchema).output(markMentionsReadOutputSchema)
   },
-  live: {
-    // RPC-only by design: no `.route(...)`, so OpenAPI generation and MCP tool
-    // discovery skip this long-lived Event Iterator while `/api/rpc` stays typed.
-    // (MCP discovery only skips it because `discoverOpenApiTools` now requires a
-    // route with a method or path — omitting `.route()` still leaves `route: {}`,
-    // which is truthy, and that used to publish this as a callable REST tool.)
-    subscribe: oc.output(eventIterator(liveEventSchema))
+  agent: { listTasks: oc.route({
+    method: "GET",
+    path: "/agent/tasks",
+    tags: ["Agent"],
+    summary: "List agent revision tasks",
+    successDescription: "Change requests awaiting an external agent (request-changes or @ai mentions)."
+  }).output(external_exports.array(agentTaskSchema)) },
+  spaces: {
+    /**
+    * The member roster of the space this request is scoped to — the people a
+    * `member` field's picker may offer.
+    *
+    * RPC-only by design (no `.route(...)`). A procedure WITH a path is
+    * published into `/api/v1` and into every agent's MCP tool catalog; a
+    * workspace member directory belongs in neither. Resolution is delegated to
+    * the host (`BusabaseContext.listMembers`), because membership lives in the
+    * host, not in this engine.
+    */
+    members: oc.output(external_exports.array(userRefSchema))
   },
+  live: { subscribe: oc.output(eventIterator(liveEventSchema)) },
   bases: baseContract,
-  // Skills, Drives, and AirApps share one transport surface — they differ only
-  // in seed files and entry file, which is a server-side config concern.
   fileTrees: fileTreeContract,
   airapps: airappRuntimeContract,
   files: fileContract,
   docs: docContract,
-  // No `folders` key: the Folder domain's only two operations were `GET /folders`
-  // and `GET /folders/{nodeId}`, both now served by the unified Node surface
-  // (`nodes.list({ types: ["folder"] })` / `nodes.get`).
   forms: formContract,
   assets: assetsContract,
   vault: vaultContract,
@@ -19898,26 +21330,24 @@ var busabaseContractRoutes = {
   webhooks: webhookContract,
   dump: dumpContract,
   install: installContract,
+  templates: templatesContract,
+  guides: guidesContract,
   changeRequests: {
-    // Always keyset-paginated — the unpaginated twin returned a bare array that
-    // silently truncated at `limit` with no way to ask for the next page.
     list: oc.route({
       method: "GET",
       path: "/change-requests",
       tags: ["Change Requests"],
       summary: "List change requests",
-      successDescription: "A page of change requests plus an opaque nextCursor (null at the end). Filter with `status` and/or `mine`."
+      successDescription: "A page of change requests plus an opaque nextCursor (null at the end). Filter with `status`, `mine`, and/or `affectsNodeId`."
     }).input(listChangeRequestsPagedInputSchema).output(listChangeRequestsResponseSchema),
-    // Numbered paging alongside the cursor listing, mirroring records.listPage.
-    // Keyset is right for "keep scrolling"; a reviewer working a 2,000-item tab
-    // needs to jump to page 30 and to see how many pages there are at all.
     listPage: oc.route({
       method: "GET",
       path: "/change-requests/page",
       tags: ["Change Requests"],
       summary: "List a numbered change request page",
-      successDescription: "A random-access page of change requests plus the total across the whole filter. Same `status` / `mine` filters as the cursor listing."
+      successDescription: "A random-access page of change requests plus the total across the whole filter. Same `status`, `mine`, and `affectsNodeId` filters as the cursor listing."
     }).input(listChangeRequestsPageInputSchema).output(listChangeRequestsPageResponseSchema),
+    inboxSnapshot: oc.input(inboxSnapshotInputSchema).output(inboxSnapshotResponseSchema),
     counts: oc.route({
       method: "GET",
       path: "/change-requests/counts",
@@ -19938,18 +21368,17 @@ var busabaseContractRoutes = {
       tags: ["Change Requests"],
       summary: "Review change requests",
       successDescription: "Per-change-request review results (failures isolated \u2014 one bad id does not abort the rest)."
-    }).input(
-      reviewChangeRequestInputSchema.extend({
-        changeRequestIds: external_exports.array(external_exports.string()).min(1).max(100)
-      })
-    ).output(changeRequestReviewBatchResultSchema),
+    }).input(reviewChangeRequestInputSchema.extend({ changeRequestIds: external_exports.array(external_exports.string()).min(1).max(100) })).output(changeRequestReviewBatchResultSchema),
     close: oc.route({
       method: "POST",
       path: "/change-requests/{changeRequestId}/close",
       tags: ["Change Requests"],
       summary: "Close change request",
       successDescription: "Closed change request (terminal \u2014 distinct from request changes)."
-    }).input(external_exports.object({ changeRequestId: external_exports.string(), reason: external_exports.string().optional() })).output(changeRequestSchema),
+    }).input(external_exports.object({
+      changeRequestId: external_exports.string(),
+      reason: external_exports.string().optional()
+    })).output(changeRequestSchema),
     merge: oc.route({
       method: "POST",
       path: "/change-requests/merge",
@@ -19958,100 +21387,18 @@ var busabaseContractRoutes = {
       successDescription: "Per-change-request merge results (each merged in its own transaction; failures isolated)."
     }).input(external_exports.object({ changeRequestIds: external_exports.array(external_exports.string()).min(1).max(100) })).output(changeRequestMergeBatchResultSchema)
   },
-  operations: {
-    revise: oc.route({
-      method: "POST",
-      path: "/operations/{operationId}/revisions",
-      tags: ["Operations", "Change Requests"],
-      summary: "Revise operation",
-      successDescription: "Appended a new commit to the operation and moved the operation head."
-    }).input(reviseOperationInputSchema.extend({ operationId: external_exports.string() })).output(changeRequestSchema)
-  },
+  operations: { revise: oc.route({
+    method: "POST",
+    path: "/operations/{operationId}/revisions",
+    tags: ["Operations", "Change Requests"],
+    summary: "Revise operation",
+    successDescription: "Appended a new commit to the operation and moved the operation head."
+  }).input(reviseOperationInputSchema.extend({ operationId: external_exports.string() })).output(changeRequestSchema) },
   records: recordContract,
   views: viewContract
 };
 oc.prefix("/api/v1").router(busabaseContractRoutes);
-var EMBED_LINK_DEFAULT_MINUTES = 15;
-var EMBED_LINK_MAX_MINUTES = 24 * 60;
-var EmbedNodeTypeSchema = external_exports.enum([
-  "base",
-  "doc",
-  "file",
-  "drive",
-  "skill",
-  "folder",
-  "airapp"
-]);
-var EmbedFrameModeSchema = external_exports.enum(["anywhere", "origins", "top-level-only"]);
-var EmbedAllowedOriginSchema = external_exports.string().trim().min(1).superRefine((value2, ctx) => {
-  let url2;
-  try {
-    url2 = new URL(value2);
-  } catch {
-    ctx.addIssue({ code: "custom", message: "Allowed origins must be valid URLs" });
-    return;
-  }
-  const isLocalHttp = url2.protocol === "http:" && (url2.hostname === "localhost" || url2.hostname === "127.0.0.1" || url2.hostname === "[::1]");
-  if (url2.protocol !== "https:" && !isLocalHttp) {
-    ctx.addIssue({ code: "custom", message: "Allowed origins must use HTTPS" });
-  }
-  if (url2.username || url2.password || url2.pathname !== "/" || url2.search || url2.hash || url2.hostname.includes("*")) {
-    ctx.addIssue({ code: "custom", message: "Allowed origins must be exact origins" });
-  }
-}).transform((value2) => new URL(value2).origin);
-var EmbedFramePolicyInputSchema = external_exports.discriminatedUnion("mode", [
-  external_exports.object({
-    mode: external_exports.literal("anywhere"),
-    allowedOrigins: external_exports.array(EmbedAllowedOriginSchema).max(0).optional()
-  }),
-  external_exports.object({
-    mode: external_exports.literal("origins"),
-    allowedOrigins: external_exports.array(EmbedAllowedOriginSchema).min(1).max(20)
-  }),
-  external_exports.object({
-    mode: external_exports.literal("top-level-only"),
-    allowedOrigins: external_exports.array(EmbedAllowedOriginSchema).max(0).optional()
-  })
-]).transform((policy) => ({
-  mode: policy.mode,
-  allowedOrigins: [...new Set(policy.allowedOrigins ?? [])]
-}));
-var EmbedFramePolicyVOSchema = external_exports.object({
-  mode: EmbedFrameModeSchema,
-  allowedOrigins: external_exports.array(external_exports.string().url())
-}).superRefine((policy, ctx) => {
-  const validCount = policy.mode === "origins" ? policy.allowedOrigins.length > 0 : policy.allowedOrigins.length === 0;
-  if (!validCount) ctx.addIssue({ code: "custom", message: "Stored frame policy is invalid" });
-});
-var CreateEmbedLinkInputSchema = external_exports.object({
-  nodeId: external_exports.string().min(1),
-  expiresInMinutes: external_exports.number().int().min(1).max(EMBED_LINK_MAX_MINUTES).optional().default(EMBED_LINK_DEFAULT_MINUTES),
-  framePolicy: EmbedFramePolicyInputSchema.optional().default({
-    mode: "anywhere",
-    allowedOrigins: []
-  })
-});
-var ListEmbedLinksInputSchema = external_exports.object({ nodeId: external_exports.string().min(1).optional() }).optional().default({});
-var RevokeEmbedLinkInputSchema = external_exports.object({ id: external_exports.string().min(1) });
-var EmbedLinkVOSchema = external_exports.object({
-  id: external_exports.string(),
-  nodeId: external_exports.string(),
-  nodeName: external_exports.string(),
-  nodeType: EmbedNodeTypeSchema,
-  createdAt: external_exports.string().datetime(),
-  expiresAt: external_exports.string().datetime(),
-  revokedAt: external_exports.string().datetime().nullable(),
-  active: external_exports.boolean(),
-  framePolicy: EmbedFramePolicyVOSchema
-});
-var CreatedEmbedLinkVOSchema = EmbedLinkVOSchema.extend({
-  url: external_exports.string().url(),
-  iframeUrl: external_exports.string().url()
-});
-var RevokeEmbedLinkVOSchema = external_exports.object({ revoked: external_exports.literal(true) });
-var ErrorResponseSchema = external_exports.object({
-  error: external_exports.string()
-});
+var ErrorResponseSchema = external_exports.object({ error: external_exports.string() });
 var HealthResponseSchema = external_exports.object({
   status: external_exports.string(),
   timestamp: external_exports.string()
@@ -20085,34 +21432,18 @@ var AgentTaskListItemSchema = external_exports.object({
   createdAt: external_exports.string(),
   completedAt: external_exports.string().nullable()
 });
-var AgentTaskDetailSchema = AgentTaskListItemSchema.extend({
-  result: external_exports.string().nullable()
-});
-var authenticatedErrors = {
-  UNAUTHORIZED: {
-    status: 401,
-    message: "Unauthorized",
-    data: ErrorResponseSchema
-  }
-};
-var notFoundErrors = {
-  NOT_FOUND: {
-    status: 404,
-    message: "Not Found",
-    data: ErrorResponseSchema
-  }
-};
-var embedLinksErrors = {
-  BAD_REQUEST: { status: 400, message: "Bad Request", data: ErrorResponseSchema },
-  ...authenticatedErrors,
-  FORBIDDEN: { status: 403, message: "Forbidden", data: ErrorResponseSchema },
-  ...notFoundErrors
-};
-var securedRoute = (operation) => ({
-  ...operation,
-  security: [{ bearerAuth: [] }]
-});
-var { vault: _localVault, ...cloudWorkbenchRoutes } = busabaseContractRoutes;
+var AgentTaskDetailSchema = AgentTaskListItemSchema.extend({ result: external_exports.string().nullable() });
+var authenticatedErrors = { UNAUTHORIZED: {
+  status: 401,
+  message: "Unauthorized",
+  data: ErrorResponseSchema
+} };
+var notFoundErrors = { NOT_FOUND: {
+  status: 404,
+  message: "Not Found",
+  data: ErrorResponseSchema
+} };
+var { embedLinks: _embedLinksAlreadyPublishedAtRoot, vault: _localVault, ...cloudWorkbenchRoutes } = busabaseContractRoutes;
 var cloudExtraRoutes = {
   system: {
     health: oc.route({
@@ -20130,19 +21461,17 @@ var cloudExtraRoutes = {
       successDescription: "Service metadata"
     }).output(MetaResponseSchema)
   },
-  users: {
-    me: oc.route({
-      method: "GET",
-      path: "/users/me",
-      tags: ["Users"],
-      summary: "Get authenticated user",
-      successDescription: "Authenticated user information",
-      spec: (operation) => ({
-        ...operation,
-        security: [{ bearerAuth: [] }]
-      })
-    }).errors(authenticatedErrors).output(UserMeResponseSchema)
-  },
+  users: { me: oc.route({
+    method: "GET",
+    path: "/users/me",
+    tags: ["Users"],
+    summary: "Get authenticated user",
+    successDescription: "Authenticated user information",
+    spec: (operation) => ({
+      ...operation,
+      security: [{ bearerAuth: [] }]
+    })
+  }).errors(authenticatedErrors).output(UserMeResponseSchema) },
   agentTasks: {
     list: oc.route({
       method: "GET",
@@ -20155,20 +21484,14 @@ var cloudExtraRoutes = {
         ...operation,
         security: [{ bearerAuth: [] }]
       })
-    }).errors(authenticatedErrors).input(
-      external_exports.object({
-        query: external_exports.object({
-          limit: external_exports.string().optional(),
-          offset: external_exports.string().optional(),
-          status: AgentTaskStatusSchema.optional()
-        })
-      })
-    ).output(
-      external_exports.object({
-        tasks: external_exports.array(AgentTaskListItemSchema),
-        total: external_exports.number()
-      })
-    ),
+    }).errors(authenticatedErrors).input(external_exports.object({ query: external_exports.object({
+      limit: external_exports.string().optional(),
+      offset: external_exports.string().optional(),
+      status: AgentTaskStatusSchema.optional()
+    }) })).output(external_exports.object({
+      tasks: external_exports.array(AgentTaskListItemSchema),
+      total: external_exports.number()
+    })),
     get: oc.route({
       method: "GET",
       path: "/agent-tasks/{id}",
@@ -20183,44 +21506,9 @@ var cloudExtraRoutes = {
     }).errors({
       ...authenticatedErrors,
       ...notFoundErrors
-    }).input(
-      external_exports.object({
-        params: external_exports.object({
-          id: external_exports.string()
-        })
-      })
-    ).output(AgentTaskDetailSchema)
+    }).input(external_exports.object({ params: external_exports.object({ id: external_exports.string() }) })).output(AgentTaskDetailSchema)
   },
-  // Relative-path twin of the `embedLinksContract` the Busabase Cloud host
-  // serves at the absolute `/api/v1/embed-links` paths — same schemas
-  // imported from `./embed-link-schemas`, just
-  // routed relative here so the shared `/api/v1` prefix below lands on the identical real path.
-  embedLinks: {
-    create: oc.route({
-      method: "POST",
-      path: "/embed-links",
-      tags: ["Embed Links"],
-      summary: "Create a short-lived read-only embed link for one node",
-      successDescription: "The capability URL is returned once; only its secret hash is stored.",
-      spec: securedRoute
-    }).errors(embedLinksErrors).input(CreateEmbedLinkInputSchema).output(CreatedEmbedLinkVOSchema),
-    list: oc.route({
-      method: "GET",
-      path: "/embed-links",
-      tags: ["Embed Links"],
-      summary: "List embed links the caller can manage",
-      successDescription: "Embed link metadata without capability secrets.",
-      spec: securedRoute
-    }).errors(embedLinksErrors).input(ListEmbedLinksInputSchema).output(external_exports.array(EmbedLinkVOSchema)),
-    revoke: oc.route({
-      method: "DELETE",
-      path: "/embed-links/{id}",
-      tags: ["Embed Links"],
-      summary: "Revoke an embed link",
-      successDescription: "The capability stops resolving immediately.",
-      spec: securedRoute
-    }).errors(embedLinksErrors).input(RevokeEmbedLinkInputSchema).output(RevokeEmbedLinkVOSchema)
-  }
+  embedLinks: busabaseContractRoutes.embedLinks
 };
 var cloudContract = oc.prefix("/api/v1").router({
   ...cloudWorkbenchRoutes,
@@ -20228,29 +21516,26 @@ var cloudContract = oc.prefix("/api/v1").router({
 });
 var DEFAULT_BASE_URL = "https://busabase.com";
 var env = (key) => {
-  if (typeof process === "undefined" || !process.env) {
-    return void 0;
-  }
+  if (typeof process === "undefined" || !process.env) return;
   const value2 = process.env[key];
   return value2 && value2.length > 0 ? value2 : void 0;
 };
 function resolveConfig(config2 = {}) {
+  const baseUrl = normalizeBaseUrl(config2.baseUrl ?? env("BUSABASE_BASE_URL") ?? "https://busabase.com");
   return {
-    baseUrl: normalizeBaseUrl(config2.baseUrl ?? env("BUSABASE_BASE_URL") ?? DEFAULT_BASE_URL),
+    baseUrl,
+    webUrl: normalizeBaseUrl(config2.webUrl ?? env("BUSABASE_WEB_URL") ?? baseUrl),
     apiKey: config2.apiKey ?? env("BUSABASE_API_KEY"),
     spaceId: config2.spaceId ?? env("BUSABASE_SPACE_ID"),
+    sourceChannel: config2.sourceChannel ?? "sdk",
     headers: config2.headers,
     fetch: config2.fetch
   };
 }
 var decodeBusabaseError = (deserializedBody, response) => {
-  if (!deserializedBody || typeof deserializedBody !== "object") {
-    return void 0;
-  }
+  if (!deserializedBody || typeof deserializedBody !== "object") return;
   const body = deserializedBody;
-  if (typeof body.error !== "string") {
-    return void 0;
-  }
+  if (typeof body.error !== "string") return;
   const code = typeof body.code === "string" ? body.code : `HTTP_${response.status}`;
   const issues = body.data?.issues;
   let message = body.error;
@@ -20261,7 +21546,11 @@ var decodeBusabaseError = (deserializedBody, response) => {
     }).join("; ");
     message = `${message} \u2014 ${details}`;
   }
-  return new ORPCError(code, { status: response.status, message, data: body.data });
+  return new ORPCError(code, {
+    status: response.status,
+    message,
+    data: body.data
+  });
 };
 function createBusabaseClient(config2 = {}) {
   const resolved = resolveConfig(config2);
@@ -20274,6 +21563,7 @@ function createBusabaseClient(config2 = {}) {
       return {
         ...resolved.apiKey ? { authorization: `Bearer ${resolved.apiKey}` } : {},
         ...resolved.spaceId ? { "x-busabase-space": resolved.spaceId } : {},
+        "x-busabase-channel": resolved.sourceChannel ?? "sdk",
         ...extra
       };
     }
@@ -20302,19 +21592,15 @@ var Busabase = class {
     this.config = resolveConfig(config2);
     this.client = createBusabaseClient(this.config);
   }
-  // Namespaced domain surfaces — delegate to the raw client so callers get the
-  // exact same typing as `client.<ns>` but through a single `Busabase` instance.
   get bases() {
     return this.client.bases;
   }
   get records() {
     const getByField = (input) => getRecordByField(this.client, input);
-    return new Proxy(this.client.records, {
-      get(target, property, receiver) {
-        if (property === "getByField") return getByField;
-        return Reflect.get(target, property, receiver);
-      }
-    });
+    return new Proxy(this.client.records, { get(target, property, receiver) {
+      if (property === "getByField") return getByField;
+      return Reflect.get(target, property, receiver);
+    } });
   }
   get views() {
     return this.client.views;
@@ -20333,9 +21619,7 @@ var Busabase = class {
     };
     const merge2 = async (input) => {
       if ("changeRequestIds" in input) return this.client.changeRequests.merge(input);
-      const { results } = await this.client.changeRequests.merge({
-        changeRequestIds: [input.changeRequestId]
-      });
+      const { results } = await this.client.changeRequests.merge({ changeRequestIds: [input.changeRequestId] });
       const result = results[0];
       if (!result?.ok) throw batchItemError(result);
       return {
@@ -20344,31 +21628,29 @@ var Busabase = class {
         view: result.view
       };
     };
-    return new Proxy(this.client.changeRequests, {
-      get(target, property, receiver) {
-        if (property === "review") return review;
-        if (property === "merge") return merge2;
-        return Reflect.get(target, property, receiver);
-      }
-    });
+    return new Proxy(this.client.changeRequests, { get(target, property, receiver) {
+      if (property === "review") return review;
+      if (property === "merge") return merge2;
+      return Reflect.get(target, property, receiver);
+    } });
   }
   get operations() {
     return this.client.operations;
   }
   /**
-   * The workspace node surface, and the single entry point for reading ONE node
-   * of any type: `bb.nodes.get({ nodeId })` returns a `NodeDetailVO`
-   * discriminated by `type` (`folder` carries `children`, `doc` a `body`, `file`
-   * its `asset`, `skill`/`drive`/`airapp` their `files`). It replaced the four
-   * typed gets (`docs`/`files`/`folders`/`fileTrees`), so a caller holding an id
-   * no longer has to know the node's type before it can read it.
-   *
-   * `bb.nodes.list({ types })` is the matching list: a flat array of lightweight
-   * summaries for just those types. Without `types` it still returns the full
-   * workspace tree.
-   *
-   * There is no `bb.folders` any more — folders are `type: "folder"` here.
-   */
+  * The workspace node surface, and the single entry point for reading ONE node
+  * of any type: `bb.nodes.get({ nodeId })` returns a `NodeDetailVO`
+  * discriminated by `type` (`folder` carries `children`, `doc` a `body`, `file`
+  * its `asset`, `skill`/`drive`/`airapp` their `files`). It replaced the four
+  * typed gets (`docs`/`files`/`folders`/`fileTrees`), so a caller holding an id
+  * no longer has to know the node's type before it can read it.
+  *
+  * `bb.nodes.list({ types })` is the matching list: a flat array of lightweight
+  * summaries for just those types. Without `types` it still returns the full
+  * workspace tree.
+  *
+  * There is no `bb.folders` any more — folders are `type: "folder"` here.
+  */
   get nodes() {
     return this.client.nodes;
   }
@@ -20383,42 +21665,40 @@ var Busabase = class {
   }
   get assets() {
     const filesOnlyGrep = (input) => grepAssets(this.client, input);
-    return new Proxy(this.client.assets, {
-      get(target, property, receiver) {
-        if (property === "grep") return filesOnlyGrep;
-        return Reflect.get(target, property, receiver);
-      }
-    });
+    return new Proxy(this.client.assets, { get(target, property, receiver) {
+      if (property === "grep") return filesOnlyGrep;
+      return Reflect.get(target, property, receiver);
+    } });
   }
   /**
-   * Skills, Drives, and AirApps — one surface, discriminated by `type`.
-   *
-   * Creation and per-file reads/writes live here. Listing them and reading one
-   * node's detail moved to the unified Node surface:
-   * `bb.nodes.list({ types: ["skill", "drive", "airapp"] })` and
-   * `bb.nodes.get({ nodeId, type })`.
-   */
+  * Skills, Drives, and AirApps — one surface, discriminated by `type`.
+  *
+  * Creation and per-file reads/writes live here. Listing them and reading one
+  * node's detail moved to the unified Node surface:
+  * `bb.nodes.list({ types: ["skill", "drive", "airapp"] })` and
+  * `bb.nodes.get({ nodeId, type })`.
+  */
   get fileTrees() {
     return this.client.fileTrees;
   }
   /**
-   * File nodes. `create` only — list with `bb.nodes.list({ types: ["file"] })`
-   * and read one (backing Asset included) with `bb.nodes.get({ nodeId })`.
-   */
+  * File nodes. `create` only — list with `bb.nodes.list({ types: ["file"] })`
+  * and read one (backing Asset included) with `bb.nodes.get({ nodeId })`.
+  */
   get files() {
     return this.client.files;
   }
   /**
-   * Docs. Create / read a line range / update the body / open a Change Request.
-   * List with `bb.nodes.list({ types: ["doc"] })` and read one (body included)
-   * with `bb.nodes.get({ nodeId })`.
-   *
-   * There is deliberately no `bb.docs.list()` shim. The retired `GET /docs`
-   * returned every Doc *with its body*; the one-call replacement returns
-   * lightweight summaries, and the only way to keep the old shape would be a
-   * detail request per Doc. An SDK convenience that quietly turns one call into
-   * N is worse than a compile error that points at `bb.nodes`.
-   */
+  * Docs. Create / read a line range / update the body / open a Change Request.
+  * List with `bb.nodes.list({ types: ["doc"] })` and read one (body included)
+  * with `bb.nodes.get({ nodeId })`.
+  *
+  * There is deliberately no `bb.docs.list()` shim. The retired `GET /docs`
+  * returned every Doc *with its body*; the one-call replacement returns
+  * lightweight summaries, and the only way to keep the old shape would be a
+  * detail request per Doc. An SDK convenience that quietly turns one call into
+  * N is worse than a compile error that points at `bb.nodes`.
+  */
   get docs() {
     return this.client.docs;
   }
@@ -20431,55 +21711,107 @@ var Busabase = class {
   get embedLinks() {
     return this.client.embedLinks;
   }
+  /**
+  * The canonical dashboard URL a human opens for a node — the link you hand
+  * back after a write.
+  *
+  * Uses `config.webUrl` (which defaults to `baseUrl`) and `config.spaceId`.
+  * Pass `spaceId: null` for a workspace-subdomain host, where the route drops
+  * the space segment.
+  *
+  * This is the *authenticated*, durable link: it never expires, but the reader
+  * needs a session unless the node has public sharing enabled. For a no-login
+  * link, mint a Cloud embed link instead —
+  * `bb.embedLinks.create({ type: "node", typeId: nodeId })` returns `{ url, iframeUrl }`.
+  *
+  * @example
+  * ```ts
+  * const doc = await bb.docs.create({ ... });
+  * bb.nodeUrl({ nodeType: "doc", nodeSlug: doc.slug });
+  * // → https://busabase.com/dashboard/org_123/doc/q3-pricing
+  * ```
+  */
+  nodeUrl(input) {
+    const spaceId = input.spaceId === void 0 ? this.config.spaceId ?? null : input.spaceId;
+    return nodeWebUrl({
+      webOrigin: this.config.webUrl,
+      spaceId,
+      nodeType: input.nodeType,
+      nodeSlug: input.nodeSlug,
+      ...input.extraSegments ? { extraSegments: input.extraSegments } : {}
+    });
+  }
   /** Full-text search across records, change requests, and Bases. */
   search(input) {
     return this.client.search(input);
   }
   /**
-   * Unified grep — one regex/literal pattern scanned across every in-scope
-   * source (Drive/Skill files, Doc bodies, and Base records — records read
-   * the canonical `headCommit.payload`, never the truncated search
-   * projection), with a shared `maxMatches`/deadline budget and per-source
-   * honest coverage. `bb.assets.grep` remains available as a files-only SDK
-   * convenience and delegates here with `sources: ["files"]`.
-   */
+  * Unified grep — one regex/literal pattern scanned across every in-scope
+  * source (Drive/Skill files, Doc bodies, and Base records — records read
+  * the canonical `headCommit.payload`, never the truncated search
+  * projection), with a shared `maxMatches`/deadline budget and per-source
+  * honest coverage. `bb.assets.grep` remains available as a files-only SDK
+  * convenience and delegates here with `sources: ["files"]`.
+  */
   grep(input) {
     return this.client.grep(input);
   }
   /**
-   * Supply text for an Asset's Drive Grep Retrieval text slot in one call —
-   * inline for small text, a presigned upload for large text — so callers
-   * never see the underlying three-step flow
-   * (`createTextUploadUrl` → PUT bytes → `putText({ storageKey })`).
-   *
-   * @example
-   * ```ts
-   * await bb.putText(assetId, extractedText); // picks inline vs presigned by size
-   * ```
-   */
+  * Supply text for an Asset's Drive Grep Retrieval text slot in one call —
+  * inline for small text, a presigned upload for large text — so callers
+  * never see the underlying three-step flow
+  * (`createTextUploadUrl` → PUT bytes → `putText({ storageKey })`).
+  *
+  * @example
+  * ```ts
+  * await bb.putText(assetId, extractedText); // picks inline vs presigned by size
+  * ```
+  */
   async putText(assetId, text) {
-    const INLINE_TEXT_MAX_BYTES = 1024 * 1024;
+    const INLINE_TEXT_MAX_BYTES = 1048576;
     const byteLength = typeof Buffer !== "undefined" ? Buffer.byteLength(text, "utf8") : new Blob([text]).size;
-    if (byteLength <= INLINE_TEXT_MAX_BYTES) {
-      return this.client.assets.putText({ assetId, text });
-    }
+    if (byteLength <= INLINE_TEXT_MAX_BYTES) return this.client.assets.putText({
+      assetId,
+      text
+    });
     const upload = await this.client.assets.createTextUploadUrl({
       assetId,
       sizeBytes: byteLength
     });
-    const doFetch = this.config.fetch ?? fetch;
-    const response = await doFetch(upload.uploadUrl, {
+    const response = await (this.config.fetch ?? fetch)(upload.uploadUrl, {
       method: "PUT",
       headers: { "content-type": "text/plain; charset=utf-8" },
       body: text
     });
     if (!response.ok) {
       const detail = await response.text().catch(() => "");
-      throw new Error(
-        `putText: presigned upload failed (${response.status} ${response.statusText})${detail ? `: ${detail}` : ""}`
-      );
+      throw new Error(`putText: presigned upload failed (${response.status} ${response.statusText})${detail ? `: ${detail}` : ""}`);
     }
-    return this.client.assets.putText({ assetId, storageKey: upload.storageKey });
+    return this.client.assets.putText({
+      assetId,
+      storageKey: upload.storageKey
+    });
+  }
+  /**
+  * Put a file into this Space's Asset library in one call, and get back every
+  * id the rest of the SDK asks for: `assetId` for a file-tree entry,
+  * `attachmentId` for a record's attachment cell, `url` to embed in Markdown.
+  *
+  * Hides the three-step flow (`assets.createUploadUrl` → PUT →
+  * `assets.confirm`) and its dedup short-circuit, the same way `putText`
+  * does for text slots.
+  *
+  * @example
+  * ```ts
+  * const shot = await bb.uploadAsset(png, {
+  *   fileName: "user-journey.png",
+  *   mimeType: "image/png",
+  * });
+  * body += `![user journey](${shot.url})`;
+  * ```
+  */
+  uploadAsset(bytes, options) {
+    return uploadAsset(this.client, bytes, options, this.config.fetch ?? fetch);
   }
   /** Service health — reaches the server without requiring auth. */
   health() {
@@ -20498,8 +21830,11 @@ export {
   createBusabaseClient,
   getRecordByField,
   grepAssets,
+  hashBytes,
+  nodeWebUrl,
   normalizeBaseUrl,
   resolveConfig,
   toFilesOnlyGrepResult,
-  toUnifiedFilesGrepInput
+  toUnifiedFilesGrepInput,
+  uploadAsset
 };

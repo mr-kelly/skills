@@ -228,6 +228,7 @@ export function computeQuestionFromRow({
   status = "needs_review",
   difficulty = "medium",
   photo_label = "",
+  original_image = [],
   prompt_text = "",
   student_answer = "",
   correct_answer = "",
@@ -249,6 +250,18 @@ export function computeQuestionFromRow({
     status,
     difficulty,
     photo_label,
+    original_image: Array.isArray(original_image)
+      ? original_image
+      : typeof original_image === "string"
+        ? (() => {
+            try {
+              const parsed = JSON.parse(original_image);
+              return Array.isArray(parsed) ? parsed : [];
+            } catch {
+              return [];
+            }
+          })()
+        : [],
     prompt_text,
     student_answer,
     correct_answer,
@@ -325,6 +338,109 @@ export function computePaperFromRow({
     items: parseJsonArray(items),
     analysis: { ...emptyPaperAnalysis(), ...parseJsonObject(analysis) },
   };
+}
+
+// ── Practice runner ────────────────────────────────────────────────────────
+//
+// A paper's `items` has always been a free JSON array, so a gradeable item is
+// an object rather than a schema change: `{ prompt, answer, hint, topic }`.
+// Legacy string items still parse — they just cannot be graded, and the
+// runner says so instead of inventing an answer to mark against.
+
+export function normalizePaperItem(item, index) {
+  const ref = index + 1;
+  if (typeof item === "string") return { ref, prompt: item, answer: "", hint: "", topic: "" };
+  if (!item || typeof item !== "object") return { ref, prompt: "", answer: "", hint: "", topic: "" };
+  return {
+    ref,
+    prompt: String(item.prompt ?? ""),
+    answer: String(item.answer ?? ""),
+    hint: String(item.hint ?? ""),
+    topic: String(item.topic ?? ""),
+    ...(typeof item.explanation === "string" ? { explanation: item.explanation } : {}),
+    ...(typeof item.parent_answer === "string" ? { parent_answer: item.parent_answer } : {}),
+    ...(normalizePracticeDiagram(item.diagram) ? { diagram: normalizePracticeDiagram(item.diagram) } : {}),
+  };
+}
+
+export function paperItems(paper) {
+  return (paper?.items || []).map(normalizePaperItem);
+}
+
+// One gradeable item is enough to run. A mixed paper legitimately carries
+// open-response items (「读一篇短文，说说中心意思」has no answer key), and
+// refusing the whole paper because of them would be wrong — those items are
+// collected and marked `ungraded` for a person to read, never auto-marked.
+export function isGradeable(paper) {
+  return paperItems(paper).some((item) => item.answer !== "");
+}
+
+/**
+ * Deterministic, explainable marking. It has to be explainable because a
+ * child is told they got it wrong: full-width digits and punctuation, spaces,
+ * a trailing period, and letter case are noise a grade-4 answer sheet should
+ * never fail on; everything else is a real difference and is marked wrong
+ * rather than guessed at. No model call, no fuzzy match.
+ */
+export function normalizeAnswer(value = "") {
+  return String(value)
+    .normalize("NFKC")
+    .replace(/[\s\u3000]/g, "")
+    .replace(/[。．.]$/, "")
+    .toLowerCase();
+}
+
+export function gradeAnswer(given, expected) {
+  if (!expected) return "ungraded";
+  return normalizeAnswer(given) === normalizeAnswer(expected) ? "correct" : "wrong";
+}
+
+/**
+ * The attempt record, written onto the paper's OWN row.
+ *
+ * `papers` is documented as "one row per practice paper plan **or completed-
+ * paper analysis**", and `analysis` already carries `wrong_count`. So a
+ * finished run is an update to a row that already exists — it needs no new
+ * Base, no create procedure, and no widening of what the AirApp may write.
+ *
+ * Only mechanically true fields are computed here. `strengths`, `review_plan`
+ * and `deep_notes` stay empty: they are judgements about a child's learning,
+ * and this skill's contract is that the agent writes those and a parent
+ * approves them. A runner that auto-filled them would be inventing analysis.
+ */
+export function buildPaperAttempt(paper, answers = {}, hintsUsed = {}, now = new Date().toISOString(), history = {}) {
+  const items = paperItems(paper);
+  const results = items.map((item) => {
+    const given = String(answers[item.ref] ?? "");
+    return {
+      ref: item.ref,
+      prompt: item.prompt,
+      topic: item.topic,
+      given,
+      expected: item.answer,
+      outcome: gradeAnswer(given, item.answer),
+      hints_used: Number(hintsUsed[item.ref]) || 0,
+      answer_history: history[item.ref] || [],
+      first_given: history[item.ref]?.[0]?.given ?? given,
+      first_outcome: history[item.ref]?.[0]?.outcome ?? gradeAnswer(given, item.answer),
+    };
+  });
+  const answered = results.filter((result) => result.outcome !== "ungraded");
+  return {
+    attempted_at: now,
+    total: results.length,
+    // `graded` is the score's denominator, not `total`. An open-response item
+    // nobody marked is not a question the child got wrong, and "3 题里做对 2 题"
+    // for 2-right/0-wrong/1-open tells them they missed one when they did not.
+    graded: answered.length,
+    correct: answered.filter((result) => result.outcome === "correct").length,
+    wrong_count: answered.filter((result) => result.outcome === "wrong").length,
+    results,
+  };
+}
+
+export function attemptTopics(attempt, outcome = "wrong") {
+  return [...new Set((attempt?.results || []).filter((r) => r.outcome === outcome && r.topic).map((r) => r.topic))];
 }
 
 // Normalizes a Busabase `reviews` row into the structured ReviewItem shape,
@@ -518,106 +634,106 @@ export function demoSnapshot(lang = "en") {
     {
       question_id: "q-subtract-302",
       ref: 1,
-      title: L(zh, "763 - 428 with regrouping", "763 - 428 退位減法"),
-      subject: L(zh, "Math", "數學"),
-      grade: L(zh, "Grade 4", "小四"),
-      topic: L(zh, "Subtraction with regrouping", "退位減法"),
+      title: L(zh, "763 - 428 with regrouping", "763 - 428 退位减法"),
+      subject: L(zh, "Math", "数学"),
+      grade: L(zh, "Grade 4", "四年级"),
+      topic: L(zh, "Subtraction with regrouping", "退位减法"),
       source: "photo",
       status: "needs_review",
       difficulty: "medium",
-      photo_label: L(zh, "Homework photo, page 18 question 6", "作業相：第18頁第6題"),
-      prompt_text: L(zh, "Calculate 763 - 428. Show your work.", "計算 763 - 428，並列出計算過程。"),
+      photo_label: L(zh, "Homework photo, page 18 question 6", "作业照片：第 18 页第 6 题"),
+      prompt_text: L(zh, "Calculate 763 - 428. Show your work.", "计算 763 - 428，写出竖式过程。"),
       student_answer: "345",
       correct_answer: "335",
       outcome: "wrong",
       confidence: 0.92,
       created_at: "2026-07-11T07:40:00.000Z",
-      tags: [L(zh, "borrowing", "退位"), L(zh, "place value", "位值")],
+      tags: [L(zh, "borrowing", "退位"), L(zh, "place value", "数位")],
       mistake_id: "m-borrowing-01",
       explanation: {
         kid_summary: L(
           zh,
           "You were very close. The tens column needs one more check after borrowing from the hundreds.",
-          "你已經好接近。借位之後，十位要再檢查一次。",
+          "你已经很接近了。借位之后，十位要再检查一次。",
         ),
         steps: [
           L(
             zh,
             "Ones: 3 cannot take away 8, so borrow 1 ten. 13 - 8 = 5.",
-            "個位：3 不夠減 8，向十位借 1。13 - 8 = 5。",
+            "个位：3 不够减 8，向十位借 1。13 - 8 = 5。",
           ),
-          L(zh, "Tens: 6 became 5 after lending. 5 - 2 = 3.", "十位：6 借走 1 之後變成 5。5 - 2 = 3。"),
+          L(zh, "Tens: 6 became 5 after lending. 5 - 2 = 3.", "十位：6 被借走 1，变成 5。5 - 2 = 3。"),
           L(zh, "Hundreds: 7 - 4 = 3. So the answer is 335.", "百位：7 - 4 = 3。所以答案是 335。"),
         ],
         key_concept: L(
           zh,
           "Borrowing changes the next column before you subtract it.",
-          "借位會令隔離一欄先改變，再做減法。",
+          "借位会先改变旁边那一位，然后才能相减。",
         ),
-        self_check: L(zh, "Check by adding 335 + 428. It should return 763.", "用加法驗算：335 + 428 應該等於 763。"),
+        self_check: L(zh, "Check by adding 335 + 428. It should return 763.", "用加法验算：335 + 428 应该等于 763。"),
         next_hint: L(
           zh,
           "Circle the column you borrowed from so you remember it changed.",
-          "圈住借位嗰一欄，就會記得佢已經變咗。",
+          "把借过的那一位圈出来，就不会忘记它已经变了。",
         ),
       },
     },
     {
       question_id: "q-fraction-pizza",
       ref: 2,
-      title: L(zh, "Compare 3/8 and 1/2", "比較 3/8 同 1/2"),
-      subject: L(zh, "Math", "數學"),
-      grade: L(zh, "Grade 4", "小四"),
-      topic: L(zh, "Fractions", "分數"),
+      title: L(zh, "Compare 3/8 and 1/2", "比较 3/8 和 1/2"),
+      subject: L(zh, "Math", "数学"),
+      grade: L(zh, "Grade 4", "四年级"),
+      topic: L(zh, "Fractions", "分数"),
       source: "text",
       status: "approved",
       difficulty: "medium",
-      prompt_text: L(zh, "Which is greater: 3/8 or 1/2? Explain.", "3/8 同 1/2 邊個較大？解釋原因。"),
-      student_answer: L(zh, "3/8 because 3 is bigger than 1", "3/8，因為 3 比 1 大"),
+      prompt_text: L(zh, "Which is greater: 3/8 or 1/2? Explain.", "3/8 和 1/2 哪个大？说说理由。"),
+      student_answer: L(zh, "3/8 because 3 is bigger than 1", "3/8，因为 3 比 1 大"),
       correct_answer: "1/2",
       outcome: "wrong",
       confidence: 0.88,
       created_at: "2026-07-10T16:20:00.000Z",
-      tags: [L(zh, "same denominator", "同分母"), L(zh, "comparison", "比較")],
+      tags: [L(zh, "same denominator", "通分"), L(zh, "comparison", "比较")],
       mistake_id: "m-fraction-compare",
       explanation: {
         kid_summary: L(
           zh,
           "For fractions, the bottom number tells how big each piece is. We need pieces of the same size before comparing.",
-          "比較分數時，下面個數字話你知每份有幾大。要先變成同一種大小先好比較。",
+          "比分数的时候，下面的数告诉你每份有多大。要先化成一样大的份数，才好比较。",
         ),
         steps: [
-          L(zh, "Turn 1/2 into eighths: half of 8 pieces is 4 pieces.", "將 1/2 變成八份：8 份的一半是 4 份。"),
+          L(zh, "Turn 1/2 into eighths: half of 8 pieces is 4 pieces.", "把 1/2 化成八分之几：8 份的一半是 4 份。"),
           L(zh, "So 1/2 = 4/8.", "所以 1/2 = 4/8。"),
-          L(zh, "Compare 3/8 and 4/8. 4/8 is bigger.", "比較 3/8 同 4/8，4/8 較大。"),
+          L(zh, "Compare 3/8 and 4/8. 4/8 is bigger.", "比较 3/8 和 4/8，4/8 更大。"),
         ],
-        key_concept: L(zh, "Compare fractions using pieces of the same size.", "比較分數要用同一大小的份數。"),
+        key_concept: L(zh, "Compare fractions using pieces of the same size.", "比较分数要用一样大的份数。"),
         self_check: L(
           zh,
           "Draw two equal bars. Shade 3 of 8 pieces and 4 of 8 pieces.",
-          "畫兩條一樣長的條，分成 8 份，分別塗 3 份同 4 份。",
+          "画两条一样长的纸条，各分成 8 份，分别涂 3 份和 4 份。",
         ),
         next_hint: L(
           zh,
           "When denominators differ, try making them the same first.",
-          "分母唔同時，試下先變成相同分母。",
+          "分母不一样的时候，先通分再比较。",
         ),
       },
     },
     {
       question_id: "q-chinese-main-idea",
       ref: 3,
-      title: L(zh, "Find the main idea of a short passage", "找出短文中心意思"),
-      subject: L(zh, "Chinese", "中文"),
-      grade: L(zh, "Grade 4", "小四"),
-      topic: L(zh, "Reading comprehension", "閱讀理解"),
+      title: L(zh, "Find the main idea of a short passage", "找出短文的中心意思"),
+      subject: L(zh, "Chinese", "语文"),
+      grade: L(zh, "Grade 4", "四年级"),
+      topic: L(zh, "Reading comprehension", "阅读理解"),
       source: "photo",
       status: "done",
       difficulty: "easy",
-      photo_label: L(zh, "Workbook photo, reading passage", "補充練習相：閱讀短文"),
-      prompt_text: L(zh, "What is the main idea of the passage?", "這篇短文的中心思想是什麼？"),
-      student_answer: L(zh, "The child watered the plant every day.", "小朋友每天替植物澆水。"),
-      correct_answer: L(zh, "Small daily care helps living things grow.", "每天細心照顧，能幫助生命成長。"),
+      photo_label: L(zh, "Workbook photo, reading passage", "练习册照片：阅读短文"),
+      prompt_text: L(zh, "What is the main idea of the passage?", "这篇短文的中心思想是什么？"),
+      student_answer: L(zh, "The child watered the plant every day.", "小朋友每天给植物浇水。"),
+      correct_answer: L(zh, "Small daily care helps living things grow.", "每天细心照顾，能帮助生命成长。"),
       outcome: "correct",
       confidence: 0.79,
       created_at: "2026-07-09T12:00:00.000Z",
@@ -626,20 +742,68 @@ export function demoSnapshot(lang = "en") {
         kid_summary: L(
           zh,
           "Your answer found an important event. Now lift it into the bigger message.",
-          "你搵到重要事件，再提升一步講大意就更好。",
+          "你找到了重要的事情，再往上提一步说大意就更好了。",
         ),
         steps: [
-          L(zh, "Ask: what does the story want us to learn?", "問自己：故事想教我哋咩？"),
-          L(zh, "The plant grows because someone cares every day.", "植物長大，是因為有人每天照顧。"),
-          L(zh, "So the main idea is about small daily care.", "所以中心意思係每日細心照顧。"),
+          L(zh, "Ask: what does the story want us to learn?", "问问自己：这个故事想告诉我们什么？"),
+          L(zh, "The plant grows because someone cares every day.", "植物长大，是因为有人每天照顾它。"),
+          L(zh, "So the main idea is about small daily care.", "所以中心意思是每天细心照顾。"),
         ],
-        key_concept: L(zh, "Main idea is bigger than one event.", "中心思想比單一事件更大。"),
+        key_concept: L(zh, "Main idea is bigger than one event.", "中心思想比单独一件事要大。"),
         self_check: L(
           zh,
           "If your answer can cover the whole passage, it is likely a main idea.",
-          "如果答案可以概括全文，就較接近中心思想。",
+          "如果答案能概括全文，就比较接近中心思想了。",
         ),
-        next_hint: L(zh, "Use 'This passage tells us...' to begin.", "可以用「本文告訴我們……」開頭。"),
+        next_hint: L(zh, "Use 'This passage tells us...' to begin.", "可以用“这篇短文告诉我们……”开头。"),
+      },
+    },
+    {
+      // Demo data has to have teeth. Without a record that should obviously be
+      // stopped, the review queue proves nothing: every row is approvable and
+      // a demo of it shows a person clicking Approve four times. This one is
+      // the skill's own Safety Default made visible — "never present uncertain
+      // OCR/vision as certain" — and it is the row a parent has to refuse.
+      // confidence 0.41 against 0.92/0.88/0.79 on the rest is the tell.
+      question_id: "q-area-blurred",
+      ref: 4,
+      title: L(zh, "Area of a rectangle (photo unclear)", "长方形面积（照片没拍清）"),
+      subject: L(zh, "Math", "数学"),
+      grade: L(zh, "Grade 4", "四年级"),
+      topic: L(zh, "Area", "面积"),
+      source: "photo",
+      status: "needs_review",
+      difficulty: "medium",
+      photo_label: L(
+        zh,
+        "Homework photo, page 24 question 3; one side length is covered by a finger",
+        "作业照片：第 24 页第 3 题，有一条边被手指挡住",
+      ),
+      prompt_text: L(
+        zh,
+        "A rectangle is 12 cm long and ? cm wide. Find its area.",
+        "一个长方形，长 12 厘米，宽 ? 厘米，求它的面积。",
+      ),
+      student_answer: "96",
+      correct_answer: "",
+      outcome: "uncertain",
+      confidence: 0.41,
+      created_at: "2026-07-11T08:55:00.000Z",
+      tags: [L(zh, "unclear photo", "照片不清"), L(zh, "area", "面积")],
+      explanation: {
+        kid_summary: L(
+          zh,
+          "I read the width as 8 cm, so 12 x 8 = 96. That matches your answer.",
+          "我把宽读成了 8 厘米，所以 12 × 8 = 96，和你写的一样。",
+        ),
+        steps: [
+          L(zh, "Area of a rectangle = length x width.", "长方形面积 = 长 × 宽。"),
+          L(zh, "Length is 12 cm, width is 8 cm.", "长是 12 厘米，宽是 8 厘米。"),
+          L(zh, "12 x 8 = 96, so the area is 96 square cm.", "12 × 8 = 96，所以面积是 96 平方厘米。"),
+        ],
+        key_concept: L(zh, "Area multiplies the two side lengths.", "面积是两条边长相乘。"),
+        self_check: L(zh, "Check 96 / 12 = 8.", "验算：96 ÷ 12 = 8。"),
+        next_hint: L(zh, "Write the unit: square cm, not cm.", "记得写单位：平方厘米，不是厘米。"),
       },
     },
   ];
@@ -649,9 +813,9 @@ export function demoSnapshot(lang = "en") {
       mistake_id: "m-borrowing-01",
       question_id: "q-subtract-302",
       ref: 1,
-      subject: L(zh, "Math", "數學"),
-      topic: L(zh, "Subtraction with regrouping", "退位減法"),
-      mistake_type: L(zh, "Borrowed column not updated", "借位後未更新該欄"),
+      subject: L(zh, "Math", "数学"),
+      topic: L(zh, "Subtraction with regrouping", "退位减法"),
+      mistake_type: L(zh, "Borrowed column not updated", "借位后没改被借的那一位"),
       status: "needs_review",
       last_seen: "2026-07-11",
       next_review_at: "2026-07-12",
@@ -661,23 +825,23 @@ export function demoSnapshot(lang = "en") {
         root_cause: L(
           zh,
           "The student subtracts each column correctly but forgets the column changed after borrowing.",
-          "學生每欄計算都識，但借位後容易忘記被借走的一欄已經改變。",
+          "每一位怎么算她都会，但借位之后容易忘记被借走的那一位已经变了。",
         ),
         misconception: L(
           zh,
           "Borrowing is treated as a one-time trick instead of a place-value exchange.",
-          "將借位當成一次性技巧，而不是位值交換。",
+          "把借位当成一次性的技巧，而不是数位之间的交换。",
         ),
         fix_strategy: L(
           zh,
           "Mark the borrowed-from digit immediately, then say the new digit out loud.",
-          "借位後立即改寫被借的一位，並讀出新數字。",
+          "借位后马上改写被借的那一位，并把新数字读出来。",
         ),
         similar_prompt: "604 - 278 = ?",
         parent_note: L(
           zh,
           "Use two short regrouping questions daily for three days; stop once she explains the borrow aloud.",
-          "每日做兩題退位題，連續三日；當她能講出借位改變，就可以停。",
+          "每天做两道退位题，连做三天；等她能说出借位改了什么，就可以停。",
         ),
       },
     },
@@ -685,9 +849,9 @@ export function demoSnapshot(lang = "en") {
       mistake_id: "m-fraction-compare",
       question_id: "q-fraction-pizza",
       ref: 2,
-      subject: L(zh, "Math", "數學"),
-      topic: L(zh, "Fractions", "分數"),
-      mistake_type: L(zh, "Compared numerators only", "只比較分子"),
+      subject: L(zh, "Math", "数学"),
+      topic: L(zh, "Fractions", "分数"),
+      mistake_type: L(zh, "Compared numerators only", "只比分子"),
       status: "changes_requested",
       last_seen: "2026-07-10",
       next_review_at: "2026-07-12",
@@ -697,19 +861,19 @@ export function demoSnapshot(lang = "en") {
         root_cause: L(
           zh,
           "The numerator looks more visible, so the denominator is ignored.",
-          "分子較顯眼，所以忽略分母代表每份大小。",
+          "分子更显眼，所以忽略了分母代表每份多大。",
         ),
-        misconception: L(zh, "Bigger top number always means bigger fraction.", "以為分子越大，分數一定越大。"),
+        misconception: L(zh, "Bigger top number always means bigger fraction.", "以为分子越大，分数就一定越大。"),
         fix_strategy: L(
           zh,
           "Draw bars or convert to the same denominator before comparing.",
-          "先畫長條或化成同分母，再比較。",
+          "先画纸条，或者先通分，再比较。",
         ),
         similar_prompt: "2/3 or 5/12: which is greater?",
         parent_note: L(
           zh,
           "Use food or paper strips; keep language concrete before symbols.",
-          "用食物或紙條示範，先具體後符號。",
+          "用食物或纸条演示，先具体，再符号。",
         ),
       },
     },
@@ -717,9 +881,9 @@ export function demoSnapshot(lang = "en") {
       mistake_id: "m-main-idea",
       question_id: "q-chinese-main-idea",
       ref: 3,
-      subject: L(zh, "Chinese", "中文"),
-      topic: L(zh, "Reading comprehension", "閱讀理解"),
-      mistake_type: L(zh, "Main idea too narrow", "中心思想太窄"),
+      subject: L(zh, "Chinese", "语文"),
+      topic: L(zh, "Reading comprehension", "阅读理解"),
+      mistake_type: L(zh, "Main idea too narrow", "中心思想写得太窄"),
       status: "done",
       last_seen: "2026-07-09",
       next_review_at: "2026-07-16",
@@ -729,19 +893,23 @@ export function demoSnapshot(lang = "en") {
         root_cause: L(
           zh,
           "The answer repeats one event rather than the message behind the events.",
-          "答案重複一件事，未提升到文章訊息。",
+          "答案只复述了一件事，没有讲到文章想说的道理。",
         ),
-        misconception: L(zh, "Main idea equals the most recent sentence.", "以為中心思想等於最後或最明顯一句。"),
+        misconception: L(
+          zh,
+          "Main idea equals the most recent sentence.",
+          "以为中心思想就是最后一句或者最显眼的那一句。",
+        ),
         fix_strategy: L(
           zh,
           "Ask 'What does the whole story teach?' after naming events.",
-          "先講事件，再問「整篇想教我咩？」",
+          "先说事件，再问“整篇想教我们什么？”",
         ),
-        similar_prompt: L(zh, "A passage about sharing toys with a new classmate.", "一篇關於同新同學分享玩具的短文。"),
+        similar_prompt: L(zh, "A passage about sharing toys with a new classmate.", "一篇关于和新同学分享玩具的短文。"),
         parent_note: L(
           zh,
           "Ask for one event plus one lesson after reading bedtime stories.",
-          "親子閱讀後問一件事加一個道理。",
+          "亲子阅读之后，问她一件事加一个道理。",
         ),
       },
     },
@@ -751,45 +919,101 @@ export function demoSnapshot(lang = "en") {
     {
       paper_id: "paper-fractions-01",
       ref: 1,
-      title: L(zh, "Fraction Comparison Mini Paper", "分數比較小測"),
-      subject: L(zh, "Math", "數學"),
-      grade: L(zh, "Grade 4", "小四"),
+      title: L(zh, "Fraction Comparison Mini Paper", "分数比较小测"),
+      subject: L(zh, "Math", "数学"),
+      grade: L(zh, "Grade 4", "四年级"),
       status: "changes_requested",
       generated_at: "2026-07-11T08:00:00.000Z",
-      focus_topics: [L(zh, "Fractions", "分數"), L(zh, "Equivalent fractions", "等值分數")],
+      focus_topics: [L(zh, "Fractions", "分数"), L(zh, "Equivalent fractions", "等值分数")],
       linked_mistakes: ["m-fraction-compare"],
       question_count: 8,
       estimated_minutes: 25,
       difficulty_mix: { easy: 0.35, medium: 0.5, challenge: 0.15 },
+      // Gradeable items: `{ prompt, answer, hint, topic }`. The count matches
+      // question_count, and the last two are the "偏难" pair the review row
+      // already talks about, so the paper, its review and the runner agree.
       items: [
-        L(zh, "Compare 3/8 and 1/2", "比較 3/8 同 1/2"),
-        L(zh, "Draw 2/4 and 1/2", "畫出 2/4 同 1/2"),
-        L(zh, "Word problem: sharing a cake", "應用題：分享蛋糕"),
+        {
+          prompt: L(zh, "Which is greater: 3/8 or 1/2?", "3/8 和 1/2 哪个大？"),
+          answer: "1/2",
+          hint: L(zh, "Make both into the same number of pieces first.", "先把两个分数化成一样多的份数再比。"),
+          topic: L(zh, "Comparing fractions", "分数比较"),
+        },
+        {
+          prompt: L(zh, "Write 1/2 as eighths.", "把 1/2 写成八分之几。"),
+          answer: "4/8",
+          hint: L(zh, "Half of 8 pieces is how many pieces?", "8 份的一半是几份？"),
+          topic: L(zh, "Equivalent fractions", "等值分数"),
+        },
+        {
+          prompt: L(zh, "Which is greater: 2/4 or 1/2?", "2/4 和 1/2 哪个大？"),
+          answer: L(zh, "equal", "一样大"),
+          hint: L(zh, "Draw both on the same bar.", "把两个画在同一条纸条上看看。"),
+          topic: L(zh, "Equivalent fractions", "等值分数"),
+        },
+        {
+          prompt: L(zh, "Which is greater: 5/8 or 1/2?", "5/8 和 1/2 哪个大？"),
+          answer: "5/8",
+          hint: L(zh, "1/2 is 4/8. Now compare the top numbers.", "1/2 就是 4/8，再比上面的数。"),
+          topic: L(zh, "Comparing fractions", "分数比较"),
+        },
+        {
+          prompt: L(zh, "Fill in: 3/4 = ?/8", "填空：3/4 = ?/8"),
+          answer: "6/8",
+          hint: L(zh, "The bottom number doubled, so the top one does too.", "下面的数翻倍了，上面的也要翻倍。"),
+          topic: L(zh, "Equivalent fractions", "等值分数"),
+        },
+        {
+          prompt: L(
+            zh,
+            "A cake is cut into 8. You eat 3. How much is left?",
+            "一个蛋糕切成 8 份，你吃了 3 份，还剩几分之几？",
+          ),
+          answer: "5/8",
+          hint: L(zh, "The whole cake is 8/8.", "整个蛋糕是 8/8。"),
+          topic: L(zh, "Fractions in word problems", "分数应用题"),
+        },
+        {
+          prompt: L(zh, "Which is greater: 2/3 or 5/12?", "2/3 和 5/12 哪个大？"),
+          answer: "2/3",
+          hint: L(zh, "Make both twelfths first.", "先都化成十二分之几。"),
+          topic: L(zh, "Comparing fractions", "分数比较"),
+        },
+        {
+          prompt: L(
+            zh,
+            "Why can you not compare 3/8 and 1/2 by the top numbers alone?",
+            "为什么不能只看上面的数来比 3/8 和 1/2？",
+          ),
+          answer: "",
+          hint: L(zh, "Think about how big one piece is.", "想一想每一份有多大。"),
+          topic: L(zh, "Explain your reasoning", "讲出道理"),
+        },
       ],
       analysis: {
         wrong_count: 2,
         strengths: [
-          L(zh, "Understands equal parts when drawn", "畫圖時明白平均分"),
-          L(zh, "Explains in full sentences", "能用完整句子解釋"),
+          L(zh, "Understands equal parts when drawn", "画图的时候懂得平均分"),
+          L(zh, "Explains in full sentences", "能用完整的句子讲道理"),
         ],
         review_plan: [
-          L(zh, "Start with visual bars", "先用圖像長條"),
-          L(zh, "Convert to same denominator", "再化成同分母"),
-          L(zh, "Finish with one word problem", "最後做一道應用題"),
+          L(zh, "Start with visual bars", "先用纸条图"),
+          L(zh, "Convert to same denominator", "再通分"),
+          L(zh, "Finish with one word problem", "最后做一道应用题"),
         ],
         deep_notes: L(
           zh,
           "The main gap is symbolic comparison before the visual model is stable.",
-          "主要差距是圖像模型未穩定前，就太快做符號比較。",
+          "主要差距是图形模型还没稳，就太早进入符号比较。",
         ),
       },
     },
     {
       paper_id: "paper-mixed-01",
       ref: 2,
-      title: L(zh, "Weekend Review: Regrouping + Reading", "週末複習：退位減法 + 閱讀"),
-      subject: L(zh, "Mixed", "綜合"),
-      grade: L(zh, "Grade 4", "小四"),
+      title: L(zh, "Weekend Review: Regrouping + Reading", "周末复习：退位减法 + 阅读"),
+      subject: L(zh, "Mixed", "综合"),
+      grade: L(zh, "Grade 4", "四年级"),
       status: "approved",
       generated_at: "2026-07-10T15:10:00.000Z",
       focus_topics: [L(zh, "Regrouping", "退位"), L(zh, "Main idea", "中心思想")],
@@ -797,21 +1021,46 @@ export function demoSnapshot(lang = "en") {
       question_count: 10,
       estimated_minutes: 30,
       difficulty_mix: { easy: 0.4, medium: 0.45, challenge: 0.15 },
-      items: ["604 - 278", "800 - 356", L(zh, "Read a short plant-care passage", "閱讀一篇照顧植物短文")],
+      items: [
+        {
+          prompt: "604 - 278 = ?",
+          answer: "326",
+          hint: L(zh, "Rewrite the digit you borrowed from straight away.", "借位之后马上把那一位改写掉。"),
+          topic: L(zh, "Subtraction with regrouping", "退位减法"),
+        },
+        {
+          prompt: "800 - 356 = ?",
+          answer: "444",
+          hint: L(zh, "Two zeros in a row means you borrow twice.", "连着两个 0，要借两次。"),
+          topic: L(zh, "Subtraction with regrouping", "退位减法"),
+        },
+        {
+          // No answer key on purpose: an open-response item is marked
+          // `ungraded` and read by a person, never auto-marked.
+          prompt: L(
+            zh,
+            "Read the plant-care passage. What is its main idea?",
+            "读一篇照顾植物的短文，说说它的中心意思。",
+          ),
+          answer: "",
+          hint: L(zh, "Start with 'This passage tells us…'", "可以用“这篇短文告诉我们……”开头。"),
+          topic: L(zh, "Main idea", "中心思想"),
+        },
+      ],
       analysis: {
         wrong_count: 1,
         strengths: [
-          L(zh, "Better self-checking on subtraction", "減法驗算進步"),
-          L(zh, "Can find passage events", "能找出短文事件"),
+          L(zh, "Better self-checking on subtraction", "减法验算有进步"),
+          L(zh, "Can find passage events", "能找出短文里的事件"),
         ],
         review_plan: [
-          L(zh, "Do regrouping first while fresh", "精神最好時先做退位"),
-          L(zh, "End with one reading reflection", "最後做一題閱讀反思"),
+          L(zh, "Do regrouping first while fresh", "精神最好的时候先做退位"),
+          L(zh, "End with one reading reflection", "最后做一道阅读反思"),
         ],
         deep_notes: L(
           zh,
           "Accuracy improves when the student writes the borrowed digit immediately.",
-          "學生即時改寫借位數字時，準確率明顯提升。",
+          "她一借位就改写数字的时候，正确率明显提高。",
         ),
       },
     },
@@ -823,41 +1072,41 @@ export function demoSnapshot(lang = "en") {
       ref: 1,
       target_type: "question",
       target_id: "q-subtract-302",
-      title: L(zh, "Approve explanation for 763 - 428", "審核 763 - 428 講解"),
+      title: L(zh, "Approve explanation for 763 - 428", "审核 763 - 428 的讲解"),
       status: "needs_review",
-      summary: L(zh, "Wrong answer caused by forgetting the borrowed tens digit.", "錯因是退位後忘記十位已改變。"),
-      risk: [L(zh, "child-facing", "學生可見")],
+      summary: L(zh, "Wrong answer caused by forgetting the borrowed tens digit.", "错因是退位之后忘了十位已经变了。"),
+      risk: [L(zh, "child-facing", "学生会看到")],
       proposed_action: "add_to_mistake_book",
       reason: L(
         zh,
         "The explanation is ready and the mistake card is useful for review.",
-        "講解已準備好，錯題卡適合加入複習。",
+        "讲解已经写好，这道题适合放进错题本复习。",
       ),
       suggestions: [
-        L(zh, "Keep the three-step explanation", "保留三步講解"),
-        L(zh, "Ask student to verify with addition", "請學生用加法驗算"),
+        L(zh, "Keep the three-step explanation", "保留三步讲解"),
+        L(zh, "Ask student to verify with addition", "让她用加法验算一遍"),
       ],
-      suggested_note: L(zh, "Looks good. Please add this to the mistake notebook.", "可以，請加入錯題本。"),
+      suggested_note: L(zh, "Looks good. Please add this to the mistake notebook.", "可以，加进错题本吧。"),
     },
     {
       review_id: "rv-fraction-card",
       ref: 2,
       target_type: "mistake",
       target_id: "m-fraction-compare",
-      title: L(zh, "Review fraction misconception card", "審核分數錯因卡"),
+      title: L(zh, "Review fraction misconception card", "审核分数错因卡"),
       status: "changes_requested",
-      summary: L(zh, "The card should use a picture example before symbols.", "錯題卡應先用圖像例子，再用符號。"),
-      risk: [L(zh, "concept gap", "概念差距")],
+      summary: L(zh, "The card should use a picture example before symbols.", "错题卡应该先给图，再讲符号。"),
+      risk: [L(zh, "concept gap", "概念没打通")],
       proposed_action: "revise_explanation",
-      reason: L(zh, "The current explanation may still be too symbolic.", "目前講解可能仍然太符號化。"),
+      reason: L(zh, "The current explanation may still be too symbolic.", "现在的讲解还是太符号化了。"),
       suggestions: [
-        L(zh, "Add a pizza/bar model", "加入薄餅或長條模型"),
-        L(zh, "Use 1/2 = 4/8 before comparing", "先用 1/2 = 4/8 再比較"),
+        L(zh, "Add a pizza/bar model", "加一张披萨图或纸条图"),
+        L(zh, "Use 1/2 = 4/8 before comparing", "先写出 1/2 = 4/8 再比较"),
       ],
-      suggested_note: L(zh, "Revise with a visual example first.", "請先用圖像例子重寫。"),
+      suggested_note: L(zh, "Revise with a visual example first.", "请先用图的例子重写一遍。"),
       decision: {
         action: "request_changes",
-        comment: L(zh, "Use a picture example before symbols, please.", "請先用圖像例子，再用符號。"),
+        comment: L(zh, "Use a picture example before symbols, please.", "请先用图讲，再讲符号。"),
         decided_at: "2026-07-10T16:30:00.000Z",
       },
     },
@@ -866,40 +1115,72 @@ export function demoSnapshot(lang = "en") {
       ref: 3,
       target_type: "paper",
       target_id: "paper-fractions-01",
-      title: L(zh, "Approve fraction mini paper", "審核分數小測"),
+      title: L(zh, "Approve fraction mini paper", "审核分数小测"),
       status: "needs_review",
       summary: L(
         zh,
         "8-question paper focused on fraction comparison; last two items are challenging.",
-        "8 題分數比較小測，最後兩題較有挑戰。",
+        "8 道分数比较题，最后两道偏难。",
       ),
-      risk: [L(zh, "paper export", "試卷導出")],
+      risk: [L(zh, "paper export", "卷子导出")],
       proposed_action: "export_paper_plan",
-      reason: L(zh, "Parent/teacher approval is required before export.", "導出前需要家長或老師審核。"),
+      reason: L(zh, "Parent/teacher approval is required before export.", "导出前需要家长或老师审核。"),
       suggestions: [
-        L(zh, "Reduce challenge level if student is tired", "如果學生累，可降低挑戰題"),
-        L(zh, "Keep one word problem", "保留一道應用題"),
+        L(zh, "Reduce challenge level if student is tired", "她要是累了，就把难题去掉"),
+        L(zh, "Keep one word problem", "保留一道应用题"),
       ],
-      suggested_note: L(zh, "Approve after making the final two questions easier.", "最後兩題調淺後可以批准。"),
+      suggested_note: L(zh, "Approve after making the final two questions easier.", "最后两道改简单一点就可以批准。"),
     },
     {
       review_id: "rv-weekend-paper",
       ref: 4,
       target_type: "paper",
       target_id: "paper-mixed-01",
-      title: L(zh, "Weekend mixed review ready", "週末綜合複習已準備"),
+      title: L(zh, "Weekend mixed review ready", "周末综合复习已排好"),
       status: "approved",
       summary: L(
         zh,
         "Mixed paper combines one math gap and one reading gap.",
-        "綜合練習包含一個數學差距和一個閱讀差距。",
+        "这份综合练习覆盖一个数学薄弱点和一个阅读薄弱点。",
       ),
-      risk: [L(zh, "paper export", "試卷導出")],
+      risk: [L(zh, "paper export", "卷子导出")],
       proposed_action: "export_paper_plan",
-      reason: L(zh, "Ready for local export as Markdown.", "可以本地導出為 Markdown。"),
-      suggestions: [L(zh, "Do not exceed 30 minutes", "不要超過 30 分鐘")],
-      suggested_note: L(zh, "Approved for weekend practice.", "批准作週末練習。"),
+      reason: L(zh, "Ready for local export as Markdown.", "可以在本地导出为 Markdown。"),
+      suggestions: [L(zh, "Do not exceed 30 minutes", "不要超过 30 分钟")],
+      suggested_note: L(zh, "Approved for weekend practice.", "批准，作为周末练习。"),
       decision: { action: "approve", comment: L(zh, "Approved.", "已批准。"), decided_at: "2026-07-11T08:42:00.000Z" },
+    },
+    {
+      // The one the film opens. Everything above it is approvable; this is the
+      // judgement only a person can make, and the app cannot make it for them:
+      // the agent's own confidence is the evidence, and it is on the row.
+      review_id: "rv-area-blurred",
+      ref: 5,
+      target_type: "question",
+      target_id: "q-area-blurred",
+      title: L(zh, "Explanation built on a guessed number", "讲解是照着猜出来的数字写的"),
+      status: "needs_review",
+      summary: L(
+        zh,
+        "The photo hides one side length. The agent assumed 8 cm and explained as if it were certain.",
+        "照片挡住了一条边长。Agent 自己假设是 8 厘米，然后当成确定的来讲解。",
+      ),
+      risk: [L(zh, "unclear photo", "照片不清"), L(zh, "child-facing", "学生会看到")],
+      proposed_action: "add_to_mistake_book",
+      reason: L(
+        zh,
+        "Read confidence is 0.41 — the lowest in this batch. The answer 96 cannot be checked.",
+        "识别置信度只有 0.41，是这一批里最低的。96 这个答案没法验证。",
+      ),
+      suggestions: [
+        L(zh, "Ask for a clearer photo of question 3", "让她把第 3 题重拍一张清楚的"),
+        L(zh, "Do not show this explanation to the student yet", "先不要把这段讲解给孩子看"),
+      ],
+      suggested_note: L(
+        zh,
+        "Blocked: re-shoot the photo before anything goes into the notebook.",
+        "先拦下：重拍照片之后再决定要不要进错题本。",
+      ),
     },
   ];
 
@@ -907,9 +1188,9 @@ export function demoSnapshot(lang = "en") {
     ...assembleSnapshot({
       profile: {
         display_name: L(zh, "Mia", "晴晴"),
-        grade: L(zh, "Grade 4", "小四"),
-        language: zh ? "zh-HK" : "en",
-        timezone: "Asia/Hong_Kong",
+        grade: L(zh, "Grade 4", "四年级"),
+        language: zh ? "zh-CN" : "en",
+        timezone: "Asia/Shanghai",
       },
       questions,
       mistakes,
@@ -921,4 +1202,54 @@ export function demoSnapshot(lang = "en") {
     generated_at: now,
     source: "kelly-homework-coach-demo",
   };
+}
+
+// A copy-to-chat handoff, not an automatic generation job. Include stable
+// private-workspace references, not image URLs that may contain access tokens.
+export function buildPracticeRequest(mistake, question, context = {}) {
+  if (
+    !mistake?.mistake_id ||
+    !question?.question_id ||
+    mistake.question_id !== question.question_id ||
+    !question.prompt_text
+  ) {
+    throw new Error("原题关联不完整，请先补齐原题，不能只凭错因出题。");
+  }
+  const images = (question.original_image || []).map((image) => ({
+    attachmentId: image.attachmentId || image.id || "",
+    name: image.name || image.filename || "原题图",
+  }));
+  return `请为这道错题出一份3题同类练习。先按下面的记录定位读取最新原题、原图和讲解，不要仅根据错因猜题。
+
+原题：${question.title || ""}
+${question.prompt_text}
+孩子的答案：${question.student_answer || "未记录"}
+正确答案：${question.correct_answer || "需核对"}
+家长观察／错因补充（未必已证实）：${mistake.analysis?.root_cause || "待核实"}
+
+图形要求：${images.length ? "原图已存入原题记录，请读取附件；若无法查看，应先说明，不能凭文字猜图。" : "未记录原图附件；若解题依赖图形，先取得原图再出题。"}每道图形练习须提供对应的可用图形，核对图、题干与答案。不得把孩子的原图打包进公开Demo；若需要另行上传附件，先取得授权。
+出题要求：基础复算、关系解释、迁移练习各1题；给家长提供答案和核对依据，给孩子保留提示。关联现有错题，只建一个练习卷确认项，提交待审，不自动合并，不自动认定掌握。
+出现流程：请提交练习卷入库请求并报告编号；授权合并后，卷子出现在“练习卷”，家长确认后才能开始作答。
+
+记录定位（供Agent读取，不需要我手动操作）：
+${JSON.stringify({ ...context, mistakeId: mistake.mistake_id, questionId: question.question_id, originalImages: images }, null, 2)}`;
+}
+
+// Fixed geometric diagram format: no raw SVG, HTML, external images or URLs.
+export function normalizePracticeDiagram(value) {
+  if (!value || typeof value !== "object") return null;
+  const labels = ["A", "B", "C", "D", "E", "G", "H", "Q"];
+  const points = {};
+  for (const label of labels) {
+    const point = value.points?.[label];
+    if (
+      !Array.isArray(point) ||
+      point.length !== 2 ||
+      point.some((n) => typeof n !== "number" || !Number.isFinite(n) || Math.abs(n) > 1000)
+    )
+      return null;
+    points[label] = [...point];
+  }
+  const note = typeof value.note === "string" ? value.note.slice(0, 120) : "";
+  return { points, note };
 }

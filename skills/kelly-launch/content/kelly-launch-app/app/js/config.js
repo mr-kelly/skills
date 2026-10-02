@@ -18,7 +18,7 @@ export const appConfig = {
       name: "Launch Items",
       slug: "kelly-launch-items",
       description: "RAMP checklist tasks and assets under human review",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "item-id", name: "Item ID", type: "text", required: true },
         { slug: "ref", name: "Ref", type: "number", required: false },
@@ -82,7 +82,7 @@ export const appConfig = {
     },
   ],
   permissions: {
-    readProcedures: ["nodes.list", "nodes.get", "bases.get", "records.list"],
+    readProcedures: ["nodes.list", "nodes.get", "bases.get", "records.list", "records.count"],
     setupProcedures: ["nodes.createChangeRequest", "nodes.updateMetadata"],
     writeProcedures: ["records.changeRequest", "bases.createChangeRequest"],
   },

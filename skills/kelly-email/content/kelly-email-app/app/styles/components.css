@@ -3,10 +3,10 @@
     border: 1px solid var(--line);
     background: var(--panel);
     color: var(--text);
-    border-radius: 6px;
+    border-radius: var(--radius-sm);
     padding: 7px 11px;
     cursor: pointer;
-    font-size: 13px;
+    font-size: var(--text-base);
     line-height: 1.15;
     box-shadow: var(--shadow);
     transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease, box-shadow 0.12s ease;
@@ -14,7 +14,7 @@
 
   button:hover {
     border-color: var(--line-strong);
-    background: #fbfbfc;
+    background: var(--surface-soft);
     box-shadow: 0 1px 3px rgba(16, 24, 40, 0.08);
   }
 
@@ -51,10 +51,10 @@
     max-width: min(360px, 70vw);
     white-space: normal;
     background: #111827;
-    color: #fff;
-    border-radius: 6px;
+    color: var(--accent-contrast);
+    border-radius: var(--radius-sm);
     padding: 8px 10px;
-    font-size: 12px;
+    font-size: var(--text-sm);
     line-height: 1.38;
     text-align: left;
     box-shadow: 0 10px 28px rgba(17, 24, 39, 0.24);
@@ -76,7 +76,11 @@
   }
 
   button.primary {
-    background: linear-gradient(180deg, color-mix(in srgb, var(--accent-strong) 88%, #ffffff), var(--accent-strong));
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--accent-strong) 88%, var(--surface)),
+      var(--accent-strong)
+    );
     border-color: var(--accent-strong);
     color: var(--accent-contrast);
     box-shadow: 0 1px 1px rgba(15, 23, 42, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.22);
@@ -85,7 +89,7 @@
   button.primary:hover {
     background: linear-gradient(
       180deg,
-      color-mix(in srgb, var(--accent-strong) 94%, #ffffff),
+      color-mix(in srgb, var(--accent-strong) 94%, var(--surface)),
       color-mix(in srgb, var(--accent-strong) 88%, #000000)
     );
     border-color: var(--accent-strong);
@@ -106,7 +110,7 @@
   .brand-subtitle,
   .muted {
     color: var(--muted);
-    font-size: 12px;
+    font-size: var(--text-sm);
     line-height: 1.45;
     word-break: break-word;
   }
@@ -114,10 +118,10 @@
   .onboarding-card {
     margin: 14px;
     border: 1px solid var(--accent-line);
-    border-radius: 8px;
+    border-radius: var(--radius-sm);
     background: var(--accent-wash);
     padding: 14px;
-    color: #263142;
+    color: var(--accent);
   }
 
   .onboarding-card.compact {
@@ -127,19 +131,19 @@
   .onboarding-card strong {
     display: block;
     margin-bottom: 6px;
-    font-size: 14px;
+    font-size: var(--text-md);
   }
 
   .onboarding-card p {
     margin: 0 0 10px;
-    color: #4b5563;
+    color: var(--accent);
     line-height: 1.48;
   }
 
   .onboarding-card ol {
     margin: 0 0 10px;
     padding-left: 20px;
-    color: #4b5563;
+    color: var(--accent);
     line-height: 1.55;
   }
 
@@ -156,7 +160,7 @@
 
   .help-paths dt {
     color: var(--muted);
-    font-size: 12px;
+    font-size: var(--text-sm);
   }
 
   .help-paths dd {
@@ -169,8 +173,8 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    color: #374151;
-    font-size: 12px;
+    color: var(--accent);
+    font-size: var(--text-sm);
   }
 
   .language-options label,
@@ -179,11 +183,11 @@
     align-items: center;
     gap: 7px;
     border: 1px solid var(--line);
-    border-radius: 8px;
+    border-radius: var(--radius-sm);
     background: var(--panel);
     padding: 8px 10px;
-    color: #374151;
-    font-size: 13px;
+    color: var(--accent);
+    font-size: var(--text-base);
     box-shadow: var(--shadow);
     cursor: pointer;
     user-select: none;
@@ -210,7 +214,7 @@
     padding: 9px 6px 7px;
     cursor: pointer;
     color: var(--muted);
-    font-size: 12px;
+    font-size: var(--text-sm);
     font-weight: 560;
     text-align: center;
     transition: background 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease;
@@ -277,20 +281,20 @@
     border: 1px solid var(--line);
     border-radius: 999px;
     padding: 2px 7px;
-    font-size: 11px;
-    color: #4b5563;
+    font-size: var(--text-xs);
+    color: var(--accent);
     background: var(--panel-subtle);
   }
 
   .env-pill.ok {
     color: var(--ok);
-    border-color: #bbf7d0;
+    border-color: color-mix(in srgb, var(--positive) 34%, var(--line));
     background: var(--ok-soft);
   }
 
   .env-pill.warn {
     color: var(--warning);
-    border-color: #fde68a;
+    border-color: color-mix(in srgb, var(--warning) 34%, var(--line));
     background: var(--warning-soft);
   }
 
@@ -299,8 +303,8 @@
     right: 18px;
     bottom: 18px;
     background: #111827;
-    color: #fff;
-    border-radius: 8px;
+    color: var(--accent-contrast);
+    border-radius: var(--radius-sm);
     padding: 10px 12px;
     max-width: 420px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);

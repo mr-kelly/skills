@@ -1,7 +1,7 @@
 import { inspectProvisionedResources, provisionDeclaredResources } from "../../vendor/busabase-airapp.js";
 import { createRuntimeClient } from "../busabase-client.js";
 import { appConfig } from "../config.js?v=0.1.0";
-import { DECISION_ACTIONS, buildSnapshot, statusForAction } from "../creators-model.js?v=0.1.0";
+import { DECISION_ACTIONS, buildSnapshot, normalizeCreatorRow, statusForAction } from "../creators-model.js?v=0.1.0";
 
 const allowedReads = new Set(appConfig.permissions.readProcedures);
 const allowedSetup = new Set(appConfig.permissions.setupProcedures);
@@ -59,29 +59,46 @@ function base(key) {
   return declared;
 }
 
-async function readAllRecords(key, { maxPages = 20 } = {}) {
+async function readPage(key, cursor) {
   if (!allowedReads.has("records.list")) throw new Error("PROCEDURE_DENIED: records.list");
   const declared = base(key);
-  const rows = [];
-  let cursor;
-  for (let page = 0; page < maxPages; page += 1) {
-    const result = await runtimeClient.records.list({
-      baseId: declared.baseId,
-      limit: declared.readLimit,
-      ...(cursor ? { cursor } : {}),
-    });
-    const records = Array.isArray(result) ? result : result.records || [];
-    for (const record of records) {
-      rows.push({
-        ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields),
-        __recordId: record.id,
-        __headCommitId: record.headCommitId || record.headCommit?.id,
-      });
-    }
-    cursor = Array.isArray(result) ? null : result.nextCursor;
-    if (!cursor) break;
-  }
+  const result = await runtimeClient.records.list({
+    baseId: declared.baseId,
+    limit: declared.readLimit,
+    ...(cursor ? { cursor } : {}),
+  });
+  const records = Array.isArray(result) ? result : result.records || [];
+  const rows = records.map((record) => ({
+    ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields),
+    __recordId: record.id,
+    __headCommitId: record.headCommitId || record.headCommit?.id,
+  }));
+  return { rows, nextCursor: Array.isArray(result) ? null : result.nextCursor || null };
+}
+
+const initialPageCursors = {};
+const initialTotalCounts = {};
+
+async function readFirstPage(key) {
+  const [{ rows, nextCursor }, total] = await Promise.all([readPage(key), countRecords(key)]);
+  initialPageCursors[key] = nextCursor;
+  initialTotalCounts[key] = total;
   return rows;
+}
+
+async function countRecords(key, filters) {
+  if (!allowedReads.has("records.count")) return null;
+  const declared = base(key);
+  try {
+    const { total } = await runtimeClient.records.count({ baseId: declared.baseId, ...(filters ? { filters } : {}) });
+    return total;
+  } catch {
+    return null;
+  }
+}
+
+function normalizePageRows(key, rows) {
+  return key === "creators" ? rows.map(normalizeCreatorRow) : rows;
 }
 
 async function findRecord(key, idFieldSlug, idValue) {
@@ -123,7 +140,7 @@ async function upsert(key, idFieldSlug, idValue, fields, message) {
 }
 
 async function readSettingsRows() {
-  const rows = await readAllRecords("settings");
+  const rows = await readFirstPage("settings");
   return new Map(rows.map((row) => [row.record_id || row.kind, row]));
 }
 
@@ -164,12 +181,22 @@ function configSummaryFromProfile(profile = {}) {
   };
 }
 
+function withPagination(data) {
+  return {
+    ...data,
+    pagination: { ...initialPageCursors },
+    totals: { ...initialTotalCounts },
+  };
+}
+
 export const busabaseProvider = {
   kind: "busabase",
 
   async getState() {
+    for (const key of Object.keys(initialPageCursors)) delete initialPageCursors[key];
+    for (const key of Object.keys(initialTotalCounts)) delete initialTotalCounts[key];
     await ensureResources();
-    const [creators, settings] = await Promise.all([readAllRecords("creators"), readSettingsRows()]);
+    const [creators, settings] = await Promise.all([readFirstPage("creators"), readSettingsRows()]);
     const snapshot = buildSnapshot({ creators });
     const profileRow = settings.get("kelly-creators-profile") || {};
     const lockRow = settings.get("kelly-creators-lock") || {};
@@ -177,7 +204,7 @@ export const busabaseProvider = {
     const config_summary = configSummaryFromProfile(profile);
     snapshot.base_currency = config_summary.program.base_currency;
     snapshot.metrics.budget_total = config_summary.program.budget_total;
-    return {
+    return withPagination({
       app: "kelly-creators",
       demo: false,
       data_provider: "busabase",
@@ -186,7 +213,7 @@ export const busabaseProvider = {
       lock: lockRow.locked ? { locked: true, message: lockRow.message || "", owner: lockRow.owner || "" } : null,
       decisions: {},
       snapshot,
-    };
+    });
   },
 
   async applyDecision(creatorId, payload = {}) {
@@ -207,6 +234,12 @@ export const busabaseProvider = {
     };
     await upsert("creators", "creator-id", creatorId, fields, `Decision on creator ${creatorId}: ${action}`);
     return { ok: true };
+  },
+
+  async fetchPage(key, cursor) {
+    await ensureResources();
+    const page = await readPage(key, cursor);
+    return { ...page, rows: normalizePageRows(key, page.rows) };
   },
 
   async provisionResources() {

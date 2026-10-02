@@ -99,6 +99,32 @@ Demo mode must not read or write:
 
 If the demo needs to show approved or executed state, seed it in a dedicated local Busabase instance or demo/test Space. Purely presentational in-memory fixtures are acceptable only when they cannot persist and are labeled demo-only.
 
+## Before You Record: The UI Has To Be Camera-Ready
+
+Most of what makes a clip readable is decided in the app, not in the capture.
+`editorial-visual-system.md` carries the contract; the four that matter most
+here, because they are the ones a recording exposes and a screenshot hides:
+
+- **Nothing load-bearing below 15px.** At 720p, `--text-sm` metadata is fine
+  and a `--text-sm` row title is not.
+- **The state change runs on `--ease-state` (280ms), not `--ease` (130ms).**
+  130ms is roughly four frames at 30fps: the row teleports and the viewer never
+  sees the approval land. This is the single most common reason a demo of a
+  working app reads as "nothing happened".
+- **A persisted verdict plays one `--ease-flash` highlight** before its row
+  moves queue.
+- **Structure is carried by `--rule-weight` lines, not 1px near-white
+  hairlines**, which H.264 smears into the background.
+
+If the app being recorded predates this contract, fix the app rather than
+compensating in the capture. Zooming the browser to make 13px legible changes
+the layout you are demonstrating.
+
+Colour family is a recording decision too. `coral-amber` and `rose-ochre` hold
+up best on camera; `graphite` is the hardest to light. If the app's default
+family is `graphite` for a good reason, record it as it ships — do not re-theme
+an app for its own demo.
+
 ## Recording Quality
 
 Use a stable desktop viewport for the primary clip:
@@ -135,6 +161,18 @@ docs/demo-recordings/**/*.mp4 filter=lfs diff=lfs merge=lfs -text
 ```
 
 If Git LFS is unavailable, or the clip is only a temporary review artifact, keep the MP4 outside the repo and commit only the external path, recording recipe, or summary.
+
+### Showing it on the site
+
+`node scripts/build-site.mjs` turns every `docs/demo-recordings/<skill-name>/*.mp4` into a poster card at the front of that skill's page gallery; clicking it opens the player. Nothing else has to be registered — but three conventions have to hold, because each way of breaking one fails silently (a card that never appears, a broken poster, a black player):
+
+- **Name it `<skill-name>-<slug>-<zh-CN|en>.mp4`.** The slug becomes the card's label (`demo` → "Demo recording", `workflow-demo` → "Workflow demo"; anything else is title-cased). A name that does not match fails the build rather than being skipped. Several slugs give several cards. With only a `zh-CN` cut, the English page plays it and says "Recorded in Simplified Chinese"; add an `-en.mp4` and it switches over.
+- **Commit a poster beside it: the same name with `.webp`**, e.g. `kelly-support-demo-zh-CN.webp`. Pick a frame that shows the product mid-story, not the boot state, and keep the video's own aspect ratio (960 px wide is plenty, tens of KB). Without one the card falls back to the skill's first screenshot. The poster is a *plain* git object: only `*.mp4` is LFS-tracked, and `tests/site-recordings.test.mjs` fails if a poster becomes LFS.
+- **Keep the MP4 an actual, browser-playable MP4** — H.264, `yuv420p`, faststart, as above. The Pages deploy runs `scripts/check-pages-assets.mjs`, which rejects a recording that is missing, still an LFS pointer, or not an MP4 (no `ftyp` box), since a pointer served as `video.mp4` loads the page fine and then opens onto a black frame.
+
+The page never contains a `<video>` element until someone clicks: the player is built by script on click, so a page that is mostly screenshots does not fetch a multi-megabyte file on load. That is the same pattern the Busabase template gallery uses.
+
+Why the host differs: in the checked-in docs the video is fetched from `media.githubusercontent.com` (LFS objects only — a plain file 404s) and the poster from `raw.githubusercontent.com` (plain files only — an LFS object comes back as pointer text). The deployed site uses neither; the Pages job copies `docs/` and points both at the copy.
 
 Generated raw frames, temporary browser profiles, and scratch scripts should usually be deleted before handoff unless the user asked for a reusable recording harness. If a harness is intentionally kept, put it under repo-level `scripts/` or `docs/demo-recordings/<skill-name>/` with a clear name and make sure it never stores private data.
 

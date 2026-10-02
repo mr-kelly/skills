@@ -2,6 +2,57 @@ import { access, readFile, stat } from "node:fs/promises";
 import path from "node:path";
 
 const root = process.cwd();
+
+// ── busabase-sdk/airapp-check: the versioned AirApp runtime contract ────────
+// Added on top of this file's own checks, not in place of them: the rules
+// above/below this block are specific to this app; the ones here are the
+// shared contract every AirApp is held to, versioned with the SDK so a fix
+// like busabase-sdk@0.30.1's runtime-detection rule reaches every app that
+// bumps its pin instead of staying stuck in whatever copy this file had.
+{
+  const { checkAirApp } = await import("busabase-sdk/airapp-check");
+  const { readFile: gateReadFile, readdir: gateReaddir } = await import("node:fs/promises");
+  const path = (await import("node:path")).default;
+  const readFile = gateReadFile;
+  const readdir = gateReaddir;
+  const readIfExists = (p) => readFile(p, "utf8").catch(() => undefined);
+  const walk = async (dir) => {
+    const out = [];
+    for (const entry of await readdir(dir, { withFileTypes: true }).catch(() => [])) {
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) out.push(...(await walk(full)));
+      else out.push(full);
+    }
+    return out;
+  };
+  const appFiles = (await walk(path.join(root, "app"))).filter((f) => !f.split(path.sep).includes("vendor"));
+  const LOGIC_BASENAMES = new Set(["app.js", "config.js", "busabase-client.js", "runtime.js"]);
+  const isLogic = (f) =>
+    LOGIC_BASENAMES.has(path.basename(f)) || f.endsWith(path.join("providers", "busabase-provider.js"));
+  const isDownload = (f) => /\.(?:js|html)$/.test(f);
+  const joinFiles = async (files) => (await Promise.all(files.map((f) => readFile(f, "utf8")))).join("\n");
+  const serverCandidates = [path.join(root, "server.js"), ...(await walk(path.join(root, "server")).catch(() => []))];
+  const serverParts = (await Promise.all(serverCandidates.map((f) => readIfExists(f)))).filter(
+    (text) => text !== undefined,
+  );
+  const findings = await checkAirApp({
+    packageJson: await readIfExists(path.join(root, "package.json")),
+    server: serverParts.length ? serverParts.join("\n") : undefined,
+    serverLanguage: "node",
+    browserLogic: await joinFiles(appFiles.filter(isLogic)),
+    browserDownloads: await joinFiles(appFiles.filter(isDownload)),
+    config:
+      (await readIfExists(path.join(root, "app", "js", "config.js"))) ??
+      (await readIfExists(path.join(root, "app", "config.js"))),
+    shippedSlug: path.basename(root),
+  });
+  const errors = findings.filter((f) => f.severity === "error");
+  if (errors.length) {
+    throw new Error(
+      `busabase-sdk/airapp-check found ${errors.length} contract violation(s):\n${errors.map((f) => `  [${f.rule}] ${f.message}`).join("\n")}`,
+    );
+  }
+}
 const required = [
   "package.json",
   "server.js",

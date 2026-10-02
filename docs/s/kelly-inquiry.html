@@ -149,7 +149,6 @@ h2.group {
 .card[hidden] { display: none; }
 .card .thumb { aspect-ratio: 3 / 2; background: #eef0f3; overflow: hidden; border-bottom: 1px solid var(--border); }
 .card .thumb img { width: 100%; height: 100%; object-fit: cover; object-position: top left; display: block; }
-.card .thumb.template-cover img { object-fit: contain; object-position: center; }
 .card .thumb.empty { display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 26px; }
 .card .body { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 6px; }
 .card .name { font-weight: 650; font-size: 15.5px; display: flex; align-items: center; gap: 8px; }
@@ -312,6 +311,12 @@ After it is installed, invoke the skill as $kelly-inquiry.</textarea>
     </section>
     <div class="panel"><h3><span class="en">When to use it</span><span class="zh">什么时候用</span></h3><p><span class="en">Use it when handling foreign-trade or DTC inquiries, drafting accurate replies and quotes from a product KB, or catching stale deals before they leak.</span><span class="zh">处理外贸/跨境询盘、基于商品库起草准确回复和报价、防止商机逾期漏单时使用。</span></p></div>
     <div class="shots"><figure class="shot">
+  <img data-shot-en="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-inquiry/assets/screenshots/overview.webp" data-shot-zh="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-inquiry/assets/screenshots/overview-zh-CN.webp" src="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-inquiry/assets/screenshots/overview.webp" alt="Overview" loading="lazy">
+  <figcaption class="cap">
+    <div class="en"><strong>Overview</strong><span>Inquiry command desk with reply SLA counters, weekly channel mix, pipeline funnel, and stale-deal alerts.</span></div><div class="zh"><strong>总览</strong><span>询盘指挥台：回复 SLA 计数、本周渠道构成、销售漏斗和逾期商机提醒。</span></div>
+  </figcaption>
+</figure>
+<figure class="shot">
   <img data-shot-en="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-inquiry/assets/screenshots/approvals.webp" data-shot-zh="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-inquiry/assets/screenshots/approvals-zh-CN.webp" src="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-inquiry/assets/screenshots/approvals.webp" alt="Approvals" loading="lazy">
   <figcaption class="cap">
     <div class="en"><strong>Approvals</strong><span>Approval-gated outbox for replies and quotes — nothing is sent until reviewed.</span></div><div class="zh"><strong>审批队列</strong><span>回复和报价的审批制 outbox——未经批准不会发出任何消息。</span></div>
@@ -324,21 +329,15 @@ After it is installed, invoke the skill as $kelly-inquiry.</textarea>
   </figcaption>
 </figure>
 <figure class="shot">
-  <img data-shot-en="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-inquiry/assets/screenshots/overview.webp" data-shot-zh="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-inquiry/assets/screenshots/overview-zh-CN.webp" src="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-inquiry/assets/screenshots/overview.webp" alt="Overview" loading="lazy">
+  <img data-shot-en="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-inquiry/assets/screenshots/quotes.webp" data-shot-zh="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-inquiry/assets/screenshots/quotes-zh-CN.webp" src="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-inquiry/assets/screenshots/quotes.webp" alt="Quotes" loading="lazy">
   <figcaption class="cap">
-    <div class="en"><strong>Overview</strong><span>Inquiry command desk with reply SLA counters, weekly channel mix, pipeline funnel, and stale-deal alerts.</span></div><div class="zh"><strong>总览</strong><span>询盘指挥台：回复 SLA 计数、本周渠道构成、销售漏斗和逾期商机提醒。</span></div>
+    <div class="en"><strong>Quotes</strong><span>Quote worksheets with line items sourced from the product KB, validity, and min-price guards.</span></div><div class="zh"><strong>报价</strong><span>报价单工作台：行项目来自商品知识库，带有效期和底价护栏。</span></div>
   </figcaption>
 </figure>
 <figure class="shot">
   <img data-shot-en="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-inquiry/assets/screenshots/products.webp" data-shot-zh="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-inquiry/assets/screenshots/products-zh-CN.webp" src="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-inquiry/assets/screenshots/products.webp" alt="Products" loading="lazy">
   <figcaption class="cap">
     <div class="en"><strong>Products</strong><span>Product catalog behind quotes — specs, MOQ, price range, and lead time per SKU.</span></div><div class="zh"><strong>产品</strong><span>报价背后的产品目录——每个 SKU 的规格、起订量、价格区间与交期。</span></div>
-  </figcaption>
-</figure>
-<figure class="shot">
-  <img data-shot-en="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-inquiry/assets/screenshots/quotes.webp" data-shot-zh="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-inquiry/assets/screenshots/quotes-zh-CN.webp" src="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-inquiry/assets/screenshots/quotes.webp" alt="Quotes" loading="lazy">
-  <figcaption class="cap">
-    <div class="en"><strong>Quotes</strong><span>Quote worksheets with line items sourced from the product KB, validity, and min-price guards.</span></div><div class="zh"><strong>报价</strong><span>报价单工作台：行项目来自商品知识库，带有效期和底价护栏。</span></div>
   </figcaption>
 </figure></div>
 
@@ -383,8 +382,8 @@ After it is installed, invoke the skill as $kelly-inquiry.</textarea>
 </aside>
 </div>
 <footer class="footer">
-  <span class="en">MIT licensed · Built from the repo READMEs and template manifests by <code>scripts/build-site.mjs</code> · <a href="https://github.com/mr-kelly/skills">mr-kelly/skills</a></span>
-  <span class="zh">MIT 许可 · 由 <code>scripts/build-site.mjs</code> 从仓库 README 和模板清单生成 · <a href="https://github.com/mr-kelly/skills">mr-kelly/skills</a></span>
+  <span class="en">MIT licensed · Built from the repo READMEs by <code>scripts/build-site.mjs</code> · <a href="https://github.com/mr-kelly/skills">mr-kelly/skills</a></span>
+  <span class="zh">MIT 许可 · 由 <code>scripts/build-site.mjs</code> 从仓库 README 生成 · <a href="https://github.com/mr-kelly/skills">mr-kelly/skills</a></span>
 </footer>
 </div>
 <script>

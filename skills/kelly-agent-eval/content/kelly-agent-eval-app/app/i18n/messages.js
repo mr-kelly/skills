@@ -1,5 +1,9 @@
 export const messages = {
   en: {
+    pagination: "Pagination",
+    prevPage: "Prev",
+    nextPage: "Next",
+    pageOf: "Page {current} of {total}",
     overview: "Overview",
     regressionsTitle: "Regressions",
     casesTitle: "All Cases",
@@ -77,6 +81,10 @@ export const messages = {
     exportHint: "Export a release_report.json handoff file with: node scripts/export_release_report.mjs --apply",
   },
   zh: {
+    pagination: "分页",
+    prevPage: "上一页",
+    nextPage: "下一页",
+    pageOf: "第 {current} / {total} 页",
     overview: "总览",
     regressionsTitle: "回归项",
     casesTitle: "全部用例",

@@ -149,7 +149,6 @@ h2.group {
 .card[hidden] { display: none; }
 .card .thumb { aspect-ratio: 3 / 2; background: #eef0f3; overflow: hidden; border-bottom: 1px solid var(--border); }
 .card .thumb img { width: 100%; height: 100%; object-fit: cover; object-position: top left; display: block; }
-.card .thumb.template-cover img { object-fit: contain; object-position: center; }
 .card .thumb.empty { display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 26px; }
 .card .body { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 6px; }
 .card .name { font-weight: 650; font-size: 15.5px; display: flex; align-items: center; gap: 8px; }
@@ -312,18 +311,6 @@ After it is installed, invoke the skill as $kelly-ai-newsroom.</textarea>
     </section>
     <div class="panel"><h3><span class="en">When to use it</span><span class="zh">什么时候用</span></h3><p><span class="en">Use it when tracking AI news, Microsoft/Meta/OpenAI/Google/Perplexity movement, news-source changes, or buyer-intent angles that can affect product purchases.</span><span class="zh">追踪 AI 新闻、Microsoft/Meta/OpenAI/Google/Perplexity 动向、新闻源变化，或寻找会影响产品采购的销售角度时使用。</span></p></div>
     <div class="shots"><figure class="shot">
-  <img data-shot-en="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-ai-newsroom/assets/screenshots/actions.webp" data-shot-zh="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-ai-newsroom/assets/screenshots/actions-zh-CN.webp" src="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-ai-newsroom/assets/screenshots/actions.webp" alt="Actions" loading="lazy">
-  <figcaption class="cap">
-    <div class="en"><strong>Actions</strong><span>Sales and operating moves with approval status, risk notes, and the next concrete handoff.</span></div><div class="zh"><strong>动作</strong><span>销售和运营动作带审批状态、风险提示和下一步 handoff。</span></div>
-  </figcaption>
-</figure>
-<figure class="shot">
-  <img data-shot-en="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-ai-newsroom/assets/screenshots/drafts.webp" data-shot-zh="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-ai-newsroom/assets/screenshots/drafts-zh-CN.webp" src="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-ai-newsroom/assets/screenshots/drafts.webp" alt="Drafts" loading="lazy">
-  <figcaption class="cap">
-    <div class="en"><strong>Drafts</strong><span>Editable sales openers, LinkedIn posts, and client memos kept behind a review gate.</span></div><div class="zh"><strong>草稿</strong><span>销售开场白、LinkedIn 帖子和客户 memo 都先留在 review gate 后面。</span></div>
-  </figcaption>
-</figure>
-<figure class="shot">
   <img data-shot-en="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-ai-newsroom/assets/screenshots/overview.webp" data-shot-zh="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-ai-newsroom/assets/screenshots/overview-zh-CN.webp" src="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-ai-newsroom/assets/screenshots/overview.webp" alt="Overview" loading="lazy">
   <figcaption class="cap">
     <div class="en"><strong>Overview</strong><span>Daily buyer-trigger cockpit with top AI/source signals, approved actions, blocked claims, and source coverage.</span></div><div class="zh"><strong>总览</strong><span>每日 buyer-trigger 情报台：AI/新闻源信号、已批准动作、被拦截宣称和来源覆盖。</span></div>
@@ -333,6 +320,18 @@ After it is installed, invoke the skill as $kelly-ai-newsroom.</textarea>
   <img data-shot-en="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-ai-newsroom/assets/screenshots/signals.webp" data-shot-zh="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-ai-newsroom/assets/screenshots/signals-zh-CN.webp" src="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-ai-newsroom/assets/screenshots/signals.webp" alt="Signals" loading="lazy">
   <figcaption class="cap">
     <div class="en"><strong>Signals</strong><span>Evidence-backed AI, search, and platform movement interpreted as purchase intent or watch-only noise.</span></div><div class="zh"><strong>信号</strong><span>把 AI、搜索和平台变化拆成采购意图或 watch-only 噪音，并保留证据链接。</span></div>
+  </figcaption>
+</figure>
+<figure class="shot">
+  <img data-shot-en="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-ai-newsroom/assets/screenshots/actions.webp" data-shot-zh="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-ai-newsroom/assets/screenshots/actions-zh-CN.webp" src="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-ai-newsroom/assets/screenshots/actions.webp" alt="Actions" loading="lazy">
+  <figcaption class="cap">
+    <div class="en"><strong>Actions</strong><span>Sales and operating moves with approval status, risk notes, and the next concrete handoff.</span></div><div class="zh"><strong>动作</strong><span>销售和运营动作带审批状态、风险提示和下一步 handoff。</span></div>
+  </figcaption>
+</figure>
+<figure class="shot">
+  <img data-shot-en="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-ai-newsroom/assets/screenshots/drafts.webp" data-shot-zh="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-ai-newsroom/assets/screenshots/drafts-zh-CN.webp" src="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-ai-newsroom/assets/screenshots/drafts.webp" alt="Drafts" loading="lazy">
+  <figcaption class="cap">
+    <div class="en"><strong>Drafts</strong><span>Editable sales openers, LinkedIn posts, and client memos kept behind a review gate.</span></div><div class="zh"><strong>草稿</strong><span>销售开场白、LinkedIn 帖子和客户 memo 都先留在 review gate 后面。</span></div>
   </figcaption>
 </figure></div>
 
@@ -377,8 +376,8 @@ After it is installed, invoke the skill as $kelly-ai-newsroom.</textarea>
 </aside>
 </div>
 <footer class="footer">
-  <span class="en">MIT licensed · Built from the repo READMEs and template manifests by <code>scripts/build-site.mjs</code> · <a href="https://github.com/mr-kelly/skills">mr-kelly/skills</a></span>
-  <span class="zh">MIT 许可 · 由 <code>scripts/build-site.mjs</code> 从仓库 README 和模板清单生成 · <a href="https://github.com/mr-kelly/skills">mr-kelly/skills</a></span>
+  <span class="en">MIT licensed · Built from the repo READMEs by <code>scripts/build-site.mjs</code> · <a href="https://github.com/mr-kelly/skills">mr-kelly/skills</a></span>
+  <span class="zh">MIT 许可 · 由 <code>scripts/build-site.mjs</code> 从仓库 README 生成 · <a href="https://github.com/mr-kelly/skills">mr-kelly/skills</a></span>
 </footer>
 </div>
 <script>

@@ -1,16 +1,18 @@
 from __future__ import annotations
 
+import re
 import sys
 import tempfile
 from pathlib import Path
 
-from playwright.sync_api import Page, sync_playwright
+from playwright.sync_api import Page, expect, sync_playwright
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(REPO_ROOT / "tests" / "app-skills" / "harness"))
 from runtime import free_port, managed_process
 
 APP_ROOT = REPO_ROOT / "skills" / "kelly-portrait-retouch" / "content" / "kelly-portrait-retouch-app"
+DETAIL_OPEN = re.compile(r"\bmobile-detail-open\b")
 
 
 def assert_no_overflow(page: Page) -> None:
@@ -37,17 +39,21 @@ def run_viewport(browser, base_url: str, width: int, height: int) -> None:
         assert page.locator("body.sidebar-open").count() == 1
         page.mouse.click(width - 4, 24)
         assert page.locator("body.sidebar-open").count() == 0
+        # Row, back and settings navigate by setting location.hash, so the view
+        # renders on the following `hashchange`, not inside the click. Assert with
+        # expect(), which waits; the sidebar and compare toggles above are
+        # synchronous and keep their immediate checks.
         page.locator(".portrait-row").first.click()
-        assert page.locator("body.mobile-detail-open").count() == 1
+        expect(page.locator("body")).to_have_class(DETAIL_OPEN)
         page.locator("[data-back]").click()
-        assert page.locator("body.mobile-detail-open").count() == 0
+        expect(page.locator("body")).not_to_have_class(DETAIL_OPEN)
     else:
         page.locator("[data-compare-mode='after']").click()
         assert page.locator("[data-compare-mode='after'].active").count() == 1
 
     settings_selector = ".mobile-topbar [data-route='settings']" if width <= 720 else ".sidebar-footer [data-route='settings']"
     page.locator(settings_selector).click()
-    assert page.locator(".modal").is_visible()
+    expect(page.locator(".modal")).to_be_visible()
     assert_no_overflow(page)
     page.locator("[data-close-settings]").click()
     assert not errors, errors

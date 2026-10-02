@@ -20,7 +20,9 @@
 
   function isDemoPage() {
     const params = new URLSearchParams(window.location.search);
-    return params.has("demo") || params.has("demo_visuals");
+    const demo = params.has("demo") || params.has("demo_visuals");
+    const route = (window.location.hash || "#/overview").replace(/^#\/?/, "").split("/")[0];
+    return demo && route === "overview";
   }
 
   function mountPoint() {

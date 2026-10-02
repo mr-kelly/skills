@@ -1,5 +1,6 @@
 import { messages } from "./i18n/messages.js";
 import { closeConnectGate, passConnectGate, renderSetupRequired } from "./js/connect-gate.js?v=0.1.0";
+import { NORMALIZE_ROW_BY_KEY } from "./js/intel-model.js?v=0.1.0";
 import { getProvider } from "./js/providers/index.js?v=0.1.0";
 
 const params = new URLSearchParams(location.search);
@@ -17,7 +18,18 @@ const lang =
       : "en"
     : normalizeLang(langOverride);
 const t = messages[lang] || messages.en;
-const state = { batch: null, decisions: {}, route: parseRoute(), selectedId: null };
+const state = {
+  batch: null,
+  decisions: {},
+  route: parseRoute(),
+  selectedId: null,
+  pagination: {},
+  totalCount: {},
+  workflowCount: null,
+  loadingMore: {},
+  loadMoreError: {},
+  hasLoadedMore: false,
+};
 
 function parseRoute() {
   const hash = location.hash || "#/overview";
@@ -32,6 +44,9 @@ async function load() {
   state.batch = data.batch;
   state.decisions = data.decisions || {};
   state.appState = data;
+  state.pagination = data.pagination || {};
+  state.totalCount = data.totalCount || {};
+  state.workflowCount = data.workflowCount || null;
   render();
 }
 
@@ -57,6 +72,7 @@ function byView() {
 }
 
 function counts() {
+  if (state.workflowCount) return state.workflowCount;
   const items = allItems();
   return {
     needs: items.filter((item) => effectiveStatus(item) === "needs_review").length,
@@ -154,9 +170,9 @@ function renderOverview() {
     </header>
     <section class="summary-grid">
       <div><span>${t.buyer}</span><strong>${escapeHtml(b.buyer)}</strong></div>
-      <div><span>${t.signals}</span><strong>${b.signals.length}</strong></div>
-      <div><span>${t.actions}</span><strong>${b.actions.length}</strong></div>
-      <div><span>${t.drafts}</span><strong>${b.drafts.length}</strong></div>
+      <div><span>${t.signals}</span><strong>${state.totalCount.signals ?? `${b.signals.length}${state.pagination.signals ? "+" : ""}`}</strong></div>
+      <div><span>${t.actions}</span><strong>${state.totalCount.actions ?? `${b.actions.length}${state.pagination.actions ? "+" : ""}`}</strong></div>
+      <div><span>${t.drafts}</span><strong>${state.totalCount.drafts ?? `${b.drafts.length}${state.pagination.drafts ? "+" : ""}`}</strong></div>
     </section>
     <section class="split">
       <div>
@@ -184,16 +200,45 @@ function renderList() {
   renderShell(`
     <header class="page-header">
       <div>
-        <p class="eyebrow">${items.length} items</p>
+        <p class="eyebrow">${state.totalCount[state.route.view] ?? `${items.length}${state.pagination[state.route.view] ? "+" : ""}`} items</p>
         <h1>${state.route.view}</h1>
       </div>
     </header>
     <section class="workbench">
-      <div class="list-pane">${items.map(itemRow).join("")}</div>
+      <div class="list-pane">${items.map(itemRow).join("")}${loadMoreControl(state.route.view)}</div>
       <div class="detail-pane">${selected ? detail(selected) : "<p>No items.</p>"}</div>
     </section>
   `);
   bindDecisionForm(selected);
+}
+
+function loadMoreControl(key) {
+  if (!state.pagination[key]) return "";
+  return `<div class="load-more"><button type="button" data-load-more="${escapeHtml(key)}" ${state.loadingMore[key] ? "disabled" : ""}>${state.loadingMore[key] ? t.loadingMore : t.loadMore}</button>${state.loadMoreError[key] ? `<span role="alert">${t.loadMoreFailed}</span>` : ""}</div>`;
+}
+
+async function loadMore(key) {
+  const cursor = state.pagination[key];
+  if (!cursor || state.loadingMore[key]) return;
+  state.loadingMore[key] = true;
+  state.loadMoreError[key] = false;
+  render();
+  try {
+    const provider = await getProvider();
+    if (typeof provider.fetchPage !== "function") return;
+    const page = await provider.fetchPage(key, cursor);
+    const normalize = NORMALIZE_ROW_BY_KEY[key];
+    const known = new Set((state.batch[key] || []).map((item) => item.id));
+    const rows = (page.rows || []).map(normalize).filter((item) => !known.has(item.id));
+    state.batch[key].push(...rows);
+    state.pagination[key] = page.nextCursor;
+    state.hasLoadedMore = true;
+  } catch {
+    state.loadMoreError[key] = true;
+  } finally {
+    state.loadingMore[key] = false;
+    render();
+  }
 }
 
 function detail(item) {
@@ -256,7 +301,9 @@ function renderSources() {
   `,
     )
     .join("");
-  renderShell(`<header class="page-header"><h1>${t.sources}</h1></header><section class="panel">${rows}</section>`);
+  renderShell(
+    `<header class="page-header"><h1>${t.sources}</h1></header><section class="panel">${rows}${loadMoreControl("sources")}</section>`,
+  );
 }
 
 function renderSettings() {
@@ -311,10 +358,14 @@ async function boot() {
 }
 
 window.addEventListener("hashchange", render);
+document.addEventListener("click", (event) => {
+  const button = event.target.closest?.("[data-load-more]");
+  if (button) loadMore(button.dataset.loadMore);
+});
 boot();
 setInterval(() => {
   const active = document.activeElement;
   if (active && ["TEXTAREA", "INPUT", "SELECT"].includes(active.tagName)) return;
-  if (!state.batch) return;
+  if (!state.batch || state.hasLoadedMore) return;
   load().catch((error) => console.error("Refresh failed", error));
 }, 10000);

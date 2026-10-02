@@ -149,7 +149,6 @@ h2.group {
 .card[hidden] { display: none; }
 .card .thumb { aspect-ratio: 3 / 2; background: #eef0f3; overflow: hidden; border-bottom: 1px solid var(--border); }
 .card .thumb img { width: 100%; height: 100%; object-fit: cover; object-position: top left; display: block; }
-.card .thumb.template-cover img { object-fit: contain; object-position: center; }
 .card .thumb.empty { display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 26px; }
 .card .body { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 6px; }
 .card .name { font-weight: 650; font-size: 15.5px; display: flex; align-items: center; gap: 8px; }
@@ -312,15 +311,9 @@ After it is installed, invoke the skill as $kelly-legal-firm-radar.</textarea>
     </section>
     <div class="panel"><h3><span class="en">When to use it</span><span class="zh">什么时候用</span></h3><p><span class="en">Use it when partners need business-layout analysis, case quality review, lawyer capability profiles, talent planning, or brand proof points from internal casebase data.</span><span class="zh">合伙人需要业务布局分析、案件质量评估、律师画像、专业梯队建设，或从内部案例库提炼品牌证明时使用。</span></p></div>
     <div class="shots"><figure class="shot">
-  <img data-shot-en="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-legal-firm-radar/assets/screenshots/checks.webp" data-shot-zh="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-legal-firm-radar/assets/screenshots/checks-zh-CN.webp" src="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-legal-firm-radar/assets/screenshots/checks.webp" alt="Checks" loading="lazy">
+  <img data-shot-en="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-legal-firm-radar/assets/screenshots/overview.webp" data-shot-zh="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-legal-firm-radar/assets/screenshots/overview-zh-CN.webp" src="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-legal-firm-radar/assets/screenshots/overview.webp" alt="Overview" loading="lazy">
   <figcaption class="cap">
-    <div class="en"><strong>Checks</strong><span>Analytics QA for anonymization, sample size, attribution, bias caveats, and external-use restrictions.</span></div><div class="zh"><strong>检查</strong><span>匿名化、样本量、归因、偏差 caveat 和外部使用限制检查。</span></div>
-  </figcaption>
-</figure>
-<figure class="shot">
-  <img data-shot-en="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-legal-firm-radar/assets/screenshots/entities.webp" data-shot-zh="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-legal-firm-radar/assets/screenshots/entities-zh-CN.webp" src="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-legal-firm-radar/assets/screenshots/entities.webp" alt="Library" loading="lazy">
-  <figcaption class="cap">
-    <div class="en"><strong>Library</strong><span>Firm and entity library with competitor analytics, bucketed by review state.</span></div><div class="zh"><strong>库</strong><span>机构/实体库，含竞品分析，按复核状态分组。</span></div>
+    <div class="en"><strong>Overview</strong><span>Firm radar command desk with partner review load, approved reports, blocked insights, and management activity.</span></div><div class="zh"><strong>总览</strong><span>律所经营画像台：管理层复核负担、已批准报告、已拦截洞察和动态。</span></div>
   </figcaption>
 </figure>
 <figure class="shot">
@@ -330,15 +323,21 @@ After it is installed, invoke the skill as $kelly-legal-firm-radar.</textarea>
   </figcaption>
 </figure>
 <figure class="shot">
-  <img data-shot-en="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-legal-firm-radar/assets/screenshots/overview.webp" data-shot-zh="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-legal-firm-radar/assets/screenshots/overview-zh-CN.webp" src="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-legal-firm-radar/assets/screenshots/overview.webp" alt="Overview" loading="lazy">
+  <img data-shot-en="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-legal-firm-radar/assets/screenshots/checks.webp" data-shot-zh="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-legal-firm-radar/assets/screenshots/checks-zh-CN.webp" src="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-legal-firm-radar/assets/screenshots/checks.webp" alt="Checks" loading="lazy">
   <figcaption class="cap">
-    <div class="en"><strong>Overview</strong><span>Firm radar command desk with partner review load, approved reports, blocked insights, and management activity.</span></div><div class="zh"><strong>总览</strong><span>律所经营画像台：管理层复核负担、已批准报告、已拦截洞察和动态。</span></div>
+    <div class="en"><strong>Checks</strong><span>Analytics QA for anonymization, sample size, attribution, bias caveats, and external-use restrictions.</span></div><div class="zh"><strong>检查</strong><span>匿名化、样本量、归因、偏差 caveat 和外部使用限制检查。</span></div>
   </figcaption>
 </figure>
 <figure class="shot">
   <img data-shot-en="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-legal-firm-radar/assets/screenshots/workbench.webp" data-shot-zh="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-legal-firm-radar/assets/screenshots/workbench-zh-CN.webp" src="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-legal-firm-radar/assets/screenshots/workbench.webp" alt="Workbench" loading="lazy">
   <figcaption class="cap">
     <div class="en"><strong>Workbench</strong><span>Detail pane for practice analytics, talent signals, quality indicators, and approved management report text.</span></div><div class="zh"><strong>工作台</strong><span>业务分析、人才信号、质量指标和可审批的管理报告文本。</span></div>
+  </figcaption>
+</figure>
+<figure class="shot">
+  <img data-shot-en="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-legal-firm-radar/assets/screenshots/entities.webp" data-shot-zh="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-legal-firm-radar/assets/screenshots/entities-zh-CN.webp" src="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-legal-firm-radar/assets/screenshots/entities.webp" alt="Library" loading="lazy">
+  <figcaption class="cap">
+    <div class="en"><strong>Library</strong><span>Firm and entity library with competitor analytics, bucketed by review state.</span></div><div class="zh"><strong>库</strong><span>机构/实体库，含竞品分析，按复核状态分组。</span></div>
   </figcaption>
 </figure></div>
 
@@ -383,8 +382,8 @@ After it is installed, invoke the skill as $kelly-legal-firm-radar.</textarea>
 </aside>
 </div>
 <footer class="footer">
-  <span class="en">MIT licensed · Built from the repo READMEs and template manifests by <code>scripts/build-site.mjs</code> · <a href="https://github.com/mr-kelly/skills">mr-kelly/skills</a></span>
-  <span class="zh">MIT 许可 · 由 <code>scripts/build-site.mjs</code> 从仓库 README 和模板清单生成 · <a href="https://github.com/mr-kelly/skills">mr-kelly/skills</a></span>
+  <span class="en">MIT licensed · Built from the repo READMEs by <code>scripts/build-site.mjs</code> · <a href="https://github.com/mr-kelly/skills">mr-kelly/skills</a></span>
+  <span class="zh">MIT 许可 · 由 <code>scripts/build-site.mjs</code> 从仓库 README 生成 · <a href="https://github.com/mr-kelly/skills">mr-kelly/skills</a></span>
 </footer>
 </div>
 <script>

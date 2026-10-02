@@ -20,11 +20,11 @@
 
   .voice-head h3 {
     margin: 0 0 2px;
-    font-size: 14px;
+    font-size: var(--text-md);
   }
 
   .voice-status {
-    font-size: 11px;
+    font-size: var(--text-xs);
     font-weight: 600;
     padding: 2px 9px;
     border-radius: 999px;
@@ -32,18 +32,18 @@
   }
 
   .voice-status.ok {
-    background: #e7f6ee;
+    background: var(--surface-soft);
     color: var(--success);
   }
 
   .voice-status.planned {
-    background: #fdf3e3;
+    background: var(--surface-soft);
     color: var(--warning);
   }
 
   .voice-line {
     margin: 0;
-    font-size: 13px;
+    font-size: var(--text-base);
     line-height: 1.5;
   }
 

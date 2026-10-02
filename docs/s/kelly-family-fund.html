@@ -149,7 +149,6 @@ h2.group {
 .card[hidden] { display: none; }
 .card .thumb { aspect-ratio: 3 / 2; background: #eef0f3; overflow: hidden; border-bottom: 1px solid var(--border); }
 .card .thumb img { width: 100%; height: 100%; object-fit: cover; object-position: top left; display: block; }
-.card .thumb.template-cover img { object-fit: contain; object-position: center; }
 .card .thumb.empty { display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 26px; }
 .card .body { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 6px; }
 .card .name { font-weight: 650; font-size: 15.5px; display: flex; align-items: center; gap: 8px; }
@@ -312,15 +311,9 @@ After it is installed, invoke the skill as $kelly-family-fund.</textarea>
     </section>
     <div class="panel"><h3><span class="en">When to use it</span><span class="zh">什么时候用</span></h3><p><span class="en">Use it when a family jointly supports elderly parents from a pooled pension: tracking the nursing-home cost and splitting the surplus (transport, meals, birthday gifts, gifts of obligation) transparently across sibling families.</span><span class="zh">一家人共同赡养老人、统一管理退休金时使用：记录养老院费用，并把结余（交通、聚餐、生日礼物、人情）透明地分摊到各兄弟姐妹家庭。</span></p></div>
     <div class="shots"><figure class="shot">
-  <img data-shot-en="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-family-fund/assets/screenshots/category.webp" data-shot-zh="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-family-fund/assets/screenshots/category-zh-CN.webp" src="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-family-fund/assets/screenshots/category.webp" alt="By category" loading="lazy">
+  <img data-shot-en="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-family-fund/assets/screenshots/overview.webp" data-shot-zh="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-family-fund/assets/screenshots/overview-zh-CN.webp" src="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-family-fund/assets/screenshots/overview.webp" alt="Overview" loading="lazy">
   <figcaption class="cap">
-    <div class="en"><strong>By category</strong><span>Spending across care, transport, meals, gifts, and gifts of obligation, with the care-versus-family split.</span></div><div class="zh"><strong>按分类</strong><span>养老院、交通、聚餐、礼物、人情等各项支出，以及养老院与家庭的占比拆分。</span></div>
-  </figcaption>
-</figure>
-<figure class="shot">
-  <img data-shot-en="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-family-fund/assets/screenshots/family.webp" data-shot-zh="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-family-fund/assets/screenshots/family-zh-CN.webp" src="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-family-fund/assets/screenshots/family.webp" alt="By family (fairness)" loading="lazy">
-  <figcaption class="cap">
-    <div class="en"><strong>By family (fairness)</strong><span>Each sibling family's cumulative benefit, share, and deviation from the average — care excluded, shared costs split equally — so anyone can confirm it is balanced.</span></div><div class="zh"><strong>家庭公平</strong><span>每个兄弟姐妹家庭的累计受益、占比和相对平均的偏差——养老院不计入、共享支出按家庭均分——谁都能核对是否均衡。</span></div>
+    <div class="en"><strong>Overview</strong><span>Fund balance, this-month income / expense / net, care and family totals, an expense-by-category donut, running-balance trend, and read-only insights.</span></div><div class="zh"><strong>总览</strong><span>基金结余、本月收入/支出/结余、养老院与家庭分摊累计、支出构成环形图、结余走势，以及只读洞察。</span></div>
   </figcaption>
 </figure>
 <figure class="shot">
@@ -330,9 +323,15 @@ After it is installed, invoke the skill as $kelly-family-fund.</textarea>
   </figcaption>
 </figure>
 <figure class="shot">
-  <img data-shot-en="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-family-fund/assets/screenshots/overview.webp" data-shot-zh="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-family-fund/assets/screenshots/overview-zh-CN.webp" src="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-family-fund/assets/screenshots/overview.webp" alt="Overview" loading="lazy">
+  <img data-shot-en="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-family-fund/assets/screenshots/family.webp" data-shot-zh="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-family-fund/assets/screenshots/family-zh-CN.webp" src="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-family-fund/assets/screenshots/family.webp" alt="By family (fairness)" loading="lazy">
   <figcaption class="cap">
-    <div class="en"><strong>Overview</strong><span>Fund balance, this-month income / expense / net, care and family totals, an expense-by-category donut, running-balance trend, and read-only insights.</span></div><div class="zh"><strong>总览</strong><span>基金结余、本月收入/支出/结余、养老院与家庭分摊累计、支出构成环形图、结余走势，以及只读洞察。</span></div>
+    <div class="en"><strong>By family (fairness)</strong><span>Each sibling family's cumulative benefit, share, and deviation from the average — care excluded, shared costs split equally — so anyone can confirm it is balanced.</span></div><div class="zh"><strong>家庭公平</strong><span>每个兄弟姐妹家庭的累计受益、占比和相对平均的偏差——养老院不计入、共享支出按家庭均分——谁都能核对是否均衡。</span></div>
+  </figcaption>
+</figure>
+<figure class="shot">
+  <img data-shot-en="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-family-fund/assets/screenshots/category.webp" data-shot-zh="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-family-fund/assets/screenshots/category-zh-CN.webp" src="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-family-fund/assets/screenshots/category.webp" alt="By category" loading="lazy">
+  <figcaption class="cap">
+    <div class="en"><strong>By category</strong><span>Spending across care, transport, meals, gifts, and gifts of obligation, with the care-versus-family split.</span></div><div class="zh"><strong>按分类</strong><span>养老院、交通、聚餐、礼物、人情等各项支出，以及养老院与家庭的占比拆分。</span></div>
   </figcaption>
 </figure></div>
 
@@ -377,8 +376,8 @@ After it is installed, invoke the skill as $kelly-family-fund.</textarea>
 </aside>
 </div>
 <footer class="footer">
-  <span class="en">MIT licensed · Built from the repo READMEs and template manifests by <code>scripts/build-site.mjs</code> · <a href="https://github.com/mr-kelly/skills">mr-kelly/skills</a></span>
-  <span class="zh">MIT 许可 · 由 <code>scripts/build-site.mjs</code> 从仓库 README 和模板清单生成 · <a href="https://github.com/mr-kelly/skills">mr-kelly/skills</a></span>
+  <span class="en">MIT licensed · Built from the repo READMEs by <code>scripts/build-site.mjs</code> · <a href="https://github.com/mr-kelly/skills">mr-kelly/skills</a></span>
+  <span class="zh">MIT 许可 · 由 <code>scripts/build-site.mjs</code> 从仓库 README 生成 · <a href="https://github.com/mr-kelly/skills">mr-kelly/skills</a></span>
 </footer>
 </div>
 <script>

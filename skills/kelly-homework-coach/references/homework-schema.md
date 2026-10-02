@@ -32,6 +32,7 @@ One row per homework question the agent has explained.
 | `source` | `source` | text | `photo\|text\|paper` |
 | `status` | `status` | text | workflow status, mirrored from the linked review's decision |
 | `difficulty` | `difficulty` | text | `easy\|medium\|challenge` |
+| `original-image` | `original_image` | attachment | optional single image; opt-in per-photo upload, no Demo originals |
 | `photo-label` | `photo_label` | text | short description only, e.g. "Homework photo, page 18 question 6" — never a raw photo or data URL |
 | `prompt-text` | `prompt_text` | longtext | |
 | `student-answer` | `student_answer` | text | |
@@ -155,3 +156,15 @@ writes an execution marker plus sets `status` to `blocked`. For
 `changes_requested` (the retired app's "queued agent task" equivalent) —
 nothing is written, since the review's own status already reflects it. It
 performs no export, filing, or external transmission itself.
+
+### Structured practice items and attempts
+
+Items accept `{prompt, answer, hint, topic, explanation?, parent_answer?, diagram?}`.
+An empty answer is manually graded, never automatically counted wrong.
+`diagram` uses bounded finite numeric coordinates for A/B/C/D/E/G/H/Q and a plain-text note.
+No raw SVG, arbitrary markup or remote image URL is accepted by the renderer.
+`analysis.attempt` is the latest run; `analysis.attempts` stores historical runs. Results include
+`first_given`, `first_outcome`, `answer_history` and `hints_used`. Score counts final answers,
+not independent mastery. `analysis.attempt_reviews` stores separately reviewed decisions keyed to `attempted_at`, with manual verdicts, parent note, and review time; this is a pending paper update until a reviewed merge. The old paper approval never approves a new attempt or unlocks another sitting after hand-in.
+Original-image is read-only in generic question-field builders so normal updates do not clear it.
+Existing installations need an explicitly reviewed field migration; importing the template is not a migration.

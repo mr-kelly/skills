@@ -1,0 +1,3 @@
+mlx-lm[train]==0.31.3
+datasets==5.0.1
+fsspec[http]==2026.6.0

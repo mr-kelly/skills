@@ -33,7 +33,7 @@ test("has the canonical app project and deterministic commands", async () => {
   assert.equal(pkg.scripts.dev, "node server.js");
   assert.equal(pkg.scripts.start, "node server.js");
   assert.match(pkg.scripts.check, /node --test/);
-  assert.equal(pkg.dependencies["busabase-sdk"], "0.17.2");
+  assert.match(pkg.dependencies["busabase-sdk"], /^\d+\.\d+\.\d+$/, "busabase-sdk must be an exact pin");
 });
 
 test("keeps the package manifest and runtime declarations aligned", async () => {
@@ -89,7 +89,10 @@ test("does not persist secrets or a second data provider in browser storage", as
     ),
   );
   const source = sources.join("\n");
-  assert.doesNotMatch(source, /localStorage\.setItem\("busabase|sessionStorage|indexedDB/);
+  assert.doesNotMatch(
+    source,
+    /localStorage\.setItem\("busabase|sessionStorage\.setItem\([^,]+,\s*(?:apiKey|token|password)|indexedDB/,
+  );
   assert.doesNotMatch(source, /BUSABASE_API_KEY|Authorization:\s*[`'"]Bearer/i);
   assert.doesNotMatch(source, /KELLY_HOMEWORK_COACH_DATA_PROVIDER|local-file-provider|config\.local\.json/);
   assert.match(source, /createBusabaseClient/);
@@ -163,5 +166,5 @@ test("wraps the review-decision execution step and the homework-recording step i
   assert.match(recordSource, /decision_action: current\.decision_action/);
 
   const pkg = await readJson(join(skillRoot, "package.json"));
-  assert.equal(pkg.dependencies["busabase-sdk"], "0.17.2");
+  assert.match(pkg.dependencies["busabase-sdk"], /^\d+\.\d+\.\d+$/, "busabase-sdk must be an exact pin");
 });

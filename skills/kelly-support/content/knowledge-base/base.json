@@ -52,11 +52,43 @@
       "options": {}
     },
     {
+      "slug": "source-url",
+      "name": "Source URL",
+      "type": "text",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "source-published-at",
+      "name": "Source published at",
+      "type": "text",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "source-fetched-at",
+      "name": "Source fetched at",
+      "type": "text",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "content-hash",
+      "name": "Content hash",
+      "type": "text",
+      "required": false,
+      "position": 9,
+      "options": {}
+    },
+    {
       "slug": "updated-at",
       "name": "Updated at",
       "type": "text",
       "required": false,
-      "position": 6,
+      "position": 10,
       "options": {}
     }
   ],

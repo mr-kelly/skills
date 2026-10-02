@@ -1,5 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import { describeBusabaseAirAppRuntime } from "busabase-sdk/airapp-node";
 import { type Context, Hono } from "hono";
 import { createProvider } from "../lib/data-provider/index.ts";
 import { withRuntimeRequest } from "../lib/runtime-context.ts";
@@ -55,26 +56,9 @@ app.use("*", async (c, next) => {
 });
 app.use("/api/state", attachDemoVisuals);
 
-/**
- * The ONLY sanctioned way for browser code to learn where it is running.
- * Busabase injects BUSABASE_AIRAPP_RUNTIME into the process it spawns; nobody
- * else sets it, so its absence is the positive fact "standalone". Never
- * classify this by hostname, iframe nesting, or path — a hosted AirApp is
- * served from localhost on Desktop/OSS, and a standalone run is reached over
- * LAN IPs and dev tunnels, so both directions of that guess are wrong.
- */
-const airappRuntime = (process.env.BUSABASE_AIRAPP_RUNTIME || "").trim();
-app.get("/__airapp/runtime", (c) =>
-  c.json({
-    runtime: airappRuntime || "standalone",
-    // Any non-empty value means hosted. Deliberately NOT a check against a list of
-    // engine names: an app carrying yesterday's list answers "standalone" inside a
-    // hosted preview — it shows its own connection gate, calls /api/v1 with no
-    // credential, and reports an error the user cannot act on. #127 removed that
-    // shape fleet-wide; the move to the content/ layout brought this copy back.
-    hosted: airappRuntime !== "",
-  }),
-);
+// The SDK owns the runtime vocabulary and, critically, decides hosting from
+// presence of BUSABASE_AIRAPP_RUNTIME rather than membership in a stale list.
+app.get("/__airapp/runtime", (c) => c.json(describeBusabaseAirAppRuntime()));
 
 // ---- API ----
 app.get("/api/state", async (c) => {

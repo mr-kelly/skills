@@ -48,6 +48,28 @@ for (const entry of entries) {
       findings.push(`${location}: pnpm-lock.yaml does not resolve busabase-sdk@${sdkVersion}`);
     }
 
+    // The browser runs app/vendor/*.js, not node_modules. esbuild leaves a
+    // `node_modules/.pnpm/busabase-sdk@X/...` comment above every module it inlines, so a
+    // bundle built from another version says so. Bumping package.json without running
+    // `pnpm build:sdk` otherwise passes every Node-side check while the app keeps running
+    // the old SDK.
+    const vendorRoot = path.join(packageRoot, "app", "vendor");
+    for (const file of await readdir(vendorRoot).catch(() => [])) {
+      if (!file.endsWith(".js")) continue;
+      const bundled = new Set(
+        [...(await readOptional(path.join(vendorRoot, file))).matchAll(/busabase-sdk@(\d+\.\d+\.\d+)\//g)].map(
+          (match) => match[1],
+        ),
+      );
+      for (const found of bundled) {
+        if (found !== sdkVersion) {
+          findings.push(
+            `${location}: app/vendor/${file} was built from busabase-sdk@${found}, package.json pins ${sdkVersion} — run pnpm build:sdk`,
+          );
+        }
+      }
+    }
+
     const npmLock = await readOptional(path.join(packageRoot, "package-lock.json"));
     if (npmLock) {
       const lockedVersion = JSON.parse(npmLock).packages?.["node_modules/busabase-sdk"]?.version;

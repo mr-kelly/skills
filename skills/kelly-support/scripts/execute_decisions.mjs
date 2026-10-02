@@ -1,17 +1,11 @@
 #!/usr/bin/env node
 // Trusted hand-off step. Kelly Support's AirApp only ever proposes a review
-// decision on a ticket (approve / request changes / block); this script is
-// the process authorized to act on an `approved` verdict. It performs NO
-// external side effect — it never sends an email/WhatsApp/WeChat message,
-// never issues a refund, never calls any channel API. Real delivery
-// (send_reply / escalate / refund / close) is performed by the configured
-// channel connectors (kelly-email drafts, WhatsApp Cloud API, the web-chat
-// widget, WeChat Work) by the skill, only after this script's dry-run/--apply
-// report, per SKILL.md's boundary — this mirrors the retired
-// scripts/execute_decisions.ts exactly: it only ever wrote
-// execution_report.json and NEVER flipped a ticket's workflow `status` to
-// "done" itself (that remains for the human/agent once the real send is
-// confirmed through the channel connector). Re-reads Busabase immediately
+// decision on a ticket (approve / request changes / block); this script claims
+// eligible work for a configured connector. It performs NO external side
+// effect and therefore never records `sent`. Real delivery is performed by the
+// configured channel connector. After the provider accepts the operation, the
+// connector calls finalize_delivery.mjs with its receipt to record the outgoing
+// message, first-response SLA, and terminal workflow state. Re-reads Busabase immediately
 // before recording, re-checks the support-qa quality gate and the ticket's
 // own decision, refuses any BLOCK, and stays idempotent by checking each
 // ticket's own execution-status field (no separate report file — Busabase
@@ -23,18 +17,17 @@ import { createBusabaseClient } from "busabase-sdk";
 import { inspectProvisionedResources } from "busabase-sdk/airapp";
 import { appConfig } from "../content/kelly-support-app/app/js/config.js";
 import { buildSnapshot } from "../content/kelly-support-app/app/js/support-model.js";
+import { supportSettingsComplete } from "../content/kelly-support-app/app/js/support-settings.js";
 
 function help() {
   console.log(`Usage: node scripts/execute_decisions.mjs [--apply]
 
 Reads tickets with status "approved" from Busabase. Without --apply this is a
 dry run that only prints what would be handed off. With --apply it re-checks
-the support-qa gate and writes an execution marker (execution-status:
-"sent"/"blocked"/"skipped", operation, target, etc.) back onto each ticket
-that clears every safety gate — it performs no send, no refund, no channel
-API call itself, and never changes the ticket's workflow status. Real
-sends/escalations/refunds are delegated to the configured channel connectors
-by the skill, post-approval, per SKILL.md.`);
+support settings and the support-qa gate, then claims eligible work with
+execution-status "queued" and a stable idempotency key. It performs no send,
+refund, or channel API call and never records "sent". A connector must call
+finalize_delivery.mjs with its provider receipt after the external operation.`);
 }
 
 const normalizeFields = (fields) =>
@@ -109,6 +102,11 @@ function baseTicketFields(row) {
     execution_tier: row.execution_tier || "",
     execution_amount: row.execution_amount ?? "",
     execution_detail: row.execution_detail || "",
+    execution_idempotency_key: row.execution_idempotency_key || "",
+    execution_provider_message_id: row.execution_provider_message_id || "",
+    execution_attempt: row.execution_attempt ?? "",
+    execution_started_at: row.execution_started_at || "",
+    execution_completed_at: row.execution_completed_at || "",
     executed_at: row.executed_at || "",
     updated_at: row.updated_at || "",
   };
@@ -141,6 +139,9 @@ async function main() {
     readAll(client, declared("settings")),
   ]);
   const settingsRow = settingsRows.find((row) => row.record_id === "config") || {};
+  if (!supportSettingsComplete(settingsRow)) {
+    throw new Error("SUPPORT_SETTINGS_REQUIRED: complete and merge support policy onboarding before execution");
+  }
   let risk_policy = {};
   try {
     risk_policy = settingsRow.risk_policy ? JSON.parse(settingsRow.risk_policy) : {};
@@ -179,15 +180,15 @@ async function main() {
       continue;
     }
 
-    // Idempotent: a ticket already marked "sent" by a prior --apply run is
-    // skipped, read live off the ticket record itself (no separate report).
-    if (ticket.execution?.status === "sent") {
+    // Idempotent: claimed or delivered work is skipped, read live off the
+    // ticket record itself (no separate report).
+    if (["queued", "sending", "sent"].includes(ticket.execution?.status)) {
       results.push({
         ticket_id: ticket.ticket_id,
         ref: ticket.ref,
         status: "skipped",
         operation: "none",
-        reason: "Already sent; skipping to stay idempotent.",
+        reason: `Already ${ticket.execution.status}; skipping to stay idempotent.`,
         executed_at: now,
       });
       continue;
@@ -198,7 +199,7 @@ async function main() {
     const entry = {
       ticket_id: ticket.ticket_id,
       ref: ticket.ref,
-      status: apply ? "sent" : "dry_run",
+      status: apply ? "queued" : "dry_run",
       operation: action,
       channel: ticket.channel,
       executed_at: now,
@@ -233,11 +234,13 @@ async function main() {
             execution_target: entry.target || "",
             execution_tier: entry.tier || "",
             execution_amount: entry.amount ?? "",
-            execution_detail: entry.reason || "",
-            executed_at: now,
-            // Workflow status is deliberately left unchanged — real delivery
-            // through the channel connector, not this script, is what
-            // ultimately resolves the ticket.
+            execution_detail: "Claimed for connector delivery; no external side effect has occurred yet.",
+            execution_idempotency_key: `kelly-support:${ticket.ticket_id}:${record.__headCommitId}`,
+            execution_attempt: Number(record.execution_attempt || 0) + 1,
+            execution_started_at: now,
+            execution_completed_at: "",
+            execution_provider_message_id: "",
+            executed_at: "",
           }),
           message: `Record execution for ticket ${ticket.ticket_id}: ${entry.operation}`,
           author: "kelly-support-executor",
@@ -266,11 +269,11 @@ async function main() {
   }
 
   if (!apply) {
-    console.log(`Dry run only (${results.length} operation(s)). Re-run with --apply to record execution markers.`);
+    console.log(`Dry run only (${results.length} operation(s)). Re-run with --apply to queue eligible connector work.`);
     return;
   }
   console.log(
-    "Recorded execution markers on each ticket. Real sends / escalations / refunds are performed by the channel connectors per SKILL.md.",
+    "Queued eligible connector work. Nothing was marked sent; finalize only after a connector returns a provider receipt.",
   );
 }
 

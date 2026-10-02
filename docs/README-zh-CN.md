@@ -156,6 +156,7 @@
 | Skill | 做什么 | 什么时候用 | 详情 |
 | --- | --- | --- | --- |
 | `kelly-email` | AI 辅助 inbox-zero：跨邮箱 triage 未读邮件、起草回复、准备清理动作，并在本地 UI 里人工批准后执行。 | 处理未读邮件、写 support 回复、批准后归档/标记已读，或用 App-in-Skill UI 管理邮件时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-email.html?lang=zh) |
+| `kelly-followups` | 只做一件事：记下会后要跟进的人，列出今天该跟进哪些，做完打勾，不做成项目管理工具。 | 记录会议待办、查看今天该跟进谁时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-followups.html?lang=zh) |
 | `kelly-jobhunt` | 求职直投台，三个子命令：`profile` 把你的简历提炼成结构化档案并排版出 PDF，`research` 按你指定的招聘渠道找目标公司和公开联系邮箱、为每家写一封定制邮件，`send` 把你自己的 SMTP 凭据存进 Busabase Vault 再发出你批准的信。一家公司只发一封。 | 不想走招聘平台海投、要直接投公司邮箱时使用；也用于用已有材料生成简历 PDF、收集招聘联系邮箱及其来源、发出前审阅和修改邮件、跟踪哪些公司已经投过。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-jobhunt.html?lang=zh) |
 | `kelly-messenger` | 把 WhatsApp、Discord、Slack、Telegram 聚合成一个本地统一收件箱：完整会话记录 + 审批制回复 outbox。 | 在一个地方读所有聊天平台的消息、用一个 composer 写回复、批准后由 agent 经平台连接器发送时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-messenger.html?lang=zh) |
 | `kelly-standup` | 团队晨会看板：被调用时 agent 从聊天渠道收集成员日报，整理成「昨天/今天/阻塞」卡片和团队摘要，给缺交的人起草审批制催交提醒。 | 异步开晨会、一眼看到每个人在干什么、跟踪阻塞和参与率时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-standup.html?lang=zh) |
@@ -227,15 +228,20 @@
 | Skill | 做什么 | 什么时候用 | 详情 |
 | --- | --- | --- | --- |
 | `agent-rules` | 让 Codex、Claude Code、Copilot、Kiro、Cursor、Gemini 等 agent 共享同一套规则和 skills。 | 设置多 agent repo、检查规则漂移、修复 rule/skill symlink 时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/agent-rules.html?lang=zh) |
+| `buda-community` | 通过 community.buda.im 自带的 `/api/v1/community` REST API 操作 Buda 社区论坛：列分类和帖子、读一个帖子连同回复、搜索，发帖和回帖必须先经过明确确认。 | 查看、回答或发布 Buda 社区内容时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/buda-community.html?lang=zh) |
+| `busabase-community` | 通过 community.busabase.com 自带的 `/api/v1/community` REST API 操作 Busabase 社区论坛：列分类和帖子、读一个帖子连同回复、搜索，发帖和回帖必须先经过明确确认。 | 查看、回答或发布 Busabase 社区内容时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/busabase-community.html?lang=zh) |
 | `kelly-agent-builder` | 低代码 agent 配置与治理控制台：维护一批 mock agent 配置的配额、审批和归属，未填齐字段前禁止上线。 | 管理 agent 目录、检查配额使用、把草稿激活为上线，或归档某个 agent 时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-agent-builder.html?lang=zh) |
 | `kelly-agent-eval` | 评测看板，跑固定测试集对比 baseline 与候选版本 agent，在发版前用打分规则揪出回归问题。 | 排查 agent 版本回归、对比 baseline 与候选质量，或记录发版批准/阻止决定时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-agent-eval.html?lang=zh) |
 | `kelly-agent-observability` | 本地看板，展示运行在共享 AI 网关背后的一批 LLM agent：调用量、延迟、错误率、成本，以及链路级故障追踪。 | 审阅 agent 集群健康状况，或排查某条失败链路断在哪一步时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-agent-observability.html?lang=zh) |
 | `kelly-app-skill-creator` | 围绕 Research、Plan、Action、Retrospective 构建 Busabase-backed App-in-Skill。每个 skill 都包含完整规范 `app/`，用 `busabase-sdk` 读写持久配置、状态和数据，默认把同一套源码部署到 AirApp，只有明确要求时才启动 `pnpm dev`，拥有响应式 Kelly 操作台 UI，把运行时约束委托给 `$busabase-app-creator`，把 conformance 验收委托给 `$kelly-app-skill-creator-tests`。旧名 `kelly-app-creator`、`app-in-skill-creator` 保留为兼容别名。 | 构建 Busabase 研究台、审阅队列、计划看板、行动控制台、运营概览、控制面板或协作工作区时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-app-skill-creator.html?lang=zh) |
 | `kelly-app-skill-creator-tests` | 为规范 Kelly app skill 构建并运行可复用 conformance 测试，包括本地 server 与响应式浏览器检查、临时开源 Busabase provisioning 与持久化、环境变量门控的 Cloud OAuth，以及 AirApp parity；OSS 与 Cloud 始终分开报告。 | 给 `kelly-app-skill-creator` 生成的 skill 补测试、验收迁移后的 app skill、接入 app-skill CI，或诊断 SDK、OAuth、provisioning、持久化、AirApp 回归时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-app-skill-creator-tests.html?lang=zh) |
 | `kelly-devops` | 盯产品矩阵的运维面：服务可用性和延迟、SSL 证书和域名到期、API key 轮换、云支出异常，带 agent 提出的行动卡审批。 | 检查服务健康、避免域名/证书过期、review 云支出异常、批准续费和轮换动作时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-devops.html?lang=zh) |
+| `kelly-ideas` | 带商业顾问的灵感库：通过必答问题把模糊想法问清楚，再依次推进到 BRD、MRD 和 PRD。 | 把产品或商业构想打磨成足够精确、可以交付开发的规格时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-ideas.html?lang=zh) |
 | `kelly-llm-gateway` | 共享 LLM 网关的成本与模型治理看板：花费趋势、按服务/模型的成本拆分、灰度发布状态板，以及确定性成本/错误异常检测。 | 查看 LLM 网关花费、灰度发布状态，或确认成本/错误异常时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-llm-gateway.html?lang=zh) |
+| `kelly-local-model-lab` | Busabase 支撑的本地模型实验室：审核训练样本、在 Apple Silicon 上用 MLX-LM 执行 LoRA/QLoRA 微调、锁定评估集对比原始模型与 adapter，并登记通过审核的 adapter。 | 需要以 Busabase 为工作流事实源，在本地训练、评估、晋级或管理语言模型 adapter 时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-local-model-lab.html?lang=zh) |
 | `kelly-pr-review` | 通过 `gh` CLI 做 GitHub PR review desk：收集待 review PR、准备 review notes、在本地 UI 批准后执行 `gh pr review`。 | review PR、批准/comment/request changes，或批量处理 PR review decision 时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-pr-review.html?lang=zh) |
 | `publish-skills` | 把 agent skills 和 MCP servers 发布到各大市场和注册表：扫描私密数据、用 `gh skill` 校验、切版本、接 Claude `/plugin` 和 Codex marketplace，并准备 MCP Registry 和精选商店。 | 发布、上架、分发 skills、plugins 或 MCP servers 到 skills.sh、Claude Code、Codex 或 MCP Registry 时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/publish-skills.html?lang=zh) |
+| `sandock-community` | 通过 community.sandock.ai 自带的 `/api/v1/community` REST API 操作 Sandock 社区论坛：列分类和帖子、读一个帖子连同回复、搜索，发帖和回帖必须先经过明确确认。 | 查看、回答或发布 Sandock 社区内容时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/sandock-community.html?lang=zh) |
 
 ---
 
@@ -1602,6 +1608,29 @@ Kelly CLM 是一个刻意保持轻量的合同生命周期台，用于合同台�
   <tr>
     <td><strong>Story bank</strong><br>客户故事和带证据的 proof point。</td>
     <td><strong>漂移</strong><br>跨渠道跑偏告警——违规用法 vs canonical 护栏。</td>
+  </tr>
+</table>
+
+### `kelly-ideas`
+
+把模糊想法逐层打磨成可追溯的 BRD、MRD 和 PRD；问题未回答时不会跳级。
+
+<table>
+  <tr>
+    <td width="50%"><img src="../skills/kelly-ideas/assets/screenshots/overview.webp" alt="Kelly Ideas 总览"></td>
+    <td width="50%"><img src="../skills/kelly-ideas/assets/screenshots/idea-detail.webp" alt="Kelly Ideas 灵感详情"></td>
+  </tr>
+  <tr>
+    <td><strong>总览</strong><br>集中查看等待回答、可以推进和主动搁置的灵感。</td>
+    <td><strong>灵感详情</strong><br>一句话、目标用户、问题、时机、清晰度和当前推进门槛。</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="../skills/kelly-ideas/assets/screenshots/questions.webp" alt="Kelly Ideas 咨询师追问"></td>
+    <td width="50%"><img src="../skills/kelly-ideas/assets/screenshots/documents.webp" alt="Kelly Ideas PRD 文档"></td>
+  </tr>
+  <tr>
+    <td><strong>咨询师追问</strong><br>一次聚焦一个问题，展示提问原因，并提供明确的回答或跳过动作。</td>
+    <td><strong>PRD 文档</strong><br>带版本、状态和未解决 gaps 的产品需求草案。</td>
   </tr>
 </table>
 

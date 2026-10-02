@@ -68,30 +68,35 @@ function base(key) {
   return declared;
 }
 
-async function readAllRecords(key, { maxPages = 20 } = {}) {
+async function readPage(key, cursor) {
   if (!allowedReads.has("records.list")) throw new Error("PROCEDURE_DENIED: records.list");
   const declared = base(key);
-  const rows = [];
-  let cursor;
-  for (let page = 0; page < maxPages; page += 1) {
-    const result = await runtimeClient.records.list({
-      baseId: declared.baseId,
-      limit: declared.readLimit,
-      ...(cursor ? { cursor } : {}),
-    });
-    const records = Array.isArray(result) ? result : result.records || [];
-    for (const record of records) {
-      rows.push({
-        ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields),
-        __recordId: record.id,
-        __headCommitId: record.headCommitId || record.headCommit?.id,
-      });
-    }
-    cursor = Array.isArray(result) ? null : result.nextCursor;
-    if (!cursor) break;
-  }
-  return rows;
+  const result = await runtimeClient.records.list({
+    baseId: declared.baseId,
+    limit: declared.readLimit,
+    ...(cursor ? { cursor } : {}),
+  });
+  const records = Array.isArray(result) ? result : result.records || [];
+  const rows = records.map((record) => ({
+    ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields),
+    __recordId: record.id,
+    __headCommitId: record.headCommitId || record.headCommit?.id,
+  }));
+  return { rows, nextCursor: Array.isArray(result) ? null : result.nextCursor || null };
 }
+
+async function countRecords(key, filters) {
+  if (!allowedReads.has("records.count")) return null;
+  try {
+    const { total } = await runtimeClient.records.count({ baseId: base(key).baseId, ...(filters ? { filters } : {}) });
+    return total;
+  } catch {
+    return null;
+  }
+}
+
+const countInvoices = (status) =>
+  countRecords("invoices", [{ fieldSlug: "status", fieldType: "text", operator: "equals", value: status }]);
 
 async function findRecord(key, idFieldSlug, idValue) {
   const declared = base(key);
@@ -125,15 +130,31 @@ export const busabaseProvider = {
 
   async getState() {
     await ensureResources();
-    const [invoiceRows, settingsRows] = await Promise.all([readAllRecords("invoices"), readAllRecords("settings")]);
-    const configRow = findSettingsRow(settingsRows, "config");
+    const [invoicePage, settingsPage, total, needsReview, changesRequested, approved, done, blocked] =
+      await Promise.all([
+        readPage("invoices"),
+        readPage("settings"),
+        countRecords("invoices"),
+        countInvoices("needs_review"),
+        countInvoices("changes_requested"),
+        countInvoices("approved"),
+        countInvoices("done"),
+        countInvoices("blocked"),
+      ]);
+    const configRow = findSettingsRow(settingsPage.rows, "config");
     const configPayload = parsePayload(configRow?.payload);
     const config_summary = buildConfigSummary(configPayload);
-    const invoices = invoiceRows.map(computeInvoiceFromRow);
+    const invoices = invoicePage.rows.map(computeInvoiceFromRow);
     const batch = assembleBatch({
       invoices,
       lowConfidenceThreshold: config_summary.extraction.low_confidence_threshold,
     });
+    if (total !== null) batch.metrics.total = total;
+    if (needsReview !== null) batch.metrics.needs_review = needsReview;
+    if (changesRequested !== null) batch.metrics.changes_requested = changesRequested;
+    if (approved !== null) batch.metrics.approved = approved;
+    if (done !== null) batch.metrics.done = done;
+    if (blocked !== null) batch.metrics.blocked = blocked;
     return {
       app: "kelly-invoice-sheet",
       demo: false,
@@ -142,7 +163,14 @@ export const busabaseProvider = {
       lock: null,
       config_summary,
       batch,
+      pagination: { invoices: invoicePage.nextCursor },
+      totalCount: { invoices: total },
     };
+  },
+
+  async fetchPage(key, cursor) {
+    await ensureResources();
+    return readPage(key, cursor);
   },
 
   // Human verdict (approve / request_changes / block / revise), written

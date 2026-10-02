@@ -4,14 +4,24 @@ import { appConfig } from "../config.js?v=0.1.0";
 import {
   DECISION_ACTIONS,
   buildConfigSummary,
+  buildPracticeTicketBundle,
   buildSnapshot,
+  normalizeKbArticle,
+  normalizeQaPair,
+  normalizeTicket,
   runQualityGate,
   statusForAction,
 } from "../support-model.js?v=0.1.0";
+import {
+  normalizeSupportSettings,
+  serializeSupportSettings,
+  supportSettingsComplete,
+} from "../support-settings.js?v=0.1.0";
 
 const allowedReads = new Set(appConfig.permissions.readProcedures);
 const allowedSetup = new Set(appConfig.permissions.setupProcedures);
 const allowedWrites = new Set(appConfig.permissions.writeProcedures);
+const BROWSED_KEYS = ["tickets", "knowledge-base"];
 
 // A deployed AirApp sits inside the Busabase review boundary; only a standalone
 // run may merge its own writes. That is far too consequential to infer from the
@@ -57,29 +67,42 @@ function base(key) {
   return declared;
 }
 
-async function readAllRecords(key, { maxPages = 20 } = {}) {
+const initialCursors = new Map();
+
+async function readPage(key, cursor) {
   if (!allowedReads.has("records.list")) throw new Error("PROCEDURE_DENIED: records.list");
   const declared = base(key);
-  const rows = [];
-  let cursor;
-  for (let page = 0; page < maxPages; page += 1) {
-    const result = await runtimeClient.records.list({
-      baseId: declared.baseId,
-      limit: declared.readLimit,
-      ...(cursor ? { cursor } : {}),
+  const result = await runtimeClient.records.list({
+    baseId: declared.baseId,
+    limit: declared.readLimit,
+    ...(cursor ? { cursor } : {}),
+  });
+  const records = Array.isArray(result) ? result : result.records || [];
+  const rows = records.map((record) => ({
+    ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields),
+    __recordId: record.id,
+    __headCommitId: record.headCommitId || record.headCommit?.id,
+  }));
+  return { rows, nextCursor: Array.isArray(result) ? null : result.nextCursor || null };
+}
+
+async function readPageRows(key) {
+  const page = await readPage(key);
+  initialCursors.set(key, page.nextCursor);
+  return page.rows;
+}
+
+async function countRecords(key, filters) {
+  if (!allowedReads.has("records.count")) return null;
+  try {
+    const { total } = await runtimeClient.records.count({
+      baseId: base(key).baseId,
+      ...(filters ? { filters } : {}),
     });
-    const records = Array.isArray(result) ? result : result.records || [];
-    for (const record of records) {
-      rows.push({
-        ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields),
-        __recordId: record.id,
-        __headCommitId: record.headCommitId || record.headCommit?.id,
-      });
-    }
-    cursor = Array.isArray(result) ? null : result.nextCursor;
-    if (!cursor) break;
+    return total;
+  } catch {
+    return null;
   }
-  return rows;
 }
 
 async function findRecord(key, idFieldSlug, idValue) {
@@ -121,7 +144,7 @@ async function upsert(key, idFieldSlug, idValue, fields, message) {
 }
 
 async function readSettingsRow() {
-  const rows = await readAllRecords("settings");
+  const rows = await readPageRows("settings");
   return rows.find((row) => row.record_id === "config") || {};
 }
 
@@ -174,7 +197,7 @@ function ticketFields(row) {
 }
 
 async function currentRiskAndKb() {
-  const [kbRows, settingsRow] = await Promise.all([readAllRecords("knowledge-base"), readSettingsRow()]);
+  const [kbRows, settingsRow] = await Promise.all([readPageRows("knowledge-base"), readSettingsRow()]);
   let risk = {};
   try {
     risk = settingsRow.risk_policy ? JSON.parse(settingsRow.risk_policy) : {};
@@ -190,12 +213,15 @@ export const busabaseProvider = {
 
   async getState() {
     await ensureResources();
-    const [accounts, tickets, messages, knowledge_base, sync_log, settings] = await Promise.all([
-      readAllRecords("accounts"),
-      readAllRecords("tickets"),
-      readAllRecords("messages"),
-      readAllRecords("knowledge-base"),
-      readAllRecords("sync-log"),
+    initialCursors.clear();
+    const recordCountsPromise = Promise.all(BROWSED_KEYS.map((key) => countRecords(key)));
+    const [accounts, tickets, messages, knowledge_base, qa_pairs, sync_log, settings] = await Promise.all([
+      readPageRows("accounts"),
+      readPageRows("tickets"),
+      readPageRows("messages"),
+      readPageRows("knowledge-base"),
+      readPageRows("qa-pairs"),
+      readPageRows("sync-log"),
       readSettingsRow(),
     ]);
     let risk_policy = {};
@@ -204,18 +230,97 @@ export const busabaseProvider = {
     } catch {
       risk_policy = {};
     }
-    const snapshot = buildSnapshot({ accounts, tickets, messages, knowledge_base, sync_log, risk_policy });
-    const config_summary = buildConfigSummary({ settings, accounts });
+    const snapshot = buildSnapshot({ accounts, tickets, messages, knowledge_base, qa_pairs, sync_log, risk_policy });
+    const normalizedSettings = normalizeSupportSettings(settings);
+    const config_summary = buildConfigSummary({ settings: normalizedSettings, accounts });
+    const recordCounts = await recordCountsPromise;
     return {
       app: "kelly-support",
       demo: false,
       data_provider: "busabase",
-      onboarding: { completed: accounts.length > 0, config_version: "1" },
+      pagination: Object.fromEntries(BROWSED_KEYS.map((key) => [key, initialCursors.get(key) || null])),
+      totals: Object.fromEntries(BROWSED_KEYS.map((key, index) => [key, recordCounts[index]])),
+      onboarding: {
+        completed: accounts.length > 0 && supportSettingsComplete(settings),
+        accounts_completed: accounts.length > 0,
+        settings_completed: supportSettingsComplete(settings),
+        status: normalizedSettings.onboarding_status,
+        config_version: String(normalizedSettings.onboarding_version || 0),
+      },
       lock: null,
       config_summary,
       execution_report: null,
       snapshot,
     };
+  },
+
+  async importKnowledgeBundle({ article, qa_pairs = [] } = {}) {
+    await ensureResources();
+    if (!article?.article_id || !article?.title || !article?.body) throw new Error("INVALID_KNOWLEDGE_ARTICLE");
+    await upsert(
+      "knowledge-base",
+      "article-id",
+      article.article_id,
+      { ...article, tags: JSON.stringify(article.tags || []) },
+      `Import knowledge material ${article.article_id}`,
+    );
+    for (const pair of qa_pairs) {
+      await upsert(
+        "qa-pairs",
+        "pair-id",
+        pair.pair_id,
+        { ...pair, tags: JSON.stringify(pair.tags || []), status: "draft", reviewed_by: "" },
+        `Import draft QA pair ${pair.pair_id}`,
+      );
+    }
+    return { article_id: article.article_id, qa_count: qa_pairs.length };
+  },
+
+  async createPracticeTicketsFromQa({ article, qa_pairs = [] } = {}) {
+    await ensureResources();
+    const now = new Date().toISOString();
+    const bundle = buildPracticeTicketBundle({ article, qa_pairs, now });
+    await upsert(
+      "accounts",
+      "account-id",
+      bundle.account.account_id,
+      bundle.account,
+      "Initialize manual QA practice account",
+    );
+    for (const ticket of bundle.tickets) {
+      await upsert(
+        "tickets",
+        "ticket-id",
+        ticket.ticket_id,
+        ticketFields(ticket),
+        `Create synthetic practice ticket ${ticket.ticket_id}`,
+      );
+    }
+    for (const message of bundle.messages) {
+      await upsert(
+        "messages",
+        "message-id",
+        message.message_id,
+        message,
+        `Create synthetic incoming message ${message.message_id}`,
+      );
+    }
+    await upsert(
+      "sync-log",
+      "sync-id",
+      `sync-practice-${article.article_id}`,
+      {
+        sync_id: `sync-practice-${article.article_id}`,
+        account_id: bundle.account.account_id,
+        method: "manual",
+        at: now,
+        status: "ok",
+        message: `${bundle.tickets.length} synthetic practice tickets created from QA pairs.`,
+        new_messages: bundle.messages.length,
+      },
+      `Record synthetic practice ticket generation for ${article.article_id}`,
+    );
+    return { ticket_count: bundle.tickets.length };
   },
 
   // Ported from the retired local-file provider (lib/data-provider)'s
@@ -260,6 +365,14 @@ export const busabaseProvider = {
     const editedText = typeof text === "string" && text.trim() ? text.trim() : "";
 
     if (action === "approve") {
+      const settings = await readSettingsRow();
+      if (!supportSettingsComplete(settings)) {
+        const error = new Error(
+          "SUPPORT_SETTINGS_REQUIRED: confirm SLA, risk, language, and signature before approval",
+        );
+        error.statusCode = 409;
+        throw error;
+      }
       const { kb, risk } = await currentRiskAndKb();
       const candidate = {
         suggested_reply: editedText || current.suggested_reply || "",
@@ -314,6 +427,69 @@ export const busabaseProvider = {
       updated_at: new Date().toISOString(),
     };
     await upsert("tickets", "ticket-id", ticket_id, fields, `Reschedule SLA for ticket ${ticket_id}`);
+    return { ok: true };
+  },
+
+  async saveSettings(input = {}) {
+    await ensureResources();
+    const fields = serializeSupportSettings(input, { complete: true });
+    const current = await readSettingsRow();
+    const normalized = toBusabaseFields(fields);
+    const autoMerge = isStandaloneLocalRuntime();
+    const result = current.__recordId
+      ? await runtimeClient.records.changeRequest({
+          recordId: current.__recordId,
+          operation: "update",
+          fields: normalized,
+          message: "Configure Kelly Support policies and mark onboarding complete",
+          author: appConfig.appId,
+          baseCommitId: current.__headCommitId,
+          autoMerge,
+        })
+      : await runtimeClient.bases.createChangeRequest({
+          baseId: base("settings").baseId,
+          fields: normalized,
+          message: "Configure Kelly Support policies and mark onboarding complete",
+          submittedBy: appConfig.appId,
+          autoMerge,
+        });
+    return { ok: true, change_request_id: result?.status === "in_review" ? result.id : "" };
+  },
+
+  async fetchPage(key, cursor) {
+    await ensureResources();
+    const page = await readPage(key, cursor);
+    const normalize = { tickets: normalizeTicket, "knowledge-base": normalizeKbArticle }[key];
+    return { ...page, rows: normalize ? page.rows.map(normalize) : page.rows };
+  },
+
+  // The human verdict this Base exists for: an agent-drafted pair starts
+  // "draft" and is never used for retrieval or export until a person flips it
+  // to "approved" (or "rejected", which retires it the same way -- neither
+  // status is ever used downstream). This writes status directly rather than
+  // deriving it, unlike a ticket's quality_gate, because approve/reject is
+  // the ONLY write this record ever receives -- there is no second signal
+  // (like a ticket's messages) it could drift out of sync with.
+  async reviewQaPair({ pair_id, status, reviewer = appConfig.appId } = {}) {
+    if (status !== "approved" && status !== "rejected") throw new Error(`Unsupported qa-pair status: ${status}`);
+    await ensureResources();
+    const existing = await findRecord("qa-pairs", "pair-id", pair_id);
+    if (!existing) throw new Error(`Unknown QA pair: ${pair_id}`);
+    const current = normalizeFields(existing.headCommit?.payload || existing.headCommit?.fields || existing.fields);
+    const fields = {
+      ...current,
+      pair_id,
+      status,
+      reviewed_by: reviewer,
+      updated_at: new Date().toISOString(),
+    };
+    await upsert(
+      "qa-pairs",
+      "pair-id",
+      pair_id,
+      fields,
+      `${status === "approved" ? "Approve" : "Reject"} QA pair ${pair_id}`,
+    );
     return { ok: true };
   },
 

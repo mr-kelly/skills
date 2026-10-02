@@ -17,14 +17,14 @@ export const runtimeDetectionAssertions = (source, serverSource) => [
     message: "Browser code must probe the injected runtime at __airapp/runtime",
   },
   {
-    // Relative on purpose: under the Local Node engine the App is served from a
-    // sub-path of busabase's origin, where a leading slash resolves against the
-    // origin root instead and 404s.
+    // Relative on purpose: a hosted App can be served from a sub-path of
+    // Busabase's origin, where a leading slash resolves against the origin root
+    // instead and 404s.
     ok: !/["'`]\/__airapp\/runtime/.test(source),
     message: "Runtime probe must be relative (__airapp/runtime), without a leading slash",
   },
   {
-    ok: serverSource.includes("process.env.BUSABASE_AIRAPP_RUNTIME") && serverSource.includes('"/__airapp/runtime"'),
-    message: "Server must expose the injected runtime at /__airapp/runtime",
+    ok: /\bdescribeBusabaseAirAppRuntime\s*\(\s*\)/.test(serverSource) && serverSource.includes('"/__airapp/runtime"'),
+    message: "Server must expose describeBusabaseAirAppRuntime() at /__airapp/runtime",
   },
 ];

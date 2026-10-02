@@ -27,6 +27,27 @@ export const ACCENT_THEME_STORAGE_KEY = "kelly-email.accentTheme";
 export const SIDEBAR_COLLAPSED_STORAGE_KEY = "kelly-email.sidebarCollapsed";
 export { ACCENT_THEMES, LANGUAGE_OPTIONS };
 
+export function appendStatePage(current, next) {
+  const byId = new Map((current.items || []).map((item) => [String(item.id), item]));
+  for (const item of next.items || []) byId.set(String(item.id), item);
+  let reviewNumber = 0;
+  const items = [...byId.values()].map((item) => {
+    if (!item.review_ref) return item;
+    reviewNumber += 1;
+    return { ...item, review_number: reviewNumber, review_ref: `Review #${reviewNumber}` };
+  });
+  const counts = { ...(current.counts || {}) };
+  for (const [key, value] of Object.entries(next.counts || {})) {
+    if (typeof value === "number") counts[key] = (counts[key] || 0) + value;
+  }
+  return {
+    ...current,
+    ...next,
+    counts,
+    items,
+  };
+}
+
 export function resolveAccentTheme(value) {
   return ACCENT_THEMES.some((theme) => theme.id === value) ? value : "blue";
 }
@@ -62,4 +83,7 @@ export const store = {
   openActionMenu: false,
   mobileDetailOpen: false,
   localAuth: null,
+  loadingMore: false,
+  loadMoreError: "",
+  pagesLoaded: 1,
 };

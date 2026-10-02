@@ -4,6 +4,57 @@ import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
+// ── busabase-sdk/airapp-check: the versioned AirApp runtime contract ────────
+// Added on top of this file's own checks, not in place of them: the rules
+// above/below this block are specific to this app; the ones here are the
+// shared contract every AirApp is held to, versioned with the SDK so a fix
+// like busabase-sdk@0.30.1's runtime-detection rule reaches every app that
+// bumps its pin instead of staying stuck in whatever copy this file had.
+{
+  const { checkAirApp } = await import("busabase-sdk/airapp-check");
+  const { readFile: gateReadFile, readdir: gateReaddir } = await import("node:fs/promises");
+  const path = (await import("node:path")).default;
+  const readFile = gateReadFile;
+  const readdir = gateReaddir;
+  const readIfExists = (p) => readFile(p, "utf8").catch(() => undefined);
+  const walk = async (dir) => {
+    const out = [];
+    for (const entry of await readdir(dir, { withFileTypes: true }).catch(() => [])) {
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) out.push(...(await walk(full)));
+      else out.push(full);
+    }
+    return out;
+  };
+  const appFiles = (await walk(path.join(root, "app"))).filter((f) => !f.split(path.sep).includes("vendor"));
+  const LOGIC_BASENAMES = new Set(["app.js", "config.js", "busabase-client.js", "runtime.js"]);
+  const isLogic = (f) =>
+    LOGIC_BASENAMES.has(path.basename(f)) || f.endsWith(path.join("providers", "busabase-provider.js"));
+  const isDownload = (f) => /\.(?:js|html)$/.test(f);
+  const joinFiles = async (files) => (await Promise.all(files.map((f) => readFile(f, "utf8")))).join("\n");
+  const serverCandidates = [path.join(root, "server.js"), ...(await walk(path.join(root, "server")).catch(() => []))];
+  const serverParts = (await Promise.all(serverCandidates.map((f) => readIfExists(f)))).filter(
+    (text) => text !== undefined,
+  );
+  const findings = await checkAirApp({
+    packageJson: await readIfExists(path.join(root, "package.json")),
+    server: serverParts.length ? serverParts.join("\n") : undefined,
+    serverLanguage: "node",
+    browserLogic: await joinFiles(appFiles.filter(isLogic)),
+    browserDownloads: await joinFiles(appFiles.filter(isDownload)),
+    config:
+      (await readIfExists(path.join(root, "app", "js", "config.js"))) ??
+      (await readIfExists(path.join(root, "app", "config.js"))),
+    shippedSlug: path.basename(root),
+  });
+  const errors = findings.filter((f) => f.severity === "error");
+  if (errors.length) {
+    throw new Error(
+      `busabase-sdk/airapp-check found ${errors.length} contract violation(s):\n${errors.map((f) => `  [${f.rule}] ${f.message}`).join("\n")}`,
+    );
+  }
+}
+
 const runtime = "node";
 const serverFile = "server.js";
 
@@ -153,32 +204,26 @@ if (!/getRuntime\s*\(/.test(contents["app/js/app.js"]))
   throw new Error("app.js must resolve the runtime via runtime.js's getRuntime().");
 if (!browserSource.includes("__airapp/runtime"))
   throw new Error("Browser source must probe the __airapp/runtime endpoint.");
-// Relative on purpose — under the Local Node engine a leading slash resolves
-// against busabase's origin root instead of the app's preview sub-path.
+// Relative on purpose — for a hosted app, a leading slash can resolve against
+// Busabase's origin root instead of the app's preview sub-path.
 if (/["'`]\/__airapp\/runtime/.test(browserSource))
   throw new Error("Runtime probe must use the relative path __airapp/runtime, without a slash.");
-// The host must read the injected variable and re-expose it, whatever language
-// it is written in — this is the one contract every AirApp host shares.
+// The host must use the SDK's canonical runtime report and re-expose it.
 const serverSource = contents[serverFile];
 // Comments are stripped first, and that is load-bearing rather than tidiness:
-// the template's own comment *names* the SDK helper while explaining why it is
-// not called yet, and matching that mention let a server that had stopped
-// reading the variable entirely pass this gate. Prose about a rule must never
-// satisfy the rule. (Same technique the browser-source rules below already use.)
+// prose about the helper must never satisfy the rule. (Same technique the
+// browser-source rules below already use.)
 const stripComments = (source) => source.replace(/\/\*[\s\S]*?\*\//g, " ").replace(/(^|[^:'"`\\])\/\/[^\n]*/g, "$1 ");
 const serverCode = stripComments(serverSource);
 
-// A Node host may go through the SDK (one definition of "hosted", shared by
-// every app) or read the variable directly; both are correct. A Python host has
-// no SDK to call, so it reads it itself.
-const readsRuntimeEnv = /readBusabaseAirAppRuntime\s*\(|process\.env\.BUSABASE_AIRAPP_RUNTIME\b/.test(serverCode);
-if (!readsRuntimeEnv) throw new Error(`${serverFile} must read BUSABASE_AIRAPP_RUNTIME (directly or via the SDK).`);
+const usesRuntimeHelper = /\bdescribeBusabaseAirAppRuntime\s*\(\s*\)/.test(serverCode);
+if (!usesRuntimeHelper) throw new Error(`${serverFile} must expose the SDK's describeBusabaseAirAppRuntime() report.`);
 // The one shape that must never come back: deciding hosting from a hardcoded
 // list of engine names. That is what broke 66 apps when `local-node` became
 // `local`, and moving the list into an app would reintroduce it wholesale.
 if (/AIRAPP_HOSTED_RUNTIMES\s*=\s*new Set|hosted:\s*\w*RUNTIMES?\w*\.has\s*\(/.test(serverCode))
   throw new Error(
-    `${serverFile} decides hosting from a hardcoded engine list; use the SDK's isBusabaseAirAppHosted (presence, not membership).`,
+    `${serverFile} decides hosting from a hardcoded engine list; use describeBusabaseAirAppRuntime() instead.`,
   );
 if (!/["'`]\/__airapp\/runtime["'`]/.test(serverSource))
   throw new Error(`${serverFile} must serve the /__airapp/runtime endpoint.`);

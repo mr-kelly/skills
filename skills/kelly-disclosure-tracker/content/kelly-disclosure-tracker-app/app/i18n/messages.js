@@ -1,5 +1,9 @@
 export const messages = {
   en: {
+    pagination: "Pagination",
+    prevPage: "Prev",
+    nextPage: "Next",
+    pageOf: "Page {current} of {total}",
     appTitle: "Disclosure Tracker",
     allVehicles: "All Vehicles",
     needsReview: "Needs Review",
@@ -78,6 +82,10 @@ export const messages = {
     },
   },
   "zh-CN": {
+    pagination: "分页",
+    prevPage: "上一页",
+    nextPage: "下一页",
+    pageOf: "第 {current} / {total} 页",
     appTitle: "跨主体披露跟踪器",
     allVehicles: "全部载体",
     needsReview: "待审核",

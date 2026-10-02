@@ -6,13 +6,13 @@
   },
   "metadata": {
     "description": "Kelly's App-in-Skill business tools for daily operations.",
-    "version": "0.4.0"
+    "version": "0.5.0"
   },
   "plugins": [
     {
       "name": "mr-kelly-skills",
       "description": "Kelly's App-in-Skill business tools: email inbox-zero, money ledger, finance anomaly audit, personal CRM, unified chat inbox, inquiry-to-quote desk, ticket triage & dispatch, lesson-plan compliance, social media aggregation, Search Console SEO desk, user feedback roadmap, market intelligence radar, fleet ops monitoring, content repurposing, GitHub PR review, short-drama & music-video production, team standup board, cross-border e-commerce (product research, listing factory, ads desk), and multi-agent rule setup. Each bundles a local browser UI for human review and approval.",
-      "version": "0.4.0",
+      "version": "0.5.0",
       "author": {
         "name": "Kelly Peilin Chan"
       },

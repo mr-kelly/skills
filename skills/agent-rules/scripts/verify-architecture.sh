@@ -1,108 +1,139 @@
 #!/bin/bash
-# Universal Agent Skills - Verification Script
+# Agent Rules - verify that every agent still resolves to the single source of truth.
+# Exits 1 when a required link is missing or broken, 0 otherwise.
 
-echo "🔍 Verifying Universal Agent Skills Architecture"
-echo "================================================"
-echo ""
+set -uo pipefail
 
-# Colors
-GREEN='\033[0;32m'
-RED='\033[0;31m'
-YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=lib.sh
+. "$SCRIPT_DIR/lib.sh"
+
+ROOT="$(resolve_root)" || exit 2
+cd "$ROOT" || exit 2
 
 errors=0
+warnings=0
 
-# Check skills symlinks
-echo "📦 Checking Skills Symlinks..."
-for dir in .claude/skills .github/skills .kiro/skills .codex/skills; do
-    if [ -L "$dir" ] && [ -e "$dir" ]; then
-        target=$(readlink "$dir")
-        echo -e "  ${GREEN}✓${NC} $dir → $target"
-    else
-        echo -e "  ${RED}✗${NC} $dir (missing or broken)"
-        ((errors++))
-    fi
-done
-echo ""
-
-# Check instruction symlinks
-echo "📝 Checking Instruction Symlinks..."
-for file in CLAUDE.md .github/copilot-instructions.md .cursor/rules/main.md .gemini/GEMINI.md .kiro/steering/main.md; do
-    if [ -L "$file" ] && [ -e "$file" ]; then
-        target=$(readlink "$file")
-        echo -e "  ${GREEN}✓${NC} $file → $target"
-    else
-        echo -e "  ${RED}✗${NC} $file (missing or broken)"
-        ((errors++))
-    fi
-done
-echo ""
-
-# Check source exists
-echo "🎯 Checking Source Files..."
-if [ -f "AGENTS.md" ] && [ ! -L "AGENTS.md" ]; then
-    echo -e "  ${GREEN}✓${NC} AGENTS.md exists (single source of truth)"
-else
-    echo -e "  ${RED}✗${NC} AGENTS.md missing or is a symlink"
-    ((errors++))
-fi
-
-if [ -d ".agents/skills" ]; then
-    skill_count=$(ls -1 .agents/skills | wc -l)
-    echo -e "  ${GREEN}✓${NC} .agents/skills/ exists ($skill_count skills)"
-else
-    echo -e "  ${RED}✗${NC} .agents/skills/ missing"
-    ((errors++))
-fi
-echo ""
-
-# Test skill access
-echo "🧪 Testing Skill Access..."
-test_skill="agent-rules"
-for agent_dir in .github .kiro .codex; do
-    if [ -f "$agent_dir/skills/$test_skill/SKILL.md" ]; then
-        echo -e "  ${GREEN}✓${NC} $agent_dir/skills/$test_skill/ accessible"
-    else
-        echo -e "  ${RED}✗${NC} $agent_dir/skills/$test_skill/ not accessible"
-        ((errors++))
-    fi
-done
-echo ""
-
-# Test instruction access
-echo "📖 Testing Instruction Access..."
-for file in CLAUDE.md .github/copilot-instructions.md .cursor/rules/main.md; do
-    if [ -f "$file" ] && [ -s "$file" ]; then
-        echo -e "  ${GREEN}✓${NC} $file readable"
-    else
-        echo -e "  ${RED}✗${NC} $file not readable or empty"
-        ((errors++))
-    fi
-done
-echo ""
-
-# Check Kiro special case
-echo "⚠️  Checking Kiro Symlink..."
-if [ -L ".kiro/steering/main.md" ] && [ -e ".kiro/steering/main.md" ]; then
-    target=$(readlink ".kiro/steering/main.md")
-    echo -e "  ${GREEN}✓${NC} .kiro/steering/main.md → $target (symlinked to AGENTS.md)"
-else
-    echo -e "  ${YELLOW}⚠${NC} .kiro/steering/main.md not symlinked"
-fi
-echo ""
-
-# Summary
+echo "🔍 Verifying agent alignment in $ROOT"
 echo "================================================"
-if [ $errors -eq 0 ]; then
-    echo -e "${GREEN}✅ All checks passed!${NC}"
-    echo ""
-    echo "Architecture is correctly configured."
-    echo "All agents can access skills and instructions via symlinks."
+echo ""
+
+# --- source of truth -------------------------------------------------------
+
+echo "🎯 Source of truth"
+if [ -L "$SOURCE_RULES" ]; then
+    echo -e "  ${RED}✗${NC} $SOURCE_RULES is a symlink — it must be the real file"
+    ((errors++))
+elif [ ! -s "$SOURCE_RULES" ]; then
+    echo -e "  ${RED}✗${NC} $SOURCE_RULES missing or empty"
+    ((errors++))
 else
-    echo -e "${RED}❌ $errors error(s) found${NC}"
-    echo ""
-    echo "Run the following to recreate symlinks:"
-    echo "  bash .agents/skills/agent-rules/scripts/create-symlinks.sh"
+    echo -e "  ${GREEN}✓${NC} $SOURCE_RULES ($(wc -l < "$SOURCE_RULES") lines)"
+fi
+
+if [ ! -d "$SOURCE_SKILLS" ]; then
+    echo -e "  ${RED}✗${NC} $SOURCE_SKILLS/ missing"
+    ((errors++))
+    skill_names=()
+else
+    skill_names=()
+    for s in "$SOURCE_SKILLS"/*/SKILL.md; do
+        [ -f "$s" ] || continue
+        skill_names+=("$(basename "$(dirname "$s")")")
+    done
+    echo -e "  ${GREEN}✓${NC} $SOURCE_SKILLS/ (${#skill_names[@]} skills)"
+    if [ -L "$SOURCE_SKILLS/skills" ]; then
+        echo -e "  ${RED}✗${NC} stray $SOURCE_SKILLS/skills symlink — run --fix to clean it up"
+        ((errors++))
+    fi
 fi
 echo ""
+
+# --- links -----------------------------------------------------------------
+
+echo "🔗 Links"
+for entry in "${AGENT_LINKS[@]}"; do
+    link="$(link_field "$entry" 1)"
+    target="$(link_field "$entry" 2)"
+    tier="$(link_field "$entry" 4)"
+    agent="$(link_field "$entry" 5)"
+    suffix=""
+    [ "$tier" = "legacy" ] && suffix=" ${DIM}(legacy)${NC}"
+
+    if link_is_correct "$link" "$target" && [ -e "$link" ]; then
+        echo -e "  ${GREEN}✓${NC} $link → $target$suffix"
+    elif [ -L "$link" ]; then
+        # A link that exists but points somewhere wrong or dangling is always an error.
+        echo -e "  ${RED}✗${NC} $link → $(readlink "$link") (expected $target, or target missing)"
+        ((errors++))
+    elif [ -e "$link" ]; then
+        echo -e "  ${RED}✗${NC} $link is a real file/dir, not a link to $target"
+        ((errors++))
+    elif [ "$tier" = "required" ]; then
+        echo -e "  ${RED}✗${NC} $link missing — $agent cannot see the source of truth"
+        ((errors++))
+    else
+        echo -e "  ${YELLOW}⚠${NC} $link missing$suffix — fine unless you run an older $agent"
+        ((warnings++))
+    fi
+done
+echo ""
+
+# --- reachability ----------------------------------------------------------
+
+echo "🧪 Reachability"
+if [ "${#skill_names[@]}" -gt 0 ]; then
+    probe="${skill_names[0]}"
+    for entry in "${AGENT_LINKS[@]}"; do
+        [ "$(link_field "$entry" 3)" = "dir" ] || continue
+        link="$(link_field "$entry" 1)"
+        [ -L "$link" ] || continue   # absence already reported above
+        if [ -f "$link/$probe/SKILL.md" ]; then
+            echo -e "  ${GREEN}✓${NC} $link/$probe/SKILL.md"
+        else
+            echo -e "  ${RED}✗${NC} $link/$probe/SKILL.md not reachable"
+            ((errors++))
+        fi
+    done
+else
+    echo -e "  ${DIM}no skills in $SOURCE_SKILLS/ yet — nothing to probe${NC}"
+fi
+
+for entry in "${AGENT_LINKS[@]}"; do
+    [ "$(link_field "$entry" 3)" = "file" ] || continue
+    link="$(link_field "$entry" 1)"
+    [ -L "$link" ] || continue
+    if [ -s "$link" ]; then
+        echo -e "  ${GREEN}✓${NC} $link readable"
+    else
+        echo -e "  ${RED}✗${NC} $link unreadable or empty"
+        ((errors++))
+    fi
+done
+echo ""
+
+# --- environment -----------------------------------------------------------
+
+if [ "$(git config --get core.symlinks 2>/dev/null)" = "false" ]; then
+    echo -e "  ${YELLOW}⚠${NC} git core.symlinks=false — links will be checked out as plain text files"
+    echo -e "     fix with: git config core.symlinks true && git checkout -- ."
+    ((warnings++))
+    echo ""
+fi
+
+# --- summary ---------------------------------------------------------------
+
+echo "================================================"
+if [ "$errors" -eq 0 ] && [ "$warnings" -eq 0 ]; then
+    echo -e "${GREEN}✅ All checks passed.${NC}"
+elif [ "$errors" -eq 0 ]; then
+    echo -e "${GREEN}✅ All required links in place${NC} ($warnings warning(s))."
+else
+    echo -e "${RED}❌ $errors error(s), $warnings warning(s).${NC}"
+    echo ""
+    echo "Repair with:"
+    echo "  bash $SCRIPT_DIR/create-symlinks.sh"
+fi
+echo ""
+
+[ "$errors" -eq 0 ] || exit 1

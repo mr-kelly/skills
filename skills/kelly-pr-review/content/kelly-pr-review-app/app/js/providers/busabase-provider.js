@@ -59,29 +59,87 @@ function base(key) {
   return declared;
 }
 
-async function readAllRecords(key, { maxPages = 20 } = {}) {
+async function readPage(key, cursor) {
   if (!allowedReads.has("records.list")) throw new Error("PROCEDURE_DENIED: records.list");
   const declared = base(key);
-  const rows = [];
-  let cursor;
-  for (let page = 0; page < maxPages; page += 1) {
-    const result = await runtimeClient.records.list({
-      baseId: declared.baseId,
-      limit: declared.readLimit,
-      ...(cursor ? { cursor } : {}),
+  const result = await runtimeClient.records.list({
+    baseId: declared.baseId,
+    limit: declared.readLimit,
+    ...(cursor ? { cursor } : {}),
+  });
+  const records = Array.isArray(result) ? result : result.records || [];
+  const rows = records.map((record) => ({
+    ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields),
+    __recordId: record.id,
+    __headCommitId: record.headCommitId || record.headCommit?.id,
+  }));
+  return { rows, nextCursor: Array.isArray(result) ? null : result.nextCursor || null };
+}
+
+async function countRecords(key, filters) {
+  if (!allowedReads.has("records.count")) return null;
+  try {
+    const { total } = await runtimeClient.records.count({
+      baseId: base(key).baseId,
+      ...(filters?.length ? { filters } : {}),
     });
-    const records = Array.isArray(result) ? result : result.records || [];
-    for (const record of records) {
-      rows.push({
-        ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields),
-        __recordId: record.id,
-        __headCommitId: record.headCommitId || record.headCommit?.id,
-      });
-    }
-    cursor = Array.isArray(result) ? null : result.nextCursor;
-    if (!cursor) break;
+    return total;
+  } catch {
+    return null;
   }
-  return rows;
+}
+
+const equals = (fieldSlug, value) => ({ fieldSlug, fieldType: "text", operator: "equals", value });
+const checked = (fieldSlug, value) => ({ fieldSlug, fieldType: "checkbox", operator: value ? "is_true" : "is_false" });
+
+async function countWorkflowCounts(repo) {
+  const scope = repo && repo !== "all" ? [equals("repo", repo)] : [];
+  const count = (filters = []) => countRecords("reviews", [...scope, ...filters]);
+  const values = await Promise.all([
+    count(),
+    count([equals("status", "needs_review")]),
+    count([equals("status", "to_approve")]),
+    count([equals("status", "blocked")]),
+    count([equals("status", "done")]),
+    count([equals("execution-status", "executed")]),
+    count([equals("status", "done"), equals("execution-status", "executed")]),
+    count([equals("status", "approved")]),
+    count([equals("status", "approved"), equals("execution-status", "executed")]),
+    count([equals("status", "merged"), checked("tested", false)]),
+    count([checked("merged", true), checked("tested", false)]),
+    count([equals("status", "merged"), checked("merged", true), checked("tested", false)]),
+    count([equals("status", "merged"), checked("tested", true)]),
+    count([checked("merged", true), checked("tested", true)]),
+    count([equals("status", "merged"), checked("merged", true), checked("tested", true)]),
+  ]);
+  if (values.some((value) => value === null)) return null;
+  const [
+    all,
+    needsReview,
+    toApprove,
+    blocked,
+    doneStatus,
+    executed,
+    doneExecuted,
+    approvedStatus,
+    approvedExecuted,
+    mergedUntested,
+    flagMergedUntested,
+    bothMergedUntested,
+    mergedTested,
+    flagMergedTested,
+    bothMergedTested,
+  ] = values;
+  return {
+    all,
+    needs_review: needsReview,
+    to_approve: toApprove,
+    blocked,
+    done: doneStatus + executed - doneExecuted,
+    approved: approvedStatus - approvedExecuted,
+    needs_test: mergedUntested + flagMergedUntested - bothMergedUntested,
+    tested: mergedTested + flagMergedTested - bothMergedTested,
+  };
 }
 
 async function findRecord(key, idFieldSlug, idValue) {
@@ -123,7 +181,7 @@ async function upsert(key, idFieldSlug, idValue, fields, message) {
 }
 
 async function readSettingsRows() {
-  const rows = await readAllRecords("settings");
+  const { rows } = await readPage("settings");
   return new Map(rows.map((row) => [row.record_id || row.kind, row]));
 }
 
@@ -142,11 +200,19 @@ export const busabaseProvider = {
 
   async getState() {
     await ensureResources();
-    const [reviewRows, settings] = await Promise.all([readAllRecords("reviews"), readSettingsRows()]);
-    const snapshot = buildSnapshot({ records: reviewRows });
+    const [reviewPage, settings] = await Promise.all([readPage("reviews"), readSettingsRows()]);
+    const snapshot = buildSnapshot({ records: reviewPage.rows });
     const profileRow = settings.get("kelly-pr-review-profile") || {};
     const lockRow = settings.get("kelly-pr-review-lock") || {};
     const profile = parsePayload(profileRow.payload);
+    const workflowCount = await countWorkflowCounts();
+    const configuredRepos = (profile.repos || [])
+      .map((repo) => (typeof repo === "string" ? repo : repo.repo || repo.name))
+      .filter(Boolean);
+    const repoCounts = await Promise.all(
+      configuredRepos.map(async (repo) => ({ repo, count: await countRecords("reviews", [equals("repo", repo)]) })),
+    );
+    snapshot.repos = repoCounts.every((item) => item.count !== null) ? repoCounts : snapshot.repos;
     return {
       app: "kelly-pr-review",
       demo: false,
@@ -169,7 +235,25 @@ export const busabaseProvider = {
           }
         : { locked: false },
       snapshot,
+      pagination: { reviews: reviewPage.nextCursor },
+      totalCount: { reviews: workflowCount?.all ?? null },
+      workflowCount,
     };
+  },
+
+  async fetchPage(key, cursor) {
+    await ensureResources();
+    return readPage(key, cursor);
+  },
+
+  async countRecords(key, filters) {
+    await ensureResources();
+    return countRecords(key, filters);
+  },
+
+  async countWorkflowCounts(repo) {
+    await ensureResources();
+    return countWorkflowCounts(repo);
   },
 
   // Human verdict: writes status/decision_action/decision_note/decided_at

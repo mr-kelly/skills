@@ -235,7 +235,7 @@ function parseShotSections(md, imgPrefix) {
 }
 
 function mergeTemplateShots(name, declared, readmeShots) {
-  if (!declared.length) return readmeShots;
+  if (!declared.some((relative) => relative.endsWith("/cover.webp"))) return readmeShots;
   const used = new Set();
   const ordered = [...declared].sort((a, b) => Number(b.endsWith("/cover.webp")) - Number(a.endsWith("/cover.webp")));
   const manifestShots = ordered.map((relative) => {
@@ -637,7 +637,6 @@ h2.group {
 .card[hidden] { display: none; }
 .card .thumb { aspect-ratio: 3 / 2; background: #eef0f3; overflow: hidden; border-bottom: 1px solid var(--border); }
 .card .thumb img { width: 100%; height: 100%; object-fit: cover; object-position: top left; display: block; }
-.card .thumb.template-cover img { object-fit: contain; object-position: center; }
 .card .thumb.empty { display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 26px; }
 .card .body { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 6px; }
 .card .name { font-weight: 650; font-size: 15.5px; display: flex; align-items: center; gap: 8px; }
@@ -779,8 +778,8 @@ ${topbar(rel)}
 <div class="wrap">
 ${body}
 <footer class="footer">
-  <span class="en">MIT licensed · Built from the repo READMEs and template manifests by <code>scripts/build-site.mjs</code> · <a href="${REPO_URL}">mr-kelly/skills</a></span>
-  <span class="zh">MIT 许可 · 由 <code>scripts/build-site.mjs</code> 从仓库 README 和模板清单生成 · <a href="${REPO_URL}">mr-kelly/skills</a></span>
+  <span class="en">MIT licensed · Built from the repo READMEs by <code>scripts/build-site.mjs</code> · <a href="${REPO_URL}">mr-kelly/skills</a></span>
+  <span class="zh">MIT 许可 · 由 <code>scripts/build-site.mjs</code> 从仓库 README 生成 · <a href="${REPO_URL}">mr-kelly/skills</a></span>
 </footer>
 </div>
 <script>${LANG_JS}</script>
@@ -1138,7 +1137,7 @@ async function main() {
   function cardHtml(s) {
     const thumb = s.shots[0];
     const thumbHtml = thumb
-      ? `<div class="thumb${s.templateCover ? " template-cover" : ""}"><img data-shot-en="${esc(siteThumbPath(thumb.en))}" data-shot-zh="${esc(siteThumbPath(thumb.zh))}" src="${esc(siteThumbPath(thumb.en))}" alt="${esc(s.name)} ${s.templateCover ? "cover" : "UI"}" loading="lazy"></div>`
+      ? `<div class="thumb${s.templateCover ? " template-cover" : ""}"><img data-shot-en="${esc(siteThumbPath(thumb.en))}" data-shot-zh="${esc(siteThumbPath(thumb.zh))}" src="${esc(siteThumbPath(thumb.en))}" alt="${esc(s.name)} ${s.templateCover ? "cover" : "UI"}" ${s.templateCover ? 'style="object-fit:contain;object-position:center" ' : ""}loading="lazy"></div>`
       : `<div class="thumb empty">⚙️</div>`;
     const href = s.hasApp || s.descEn ? `s/${s.name}.html` : `${REPO_URL}/tree/main/skills/${s.folder}`;
     return `<a class="card" data-skill-card data-tags="${esc(s.tags.join(" "))}" href="${href}">

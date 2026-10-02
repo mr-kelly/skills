@@ -23,6 +23,8 @@ export interface StateQuery {
   lang?: string;
   mode?: string | string[];
   q?: string | string[];
+  cursor?: string | string[];
+  batch_id?: string | string[];
   [key: string]: unknown;
 }
 

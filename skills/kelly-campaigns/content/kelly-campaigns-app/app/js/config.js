@@ -31,7 +31,7 @@ export const appConfig = {
       name: "Sends",
       slug: "kelly-campaigns-sends",
       description: "Campaign/newsletter/sequence sends under human review",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "send-id", name: "Send ID", type: "text", required: true },
         { slug: "ref", name: "Ref", type: "number", required: false },
@@ -64,7 +64,7 @@ export const appConfig = {
       name: "Suppression",
       slug: "kelly-campaigns-suppression",
       description: "Consent/suppression list: recipients or segments removed by unsubscribe/bounce/complaint",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "entry-id", name: "Entry ID", type: "text", required: true },
         { slug: "address", name: "Address", type: "text", required: false },
@@ -91,7 +91,7 @@ export const appConfig = {
     },
   ],
   permissions: {
-    readProcedures: ["nodes.list", "nodes.get", "bases.get", "records.list"],
+    readProcedures: ["nodes.list", "nodes.get", "bases.get", "records.list", "records.count"],
     setupProcedures: ["nodes.createChangeRequest", "nodes.updateMetadata"],
     writeProcedures: ["records.changeRequest", "bases.createChangeRequest"],
   },

@@ -47,7 +47,7 @@ export const appConfig = {
       name: "Holdings",
       slug: "kelly-family-office-holdings",
       description: "Individual holdings across every account",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "holding-id", name: "Holding ID", type: "text", required: true },
         { slug: "entity-id", name: "Entity ID", type: "text", required: false },
@@ -78,7 +78,7 @@ export const appConfig = {
     },
   ],
   permissions: {
-    readProcedures: ["nodes.list", "nodes.get", "bases.get", "records.list"],
+    readProcedures: ["nodes.list", "nodes.get", "bases.get", "records.list", "records.count"],
     setupProcedures: ["nodes.createChangeRequest", "nodes.updateMetadata"],
     writeProcedures: [],
   },

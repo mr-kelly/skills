@@ -149,7 +149,6 @@ h2.group {
 .card[hidden] { display: none; }
 .card .thumb { aspect-ratio: 3 / 2; background: #eef0f3; overflow: hidden; border-bottom: 1px solid var(--border); }
 .card .thumb img { width: 100%; height: 100%; object-fit: cover; object-position: top left; display: block; }
-.card .thumb.template-cover img { object-fit: contain; object-position: center; }
 .card .thumb.empty { display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 26px; }
 .card .body { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 6px; }
 .card .name { font-weight: 650; font-size: 15.5px; display: flex; align-items: center; gap: 8px; }
@@ -312,18 +311,6 @@ After it is installed, invoke the skill as $kelly-invest-webull.</textarea>
     </section>
     <div class="panel"><h3><span class="en">When to use it</span><span class="zh">什么时候用</span></h3><p><span class="en">Use it when reviewing personal investments, positions, portfolio value, unrealized gains, cash, or asset allocation synced from Webull OpenAPI.</span><span class="zh">查看个人投资、持仓、组合市值、未实现盈亏、现金或资产配置时使用。</span></p></div>
     <div class="shots"><figure class="shot">
-  <img data-shot-en="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-invest-webull/assets/screenshots/accounts.webp" data-shot-zh="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-invest-webull/assets/screenshots/accounts-zh-CN.webp" src="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-invest-webull/assets/screenshots/accounts.webp" alt="Accounts" loading="lazy">
-  <figcaption class="cap">
-    <div class="en"><strong>Accounts</strong><span>Per-account view (cash and margin) with net liquidation, total cash, buying power, and the positions held in each account.</span></div><div class="zh"><strong>账户</strong><span>按账户（现金/融资）显示净清算价值、现金、购买力，以及每个账户下的持仓。</span></div>
-  </figcaption>
-</figure>
-<figure class="shot">
-  <img data-shot-en="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-invest-webull/assets/screenshots/detail.webp" data-shot-zh="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-invest-webull/assets/screenshots/detail-zh-CN.webp" src="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-invest-webull/assets/screenshots/detail.webp" alt="Position detail" loading="lazy">
-  <figcaption class="cap">
-    <div class="en"><strong>Position detail</strong><span>Single-symbol view with cost basis, market value, unrealized P/L and percentage, day change, weight, and holding account.</span></div><div class="zh"><strong>标的详情</strong><span>单个标的视图，显示成本、市值、未实现盈亏及百分比、当日涨跌、权重和所属账户。</span></div>
-  </figcaption>
-</figure>
-<figure class="shot">
   <img data-shot-en="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-invest-webull/assets/screenshots/overview.webp" data-shot-zh="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-invest-webull/assets/screenshots/overview-zh-CN.webp" src="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-invest-webull/assets/screenshots/overview.webp" alt="Overview" loading="lazy">
   <figcaption class="cap">
     <div class="en"><strong>Overview</strong><span>Portfolio command desk with market value, unrealized P/L, day change, cash, an allocation-by-asset-type donut, and top day movers.</span></div><div class="zh"><strong>总览</strong><span>投资组合操作台，显示市值、未实现盈亏、当日涨跌、现金、按资产类别的环形配置图和当日涨跌榜。</span></div>
@@ -333,6 +320,18 @@ After it is installed, invoke the skill as $kelly-invest-webull.</textarea>
   <img data-shot-en="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-invest-webull/assets/screenshots/positions.webp" data-shot-zh="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-invest-webull/assets/screenshots/positions-zh-CN.webp" src="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-invest-webull/assets/screenshots/positions.webp" alt="Positions" loading="lazy">
   <figcaption class="cap">
     <div class="en"><strong>Positions</strong><span>Sortable holdings table across symbol, asset type, quantity, average cost, last price, market value, unrealized P/L, and portfolio weight.</span></div><div class="zh"><strong>持仓</strong><span>可排序的持仓表，含标的、资产类别、数量、平均成本、现价、市值、未实现盈亏和组合权重。</span></div>
+  </figcaption>
+</figure>
+<figure class="shot">
+  <img data-shot-en="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-invest-webull/assets/screenshots/accounts.webp" data-shot-zh="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-invest-webull/assets/screenshots/accounts-zh-CN.webp" src="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-invest-webull/assets/screenshots/accounts.webp" alt="Accounts" loading="lazy">
+  <figcaption class="cap">
+    <div class="en"><strong>Accounts</strong><span>Per-account view (cash and margin) with net liquidation, total cash, buying power, and the positions held in each account.</span></div><div class="zh"><strong>账户</strong><span>按账户（现金/融资）显示净清算价值、现金、购买力，以及每个账户下的持仓。</span></div>
+  </figcaption>
+</figure>
+<figure class="shot">
+  <img data-shot-en="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-invest-webull/assets/screenshots/detail.webp" data-shot-zh="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-invest-webull/assets/screenshots/detail-zh-CN.webp" src="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-invest-webull/assets/screenshots/detail.webp" alt="Position detail" loading="lazy">
+  <figcaption class="cap">
+    <div class="en"><strong>Position detail</strong><span>Single-symbol view with cost basis, market value, unrealized P/L and percentage, day change, weight, and holding account.</span></div><div class="zh"><strong>标的详情</strong><span>单个标的视图，显示成本、市值、未实现盈亏及百分比、当日涨跌、权重和所属账户。</span></div>
   </figcaption>
 </figure></div>
 
@@ -377,8 +376,8 @@ After it is installed, invoke the skill as $kelly-invest-webull.</textarea>
 </aside>
 </div>
 <footer class="footer">
-  <span class="en">MIT licensed · Built from the repo READMEs and template manifests by <code>scripts/build-site.mjs</code> · <a href="https://github.com/mr-kelly/skills">mr-kelly/skills</a></span>
-  <span class="zh">MIT 许可 · 由 <code>scripts/build-site.mjs</code> 从仓库 README 和模板清单生成 · <a href="https://github.com/mr-kelly/skills">mr-kelly/skills</a></span>
+  <span class="en">MIT licensed · Built from the repo READMEs by <code>scripts/build-site.mjs</code> · <a href="https://github.com/mr-kelly/skills">mr-kelly/skills</a></span>
+  <span class="zh">MIT 许可 · 由 <code>scripts/build-site.mjs</code> 从仓库 README 生成 · <a href="https://github.com/mr-kelly/skills">mr-kelly/skills</a></span>
 </footer>
 </div>
 <script>

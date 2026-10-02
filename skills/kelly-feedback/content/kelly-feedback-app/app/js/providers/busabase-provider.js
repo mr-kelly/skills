@@ -29,6 +29,7 @@ const toBusabaseFields = (fields) =>
 let runtimeClient;
 let runtimeBases = new Map();
 let pendingSetupError = "";
+let currentPageContext = {};
 
 async function ensureResources() {
   runtimeClient = runtimeClient || createRuntimeClient();
@@ -58,29 +59,49 @@ function base(key) {
   return declared;
 }
 
-async function readAllRecords(key, { maxPages = 20 } = {}) {
+async function readPage(key, cursor) {
   if (!allowedReads.has("records.list")) throw new Error("PROCEDURE_DENIED: records.list");
   const declared = base(key);
-  const rows = [];
-  let cursor;
-  for (let page = 0; page < maxPages; page += 1) {
-    const result = await runtimeClient.records.list({
-      baseId: declared.baseId,
-      limit: declared.readLimit,
-      ...(cursor ? { cursor } : {}),
-    });
-    const records = Array.isArray(result) ? result : result.records || [];
-    for (const record of records) {
-      rows.push({
-        ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields),
-        __recordId: record.id,
-        __headCommitId: record.headCommitId || record.headCommit?.id,
-      });
-    }
-    cursor = Array.isArray(result) ? null : result.nextCursor;
-    if (!cursor) break;
-  }
+  const result = await runtimeClient.records.list({
+    baseId: declared.baseId,
+    limit: declared.readLimit,
+    ...(cursor ? { cursor } : {}),
+  });
+  const records = Array.isArray(result) ? result : result.records || [];
+  const rows = records.map((record) => ({
+    ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields),
+    __recordId: record.id,
+    __headCommitId: record.headCommitId || record.headCommit?.id,
+  }));
+  return { rows, nextCursor: Array.isArray(result) ? null : result.nextCursor || null };
+}
+
+const initialPageCursors = {};
+const initialTotalCounts = {};
+
+async function readFirstPage(key) {
+  const [{ rows, nextCursor }, total] = await Promise.all([readPage(key), countRecords(key)]);
+  initialPageCursors[key] = nextCursor;
+  initialTotalCounts[key] = total;
   return rows;
+}
+
+async function countRecords(key, filters) {
+  if (!allowedReads.has("records.count")) return null;
+  const declared = base(key);
+  try {
+    const { total } = await runtimeClient.records.count({ baseId: declared.baseId, ...(filters ? { filters } : {}) });
+    return total;
+  } catch {
+    return null;
+  }
+}
+
+function normalizePageRows(key, rows) {
+  const snapshotKey = key.replaceAll("-", "_");
+  currentPageContext = { ...currentPageContext, [snapshotKey]: rows };
+  const snapshot = buildSnapshot(currentPageContext);
+  return snapshot[snapshotKey] || rows;
 }
 
 async function findRecord(key, idFieldSlug, idValue) {
@@ -122,7 +143,7 @@ async function upsert(key, idFieldSlug, idValue, fields, message) {
 }
 
 async function readSettingsRow() {
-  const rows = await readAllRecords("settings");
+  const rows = await readFirstPage("settings");
   return rows.find((row) => row.record_id === "config") || {};
 }
 
@@ -185,24 +206,35 @@ function requestFields(row) {
   };
 }
 
+function withPagination(data) {
+  return {
+    ...data,
+    pagination: { ...initialPageCursors },
+    totals: { ...initialTotalCounts },
+  };
+}
+
 export const busabaseProvider = {
   kind: "busabase",
 
   async getState() {
+    for (const key of Object.keys(initialPageCursors)) delete initialPageCursors[key];
+    for (const key of Object.keys(initialTotalCounts)) delete initialTotalCounts[key];
     await ensureResources();
     const [products, sources, feedback, requests, roadmap, proposals, sync_log, settings] = await Promise.all([
-      readAllRecords("products"),
-      readAllRecords("sources"),
-      readAllRecords("feedback"),
-      readAllRecords("requests"),
-      readAllRecords("roadmap"),
-      readAllRecords("proposals"),
-      readAllRecords("sync-log"),
+      readFirstPage("products"),
+      readFirstPage("sources"),
+      readFirstPage("feedback"),
+      readFirstPage("requests"),
+      readFirstPage("roadmap"),
+      readFirstPage("proposals"),
+      readFirstPage("sync-log"),
       readSettingsRow(),
     ]);
-    const snapshot = buildSnapshot({ products, sources, feedback, requests, roadmap, proposals, sync_log });
+    currentPageContext = { products, sources, feedback, requests, roadmap, proposals, sync_log };
+    const snapshot = buildSnapshot(currentPageContext);
     const config_summary = buildConfigSummary({ settings, products, sources });
-    return {
+    return withPagination({
       app: "kelly-feedback",
       demo: false,
       data_provider: "busabase",
@@ -210,7 +242,7 @@ export const busabaseProvider = {
       lock: null,
       config_summary,
       snapshot,
-    };
+    });
   },
 
   // Human verdict on a roadmap decision (approve/request_changes/block/revise),
@@ -272,6 +304,12 @@ export const busabaseProvider = {
     };
     await upsert("requests", "request-id", request_id, fields, `Update effort estimate for request ${request_id}`);
     return { ok: true };
+  },
+
+  async fetchPage(key, cursor) {
+    await ensureResources();
+    const page = await readPage(key, cursor);
+    return { ...page, rows: normalizePageRows(key, page.rows) };
   },
 
   async provisionResources() {

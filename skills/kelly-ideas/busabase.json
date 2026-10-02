@@ -1,0 +1,28 @@
+{
+  "format": "busabase-package@1",
+  "name": "kelly-ideas",
+  "description": "An idea vault with a business consultant attached — interrogate a vague idea, then carry it through BRD, MRD, and PRD.",
+  "version": "0.1.0",
+  "license": "MIT",
+  "tags": ["product-strategy", "risk:gated-write", "surface:busabase"],
+  "template": {
+    "category": "product-strategy",
+    "schemaVersion": 1,
+    "airapp": "kelly-ideas-app",
+    "tags": ["ideas", "brd-mrd-prd", "consultant"],
+    "screenshots": [
+      "assets/screenshots/overview.webp",
+      "assets/screenshots/idea-detail.webp",
+      "assets/screenshots/questions.webp",
+      "assets/screenshots/documents.webp"
+    ],
+    "agentPrompts": [
+      "我有个想法但说不太清楚，帮我理一理。",
+      "打开灵感库，看看哪些还等着我回答问题。",
+      "把这条灵感推进到 PRD，缺什么先问我。"
+    ],
+    "requires": {
+      "airapp": true
+    }
+  }
+}

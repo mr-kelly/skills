@@ -1,16 +1,24 @@
 import { messages } from "./i18n/messages.js";
+import { appConfig } from "./js/config.js?v=0.1.0";
 import { closeConnectGate, passConnectGate, renderSetupRequired } from "./js/connect-gate.js?v=0.1.0";
+import { createPagination } from "./js/pagination.js?v=0.1.0";
 import { getProvider } from "./js/providers/index.js?v=0.1.0";
 import {
+  createPracticeTicketsAction,
   decideAction,
+  importMaterialAction,
+  qaPairDecision,
   renderKbDetail,
   renderKnowledge,
+  renderQaPairs,
   renderSettings,
   renderSla,
   saveReplyAction,
+  saveSettingsAction,
   saveSlaAction,
   toLocalDatetime,
 } from "./js/service-views.js";
+import { recomputeMetrics } from "./js/support-model.js?v=0.1.0";
 
 const FEATURED_DEMO_TICKET = "tk-ochoa-refund";
 const OPEN_STATUSES = ["needs_review", "changes_requested", "approved"];
@@ -25,6 +33,7 @@ export const state = {
   notes: {},
   slas: {},
   edits: {},
+  materialImportOpen: false,
   lang: normalizeLang(
     new URLSearchParams(location.search).get("lang") || localStorage.getItem("kelly-support-language") || "auto",
   ),
@@ -53,6 +62,25 @@ export const els = {
   blockedCount: document.querySelector("#count-blocked"),
   language: document.querySelector("#language"),
 };
+
+const PAGINATED_KEYS = ["tickets", "knowledge-base"];
+const pagination = createPagination({
+  getProvider,
+  pageSizes: Object.fromEntries(appConfig.bases.map((base) => [base.key, base.readLimit])),
+  applyPage: (key, rows) => {
+    state.snapshot[key === "knowledge-base" ? "knowledge_base" : key] = rows;
+    recomputeMetrics(state.snapshot);
+  },
+  render: () => render(),
+  label: (key) => t(key),
+  onError: (error) => {
+    state.pageError = error instanceof Error ? error.message : String(error);
+  },
+});
+
+export function recordTotal(key, fallback = 0) {
+  return pagination.total(key, fallback);
+}
 
 function isMobileLayout() {
   return window.matchMedia("(max-width: 720px)").matches;
@@ -129,6 +157,31 @@ export function dateTime(value) {
   }).format(new Date(value));
 }
 
+// support-qa gate checks carry an English `message` fallback plus a stable
+// `code` (+ `params`) identifying exactly which branch produced it; this
+// resolves the localized template for that (id, code) pair, falling back to
+// the English message if a translation is missing.
+export function gateCheckText(check) {
+  const template =
+    messages[activeLang()]?.gateCheck?.[check.id]?.[check.code] || messages.en.gateCheck?.[check.id]?.[check.code];
+  if (!template) return check.message || "";
+  return template.replace(/\{(\w+)\}/g, (_, name) => String(check.params?.[name] ?? ""));
+}
+
+// Mirrors runQualityGate()'s hardBlocks/softFixes grouping in support-model.js
+// to recompute a localized summary from the same failing checks, instead of
+// echoing the gate's English `summary` fallback.
+export function gateSummaryText(gate) {
+  if (!gate?.checks?.length) return gate?.summary || "";
+  const hardBlocks = gate.checks.filter(
+    (c) => (c.id === "no_unapproved_commitment" || c.id === "refund_policy") && !c.ok,
+  );
+  const softFixes = gate.checks.filter((c) => (c.id === "grounding" || c.id === "kb_refs_resolve") && !c.ok);
+  const failing = hardBlocks.length ? hardBlocks : softFixes;
+  if (!failing.length) return t("gateReadySummary");
+  return failing.map(gateCheckText).join(" ");
+}
+
 export function referenceNow() {
   if (state.settings?.demo && state.snapshot?.generated_at) return new Date(state.snapshot.generated_at).getTime();
   return Date.now();
@@ -179,6 +232,7 @@ function setRoute() {
 export async function loadState() {
   const provider = await getProvider();
   const data = await provider.getState();
+  pagination.reset(data.pagination, data.totals);
   closeConnectGate();
   state.snapshot = data.snapshot;
   state.settings = data;
@@ -229,8 +283,16 @@ export function knowledge() {
   return state.snapshot?.knowledge_base || [];
 }
 
+export function qaPairs() {
+  return state.snapshot?.qa_pairs || [];
+}
+
 export function ticketById(id) {
   return tickets().find((item) => item.ticket_id === id);
+}
+
+export function qaPairById(id) {
+  return qaPairs().find((item) => item.pair_id === id);
 }
 
 export function kbById(id) {
@@ -261,8 +323,10 @@ function renderShell() {
   const needsReview = tickets().filter((item) => item.status === "needs_review").length;
   const breaching = breachingTickets().length;
   const blocked = gateBlockedTickets().length;
+  const ticketCount = pagination.total("tickets", tickets().length);
+  const knowledgeCount = pagination.total("knowledge-base", knowledge().length);
   els.syncStatus.textContent = tickets().length
-    ? `${tickets().length} ${t("ticketCount")} · ${knowledge().length} KB`
+    ? `${ticketCount} ${t("ticketCount")} · ${knowledgeCount} KB`
     : t("empty");
   if (els.approvalsCount) els.approvalsCount.textContent = needsReview;
   if (els.slaCount) els.slaCount.textContent = breaching;
@@ -274,7 +338,7 @@ function renderShell() {
   if (els.mobileViewMeta) {
     els.mobileViewMeta.textContent = needsReview
       ? `${needsReview} ${t("awaitingApproval")}`
-      : `${tickets().length} ${t("ticketCount")}`;
+      : `${ticketCount} ${t("ticketCount")}`;
   }
   document.querySelectorAll("[data-route]").forEach((link) => {
     link.classList.toggle("active", link.dataset.route === state.route.view);
@@ -292,6 +356,10 @@ function renderShell() {
       els.notice.textContent = t("demoNotice");
       els.notice.hidden = false;
       els.notice.className = "notice demo";
+    } else if (state.settings?.onboarding?.settings_completed === false) {
+      els.notice.innerHTML = `${escapeHtml(t("settingsRequired"))} <a href="#/settings">${escapeHtml(t("openSettings"))}</a>`;
+      els.notice.hidden = false;
+      els.notice.className = "notice locked";
     } else {
       els.notice.hidden = true;
     }
@@ -316,6 +384,7 @@ export function flashNotice(text) {
 function viewLabel(view) {
   if (view === "tickets") return t("tickets");
   if (view === "knowledge") return t("knowledge");
+  if (view === "qa-pairs") return t("qaPairs");
   if (view === "sla") return t("sla");
   if (view === "settings") return t("settings");
   return t("overview");
@@ -347,7 +416,7 @@ function actionChip(action) {
 function gateBadge(gate) {
   if (!gate) return "";
   const verdict = gate.verdict || "ship";
-  return `<span class="gate-badge ${escapeHtml(verdict)}" title="${escapeHtml(gate.summary || "")}">⛩ ${escapeHtml(enumLabel(verdict, "verdict"))} · ${gate.score}</span>`;
+  return `<span class="gate-badge ${escapeHtml(verdict)}" title="${escapeHtml(gateSummaryText(gate))}">⛩ ${escapeHtml(enumLabel(verdict, "verdict"))} · ${gate.score}</span>`;
 }
 
 function countryCell(country) {
@@ -360,18 +429,38 @@ export function matchesQuery(values) {
   return values.filter(Boolean).some((value) => String(value).toLowerCase().includes(query));
 }
 
+// Warnings carry an English `message`/`detail` fallback for non-UI consumers
+// (CLI output, logs); the two well-known warning shapes are localized here
+// from their structured fields instead of echoing that fallback verbatim.
+function warningText(item) {
+  if (item.id === "sla-breach-batch") {
+    return {
+      message: `${item.count} ${t("slaBreachWarning")}`,
+      detail: `${t("seeSlaBoardOldest")} ${item.oldest_ticket_id} (${enumLabel(item.oldest_priority, "priority")}, ${t("dueBy").toLowerCase()} ${dateTime(item.oldest_due_by)})`,
+    };
+  }
+  if (item.id?.endsWith("-quality-block")) {
+    return {
+      message: `${t("ticketWord")} #${item.ticket_ref} (${item.customer_name}) ${t("gateBlockWarning")}`,
+      detail: item.gate_checks ? gateSummaryText({ checks: item.gate_checks }) : item.detail,
+    };
+  }
+  return { message: item.message, detail: item.detail };
+}
+
 function warningsHtml() {
   const items = state.snapshot?.warnings || [];
   if (!items.length) return "";
   return `<div class="warnings">${items
-    .map(
-      (item) => `
+    .map((item) => {
+      const { message, detail } = warningText(item);
+      return `
     <div class="${escapeHtml(item.severity || "warning")}">
-      <strong>${escapeHtml(item.message)}</strong>
-      ${item.detail ? `<span>${escapeHtml(item.detail)}</span>` : ""}
+      <strong>${escapeHtml(message)}</strong>
+      ${detail ? `<span>${escapeHtml(detail)}</span>` : ""}
     </div>
-  `,
-    )
+  `;
+    })
     .join("")}</div>`;
 }
 
@@ -511,7 +600,7 @@ function renderTickets() {
   els.title.textContent = filter === "all" ? t("tickets") : `${t("tickets")} · ${enumLabel(filter)}`;
   const list = filteredTickets();
   const needsReview = tickets().filter((item) => item.status === "needs_review").length;
-  els.subtitle.textContent = `${list.length} ${t("ticketCount")} · ${needsReview} ${t("needsReviewFilter")}`;
+  els.subtitle.textContent = `${pagination.total("tickets", list.length)} ${t("ticketCount")} · ${needsReview} ${t("needsReviewFilter")}`;
   els.content.innerHTML = list.length
     ? `
     <div class="table-wrap">
@@ -563,12 +652,12 @@ function gateHtml(gate) {
         <strong>⛩ support-qa</strong>
         <span class="gate-badge ${escapeHtml(verdict)}">${escapeHtml(enumLabel(verdict, "verdict"))} · ${gate.score}</span>
       </div>
-      <div class="gate-summary">${escapeHtml(gate.summary || "")}</div>
+      <div class="gate-summary">${escapeHtml(gateSummaryText(gate))}</div>
       <ul class="gate-checks">
         ${(gate.checks || [])
           .map(
             (check) =>
-              `<li class="${check.ok ? "ok" : "fail"}"><span aria-hidden="true">${check.ok ? "✓" : "✗"}</span> ${escapeHtml(check.message)}</li>`,
+              `<li class="${check.ok ? "ok" : "fail"}"><span aria-hidden="true">${check.ok ? "✓" : "✗"}</span> ${escapeHtml(gateCheckText(check))}</li>`,
           )
           .join("")}
       </ul>
@@ -592,7 +681,9 @@ function renderTicketDetail() {
     .filter(Boolean)
     .join(" · ");
   const locked = isLocked();
-  const editable = ticket.status !== "done" && ticket.status !== "blocked";
+  const deliveryRecorded = ticket.execution?.status === "sent" || ticket.execution?.status === "executed";
+  const editable = ticket.status !== "done" && ticket.status !== "blocked" && !deliveryRecorded;
+  const settingsReady = state.settings?.onboarding?.settings_completed !== false;
   const draft = state.drafts[ticket.ticket_id];
   const replyValue = draft !== undefined ? draft : ticket.suggested_reply || "";
   const kbRefs = (ticket.kb_refs || []).map((id) => kbById(id)).filter(Boolean);
@@ -647,7 +738,7 @@ function renderTicketDetail() {
               <input type="text" id="decision-comment" placeholder="${escapeHtml(t("commentPlaceholder"))}" ${locked ? "disabled" : ""}>
               <div class="approval-buttons">
                 <button type="button" data-action="save-reply" data-ticket="${escapeHtml(ticket.ticket_id)}" ${locked ? "disabled" : ""}>${t("queueReply")}</button>
-                <button type="button" class="primary" data-action="decide" data-ticket="${escapeHtml(ticket.ticket_id)}" data-decision="approve" ${locked ? "disabled" : ""}>${t("approve")}</button>
+                <button type="button" class="primary" data-action="decide" data-ticket="${escapeHtml(ticket.ticket_id)}" data-decision="approve" ${locked || !settingsReady ? "disabled" : ""} title="${!settingsReady ? escapeHtml(t("settingsRequired")) : ""}">${t("approve")}</button>
                 <button type="button" data-action="decide" data-ticket="${escapeHtml(ticket.ticket_id)}" data-decision="request_changes" ${locked ? "disabled" : ""}>${t("requestChanges")}</button>
                 <button type="button" class="danger" data-action="decide" data-ticket="${escapeHtml(ticket.ticket_id)}" data-decision="block" ${locked ? "disabled" : ""}>${t("block")}</button>
               </div>
@@ -655,9 +746,9 @@ function renderTicketDetail() {
           `
               : ""
           }
-          ${ticket.status === "approved" ? `<div class="approval-waiting">${t("waitingForSend")}</div>` : ""}
+          ${ticket.status === "approved" && !deliveryRecorded ? `<div class="approval-waiting">${t("waitingForSend")}</div>` : ""}
           ${ticket.decision?.comment ? `<div class="approval-reason"><span class="muted">${t("comment")}:</span> ${escapeHtml(ticket.decision.comment)} <small class="muted">(${t("decidedAt")} ${dateTime(ticket.decision.decided_at)})</small></div>` : ""}
-          ${ticket.execution && ticket.execution.status === "executed" ? `<div class="approval-execution">${t("sentVia")} ${escapeHtml(enumLabel(ticket.execution.connector, "connector"))} · ${escapeHtml(ticket.execution.target || "")} ${ticket.execution.executed_at ? `· ${dateTime(ticket.execution.executed_at)}` : ""}</div>` : ""}
+          ${deliveryRecorded ? `<div class="approval-execution">${t("sentVia")} ${escapeHtml(enumLabel(ticket.execution.connector, "connector"))} · ${escapeHtml(ticket.execution.target || "")} ${ticket.execution.executed_at ? `· ${dateTime(ticket.execution.executed_at)}` : ""}</div>` : ""}
         </div>
       </div>
       <aside class="detail-side">
@@ -709,13 +800,19 @@ export function csatStars(score) {
   return `<span class="csat-stars" title="${full}/5">${"★".repeat(full)}${"☆".repeat(5 - full)}</span>`;
 }
 
+function renderPagedList(renderList, key) {
+  renderList();
+  els.content.insertAdjacentHTML("beforeend", `${pagination.control(key)}`);
+}
+
 export function render() {
   renderShell();
   if (state.route.view === "tickets" && state.route.id && !WORKFLOW_FILTERS.includes(state.route.id))
     renderTicketDetail();
-  else if (state.route.view === "tickets") renderTickets();
+  else if (state.route.view === "tickets") renderPagedList(renderTickets, "tickets");
   else if (state.route.view === "knowledge" && state.route.id) renderKbDetail();
-  else if (state.route.view === "knowledge") renderKnowledge();
+  else if (state.route.view === "knowledge") renderPagedList(renderKnowledge, "knowledge-base");
+  else if (state.route.view === "qa-pairs") renderQaPairs();
   else if (state.route.view === "sla") renderSla();
   else if (state.route.view === "settings") renderSettings();
   else renderOverview();
@@ -734,6 +831,8 @@ export function escapeHtml(value) {
       })[char],
   );
 }
+
+pagination.bind(els.content);
 
 window.addEventListener("hashchange", setRoute);
 window.addEventListener("resize", syncResponsiveShell);
@@ -776,8 +875,29 @@ els.content.addEventListener("click", (event) => {
     saveSlaAction(button.dataset.ticket);
     return;
   }
+  if (button.dataset.action === "save-settings") {
+    saveSettingsAction();
+    return;
+  }
+  if (button.dataset.action === "toggle-material-import") {
+    state.materialImportOpen = !state.materialImportOpen;
+    render();
+    return;
+  }
+  if (button.dataset.action === "import-material") {
+    importMaterialAction();
+    return;
+  }
+  if (button.dataset.action === "create-practice-tickets") {
+    createPracticeTicketsAction(button.dataset.article);
+    return;
+  }
   if (button.dataset.action === "decide") {
     decideAction(button.dataset.ticket, button.dataset.decision);
+    return;
+  }
+  if (button.dataset.action === "qa-decide") {
+    qaPairDecision(button.dataset.pair, button.dataset.decision);
   }
 });
 

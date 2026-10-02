@@ -1,0 +1,6 @@
+{
+  "type": "drive",
+  "name": "Model Lab Files",
+  "description": "Immutable dataset snapshots, LoRA adapters, evaluation reports, and model cards.",
+  "position": 5
+}

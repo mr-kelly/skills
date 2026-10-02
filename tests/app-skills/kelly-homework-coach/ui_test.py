@@ -40,29 +40,47 @@ def test_demo_ui(browser, base_url: str) -> None:
     page = desktop.new_page()
     errors = attach_error_capture(page)
 
-    # The fixed demo dataset (demoSnapshot() in app/app/js/homework-model.js,
-    # ported verbatim from the retired app/server/demo.ts) counts verified
-    # against a throwaway Node probe before writing these assertions:
-    # 3 questions, 3 mistakes, 2 papers, 4 review items. Review status counts
-    # are needs_review=2, changes_requested=1, approved=1, blocked=0, so the
-    # sidebar's "needs a kind decision" tile (needs_review + changes_requested)
-    # reads 3, "ready for agent" (approved) reads 1, blocked reads 0.
+    # The fixed demo dataset (demoSnapshot() in app/app/js/homework-model.js)
+    # counts, verified against a throwaway Node probe before writing these
+    # assertions: 4 questions, 3 mistakes, 2 papers, 5 review items. Review
+    # status counts are needs_review=3, changes_requested=1, approved=1,
+    # blocked=0, so the sidebar's "waiting on you" tile (needs_review +
+    # changes_requested) reads 4, "ready for agent" (approved) reads 1,
+    # blocked reads 0. The 4th question and 5th review are q-area-blurred /
+    # rv-area-blurred: the record that must NOT be approved.
     page.goto(f"{base_url}/?demo=student&lang=en#/student")
     page.wait_for_load_state("networkidle")
     assert page.locator(".brand-title").inner_text() == "Homework Coach"
     assert page.locator(".brand-subtitle").inner_text() == "Student desk + review queue"
-    assert page.locator(".nav button[data-route='student'] small").inner_text() == "3"
+    assert page.locator(".nav button[data-route='student'] small").inner_text() == "4"
     assert page.locator(".nav button[data-route='mistakes'] small").inner_text() == "3"
     assert page.locator(".nav button[data-route='papers'] small").inner_text() == "2"
-    assert page.locator(".nav button[data-route='review'] small").inner_text() == "4"
+    assert page.locator(".nav button[data-route='review'] small").inner_text() == "5"
     attention = page.locator(".attention-metric b")
-    assert attention.nth(0).inner_text() == "3"
+    assert attention.nth(0).inner_text() == "4"
     assert attention.nth(1).inner_text() == "1"
     assert attention.nth(2).inner_text() == "2"
     assert attention.nth(3).inner_text() == "0"
-    assert page.locator(".metric-grid .metric").count() == 4
-    assert page.locator(".row-list .row").count() == 3
+    # Three cells, not four: due_reviews already sits in the sidebar attention
+    # block, and a band that restates the sidebar is a second navigation the
+    # reader cannot click.
+    assert page.locator(".metric-band .metric").count() == 3
+    assert page.locator(".row-list .row").count() == 4
     assert page.locator(".photo-box [data-local-photo]").count() == 1
+    page.locator("[data-select-id]").first.click()
+    explanation = page.locator("[data-question-explanation]")
+    assert explanation.count() == 1 and not explanation.evaluate("element => element.open")
+    assert not page.locator(".detail-panel .answer-box").first.is_visible()
+    explanation.locator("summary").click()
+    assert page.locator(".detail-panel .answer-box").first.is_visible()
+    page.goto(f"{base_url}/?demo=review&lang=en#/review/rv-math-borrowing")
+    page.wait_for_load_state("networkidle")
+    assert "Ones: 3 cannot" in page.locator(".detail-panel").inner_text()
+    page.goto(f"{base_url}/?demo=student&lang=en#/student")
+    page.wait_for_load_state("networkidle")
+    # The editorial vocabulary the recording depends on being legible.
+    assert page.locator(".panel-header .eyebrow").count() == 1
+    assert page.locator(".panel-header .headline").inner_text() == "Mia has 3 questions open."
     assert_no_horizontal_overflow(page)
 
     page.goto(f"{base_url}/?demo=mistakes&lang=en#/mistakes")
@@ -75,12 +93,139 @@ def test_demo_ui(browser, base_url: str) -> None:
 
     page.goto(f"{base_url}/?demo=review&lang=en#/review")
     page.wait_for_load_state("networkidle")
-    assert page.locator(".row-list .row").count() == 4
+    assert page.locator(".row-list .row").count() == 5
     assert page.locator("[data-decision-action='approve']").count() == 1
+    # A proposed action is rendered as a sentence a parent can read. The raw
+    # `add_to_mistake_book` used to render verbatim in the row chip AND in the
+    # detail pane.
+    assert "Check the original question and explanation" in page.locator(".row-list .row").first.inner_text()
+    assert "add_to_mistake_book" not in page.locator(".app-shell").inner_text()
 
-    page.goto(f"{base_url}/?demo=student&lang=zh#/student")
+    # ?demo= used to swallow every decision ("Demo mode: decision write
+    # skipped"), which made the app's single most important interaction
+    # unreachable in the only mode a screenshot or recording can use.
+    page.goto(f"{base_url}/?demo=review&lang=en#/review/rv-area-blurred")
     page.wait_for_load_state("networkidle")
-    assert page.locator(".brand-title").inner_text() == "作業小教練"
+    blocked_row = page.locator(".row-list .row").nth(4)
+    assert "NEEDS REVIEW" in blocked_row.inner_text()
+    page.locator("[data-decision-action='block']").click()
+    page.wait_for_timeout(200)
+    # One --ease-flash highlight before the row settles into its new queue.
+    assert "is-decided" in (blocked_row.get_attribute("class") or "")
+    page.wait_for_timeout(900)
+    assert "BLOCKED" in blocked_row.inner_text()
+    assert page.locator(".attention-metric b").nth(0).inner_text() == "3"
+    assert page.locator(".attention-metric b").nth(3).inner_text() == "1"
+    # Nothing is persisted: a reload restores the fixture.
+    page.reload()
+    page.wait_for_load_state("networkidle")
+    assert page.locator(".attention-metric b").nth(3).inner_text() == "0"
+    desktop.close()
+
+    # ...but the 20s background refresh must NOT restore it. That poll exists
+    # to pick up what the agent wrote to Busabase since the last paint; in
+    # demo mode the provider hands back the same fixture every time, so the
+    # only thing a quiet refresh can do is discard the decision the operator
+    # just made. Caught by recording the demo and watching the counters snap
+    # back twenty seconds after an approval.
+    clocked = browser.new_context(viewport={"width": 1280, "height": 820})
+    clocked.clock.install()
+    page = clocked.new_page()
+    errors = attach_error_capture(page)
+    page.goto(f"{base_url}/?demo=review&lang=en#/review/rv-area-blurred")
+    page.wait_for_load_state("networkidle")
+    page.locator("[data-decision-action='block']").click()
+    page.wait_for_timeout(200)
+    assert page.locator(".attention-metric b").nth(3).inner_text() == "1"
+    clocked.clock.fast_forward("00:45")
+    page.wait_for_timeout(300)
+    assert page.locator(".attention-metric b").nth(3).inner_text() == "1"
+    assert not errors, errors
+    clocked.close()
+
+    desktop = browser.new_context(viewport={"width": 1280, "height": 820})
+    page = desktop.new_page()
+    errors = attach_error_capture(page)
+
+    # The practice runner: a paper the student actually sits, marked locally.
+    # paper-mixed-01's review is `approved`, so handing in visibly moves it
+    # back into the queue — which is the whole point of the feature.
+    page.goto(f"{base_url}/?demo=papers&lang=en#/papers/paper-mixed-01")
+    page.wait_for_load_state("networkidle")
+    assert page.locator(".filter button").nth(2).inner_text().endswith("1")  # Ready = 1
+    page.locator("[data-run-start]").click()
+    # A run owns the detail pane; leaving the nav button in the sticky action
+    # bar offers the student a control that silently abandons their run.
+    assert page.locator(".detail-actions-top").inner_text().strip() == ""
+
+    # hint_first: the first wrong answer gets the hint, never the answer.
+    page.fill("#runAnswer", "999")
+    page.locator("[data-run-submit]").click()
+    verdict = page.locator(".run-verdict").first
+    assert "is-hint" in (verdict.get_attribute("class") or "")
+    assert "326" not in verdict.inner_text()
+    page.locator("[data-run-retry]").click()
+    page.fill("#runAnswer", "999")
+    page.locator("[data-run-submit]").click()
+    # Only the second wrong attempt reveals it.
+    assert "326" in page.locator(".run-verdict").first.inner_text()
+
+    page.locator("[data-run-next]").click()
+    page.fill("#runAnswer", "444")
+    page.locator("[data-run-submit]").click()
+    assert "is-correct" in (page.locator(".run-verdict").first.get_attribute("class") or "")
+    page.locator("[data-run-next]").click()
+    # The open-response item carries no answer key, so nobody marks it.
+    page.fill("#runAnswer", "Small daily care helps things grow.")
+    page.locator("[data-run-submit]").click()
+    assert "is-open" in (page.locator(".run-verdict").first.get_attribute("class") or "")
+    page.locator("[data-run-next]").click()
+
+    # Scored over the GRADED items: 1 of 2, not 1 of 3.
+    assert page.locator(".question-title").first.inner_text() == "You got 1 of 2 right."
+    page.locator("[data-run-finish]").click()
+    page.wait_for_timeout(300)
+    # Paper returns to review, but the OLD confirmation stays approved.
+    assert page.locator(".filter button").nth(1).inner_text().endswith("3")
+    assert page.locator(".filter button").nth(2).inner_text().endswith("1")
+
+    page.locator("[data-run-exit]").click()
+    assert "PRACTICE HISTORY" in page.locator(".detail-panel").inner_text()
+    assert "999" not in page.locator(".detail-panel").inner_text()
+    page.locator("[data-route='review']").first.click()
+    page.locator("[data-select-id='rv-weekend-paper']").click()
+    detail = page.locator(".detail-panel")
+    page.wait_for_function('document.querySelector(".detail-panel")?.innerText.includes("PRACTICE HISTORY")')
+    assert "PRACTICE HISTORY" in detail.inner_text()
+    assert "999" in detail.inner_text()
+    assert detail.locator("[data-decision-action='approve']").count() == 0
+    assert detail.locator("[data-submit-attempt-review]").count() == 1
+    assert detail.locator("[data-attempt-verdict]").count() == 1
+    # Hosted sandboxes disallow modal alerts. Validation must be inline.
+    page.evaluate("() => { window.alert = () => { throw new Error('Modal alert must not be used'); }; }")
+    detail.locator("[data-submit-attempt-review]").click()
+    assert detail.locator("[data-attempt-review-error]").is_visible()
+    assert detail.locator("[data-attempt-review-error]").inner_text().strip()
+    assert detail.locator("[data-submit-attempt-review]").count() == 1
+    detail.locator("[data-attempt-verdict]").select_option("correct")
+    detail.locator("#attemptNote").fill("Read the explanation and checked the reasoning.")
+    detail.locator("[data-submit-attempt-review]").click()
+    assert "This attempt has a parent mark" in detail.inner_text()
+    assert detail.locator("[data-submit-attempt-review]").count() == 0
+    assert not errors, errors
+
+    # A paper with no answer key says so instead of inventing one to mark.
+    page.goto(f"{base_url}/?demo=papers&lang=en#/papers/paper-fractions-01")
+    page.wait_for_load_state("networkidle")
+    assert page.locator("[data-run-start]").count() == 0
+
+    # zh-CN is Simplified. It used to serve Hong Kong Traditional, because
+    # resolveLanguage() routes every zh-* tag to the one `zh` bundle.
+    for tag in ("zh", "zh-CN"):
+        page.goto(f"{base_url}/?demo=student&lang={tag}#/student")
+        page.wait_for_load_state("networkidle")
+        assert page.locator(".brand-title").inner_text() == "作业小教练"
+        assert page.locator("html").get_attribute("lang") == "zh-CN"
 
     assert not errors, errors
     desktop.close()
@@ -92,12 +237,44 @@ def test_demo_ui(browser, base_url: str) -> None:
         page.goto(f"{base_url}/?demo=student&lang=en#/student")
         page.wait_for_load_state("networkidle")
         assert_no_horizontal_overflow(page)
+        page.locator("[data-select-id]").first.click()
+        explanation = page.locator("[data-question-explanation]")
+        assert explanation.count() == 1 and not explanation.evaluate("element => element.open")
+        explanation.locator("summary").click()
+        assert page.locator(".detail-panel .answer-box").first.is_visible()
 
         page.locator("[data-open-sidebar]").click()
         assert page.locator("body.sidebar-open").count() == 1
         page.locator("#sidebarScrim").click(position={"x": width - 5, "y": 5})
         assert page.locator("body.sidebar-open").count() == 0
 
+        if width == 390:
+            page.goto(f"{base_url}/?demo=papers&lang=en#/papers/paper-mixed-01")
+            page.wait_for_load_state("networkidle")
+            page.locator("[data-run-start]").click()
+            page.fill("#runAnswer", "999")
+            page.locator("[data-run-submit]").click()
+            page.locator("[data-run-retry]").click()
+            page.fill("#runAnswer", "326")
+            page.locator("[data-run-submit]").click()
+            page.locator("[data-run-next]").click()
+            page.fill("#runAnswer", "444")
+            page.locator("[data-run-submit]").click()
+            page.locator("[data-run-next]").click()
+            page.fill("#runAnswer", "I read the passage and summarized it.")
+            page.locator("[data-run-submit]").click()
+            page.locator("[data-run-next]").click()
+            page.locator("[data-run-finish]").click()
+            page.locator("[data-run-exit]").click()
+            assert "PRACTICE HISTORY" in page.locator(".detail-panel").inner_text()
+            assert "999" not in page.locator(".detail-panel").inner_text()
+            page.locator("[data-open-sidebar]").click()
+            page.locator("[data-route='review']").first.click()
+            page.locator("[data-select-id='rv-weekend-paper']").click()
+            page.wait_for_function('document.querySelector(".detail-panel")?.innerText.includes("PRACTICE HISTORY")')
+            assert "999" in page.locator(".detail-panel").inner_text()
+            assert page.locator(".detail-panel [data-attempt-verdict]").count() == 1
+            assert page.locator(".detail-panel [data-decision-action='approve']").count() == 0
         assert_no_horizontal_overflow(page)
         assert not errors, errors
         mobile.close()
@@ -296,13 +473,26 @@ def test_busabase_provisioning(browser) -> None:
                     # the .question-title class — scope to the first match
                     # (the review's own hero-answer) to avoid a strict-mode
                     # violation on the duplicate selector.
-                    assert page.locator(".question-title").first.inner_text() == "Fixture review title"
+                    assert "Fixture" in page.locator(".detail-panel").inner_text()
                     page.locator("#reviewNote").fill("Trusted: matches manual spot-check of the fixture.")
                     page.locator("[data-decision-action='approve']").click()
                     page.wait_for_timeout(800)
                     assert_no_horizontal_overflow(page)
                     assert not errors, errors
                     context.close()
+
+                # A browser decision proposes two pending writes. Before reviewer
+                # approval/merge, neither canonical record may change.
+                pending = read_json(f"{busabase_url}/api/v1/change-requests")
+                pending = pending if isinstance(pending, list) else pending.get("changeRequests", [])
+                writes = [cr for cr in pending if cr.get("status") == "in_review"]
+                assert len(writes) == 2, pending
+                canonical = read_json(f"{busabase_url}/api/v1/records?baseId={reviews_base['baseId']}")
+                canonical = canonical if isinstance(canonical, list) else canonical.get("records", [])
+                assert all((r.get("headCommit", {}).get("payload") or r.get("headCommit", {}).get("fields", {})).get("status") == "needs_review" for r in canonical)
+                post_json(f"{busabase_url}/api/v1/change-requests/reviews", {"changeRequestIds": [cr["id"] for cr in writes], "verdict": "approved"})
+                merged = post_json(f"{busabase_url}/api/v1/change-requests/merge", {"changeRequestIds": [cr["id"] for cr in writes]})
+                assert all(result.get("ok") for result in merged["results"]), merged
 
                 records = read_json(f"{busabase_url}/api/v1/records?baseId={reviews_base['baseId']}")
                 record_items = records if isinstance(records, list) else records.get("records", [])
@@ -358,7 +548,7 @@ def main() -> None:
                     test_demo_ui(browser, base_url)
                     print("PASS OSS - demo UI at desktop and phone viewports")
                     test_busabase_provisioning(browser)
-                    print("PASS OSS - lazy provisioning, decision write with target sync, and persistence against temporary Busabase")
+                    print("PASS OSS - lazy provisioning, pending decision writes, reviewed merge, and persistence against temporary Busabase")
                 except Exception:
                     for index, context in enumerate(browser.contexts):
                         for page_index, page in enumerate(context.pages):
@@ -366,6 +556,8 @@ def main() -> None:
                     raise
                 finally:
                     browser.close()
+    from learning_flow_test import main as test_learning_flow
+    test_learning_flow()
 
 
 if __name__ == "__main__":

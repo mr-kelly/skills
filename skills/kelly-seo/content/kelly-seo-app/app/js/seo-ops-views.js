@@ -11,6 +11,7 @@ import {
   opportunities,
   pct,
   pos1,
+  recordTotal,
   render,
   siteName,
   state,
@@ -131,7 +132,7 @@ export function cssEscape(value) {
 export function renderSites() {
   els.title.textContent = t("sites");
   const sites = state.snapshot?.sites || [];
-  els.subtitle.textContent = `${sites.length} ${t("sites").toLowerCase()}`;
+  els.subtitle.textContent = `${recordTotal("sites", sites.length)} ${t("sites").toLowerCase()}`;
   els.content.innerHTML = sites.length
     ? `
     <div class="account-grid">

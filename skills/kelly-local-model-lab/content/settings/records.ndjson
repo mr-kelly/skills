@@ -1,0 +1,1 @@
+{"key":"sample-settings-001","fields":{"record-id":"lab-config","kind":"lab-config","payload":"{\"onboarding_version\":1,\"base_model\":\"mlx-community/Qwen3-0.6B-4bit\",\"method\":\"qlora\",\"evaluation_gate\":{\"min_schema_valid_pct\":90,\"min_exact_field_delta\":10},\"local_worker\":{\"required\":true,\"status\":\"not-configured\"}}","updated-at":"2026-09-01T00:00:00.000Z"}}

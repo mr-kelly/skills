@@ -154,6 +154,20 @@
       "required": false,
       "position": 18,
       "options": {}
+    },
+    {
+      "slug": "original-image",
+      "name": "Original image (opt-in)",
+      "type": "attachment",
+      "required": false,
+      "options": {
+        "attachment": {
+          "maxFiles": 1,
+          "maxFileSize": 10485760,
+          "allowedMimeTypes": ["image/png", "image/jpeg", "image/webp"]
+        }
+      },
+      "position": 19
     }
   ],
   "views": []

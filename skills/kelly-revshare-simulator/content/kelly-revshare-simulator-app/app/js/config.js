@@ -24,7 +24,7 @@ export const appConfig = {
       slug: "kelly-revshare-simulator-scenarios",
       description:
         "One row per saved revenue-share deal scenario: the analyst's raw inputs (business type, revenue, principal, share rates, cap multiple, term) and the underwriting decision. The projected cash-flow/repayment result (Cash-Flow Payout Multiple, effective annualized cost, risk flags) is never stored -- it is pure/derived from these inputs and recomputed on every read",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "scenario-id", name: "Scenario ID", type: "text", required: true },
         { slug: "name", name: "Name", type: "text", required: false },
@@ -58,7 +58,7 @@ export const appConfig = {
     },
   ],
   permissions: {
-    readProcedures: ["nodes.list", "nodes.get", "bases.get", "records.list"],
+    readProcedures: ["nodes.list", "nodes.get", "bases.get", "records.list", "records.count"],
     setupProcedures: ["nodes.createChangeRequest", "nodes.updateMetadata"],
     // changeRequests.review/merge are used only to complete a scenario
     // DELETE on a standalone local runtime: Busabase always requires an

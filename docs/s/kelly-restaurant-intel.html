@@ -149,7 +149,6 @@ h2.group {
 .card[hidden] { display: none; }
 .card .thumb { aspect-ratio: 3 / 2; background: #eef0f3; overflow: hidden; border-bottom: 1px solid var(--border); }
 .card .thumb img { width: 100%; height: 100%; object-fit: cover; object-position: top left; display: block; }
-.card .thumb.template-cover img { object-fit: contain; object-position: center; }
 .card .thumb.empty { display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 26px; }
 .card .body { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 6px; }
 .card .name { font-weight: 650; font-size: 15.5px; display: flex; align-items: center; gap: 8px; }
@@ -312,18 +311,6 @@ After it is installed, invoke the skill as $kelly-restaurant-intel.</textarea>
     </section>
     <div class="panel"><h3><span class="en">When to use it</span><span class="zh">什么时候用</span></h3><p><span class="en">Use it when restaurants, cafes, or F&amp;B groups need hero-menu picks, service-period briefs, delivery copy, booking scripts, or guest-recovery drafts.</span><span class="zh">餐厅、咖啡店或餐饮集团需要主推菜、班次 briefing、外卖文案、订座话术或客诉修复草稿时使用。</span></p></div>
     <div class="shots"><figure class="shot">
-  <img data-shot-en="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-restaurant-intel/assets/screenshots/actions.webp" data-shot-zh="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-restaurant-intel/assets/screenshots/actions-zh-CN.webp" src="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-restaurant-intel/assets/screenshots/actions.webp" alt="Actions" loading="lazy">
-  <figcaption class="cap">
-    <div class="en"><strong>Actions</strong><span>Shift briefs, hero-menu picks, booking scripts, and delivery-copy actions ready for approval.</span></div><div class="zh"><strong>动作</strong><span>班次 brief、主推菜、订座话术和外卖文案动作等待审批。</span></div>
-  </figcaption>
-</figure>
-<figure class="shot">
-  <img data-shot-en="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-restaurant-intel/assets/screenshots/drafts.webp" data-shot-zh="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-restaurant-intel/assets/screenshots/drafts-zh-CN.webp" src="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-restaurant-intel/assets/screenshots/drafts.webp" alt="Drafts" loading="lazy">
-  <figcaption class="cap">
-    <div class="en"><strong>Drafts</strong><span>Editable guest messages, review replies, and social copy with menu and safety boundaries.</span></div><div class="zh"><strong>草稿</strong><span>顾客消息、评价回复和社媒文案带菜单与安全边界。</span></div>
-  </figcaption>
-</figure>
-<figure class="shot">
   <img data-shot-en="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-restaurant-intel/assets/screenshots/overview.webp" data-shot-zh="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-restaurant-intel/assets/screenshots/overview-zh-CN.webp" src="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-restaurant-intel/assets/screenshots/overview.webp" alt="Overview" loading="lazy">
   <figcaption class="cap">
     <div class="en"><strong>Overview</strong><span>Restaurant-group desk with demand triggers, meal-period focus, ready actions, and blocked food-safety claims.</span></div><div class="zh"><strong>总览</strong><span>餐饮集团情报台：需求触发、餐段重点、可执行动作和被拦截食品安全宣称。</span></div>
@@ -333,6 +320,18 @@ After it is installed, invoke the skill as $kelly-restaurant-intel.</textarea>
   <img data-shot-en="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-restaurant-intel/assets/screenshots/signals.webp" data-shot-zh="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-restaurant-intel/assets/screenshots/signals-zh-CN.webp" src="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-restaurant-intel/assets/screenshots/signals.webp" alt="Signals" loading="lazy">
   <figcaption class="cap">
     <div class="en"><strong>Signals</strong><span>Weather, events, competitor menus, delivery movement, and review themes tied to operations.</span></div><div class="zh"><strong>信号</strong><span>天气、活动、竞品菜单、外卖变化和评价主题，映射到运营动作。</span></div>
+  </figcaption>
+</figure>
+<figure class="shot">
+  <img data-shot-en="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-restaurant-intel/assets/screenshots/actions.webp" data-shot-zh="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-restaurant-intel/assets/screenshots/actions-zh-CN.webp" src="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-restaurant-intel/assets/screenshots/actions.webp" alt="Actions" loading="lazy">
+  <figcaption class="cap">
+    <div class="en"><strong>Actions</strong><span>Shift briefs, hero-menu picks, booking scripts, and delivery-copy actions ready for approval.</span></div><div class="zh"><strong>动作</strong><span>班次 brief、主推菜、订座话术和外卖文案动作等待审批。</span></div>
+  </figcaption>
+</figure>
+<figure class="shot">
+  <img data-shot-en="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-restaurant-intel/assets/screenshots/drafts.webp" data-shot-zh="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-restaurant-intel/assets/screenshots/drafts-zh-CN.webp" src="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-restaurant-intel/assets/screenshots/drafts.webp" alt="Drafts" loading="lazy">
+  <figcaption class="cap">
+    <div class="en"><strong>Drafts</strong><span>Editable guest messages, review replies, and social copy with menu and safety boundaries.</span></div><div class="zh"><strong>草稿</strong><span>顾客消息、评价回复和社媒文案带菜单与安全边界。</span></div>
   </figcaption>
 </figure></div>
 
@@ -377,8 +376,8 @@ After it is installed, invoke the skill as $kelly-restaurant-intel.</textarea>
 </aside>
 </div>
 <footer class="footer">
-  <span class="en">MIT licensed · Built from the repo READMEs and template manifests by <code>scripts/build-site.mjs</code> · <a href="https://github.com/mr-kelly/skills">mr-kelly/skills</a></span>
-  <span class="zh">MIT 许可 · 由 <code>scripts/build-site.mjs</code> 从仓库 README 和模板清单生成 · <a href="https://github.com/mr-kelly/skills">mr-kelly/skills</a></span>
+  <span class="en">MIT licensed · Built from the repo READMEs by <code>scripts/build-site.mjs</code> · <a href="https://github.com/mr-kelly/skills">mr-kelly/skills</a></span>
+  <span class="zh">MIT 许可 · 由 <code>scripts/build-site.mjs</code> 从仓库 README 生成 · <a href="https://github.com/mr-kelly/skills">mr-kelly/skills</a></span>
 </footer>
 </div>
 <script>

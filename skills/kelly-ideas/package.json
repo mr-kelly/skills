@@ -1,0 +1,17 @@
+{
+  "name": "kelly-ideas",
+  "private": true,
+  "type": "module",
+  "version": "0.1.0",
+  "description": "Kelly Ideas Busabase Cloud skill — the consultant that turns a vague idea into a buildable PRD.",
+  "scripts": {
+    "app:check": "pnpm --dir content/kelly-ideas-app check",
+    "sync-content": "node scripts/sync-content.mjs --check"
+  },
+  "dependencies": {
+    "busabase-sdk": "0.80.0"
+  },
+  "engines": {
+    "node": ">=24.18.0"
+  }
+}

@@ -19,6 +19,7 @@ import {
   pickRef,
   proposalForCandidate,
   proposals,
+  recordTotal,
   render,
   reviewBars,
   sourceBadge,
@@ -37,7 +38,7 @@ export function renderCandidates() {
   els.title.textContent = t("candidates");
   const items = filteredCandidates();
   const metrics = state.snapshot?.metrics || {};
-  els.subtitle.textContent = `${items.length} ${t("candidates").toLowerCase()} · ${metrics.below_margin_floor || 0} ${t("belowFloor")}`;
+  els.subtitle.textContent = `${recordTotal("candidates", items.length)} ${t("candidates").toLowerCase()} · ${metrics.below_margin_floor || 0} ${t("belowFloor")}`;
   els.content.innerHTML = `
     ${demoBanner()}
     ${lockBanner()}
@@ -252,7 +253,7 @@ function filteredTrendItems() {
 export function renderTrends() {
   els.title.textContent = t("trendFeed");
   const items = filteredTrendItems();
-  els.subtitle.textContent = `${items.length} / ${trendItems().length}`;
+  els.subtitle.textContent = `${items.length} / ${recordTotal("trend-items", trendItems().length)}`;
   const disabled = isLocked() || state.saving ? "disabled" : "";
   els.content.innerHTML = `
     ${demoBanner()}
@@ -320,7 +321,7 @@ export function renderDecisions() {
   els.title.textContent = t("decisions");
   const items = filteredProposals();
   const byStatus = (status) => proposals().filter((item) => item.status === status).length;
-  els.subtitle.textContent = `${items.length} ${t("proposals")} · ${byStatus("needs_review")} ${t("proposalsToReview")}`;
+  els.subtitle.textContent = `${recordTotal("proposals", items.length)} ${t("proposals")} · ${byStatus("needs_review")} ${t("proposalsToReview")}`;
   const disabled = isLocked() || state.saving ? "disabled" : "";
   els.content.innerHTML = `
     ${demoBanner()}

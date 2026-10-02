@@ -156,6 +156,7 @@ The `kelly-*` skills are the everyday business tools. Helper skills such as `age
 | Skill | What It Does | When To Use It | Details |
 | --- | --- | --- | --- |
 | `kelly-email` | Runs an AI-assisted inbox-zero workflow across configured email accounts. It triages unread mail, drafts replies, prepares cleanup actions, and uses a local UI for human approval before execution. | Use it when processing unread email, drafting support replies, archiving or marking messages read after approval, or managing email through an App-in-Skill UI. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-email.html) |
+| `kelly-followups` | Records who you need to follow up with after a meeting, shows what is due today, and marks it done. Deliberately one job — not a project manager. | Use it when capturing meeting action items, or checking who is due for a check-in today. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-followups.html) |
 | `kelly-jobhunt` | Runs a job-search outreach desk across three subcommands: `profile` turns a resume into a structured profile and a typeset PDF, `research` finds target companies and their published contact addresses and drafts one tailored email each, `send` puts the user's own SMTP credentials in the Busabase Vault and mails what they approved. One company gets exactly one email. | Use it when applying to companies directly instead of through a job board, building a resume PDF from existing material, collecting hiring contact addresses with their sources, reviewing and editing application emails before they go out, or tracking which companies have already been contacted. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-jobhunt.html) |
 | `kelly-messenger` | Aggregates WhatsApp, Discord, Slack, and Telegram into one unified local inbox with full conversation transcripts and an approval-gated reply outbox. | Use it when reading messages across chat platforms in one place, drafting replies in a single composer, and approving queued outbound messages that the agent then sends via platform connectors. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-messenger.html) |
 | `kelly-standup` | Team standup board: the agent collects members' daily check-ins from chat channels on demand, structures them into yesterday/today/blockers cards with a team digest, and drafts approval-gated nudges for missing check-ins. | Use it when running daily standups asynchronously, seeing what everyone is working on at a glance, or tracking blockers and participation across the team. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-standup.html) |
@@ -227,15 +228,20 @@ The `kelly-*` skills are the everyday business tools. Helper skills such as `age
 | Skill | What It Does | When To Use It | Details |
 | --- | --- | --- | --- |
 | `agent-rules` | Keeps rules and skills for Codex, Claude Code, Copilot, Kiro, Cursor, and Gemini aligned from one source of truth. It creates and verifies symlinks so agents share `AGENTS.md` and `.agents/skills/`. | Use it when setting up a repo for multiple coding agents, checking agent rule drift, or fixing broken skill/rule symlinks. | [View ↗](https://mr-kelly.github.io/skills/s/agent-rules.html) |
+| `buda-community` | Operates the Buda community forum at community.buda.im through its own `/api/v1/community` REST API: lists categories and posts, reads a thread with its replies, searches, and publishes posts and replies only after an explicit confirmation. | Use it when checking, answering, or posting to the Buda community. | [View ↗](https://mr-kelly.github.io/skills/s/buda-community.html) |
+| `busabase-community` | Operates the Busabase community forum at community.busabase.com through its own `/api/v1/community` REST API: lists categories and posts, reads a thread with its replies, searches, and publishes posts and replies only after an explicit confirmation. | Use it when checking, answering, or posting to the Busabase community. | [View ↗](https://mr-kelly.github.io/skills/s/busabase-community.html) |
 | `kelly-agent-builder` | Low-code agent configuration and governance console: a catalog of mock agent configs with quota, approval, and ownership tracking, blocking incomplete configs from going live. | Use it when managing an agent catalog, checking quota usage, activating a draft agent, or archiving one. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-agent-builder.html) |
 | `kelly-agent-eval` | Review board that runs a fixed suite of mock test cases against baseline vs candidate agent versions, surfacing rubric-scored regressions before a release gate. | Use it when triaging agent-version regressions, comparing baseline vs candidate quality, or recording a release approve/block decision. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-agent-eval.html) |
 | `kelly-agent-observability` | Local dashboard visualizing a fleet of LLM agents behind a shared AI gateway: call volume, latency, error rates, cost, and trace-level chain breaks. | Use it when reviewing agent fleet health or drilling into a failed trace to see where a chain broke. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-agent-observability.html) |
 | `kelly-app-skill-creator` | Builds Busabase-backed App-in-Skill packages around Research, Plan, Action, and Retrospective. Each bundles a complete canonical `app/`, uses `busabase-sdk` for persistent config/state/data, deploys the same source to AirApp by default, starts `pnpm dev` only on explicit request, owns the responsive Kelly operator UI, delegates runtime rules to `$busabase-app-creator`, and delegates conformance acceptance to `$kelly-app-skill-creator-tests`. The previous names `kelly-app-creator` and `app-in-skill-creator` remain compatibility aliases. | Use it when building a Busabase research desk, review queue, planner, action console, operating dashboard, control panel, or collaboration workspace. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-app-skill-creator.html) |
 | `kelly-app-skill-creator-tests` | Builds and runs reusable conformance tests for canonical Kelly app skills, including local server and responsive browser checks, temporary open-source Busabase provisioning and persistence, environment-gated Cloud OAuth, and AirApp parity. OSS and Cloud are always reported separately. | Use it when adding tests to a skill created by `kelly-app-skill-creator`, validating a migrated app skill, wiring app-skill CI, or diagnosing SDK, OAuth, provisioning, persistence, or AirApp regressions. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-app-skill-creator-tests.html) |
 | `kelly-devops` | Watches the product fleet: service uptime and latency, SSL certificate and domain expiry, API key rotation, and cloud spend anomalies, with agent-proposed action cards for approval. | Use it when checking service health, catching expiring domains and certificates, reviewing cloud spend spikes, or approving renewal and rotation actions. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-devops.html) |
+| `kelly-ideas` | Idea vault with a business consultant attached: sharpens vague ideas through required questions, then carries them through BRD, MRD, and PRD. | Use it when shaping a product or business concept into a specification precise enough to build. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-ideas.html) |
 | `kelly-llm-gateway` | Dashboard for a shared LLM gateway's cost and model governance: spend trend, cost breakdown by service/model, canary-rollout status, and deterministic cost/error anomaly detection. | Use it when reviewing LLM gateway spend, canary rollouts, or acknowledging a cost/error anomaly. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-llm-gateway.html) |
+| `kelly-local-model-lab` | Busabase-backed control plane for curating training examples, running local Apple Silicon LoRA/QLoRA fine-tunes with MLX-LM, comparing locked baseline and adapter evaluations, and registering approved adapters. | Use it when training, evaluating, promoting, or managing a local language-model adapter with Busabase as the workflow source of truth. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-local-model-lab.html) |
 | `kelly-pr-review` | Runs a GitHub PR review desk through `gh` CLI. It gathers review-requested pull requests, prepares review notes, uses a local UI for approval, and executes approved `gh pr review` actions. | Use it when reviewing GitHub pull requests, approving/commenting/requesting changes from a local queue, or batching PR review decisions. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-pr-review.html) |
 | `publish-skills` | Publishes agent skills and MCP servers to marketplaces and registries: security-scans for private data, validates with `gh skill`, cuts a release, wires the Claude `/plugin` and Codex marketplaces, and preps the MCP Registry and curated stores. | Use it when publishing, releasing, or listing skills, plugins, or MCP servers to skills.sh, Claude Code, Codex, or the MCP Registry. | [View ↗](https://mr-kelly.github.io/skills/s/publish-skills.html) |
+| `sandock-community` | Operates the Sandock community forum at community.sandock.ai through its own `/api/v1/community` REST API: lists categories and posts, reads a thread with its replies, searches, and publishes posts and replies only after an explicit confirmation. | Use it when checking, answering, or posting to the Sandock community. | [View ↗](https://mr-kelly.github.io/skills/s/sandock-community.html) |
 
 ---
 
@@ -1748,6 +1754,52 @@ Cost and model-governance dashboard for a shared LLM gateway.
   <tr>
     <td><strong>Overview</strong><br>Total daily spend trend and cost breakdown by service/model.</td>
     <td><strong>Rollouts</strong><br>Canary-rollout status board with promote/rollback/hold decisions.</td>
+  </tr>
+</table>
+
+### `kelly-local-model-lab`
+
+Local Apple Silicon fine-tuning control plane: curate examples, claim reproducible MLX runs, compare a locked baseline with its adapter, and retain complete model lineage in Busabase.
+
+<table>
+  <tr>
+    <td width="50%"><img src="skills/kelly-local-model-lab/assets/screenshots/overview.png" alt="Kelly Local Model Lab overview"></td>
+    <td width="50%"><img src="skills/kelly-local-model-lab/assets/screenshots/dataset.png" alt="Kelly Local Model Lab dataset review"></td>
+  </tr>
+  <tr>
+    <td><strong>Training overview</strong><br>Approved split counts, work needing attention, the Busabase-to-MLX pipeline, and the latest locked evaluation gain.</td>
+    <td><strong>Dataset review</strong><br>Prompt and ideal-response provenance, stable sample ids, split membership, and explicit approve/request-changes/block decisions.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="skills/kelly-local-model-lab/assets/screenshots/evaluations.png" alt="Kelly Local Model Lab baseline and adapter evaluation"></td>
+    <td width="50%"><img src="skills/kelly-local-model-lab/assets/screenshots/registry.png" alt="Kelly Local Model Lab model registry"></td>
+  </tr>
+  <tr>
+    <td><strong>Locked evaluation</strong><br>Baseline and adapter JSON/schema/exact-field metrics with an honest hold verdict before promotion.</td>
+    <td><strong>Model registry</strong><br>Base revision, training run, adapter artifact, dataset lineage, and active/candidate lifecycle in one reviewable surface.</td>
+  </tr>
+</table>
+
+### `kelly-ideas`
+
+Idea strategy desk that turns a vague thought into a traceable BRD, MRD, and PRD without skipping unanswered questions.
+
+<table>
+  <tr>
+    <td width="50%"><img src="skills/kelly-ideas/assets/screenshots/overview.webp" alt="Kelly Ideas overview"></td>
+    <td width="50%"><img src="skills/kelly-ideas/assets/screenshots/idea-detail.webp" alt="Kelly Ideas idea detail"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>Ideas waiting on an answer, ready to advance, or deliberately parked.</td>
+    <td><strong>Idea detail</strong><br>The one-liner, target user, problem, timing, clarity score, and current ladder gate.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="skills/kelly-ideas/assets/screenshots/questions.webp" alt="Kelly Ideas consultant questions"></td>
+    <td width="50%"><img src="skills/kelly-ideas/assets/screenshots/documents.webp" alt="Kelly Ideas PRD document"></td>
+  </tr>
+  <tr>
+    <td><strong>Consultant questions</strong><br>One focused question at a time, with its reason and an explicit answer or skip action.</td>
+    <td><strong>PRD document</strong><br>A versioned product requirements draft with status and unresolved gaps kept visible.</td>
   </tr>
 </table>
 

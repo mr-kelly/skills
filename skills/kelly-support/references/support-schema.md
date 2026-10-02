@@ -72,13 +72,18 @@ marker.
 | `decision-action` | `decision_action` | text | written with the verdict |
 | `decision-comment` | `decision_comment` | longtext | written with the verdict |
 | `decided-at` | `decided_at` | text | written with the verdict |
-| `execution-status` | `execution_status` | text | `sent\|dry_run\|skipped\|blocked`, written by `scripts/execute_decisions.mjs` |
+| `execution-status` | `execution_status` | text | `queued\|sending\|sent\|skipped\|blocked`; only the connector finalizer writes `sent` |
 | `execution-operation` | `execution_operation` | text | `send_reply\|escalate\|refund\|close\|no_action` |
 | `execution-connector` | `execution_connector` | text | the account id that would deliver it |
 | `execution-target` | `execution_target` | text | `provider_conversation_id` at execution time |
 | `execution-tier` | `execution_tier` | text | for `escalate` |
 | `execution-amount` | `execution_amount` | number | for `refund` |
 | `execution-detail` | `execution_detail` | longtext | |
+| `execution-idempotency-key` | `execution_idempotency_key` | text | stable connector dedupe key created when work is queued |
+| `execution-provider-message-id` | `execution_provider_message_id` | text | provider receipt after confirmed delivery |
+| `execution-attempt` | `execution_attempt` | number | claim attempt count |
+| `execution-started-at` | `execution_started_at` | text | ISO claim timestamp |
+| `execution-completed-at` | `execution_completed_at` | text | ISO provider-confirmed completion timestamp |
 | `executed-at` | `executed_at` | text | ISO timestamp |
 | `updated-at` | `updated_at` | text | ISO timestamp |
 
@@ -116,11 +121,39 @@ Store only the minimum excerpt needed for review. Never store credentials, QR pa
 | `body` | `body` | longtext | the article or canned macro text |
 | `tags` | `tags` | longtext | JSON array |
 | `category` | `category` | text | |
+| `source-url` | `source_url` | text | original material URL, when applicable |
+| `source-published-at` | `source_published_at` | text | source publication timestamp |
+| `source-fetched-at` | `source_fetched_at` | text | source retrieval timestamp |
+| `content-hash` | `content_hash` | text | digest of the normalized source material |
 | `updated-at` | `updated_at` | text | ISO timestamp |
 
 A ticket's `kb_refs` reference `article_id`s. The `support-qa` gate requires
 a substantive reply to cite at least one real article and flags any dangling
 `kb_ref`.
+
+## QA Pairs (`kelly-support-qa-pairs`)
+
+Question/answer pairs distilled from Knowledge Base articles.
+
+| Field slug | App key | Type | Notes |
+| --- | --- | --- | --- |
+| `pair-id` | `pair_id` | text | stable id, required |
+| `article-id` | `article_id` | text | the source article, required — every pair stays traceable |
+| `question` | `question` | longtext | required; how a customer would actually ask it |
+| `answer` | `answer` | longtext | required; must be supported by the source article |
+| `category` | `category` | text | inherited from the article |
+| `tags` | `tags` | longtext | JSON array |
+| `status` | `status` | text | `draft\|approved\|rejected` — only `approved` pairs are used |
+| `reviewed-by` | `reviewed_by` | text | who approved it |
+| `updated-at` | `updated_at` | text | ISO timestamp |
+
+Pairs are **derived data**: the article is the source of truth. A pair whose
+`updated_at` predates its article's has gone stale and should be re-distilled
+and re-reviewed rather than left `approved`.
+
+Approved pairs are the export surface for fine-tuning (`$kelly-local-model-lab`
+consumes exactly this shape). Fine-tuning is optional and never replaces the
+human approval queue.
 
 ## Sync Log (`kelly-support-sync-log`)
 
@@ -143,10 +176,13 @@ One row, `record-id: "config"`:
 | Field slug | App key | Type | Notes |
 | --- | --- | --- | --- |
 | `record-id` | `record_id` | text | always `"config"`, required |
+| `onboarding-status` | `onboarding_status` | text | `needs_review\|complete`; execution requires `complete` |
+| `onboarding-version` | `onboarding_version` | number | current supported policy version |
 | `sla-policy` | `sla_policy` | longtext | JSON: `{first_response_hours: {urgent, high, normal, low}, business_hours}` |
 | `risk-policy` | `risk_policy` | longtext | JSON: `{refund_requires_approval, max_auto_refund, block_ungrounded_replies, block_commitments_without_approval}` |
 | `reply-style` | `reply_style` | longtext | JSON: `{tone, language, signature, avoid: [...]}` |
 | `kb-source-path` | `kb_source_path` | text | where the KB was imported from, for display only |
+| `updated-at` | `updated_at` | text | ISO timestamp |
 
 ## Decisions
 
@@ -176,15 +212,13 @@ stale `approve` decision exists.
 
 ## Execution (`scripts/execute_decisions.mjs`)
 
-The trusted handoff step. Reads `tickets` whose `decision_action` is
+The trusted claim step. Reads `tickets` whose `decision_action` is
 `approve` AND `status` is `approved`, re-checks the `support-qa` gate live,
-and — with `--apply` — writes an execution marker
-(`execution-status`/`execution-operation`/`execution-target`/etc.) onto each
-ticket that clears every safety gate. **It never changes the ticket's
-`status`** (real delivery, not this script, ultimately resolves the ticket)
-and performs **no external side effect** — no email send, no WhatsApp/WeChat
-API call, no refund. Idempotency is checked live off each ticket's own
-`execution-status` field (no separate report file). Real
-sends/escalations/refunds are performed by the configured channel connectors
-(kelly-email, WhatsApp Cloud API, the web-chat widget, WeChat Work), a
-separate, explicitly authorized step.
+requires complete versioned support settings, and — with `--apply` — writes
+`execution-status: queued` plus operation, target, attempt and idempotency key.
+It performs no external side effect and never writes `sent`. The configured
+connector performs the operation. After provider acceptance,
+`scripts/finalize_delivery.mjs` records the deterministic outgoing message,
+provider receipt, first-response SLA, `execution-status: sent`, and
+`status: done`. Retrying the same receipt is idempotent; a conflicting receipt
+fails closed.

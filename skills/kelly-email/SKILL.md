@@ -145,7 +145,7 @@ Do not scan mail until onboarding is ready.
 1. Verify onboarding and propose the bounded batch plan.
 2. Wait for explicit approval.
 3. Write the Busabase agent lock and clear it in `finally`.
-4. Run `scripts/generate_review_batch.ts` for the approved scope. It scans IMAP and writes Reviews/Contacts/Settings/Drive through the provider.
+4. Run `scripts/generate_review_batch.ts` for the approved scope. Use `--mailbox <mailbox-id>` to limit secret checks and reads to one physical mailbox, and `--recipient <email>` when the support identity shares a mailbox with aliases; the recipient filter is applied by IMAP before message bodies are downloaded. It writes Reviews/Contacts/Settings/Drive through the provider.
 5. Treat its rule classification as a conservative prefilter, not final judgment.
 6. Perform an Agent Semantic Classification Pass using the message, thread context, taxonomy, account rules, and user preferences.
 7. Correct keyword false positives and write `classification_method: agent_review` with concise evidence and confidence.

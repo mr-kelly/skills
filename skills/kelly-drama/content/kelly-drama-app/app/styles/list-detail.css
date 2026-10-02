@@ -10,7 +10,7 @@
     width: 46px;
     height: 46px;
     flex: 0 0 46px;
-    border-radius: 7px;
+    border-radius: var(--radius-sm);
     overflow: hidden;
     background: var(--surface-soft);
     border: 1px solid var(--line);
