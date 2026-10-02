@@ -716,6 +716,23 @@ function demoSnapshot(scenario) {
 }
 
 function localizeSnapshotZh(snapshot) {
+  const agentContactNotes = {
+    "ct-mira": "技术决策人。每次通话后 24 小时内希望收到书面纪要。",
+    "ct-sofia": "推动这次 API 合作。希望在他们季度规划前拿到报价。",
+    "ct-ken": "参加过上次演示。在评估 webhook 吞吐量，基准数据备好就发给他。",
+    "ct-david": "合规优先。不要夸大认证情况，SOC 2 审计仍在进行中。",
+    "ct-jonas": "希望先给工程团队一个沙箱测试，再赶上 8 月的集成窗口。",
+    "ct-elena": "长期合作伙伴，介绍过两个客户。续约预算已确认。",
+    "ct-priya": "从定价页面进来的线索，在等她内部预算确认。",
+    "ct-grace": "已签年度许可。上手培训安排在 7 月中旬。",
+    "ct-marcus": "基金正在调整方向，对方公布新方向前不要联系。",
+    "ct-leah": "负责这次试点的合同文件，对改稿和付款条款要求严格。",
+  };
+  snapshot.contacts = snapshot.contacts.map((item) => ({
+    ...item,
+    agent_notes: agentContactNotes[item.contact_id] || item.agent_notes,
+  }));
+
   const nextSteps = {
     "deal-brightpath-pilot": "发送安全评审纪要并确认试点时间表",
     "deal-beacon-api": "回复合作分成方案的报价问题",
@@ -731,10 +748,22 @@ function localizeSnapshotZh(snapshot) {
     "deal-brightpath-pilot": "安全评审顺利，已批准 3 个月试点预算；能否成交取决于 SSO 上线时间表。",
     "deal-vantage-pilot": "合规敏感客户——所有对外措辞发送前必须通过 HIPAA 合规确认。",
   };
+  const agentNextActions = {
+    "deal-brightpath-pilot":
+      "趁安全评审电话的记忆还新鲜，起草会议纪要邮件；Leah 需要在 7 月 10 日前拿到改好的订单条款文件。",
+    "deal-beacon-api": "Sofia 在等报价，赶在 Beacon 季度规划前给出；附上 Ken 要的批量折扣表。",
+    "deal-vantage-pilot": "按 Kelly 的意见修改草稿措辞：只能说'SOC 2 审计进行中'，不能说'已认证'。",
+    "deal-harborline-integration": "赶在 Harborline 8 月集成窗口关闭前交付沙箱环境。",
+    "deal-atlas-retainer": "预算已确认，趁势头正好，这周内把工作坊日期定下来。",
+    "deal-nimbus-rollout": "预算确认前保持低频联系，安排 7 月 10 日做一次轻量问候。",
+    "deal-orbit-license": "6 月 27 日已签约。上手培训安排在 7 月中旬；60 天后请求一份客户案例。",
+    "deal-fernwood-workshop": "暂时成交失败，等 Fernwood 公布新的基金方向后再重新跟进。",
+  };
   snapshot.deals = snapshot.deals.map((item) => ({
     ...item,
     next_step: nextSteps[item.deal_id] || item.next_step,
     notes: notes[item.deal_id] || item.notes,
+    agent_next_action: agentNextActions[item.deal_id] || item.agent_next_action,
   }));
   const reasons = {
     "fu-brightpath-recap": "周二的安全评审电话需要书面纪要，趁热确认时间表。",
