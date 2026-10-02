@@ -37,6 +37,9 @@ The regional WeChat scenarios belong with Kelly's skills and should remain insta
 - `scripts/build-site.mjs` and `tests/site/template-media.test.mjs` - Manifest-driven gallery and regression coverage.
 - `README.md`, `docs/README-zh-CN.md`, `docs/` - Bilingual captions and generated pages.
 - `.gitattributes` - Git LFS tracking for skill recordings.
+- `.github/workflows/ci.yml` - Stage template recordings with screenshots for GitHub Pages.
+- `.github/workflows/ci.yml` - Run the gallery regression test on pull requests.
+- `skills/kelly-wechat-content/pnpm-workspace.yaml` and its AirApp counterpart - Declare the pinned SDK version for the repository's dependency audit.
 
 ## Breaking Changes
 

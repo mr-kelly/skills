@@ -65,6 +65,9 @@ jobs:
       - name: Test Pages asset validator
         run: node --test tests/pages-assets.test.mjs
 
+      - name: Test template media gallery
+        run: node --test tests/site/template-media.test.mjs
+
       - name: Test community forum skills
         run: npm run test:community
 
@@ -108,6 +111,12 @@ jobs:
             target="$site/skills/$skill/assets"
             mkdir -p "$target"
             cp -R "$source" "$target/screenshots"
+          done
+          for source in skills/*/assets/recordings; do
+            skill="$(basename "$(dirname "$(dirname "$source")")")"
+            target="$site/skills/$skill/assets"
+            mkdir -p "$target"
+            cp -R "$source" "$target/recordings"
           done
           node scripts/check-pages-assets.mjs "$site"
 

@@ -101,8 +101,7 @@ function siteShotPath(src, rel = "") {
 }
 
 function siteTemplateVideoPath(src) {
-  // Unlike screenshots, skill recordings are not copied into the Pages artifact.
-  return `${RAW_REPO_URL}/${src}`;
+  return ASSET_MODE === "pages-local" ? `../${src}` : `${RAW_REPO_URL}/${src}`;
 }
 
 function siteThumbPath(src) {
