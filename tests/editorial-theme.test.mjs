@@ -189,3 +189,50 @@ test("an adopted app's own stylesheet passes the contract", () => {
     assert.deepEqual(failures(appCss, html), [], relative);
   }
 });
+
+// ── Style picker: family swatches must not drift from editorial.css ────────
+// style-picker.js hardcodes each family's canvas/ink/accent for its swatch
+// tiles (the same pattern accent-theme.js already uses for its 8 colours —
+// a literal copy, not a DOM read, because editorial.css's selectors are
+// `html:root[data-theme]` specifically and probing via a detached element
+// never matches them without flashing the whole page through all 7
+// families). The literal table is real duplication, so it is verified here
+// against the actual source on every run instead of trusted by inspection.
+test("style-picker.js's family swatch table matches editorial.css's real values", () => {
+  const pickerSource = fs.readFileSync(path.join(ASSET_DIR, "style-picker.js"), "utf8");
+  const familiesMatch = pickerSource.match(/const FAMILIES = \[([\s\S]*?)\n\];/);
+  assert.ok(familiesMatch, "style-picker.js must declare a FAMILIES table");
+
+  const entries = [
+    ...familiesMatch[1].matchAll(
+      /id:\s*"([\w-]+)".*?canvas:\s*"(#[0-9a-f]+)".*?ink:\s*"(#[0-9a-f]+)".*?accent:\s*"(#[0-9a-f]+)"/gi,
+    ),
+  ];
+  assert.equal(entries.length, FAMILIES.length, "FAMILIES table entry count must match the asset's family count");
+
+  for (const [, id, canvas, ink, accent] of entries) {
+    const blockMatch = THEME.match(new RegExp(`html:root\\[data-theme="${id}"\\]\\s*\\{([^}]*)\\}`));
+    assert.ok(blockMatch, `editorial.css has no html:root[data-theme="${id}"] block`);
+    const block = blockMatch[1];
+    const realCanvas = block.match(/--canvas:\s*(#[0-9a-f]+);/i)?.[1];
+    const realInk = block.match(/--ink:\s*(#[0-9a-f]+);/i)?.[1];
+    const realAccent = block.match(/--accent:\s*(#[0-9a-f]+);/i)?.[1];
+    assert.equal(canvas.toLowerCase(), realCanvas?.toLowerCase(), `${id}: canvas swatch drifted from editorial.css`);
+    assert.equal(ink.toLowerCase(), realInk?.toLowerCase(), `${id}: ink swatch drifted from editorial.css`);
+    assert.equal(accent.toLowerCase(), realAccent?.toLowerCase(), `${id}: accent swatch drifted from editorial.css`);
+  }
+});
+
+test("style-picker.css reads every value from a token, like editorial.css requires of app CSS", () => {
+  const pickerCss = fs.readFileSync(path.join(ASSET_DIR, "style-picker.css"), "utf8");
+  // The swatch custom properties (--swatch-canvas/--swatch-ink/--swatch-accent)
+  // are intentionally excluded from the "no raw colour" rule here: they are
+  // per-instance values injected by style-picker.js, the same role
+  // accent-theme.css's --swatch/--swatch-check inline custom properties play.
+  const strippedOfSwatchVars = pickerCss.replace(/--swatch-(canvas|ink|accent)/g, "--swatchvar");
+  const failures = editorialAssertions(THEME, strippedOfSwatchVars, CLEAN_HTML).filter((a) => !a.ok);
+  assert.deepEqual(
+    failures.map((f) => f.message),
+    [],
+  );
+});
