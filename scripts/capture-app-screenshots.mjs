@@ -127,6 +127,11 @@ const ROUTE_OVERRIDES = {
     questions: "/ideas/idea-vague/questions",
     documents: "/ideas/idea-email/prd",
   },
+  "kelly-dog-walk": {
+    calendar: "/calendar/2026-07/2026-07-15",
+    month: "/calendar/2026-08/2026-08-01",
+    timeline: "/timeline",
+  },
   "kelly-wechat-crm": {
     people: "/people/wechat-person-xiaoyu",
     groups: "/groups/wechat-group-product",

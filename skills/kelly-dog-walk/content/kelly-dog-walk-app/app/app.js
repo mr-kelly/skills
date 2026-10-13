@@ -138,13 +138,13 @@ const compareChart = (month, { compact = false } = {}) => {
     `<div class="bar-row"><span class="bar ${kind}" style="--w:${((value / scale) * 100).toFixed(2)}%" tabindex="0" data-tip="${h(t.chartTip(series, label, value))}" aria-label="${h(t.chartTip(series, label, value))}"></span><b class="bar-value">${value}</b></div>`;
   const groups = METRICS.map(
     ([key, verdict, label]) =>
-      `<div class="bar-group"><div class="bar-label">${icon(verdict)}<span>${h(label())}</span></div><div class="bar-pair">${bar(current, "is-current", month.summary[key], label())}${bar(baseline, "is-baseline", month.baseline.summary[key], label())}</div></div>`,
+      `<div class="bar-group"><div class="bar-label">${icon(verdict)}<span>${h(compact ? t.verdictShort[verdict] : label())}</span></div><div class="bar-pair">${bar(current, "is-current", month.summary[key], label())}${bar(baseline, "is-baseline", month.baseline.summary[key], label())}</div></div>`,
   ).join("");
   const coverage =
     month.baseline.covered < month.summary.days
       ? `<p class="muted-note">${h(t.compareCoverage(month.baseline.covered, month.summary.days))}</p>`
       : "";
-  const table = `<table class="sr-only"><caption>${h(t.compareTitle(snap.baseline.version))}</caption><thead><tr><th></th>${METRICS.map(([, , label]) => `<th>${h(label())}</th>`).join("")}</tr></thead><tbody><tr><th>${h(current)}</th>${METRICS.map(([key]) => `<td>${month.summary[key]}</td>`).join("")}</tr><tr><th>${h(baseline)}</th>${METRICS.map(([key]) => `<td>${month.baseline.summary[key]}</td>`).join("")}</tr></tbody></table>`;
+  const table = `<div class="sr-only"><table><caption>${h(t.compareTitle(snap.baseline.version))}</caption><thead><tr><th></th>${METRICS.map(([, , label]) => `<th>${h(label())}</th>`).join("")}</tr></thead><tbody><tr><th>${h(current)}</th>${METRICS.map(([key]) => `<td>${month.summary[key]}</td>`).join("")}</tr><tr><th>${h(baseline)}</th>${METRICS.map(([key]) => `<td>${month.baseline.summary[key]}</td>`).join("")}</tr></tbody></table></div>`;
   return `<figure class="compare ${compact ? "is-compact" : ""}">
     ${compact ? "" : `<figcaption class="section-title">${h(t.compareTitle(snap.baseline.version))}</figcaption>`}
     <div class="compare-legend"><span><i class="swatch is-current"></i>${h(current)}</span><span><i class="swatch is-baseline"></i>${h(baseline)}</span></div>
@@ -225,7 +225,7 @@ const calendarPage = (route) => {
   const tabs = index()
     .map(
       (item) =>
-        `<a class="month-tab ${item.month === month.month ? "is-active" : ""}" href="${calendarHref(item.month)}" ${item.month === month.month ? 'aria-current="page"' : ""}><span>${h(t.monthName(item.month))}</span><small>${h(versionsLabel(state.cache.get(item.month)))}</small></a>`,
+        `<a class="month-tab ${item.month === month.month ? "is-active" : ""}" href="${calendarHref(item.month)}" ${item.month === month.month ? 'aria-current="page"' : ""}><span>${h(t.monthName(item.month))}</span><small>${h(versionsLabel(state.cache.get(item.month) || item))}</small></a>`,
     )
     .join("");
   return `<div class="page page-calendar">
@@ -275,7 +275,7 @@ const timelinePage = () => {
         .filter((item) => item.afterVersion === entry.version)
         .map((item) => {
           const en = lang === "en" ? item.en : null;
-          return `<aside class="note note-closed"><p class="note-title">${icon("x")}${h(t.closedTitle)} · ${h(item.id)}</p><p class="note-rule">「${h(en?.rule || item.rule)}」</p><p>${h(en?.evidence || item.evidence)}</p><p>${h(en?.reason || item.reason)}</p></aside>`;
+          return `<aside class="note note-closed"><p class="note-title">${icon("x")}${h(t.closedTitle)} · ${h(item.id)}</p><p class="note-rule">${h(t.quote(en?.rule || item.rule))}</p><p>${h(en?.evidence || item.evidence)}</p><p>${h(en?.reason || item.reason)}</p></aside>`;
         })
         .join("");
       const judge = tl.judgeChanges
@@ -308,19 +308,21 @@ const timelinePage = () => {
   const sum = totals(shown);
   const hasBaseline = shown.length > 1 && shown.every((month) => month.baseline);
   const totalsBlock = hasBaseline
-    ? `<section class="totals"><h2 class="section-title">${h(t.totalsTitle(shown.length))}</h2><div class="totals-grid">${METRICS.map(
+    ? `<section class="head-totals" aria-label="${h(t.totalsTitle(shown.length))}"><p class="eyebrow">${h(t.totalsTitle(shown.length))} · ${h(t.totalsLegend(snap.baseline.version))}</p><div class="totals-grid">${METRICS.map(
         ([key, verdict, label]) =>
-          `<div class="total"><span class="metric-label">${verdictBadge(verdict, { withText: false })}${h(label())}</span><span class="total-pair"><b>${sum.inForce[key]}</b><span class="total-vs">${h(t.totalsCurrent)}</span></span><span class="total-pair is-baseline"><b>${sum.baseline[key]}</b><span class="total-vs">${h(t.seriesBaseline(snap.baseline.version, snap.baseline.hour))}</span></span></div>`,
+          `<div class="total"><span class="metric-label">${verdictBadge(verdict, { withText: false })}${h(label())}</span><span class="total-values"><span class="total-pair"><b>${sum.inForce[key]}</b></span><span class="total-pair is-baseline"><span class="total-vs">/</span><b>${sum.baseline[key]}</b></span></span></div>`,
       ).join("")}</div></section>`
     : "";
   return `<div class="page page-timeline">
-    <header class="page-head">
-      <p class="eyebrow">${h(t.timelineEyebrow)}</p>
-      <h1 class="headline">${h(t.timelineHeadline(first, tl.current))}</h1>
-      <p class="lede">${h(t.timelineLede)}</p>
+    <header class="page-head ${totalsBlock ? "has-aside" : ""}">
+      <div>
+        <p class="eyebrow">${h(t.timelineEyebrow)}</p>
+        <h1 class="headline">${h(t.timelineHeadline(first, tl.current))}</h1>
+        <p class="lede">${h(t.timelineLede)}</p>
+      </div>
+      ${totalsBlock}
     </header>
     <div class="timeline">${cards}</div>
-    ${totalsBlock}
   </div>`;
 };
 
@@ -353,7 +355,7 @@ const sidebar = (route) => {
   const monthLinks = index()
     .map(
       (item) =>
-        `<a class="nav-sub ${route.page === "calendar" && item.month === focusMonth ? "is-active" : ""}" href="${calendarHref(item.month)}"><span>${h(t.monthName(item.month))}</span><small>${h(versionsLabel(state.cache.get(item.month)))}</small><span class="nav-count" title="${h(t.metricWet)}">${item.wet}</span></a>`,
+        `<a class="nav-sub ${route.page === "calendar" && item.month === focusMonth ? "is-active" : ""}" href="${calendarHref(item.month)}"><span>${h(t.monthName(item.month))}</span><small>${h(versionsLabel(state.cache.get(item.month) || item))}</small><span class="nav-count" title="${h(t.metricWet)}">${item.wet}</span></a>`,
     )
     .join("");
   return `<aside class="sidebar" id="sidebar">

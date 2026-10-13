@@ -288,11 +288,11 @@ a {
 /* ── page header ── */
 
 .page {
-  padding: var(--space-5) var(--space-6) var(--space-6);
+  padding: var(--space-4) var(--space-6) var(--space-6);
 }
 .page-head {
-  padding-bottom: var(--space-4);
-  margin-bottom: var(--space-4);
+  padding-bottom: var(--space-3);
+  margin-bottom: var(--space-3);
   border-bottom: var(--rule-heavy) solid var(--rule-strong);
 }
 .eyebrow {
@@ -334,9 +334,9 @@ a {
 
 .month-tabs {
   display: flex;
+  flex-wrap: wrap;
   gap: var(--space-2);
-  margin-bottom: var(--space-4);
-  overflow-x: auto;
+  margin-bottom: var(--space-3);
 }
 .month-tab {
   display: flex;
@@ -395,7 +395,7 @@ a {
   display: grid;
   grid-template-rows: auto 1fr auto;
   gap: 2px;
-  min-height: 92px;
+  min-height: 80px;
   padding: var(--space-2);
   border-radius: var(--radius-sm);
   border-top: var(--rule-heavy) solid var(--v);
@@ -565,6 +565,7 @@ a.day-cell:hover {
   color: var(--ink-soft);
   font-size: var(--text-sm);
   font-weight: 600;
+  white-space: nowrap;
 }
 .bar-label .icon {
   width: 16px;
@@ -609,7 +610,7 @@ a.day-cell:hover {
   font-variant-numeric: tabular-nums;
 }
 .compare.is-compact .bar-group {
-  grid-template-columns: 64px minmax(0, 1fr);
+  grid-template-columns: 80px minmax(0, 1fr);
 }
 .compare.is-compact .bars {
   gap: var(--space-2);
@@ -692,7 +693,7 @@ a.day-cell:hover {
 .version-card {
   min-width: 0;
   display: grid;
-  gap: var(--space-3);
+  gap: var(--space-2);
   padding: var(--space-4);
   border: var(--hairline) solid var(--line);
   border-top: var(--rule-heavy) solid var(--ink);
@@ -804,15 +805,20 @@ a.day-cell:hover {
   color: var(--ink);
 }
 
-.totals {
-  margin-top: var(--space-5);
-  padding-top: var(--space-3);
-  border-top: var(--rule-weight) solid var(--rule);
+.page-head.has-aside {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: var(--space-5);
+}
+.head-totals {
+  display: grid;
+  gap: var(--space-2);
+  max-width: 460px;
 }
 .totals-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  margin-top: var(--space-3);
 }
 .total {
   display: grid;
@@ -822,10 +828,15 @@ a.day-cell:hover {
 .total + .total {
   border-inline-start: var(--hairline) solid var(--line);
 }
+.total-values {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-1);
+}
 .total-pair {
   display: flex;
   align-items: baseline;
-  gap: var(--space-2);
+  gap: var(--space-1);
 }
 .total-pair b {
   font-family: var(--font-display);
@@ -835,10 +846,11 @@ a.day-cell:hover {
 }
 .total-pair.is-baseline b {
   color: var(--muted);
+  font-size: var(--text-xl);
 }
 .total-vs {
   color: var(--muted);
-  font-size: var(--text-sm);
+  font-size: var(--text-lg);
 }
 
 /* ── help & settings ── */
@@ -917,7 +929,8 @@ body.modal-open {
 /* ── narrower desktop ── */
 
 @media (max-width: 1240px) {
-  .calendar-layout {
+  .calendar-layout,
+  .page-head.has-aside {
     grid-template-columns: minmax(0, 1fr);
   }
   .timeline {
@@ -1006,19 +1019,19 @@ body.modal-open {
   }
   .bar-group,
   .compare.is-compact .bar-group {
-    grid-template-columns: 76px minmax(0, 1fr);
+    grid-template-columns: 96px minmax(0, 1fr);
   }
-  .timeline,
-  .totals-grid {
+  .month-tab {
+    padding: var(--space-1) var(--space-3);
+  }
+  .timeline {
     grid-template-columns: minmax(0, 1fr);
   }
-  .total + .total {
-    border-inline-start: 0;
-    border-top: var(--hairline) solid var(--line);
-    padding-top: var(--space-2);
+  .page-head.has-aside {
+    grid-template-columns: minmax(0, 1fr);
   }
   .total {
-    padding: var(--space-2) 0;
+    padding: 0 var(--space-2);
   }
   .modal {
     inset: 0;

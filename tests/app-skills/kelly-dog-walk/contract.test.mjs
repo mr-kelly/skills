@@ -175,7 +175,10 @@ test("the AirApp only reads: no write procedures, no approve button, no change-r
     }
   }
   const source = sources.join("\n");
-  assert.doesNotMatch(source, /createChangeRequest|createBulkChangeRequest|changeRequests\.(merge|review)|updateMetadata/);
+  assert.doesNotMatch(
+    source,
+    /createChangeRequest|createBulkChangeRequest|changeRequests\.(merge|review)|updateMetadata/,
+  );
   assert.doesNotMatch(source, /BUSABASE_API_KEY|Authorization:\s*[`'"]Bearer/i);
   assert.doesNotMatch(source, /node:fs|child_process/);
   assert.doesNotMatch(await read(join(browserRoot, "js", "walk-model.js")), /fetch\(|XMLHttpRequest/);

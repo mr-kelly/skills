@@ -2268,7 +2268,7 @@
       "from": "v1",
       "to": "v2",
       "text": "主人亲手把裁判规则改成 v2：加上护栏（太热 0 次、不方便 0 次）和证据门槛（换一个月也要赢）。Agent 对裁判规则只读，只能建议。",
-      "en": "The owner changed the judge to v2 by hand: guardrails (0 hot walks, 0 off-hours walks) and an evidence bar (a new rule must also win in another month). The agent can only suggest; the judge is read-only to it."
+      "en": "The owner changed the judge to v2 by hand: guardrails (0 hot, 0 off-hours walks) and an evidence bar (a new rule must also win another month). The agent can only suggest."
     }
   ],
   "en": {
@@ -2293,7 +2293,7 @@
     "retired": {
       "v3": {
         "rule": "P5 “open the window to the whole day, pick the driest hour” (v3, retired 2026-09)",
-        "reason": "Won on the main metric, lost on the guardrails: only 2 wet walks in August, but 14 in working hours and 5 at a scorching noon. Retired rules stay listed so nobody proposes them again."
+        "reason": "Won on the main metric, lost on the guardrails: 2 wet walks in August, but 14 in working hours and 5 at a scorching noon. Retired rules stay listed."
       }
     }
   }

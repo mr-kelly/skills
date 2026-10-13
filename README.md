@@ -236,6 +236,7 @@ The `kelly-*` skills are the everyday business tools. Helper skills such as `age
 | `kelly-app-skill-creator` | Builds Busabase-backed App-in-Skill packages around Research, Plan, Action, and Retrospective. Each bundles a complete canonical `app/`, uses `busabase-sdk` for persistent config/state/data, deploys the same source to AirApp by default, starts `pnpm dev` only on explicit request, owns the responsive Kelly operator UI, delegates runtime rules to `$busabase-app-creator`, and delegates conformance acceptance to `$kelly-app-skill-creator-tests`. The previous names `kelly-app-creator` and `app-in-skill-creator` remain compatibility aliases. | Use it when building a Busabase research desk, review queue, planner, action console, operating dashboard, control panel, or collaboration workspace. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-app-skill-creator.html) |
 | `kelly-app-skill-creator-tests` | Builds and runs reusable conformance tests for canonical Kelly app skills, including local server and responsive browser checks, temporary open-source Busabase provisioning and persistence, environment-gated Cloud OAuth, and AirApp parity. OSS and Cloud are always reported separately. | Use it when adding tests to a skill created by `kelly-app-skill-creator`, validating a migrated app skill, wiring app-skill CI, or diagnosing SDK, OAuth, provisioning, persistence, or AirApp regressions. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-app-skill-creator-tests.html) |
 | `kelly-devops` | Watches the product fleet: service uptime and latency, SSL certificate and domain expiry, API key rotation, and cloud spend anomalies, with agent-proposed action cards for approval. | Use it when checking service health, catching expiring domains and certificates, reviewing cloud spend spikes, or approving renewal and rotation actions. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-devops.html) |
+| `kelly-dog-walk` | 遛狗不淋雨 — a self-evolving agent with a trustworthy judge: the agent picks each day's dog-walk hour from a playbook, real Open-Meteo weather judges it, and playbook changes are only proposed as Busabase ChangeRequests a human merges. Ships replay, monthly-review and proposal scripts plus a read-only calendar AirApp. | Use it to run the 风变 lesson on self-evolving agents, replay any city and month against real weather, review a month's evidence, or propose and roll back playbook rules behind a human gate. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-dog-walk.html) |
 | `kelly-ideas` | Idea vault with a business consultant attached: sharpens vague ideas through required questions, then carries them through BRD, MRD, and PRD. | Use it when shaping a product or business concept into a specification precise enough to build. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-ideas.html) |
 | `kelly-llm-gateway` | Dashboard for a shared LLM gateway's cost and model governance: spend trend, cost breakdown by service/model, canary-rollout status, and deterministic cost/error anomaly detection. | Use it when reviewing LLM gateway spend, canary rollouts, or acknowledging a cost/error anomaly. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-llm-gateway.html) |
 | `kelly-local-model-lab` | Busabase-backed control plane for curating training examples, running local Apple Silicon LoRA/QLoRA fine-tunes with MLX-LM, comparing locked baseline and adapter evaluations, and registering approved adapters. | Use it when training, evaluating, promoting, or managing a local language-model adapter with Busabase as the workflow source of truth. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-local-model-lab.html) |
@@ -1842,6 +1843,19 @@ Idea strategy desk that turns a vague thought into a traceable BRD, MRD, and PRD
   <tr>
     <td><strong>Qualified</strong><br>Candidates a human has marked qualified, ready for a real-world WeChat add that happens outside the app.</td>
     <td><strong>Connected</strong><br>Candidates with a recorded real-world WeChat add — the trackable connection record the first-stage workflow asked for.</td>
+  </tr>
+</table>
+
+### `kelly-dog-walk`
+
+<table>
+  <tr>
+    <td width="50%"><img src="skills/kelly-dog-walk/assets/screenshots/calendar.webp" alt="Kelly Dog Walk calendar"></td>
+    <td width="50%"><img src="skills/kelly-dog-walk/assets/screenshots/timeline.webp" alt="Kelly Dog Walk playbook timeline"></td>
+  </tr>
+  <tr>
+    <td><strong>Calendar</strong><br>Each day's walk hour and the weather's verdict, the month's counts, and a control chart against staying on playbook v1.</td>
+    <td><strong>Playbook timeline</strong><br>v1 → v4 from the playbook's own history: what changed, why, the bad rule that won on rain alone, and its retirement.</td>
   </tr>
 </table>
 

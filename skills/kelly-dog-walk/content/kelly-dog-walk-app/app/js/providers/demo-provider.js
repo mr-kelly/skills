@@ -26,7 +26,12 @@ export async function createDemoProvider() {
         card: parseRuleCard(data.playbookMarkdown),
         playbookMarkdown: data.playbookMarkdown,
         baseline: { version: data.baselineVersion, hour: data.baselineHour },
-        index: months.map((month) => ({ month: month.month, days: month.summary.days, wet: month.summary.wet })),
+        index: months.map((month) => ({
+          month: month.month,
+          days: month.summary.days,
+          wet: month.summary.wet,
+          versions: month.versions,
+        })),
         closed: data.closed,
         judgeChanges: data.judgeChanges,
         translations: data.en,
