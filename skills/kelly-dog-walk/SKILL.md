@@ -241,7 +241,7 @@ Busabase 没有一键回滚。回滚是**一个新的变更请求**：
 - 第 3 轮（8 月）：v3 淋雨 2，但不方便 14、太热 5 → 回滚变更请求，P5 退休（主指标赢、护栏输），再加「≥ 32°C 不遛」→ v4；主人自己把裁判规则改成 v2。
 - 第 4 轮（9 月）：v4 淋雨 3、太热 0、不方便 0。
 
-每一轮的手册全文在 `references/playbooks/`，裁判规则 v2 在 `references/judge-rules-v2.md`，故事里不能从手册推出来的部分（P2、裁判规则的改动）在 `references/story-2026-shanghai.json`。
+每一轮的手册全文在 `references/playbooks/v1.md` 到 `references/playbooks/v4.md`，裁判规则 v2 在 `references/judge-rules-v2.md`，故事里不能从手册推出来的部分（P2、裁判规则的改动）在 `references/story-2026-shanghai.json`。
 
 ## 遛狗日历（AirApp）
 
