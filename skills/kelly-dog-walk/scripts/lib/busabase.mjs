@@ -14,7 +14,8 @@ import { decisionFields } from "../../content/kelly-dog-walk-app/app/js/view-mod
 
 export const APP_ID = appConfig.appId;
 
-export const connect = () => {
+/** @param {{ playbook?: string }} [options] `playbook`: `kind:nodeId`, sent as `x-busabase-playbook`. */
+export const connect = (options = {}) => {
   const baseUrl = process.env.BUSABASE_BASE_URL;
   if (!baseUrl) {
     throw new Error(
@@ -25,8 +26,17 @@ export const connect = () => {
     baseUrl,
     ...(process.env.BUSABASE_API_KEY ? { apiKey: process.env.BUSABASE_API_KEY } : {}),
     ...(process.env.BUSABASE_SPACE_ID ? { spaceId: process.env.BUSABASE_SPACE_ID } : {}),
+    ...(options.playbook ? { playbook: options.playbook } : {}),
   });
 };
+
+/**
+ * A client whose writes say they followed the 遛狗手册. Busabase records the playbook on every
+ * ChangeRequest the write creates (shown as 通过做事手册「遛狗手册」 in review) and counts it on
+ * the space's 做事手册 page. Only for decisions made from the Busabase playbook itself — a replay
+ * of a course version or a local file followed no playbook in this Space.
+ */
+export const playbookClient = (playbookNodeId) => connect({ playbook: `skill:${playbookNodeId}` });
 
 const owned = (node, key) => node?.metadata?.appId === APP_ID && node?.metadata?.resourceKey === key;
 

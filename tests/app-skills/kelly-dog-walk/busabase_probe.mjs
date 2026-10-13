@@ -25,6 +25,19 @@ if (action === "merge") {
   const weatherCount = await client.records.count({ baseId: ws.bases.weather.baseId });
   const pending = await client.changeRequests.list({ affectsNodeId: ws.playbook.id, status: ["in_review"], limit: 20 });
   const items = pending.changeRequests || pending.items || [];
+  // Which playbook the merged 每天的决定 record writes cited (x-busabase-playbook), as Busabase labels it.
+  const written = await client.changeRequests.list({
+    affectsNodeId: ws.bases.decisions.nodeId,
+    status: ["merged"],
+    limit: 50,
+  });
+  const decisionPlaybooks = [
+    ...new Set(
+      (written.changeRequests || written.items || [])
+        .filter((item) => String(item.primaryOperation?.operation || "").startsWith("record_"))
+        .map((item) => item.sourceAttribution?.playbook?.label ?? null),
+    ),
+  ];
   console.log(
     JSON.stringify({
       folder: { id: ws.folder.id, name: ws.folder.name },
@@ -36,6 +49,7 @@ if (action === "merge") {
       weatherCount: weatherCount.total,
       views: views.map((view) => ({ slug: view.slug, type: view.type, config: view.config })),
       pending: items.filter((item) => item.status === "in_review").map((item) => item.id),
+      decisionPlaybooks,
     }),
   );
 } else {

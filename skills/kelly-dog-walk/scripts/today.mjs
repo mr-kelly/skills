@@ -9,6 +9,7 @@
 // --date 2026-10-13   换一天当「今天」（只影响要决定的那天；昨天 = 它的前一天）
 // 昨天的实际天气来自 Open-Meteo archive。还没出来就写「待判」，下次再判；
 // 最近几天的 archive 数值以后可能被再分析数据修正，月底复盘用 replay.mjs 整月重判一次。
+import { decisionSummary } from "../content/kelly-dog-walk-app/app/js/view-model.js";
 import {
   VERDICT,
   decideHour,
@@ -127,7 +128,9 @@ run(async () => {
   }
 
   if (args.write) {
-    const { client, ws, upsertWeather, upsertDecisions, updateDecision } = await busabase();
+    const { client, ws, upsertWeather, upsertDecisions, updateDecision, playbookClient } = await busabase();
+    // Decided from the 遛狗手册 in Busabase → the write cites it (通过做事手册「遛狗手册」).
+    const writer = playbook.nodeId ? playbookClient(playbook.nodeId) : client;
     /** @type {Array<Record<string, any>>} */
     const weatherRows = HOURS.map((hour, i) => ({
       city: place.name,
@@ -149,7 +152,7 @@ run(async () => {
     }
     const weather = await upsertWeather(client, ws, weatherRows, `每日抓取天气：${place.name} ${today}`);
     const decisions = await upsertDecisions(
-      client,
+      writer,
       ws,
       [todayRow],
       `今天几点遛：${place.name} ${today}，遛狗手册 ${card.version}`,
@@ -163,6 +166,7 @@ run(async () => {
         ws,
         yesterdayResult.recordId,
         {
+          summary: decisionSummary(yesterdayResult.hour, yesterdayResult.verdict),
           "actual-precip-mm": yesterdayResult.actual.rain,
           "actual-temp": yesterdayResult.actual.temp,
           verdict: yesterdayResult.verdict,

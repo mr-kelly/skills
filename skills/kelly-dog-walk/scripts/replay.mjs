@@ -182,10 +182,12 @@ run(async () => {
   }
 
   if (args.write) {
-    const { client, ws, upsertDecisions } = await busabase();
+    const { client, ws, upsertDecisions, playbookClient } = await busabase();
+    // Decided from the 遛狗手册 in Busabase → the write cites it (通过做事手册「遛狗手册」).
+    const writer = playbook.nodeId ? playbookClient(playbook.nodeId) : client;
     for (const result of current) {
       const written = await upsertDecisions(
-        client,
+        writer,
         ws,
         result.rows,
         `回放 ${place.name} ${result.month}：遛狗手册 ${card.version}，裁判规则 ${judge.version}`,

@@ -219,11 +219,15 @@ def test_busabase_round_trip(browser) -> None:
             assert len(rows) == 30
             assert sum(1 for row in rows if row["verdict"] == "淋雨") == 7
             assert {row["playbook-version"] for row in rows} == {"v1"}
+            # 摘要 is the record title, so the calendar and kanban cards say the hour and the verdict.
+            assert all(row["summary"] == f'{int(row["walk-hour"])} 点 · {row["verdict"]}' for row in rows), rows[0]
+            # Decided from the Busabase 遛狗手册, so the write cites it: 通过做事手册「遛狗手册」.
+            assert state(env)["decisionPlaybooks"] == ["遛狗手册"], state(env)["decisionPlaybooks"]
 
             # Round 1: propose v2. The ChangeRequest is pending; the playbook is still v1.
             out = propose(env, "v2", "2026-06,2026-05")
             v2_request = change_request_id(out)
-            assert "| 2026-06 | v2（提议） | 3/30 |" in out and "2 个月都通过" in out, out
+            assert "- 2026-06：现在 v1 淋雨 7/30、太热 0、不方便 0；提议 v2 淋雨 3/30" in out and "2 个月都通过" in out, out
             after = state(env)
             assert after["playbookVersion"] == "v1", "a proposal must not change the playbook"
             assert v2_request in after["pending"]

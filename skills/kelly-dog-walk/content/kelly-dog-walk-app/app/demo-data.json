@@ -48,6 +48,7 @@
   "playbookMarkdown": "---\nname: walk-playbook\ndescription: 遛狗手册（做事手册）：Agent 每天定遛狗钟点之前先读这本手册，按「规则卡」选钟点。手册只能通过变更请求修改，主人合并才算数。\n---\n\n# 遛狗手册\n\n当前版本：v4\n\nAgent 每天早上先读这本手册，再看今天的逐时预报，按下面的规则定一个钟点。\n这本手册只能由主人合并变更请求来改。Agent 想改，只能提变更请求，并附上回放证据。\n\n## 生效规则\n\n1. 每天傍晚 6 点遛。\n2. 只在方便时段遛：早上 7 点、8 点，傍晚 5 点到晚上 9 点。\n3. 一天只遛一次。\n4. 傍晚 6 点的预报降水概率 ≥ 50% 时，换到方便时段里预报降水概率最低的钟点；一样低，就挑离 6 点最近的。\n5. 预报气温 ≥ 32°C 的钟点不遛。方便时段里全都 ≥ 32°C 时，照第 4 条挑。\n\n## 规则卡\n\n给脚本读的小块，和上面的人话规则说的是同一件事。改规则时两边一起改。\n\n```规则卡\n版本: v4\n方便时段: 7, 8, 17, 18, 19, 20, 21\n默认钟点: 18\n换钟点条件: 默认钟点预报降水概率 ≥ 50%\n不遛条件: 预报气温 ≥ 32°C\n```\n\n规则卡怎么读：\n\n- 方便时段：可以遛的钟点，24 小时制。也可以写成「17-21」。\n- 默认钟点：没有理由换的时候，就遛这个钟点。\n- 换钟点条件：「无」是从来不换；「默认钟点预报降水概率 ≥ 50%」是默认钟点的降水概率到了这个数就换；「总是」是每天都挑最干的钟点。\n- 换的时候：在方便时段里挑预报降水概率最低的钟点；一样低，就挑离默认钟点最近的。\n- 不遛条件：「无」，或者「预报气温 ≥ 32°C」——这样的钟点不遛。方便时段全都这么热时，照常按降水概率挑。\n\n## 不要做\n\n- 不要自己改这本手册。想改就提变更请求，附上回放证据，等主人合并。\n- 不要改裁判规则。裁判规则对 Agent 是只读的，有意见只能写建议给主人。\n- 不要拿网页上看到的说法当证据。证据只认裁判数据：天气数据表里的预报和实际天气，以及按裁判规则算出来的结果。\n- 不要为了让数字好看而少遛。一天一定遛一次。\n\n## 版本记录\n\n- v1 · 2026-06 起 · 起步：每天傍晚 6 点遛，只在方便时段遛，一天一次。\n- v2 · 2026-07 起 · 加：傍晚 6 点预报降水概率 ≥ 50% 就换钟点。为什么：6 月淋雨 7 次，那 7 天傍晚 6 点的预报降水概率是 100、79、100、97、91、87、100，全都 ≥ 79%；同一个 6 月用新规则回放，淋雨 7 → 3；换到 5 月回放，淋雨 3 → 1。\n- v3 · 2026-08 起 · 改：方便时段放开到全天 6–22 点，每天挑最干的钟点。为什么：同一个 7 月回放，淋雨 5 → 0；换到 6 月回放，淋雨 3 → 2。\n- v4 · 2026-09 起 · 回滚 v3，回到 v2 的规则，再加：预报气温 ≥ 32°C 的钟点不遛。为什么：8 月用 v3 只淋了 2 次，但 14 天遛在上班时间、5 天在正午烫脚；同一个 8 月回放 v4，淋雨 2、太热 0、不方便 0；换到 7 月和 v3 对照，太热 14 → 2、不方便 16 → 0，淋雨 0 → 3。\n\n## 已退休\n\n- P5「方便时段放开到全天，每天挑最干的钟点」（v3，2026-09 退休）。原因：主指标赢、护栏输。8 月淋雨只有 2 次，但 14 天遛在主人上班的时候，5 天在正午烫脚。退休的规则留在这里，免得以后又被提出来。\n",
   "decisions": [
     {
+      "summary": "18 点 · 没淋",
       "date": "2026-06-01",
       "city": "上海",
       "walk-hour": 18,
@@ -62,6 +63,7 @@
       "rule": "default"
     },
     {
+      "summary": "18 点 · 没淋",
       "date": "2026-06-02",
       "city": "上海",
       "walk-hour": 18,
@@ -76,6 +78,7 @@
       "rule": "default"
     },
     {
+      "summary": "18 点 · 淋雨",
       "date": "2026-06-03",
       "city": "上海",
       "walk-hour": 18,
@@ -90,6 +93,7 @@
       "rule": "default"
     },
     {
+      "summary": "18 点 · 没淋",
       "date": "2026-06-04",
       "city": "上海",
       "walk-hour": 18,
@@ -104,6 +108,7 @@
       "rule": "default"
     },
     {
+      "summary": "18 点 · 没淋",
       "date": "2026-06-05",
       "city": "上海",
       "walk-hour": 18,
@@ -118,6 +123,7 @@
       "rule": "default"
     },
     {
+      "summary": "18 点 · 没淋",
       "date": "2026-06-06",
       "city": "上海",
       "walk-hour": 18,
@@ -132,6 +138,7 @@
       "rule": "default"
     },
     {
+      "summary": "18 点 · 没淋",
       "date": "2026-06-07",
       "city": "上海",
       "walk-hour": 18,
@@ -146,6 +153,7 @@
       "rule": "default"
     },
     {
+      "summary": "18 点 · 没淋",
       "date": "2026-06-08",
       "city": "上海",
       "walk-hour": 18,
@@ -160,6 +168,7 @@
       "rule": "default"
     },
     {
+      "summary": "18 点 · 没淋",
       "date": "2026-06-09",
       "city": "上海",
       "walk-hour": 18,
@@ -174,6 +183,7 @@
       "rule": "default"
     },
     {
+      "summary": "18 点 · 没淋",
       "date": "2026-06-10",
       "city": "上海",
       "walk-hour": 18,
@@ -188,6 +198,7 @@
       "rule": "default"
     },
     {
+      "summary": "18 点 · 没淋",
       "date": "2026-06-11",
       "city": "上海",
       "walk-hour": 18,
@@ -202,6 +213,7 @@
       "rule": "default"
     },
     {
+      "summary": "18 点 · 没淋",
       "date": "2026-06-12",
       "city": "上海",
       "walk-hour": 18,
@@ -216,6 +228,7 @@
       "rule": "default"
     },
     {
+      "summary": "18 点 · 没淋",
       "date": "2026-06-13",
       "city": "上海",
       "walk-hour": 18,
@@ -230,6 +243,7 @@
       "rule": "default"
     },
     {
+      "summary": "18 点 · 淋雨",
       "date": "2026-06-14",
       "city": "上海",
       "walk-hour": 18,
@@ -244,6 +258,7 @@
       "rule": "default"
     },
     {
+      "summary": "18 点 · 没淋",
       "date": "2026-06-15",
       "city": "上海",
       "walk-hour": 18,
@@ -258,6 +273,7 @@
       "rule": "default"
     },
     {
+      "summary": "18 点 · 没淋",
       "date": "2026-06-16",
       "city": "上海",
       "walk-hour": 18,
@@ -272,6 +288,7 @@
       "rule": "default"
     },
     {
+      "summary": "18 点 · 没淋",
       "date": "2026-06-17",
       "city": "上海",
       "walk-hour": 18,
@@ -286,6 +303,7 @@
       "rule": "default"
     },
     {
+      "summary": "18 点 · 没淋",
       "date": "2026-06-18",
       "city": "上海",
       "walk-hour": 18,
@@ -300,6 +318,7 @@
       "rule": "default"
     },
     {
+      "summary": "18 点 · 淋雨",
       "date": "2026-06-19",
       "city": "上海",
       "walk-hour": 18,
@@ -314,6 +333,7 @@
       "rule": "default"
     },
     {
+      "summary": "18 点 · 没淋",
       "date": "2026-06-20",
       "city": "上海",
       "walk-hour": 18,
@@ -328,6 +348,7 @@
       "rule": "default"
     },
     {
+      "summary": "18 点 · 淋雨",
       "date": "2026-06-21",
       "city": "上海",
       "walk-hour": 18,
@@ -342,6 +363,7 @@
       "rule": "default"
     },
     {
+      "summary": "18 点 · 淋雨",
       "date": "2026-06-22",
       "city": "上海",
       "walk-hour": 18,
@@ -356,6 +378,7 @@
       "rule": "default"
     },
     {
+      "summary": "18 点 · 淋雨",
       "date": "2026-06-23",
       "city": "上海",
       "walk-hour": 18,
@@ -370,6 +393,7 @@
       "rule": "default"
     },
     {
+      "summary": "18 点 · 没淋",
       "date": "2026-06-24",
       "city": "上海",
       "walk-hour": 18,
@@ -384,6 +408,7 @@
       "rule": "default"
     },
     {
+      "summary": "18 点 · 没淋",
       "date": "2026-06-25",
       "city": "上海",
       "walk-hour": 18,
@@ -398,6 +423,7 @@
       "rule": "default"
     },
     {
+      "summary": "18 点 · 没淋",
       "date": "2026-06-26",
       "city": "上海",
       "walk-hour": 18,
@@ -412,6 +438,7 @@
       "rule": "default"
     },
     {
+      "summary": "18 点 · 没淋",
       "date": "2026-06-27",
       "city": "上海",
       "walk-hour": 18,
@@ -426,6 +453,7 @@
       "rule": "default"
     },
     {
+      "summary": "18 点 · 没淋",
       "date": "2026-06-28",
       "city": "上海",
       "walk-hour": 18,
@@ -440,6 +468,7 @@
       "rule": "default"
     },
     {
+      "summary": "18 点 · 没淋",
       "date": "2026-06-29",
       "city": "上海",
       "walk-hour": 18,
@@ -454,6 +483,7 @@
       "rule": "default"
     },
     {
+      "summary": "18 点 · 淋雨",
       "date": "2026-06-30",
       "city": "上海",
       "walk-hour": 18,
@@ -468,6 +498,7 @@
       "rule": "default"
     },
     {
+      "summary": "18 点 · 没淋",
       "date": "2026-07-01",
       "city": "上海",
       "walk-hour": 18,
@@ -482,6 +513,7 @@
       "rule": "default"
     },
     {
+      "summary": "8 点 · 没淋",
       "date": "2026-07-02",
       "city": "上海",
       "walk-hour": 8,
@@ -496,6 +528,7 @@
       "rule": "switched-rain"
     },
     {
+      "summary": "8 点 · 没淋",
       "date": "2026-07-03",
       "city": "上海",
       "walk-hour": 8,
@@ -510,6 +543,7 @@
       "rule": "switched-rain"
     },
     {
+      "summary": "7 点 · 没淋",
       "date": "2026-07-04",
       "city": "上海",
       "walk-hour": 7,
@@ -524,6 +558,7 @@
       "rule": "switched-rain"
     },
     {
+      "summary": "21 点 · 没淋",
       "date": "2026-07-05",
       "city": "上海",
       "walk-hour": 21,
@@ -538,6 +573,7 @@
       "rule": "switched-rain"
     },
     {
+      "summary": "18 点 · 太热",
       "date": "2026-07-06",
       "city": "上海",
       "walk-hour": 18,
@@ -552,6 +588,7 @@
       "rule": "default"
     },
     {
+      "summary": "18 点 · 没淋",
       "date": "2026-07-07",
       "city": "上海",
       "walk-hour": 18,
@@ -566,6 +603,7 @@
       "rule": "default"
     },
     {
+      "summary": "18 点 · 没淋",
       "date": "2026-07-08",
       "city": "上海",
       "walk-hour": 18,
@@ -580,6 +618,7 @@
       "rule": "default"
     },
     {
+      "summary": "21 点 · 没淋",
       "date": "2026-07-09",
       "city": "上海",
       "walk-hour": 21,
@@ -594,6 +633,7 @@
       "rule": "switched-rain"
     },
     {
+      "summary": "18 点 · 没淋",
       "date": "2026-07-10",
       "city": "上海",
       "walk-hour": 18,
@@ -608,6 +648,7 @@
       "rule": "default"
     },
     {
+      "summary": "8 点 · 没淋",
       "date": "2026-07-11",
       "city": "上海",
       "walk-hour": 8,
@@ -622,6 +663,7 @@
       "rule": "switched-rain"
     },
     {
+      "summary": "21 点 · 没淋",
       "date": "2026-07-12",
       "city": "上海",
       "walk-hour": 21,
@@ -636,6 +678,7 @@
       "rule": "switched-rain"
     },
     {
+      "summary": "8 点 · 没淋",
       "date": "2026-07-13",
       "city": "上海",
       "walk-hour": 8,
@@ -650,6 +693,7 @@
       "rule": "switched-rain"
     },
     {
+      "summary": "18 点 · 太热",
       "date": "2026-07-14",
       "city": "上海",
       "walk-hour": 18,
@@ -664,6 +708,7 @@
       "rule": "default"
     },
     {
+      "summary": "18 点 · 淋雨",
       "date": "2026-07-15",
       "city": "上海",
       "walk-hour": 18,
@@ -678,6 +723,7 @@
       "rule": "default"
     },
     {
+      "summary": "18 点 · 淋雨",
       "date": "2026-07-16",
       "city": "上海",
       "walk-hour": 18,
@@ -692,6 +738,7 @@
       "rule": "default"
     },
     {
+      "summary": "18 点 · 淋雨",
       "date": "2026-07-17",
       "city": "上海",
       "walk-hour": 18,
@@ -706,6 +753,7 @@
       "rule": "default"
     },
     {
+      "summary": "7 点 · 太热",
       "date": "2026-07-18",
       "city": "上海",
       "walk-hour": 7,
@@ -720,6 +768,7 @@
       "rule": "switched-rain"
     },
     {
+      "summary": "7 点 · 没淋",
       "date": "2026-07-19",
       "city": "上海",
       "walk-hour": 7,
@@ -734,6 +783,7 @@
       "rule": "switched-rain"
     },
     {
+      "summary": "7 点 · 没淋",
       "date": "2026-07-20",
       "city": "上海",
       "walk-hour": 7,
@@ -748,6 +798,7 @@
       "rule": "switched-rain"
     },
     {
+      "summary": "7 点 · 淋雨",
       "date": "2026-07-21",
       "city": "上海",
       "walk-hour": 7,
@@ -762,6 +813,7 @@
       "rule": "switched-rain"
     },
     {
+      "summary": "8 点 · 没淋",
       "date": "2026-07-22",
       "city": "上海",
       "walk-hour": 8,
@@ -776,6 +828,7 @@
       "rule": "switched-rain"
     },
     {
+      "summary": "18 点 · 太热",
       "date": "2026-07-23",
       "city": "上海",
       "walk-hour": 18,
@@ -790,6 +843,7 @@
       "rule": "default"
     },
     {
+      "summary": "18 点 · 太热",
       "date": "2026-07-24",
       "city": "上海",
       "walk-hour": 18,
@@ -804,6 +858,7 @@
       "rule": "default"
     },
     {
+      "summary": "18 点 · 太热",
       "date": "2026-07-25",
       "city": "上海",
       "walk-hour": 18,
@@ -818,6 +873,7 @@
       "rule": "default"
     },
     {
+      "summary": "18 点 · 太热",
       "date": "2026-07-26",
       "city": "上海",
       "walk-hour": 18,
@@ -832,6 +888,7 @@
       "rule": "default"
     },
     {
+      "summary": "18 点 · 太热",
       "date": "2026-07-27",
       "city": "上海",
       "walk-hour": 18,
@@ -846,6 +903,7 @@
       "rule": "default"
     },
     {
+      "summary": "18 点 · 太热",
       "date": "2026-07-28",
       "city": "上海",
       "walk-hour": 18,
@@ -860,6 +918,7 @@
       "rule": "default"
     },
     {
+      "summary": "18 点 · 淋雨",
       "date": "2026-07-29",
       "city": "上海",
       "walk-hour": 18,
@@ -874,6 +933,7 @@
       "rule": "default"
     },
     {
+      "summary": "8 点 · 太热",
       "date": "2026-07-30",
       "city": "上海",
       "walk-hour": 8,
@@ -888,6 +948,7 @@
       "rule": "switched-rain"
     },
     {
+      "summary": "8 点 · 太热",
       "date": "2026-07-31",
       "city": "上海",
       "walk-hour": 8,
@@ -902,6 +963,7 @@
       "rule": "switched-rain"
     },
     {
+      "summary": "10 点 · 太热",
       "date": "2026-08-01",
       "city": "上海",
       "walk-hour": 10,
@@ -916,6 +978,7 @@
       "rule": "driest"
     },
     {
+      "summary": "11 点 · 太热",
       "date": "2026-08-02",
       "city": "上海",
       "walk-hour": 11,
@@ -930,6 +993,7 @@
       "rule": "driest"
     },
     {
+      "summary": "18 点 · 太热",
       "date": "2026-08-03",
       "city": "上海",
       "walk-hour": 18,
@@ -944,6 +1008,7 @@
       "rule": "driest"
     },
     {
+      "summary": "10 点 · 太热",
       "date": "2026-08-04",
       "city": "上海",
       "walk-hour": 10,
@@ -958,6 +1023,7 @@
       "rule": "driest"
     },
     {
+      "summary": "7 点 · 没淋",
       "date": "2026-08-05",
       "city": "上海",
       "walk-hour": 7,
@@ -972,6 +1038,7 @@
       "rule": "driest"
     },
     {
+      "summary": "22 点 · 不方便",
       "date": "2026-08-06",
       "city": "上海",
       "walk-hour": 22,
@@ -986,6 +1053,7 @@
       "rule": "driest"
     },
     {
+      "summary": "15 点 · 太热",
       "date": "2026-08-07",
       "city": "上海",
       "walk-hour": 15,
@@ -1000,6 +1068,7 @@
       "rule": "driest"
     },
     {
+      "summary": "6 点 · 不方便",
       "date": "2026-08-08",
       "city": "上海",
       "walk-hour": 6,
@@ -1014,6 +1083,7 @@
       "rule": "driest"
     },
     {
+      "summary": "18 点 · 淋雨",
       "date": "2026-08-09",
       "city": "上海",
       "walk-hour": 18,
@@ -1028,6 +1098,7 @@
       "rule": "driest"
     },
     {
+      "summary": "21 点 · 没淋",
       "date": "2026-08-10",
       "city": "上海",
       "walk-hour": 21,
@@ -1042,6 +1113,7 @@
       "rule": "driest"
     },
     {
+      "summary": "20 点 · 淋雨",
       "date": "2026-08-11",
       "city": "上海",
       "walk-hour": 20,
@@ -1056,6 +1128,7 @@
       "rule": "driest"
     },
     {
+      "summary": "6 点 · 不方便",
       "date": "2026-08-12",
       "city": "上海",
       "walk-hour": 6,
@@ -1070,6 +1143,7 @@
       "rule": "driest"
     },
     {
+      "summary": "21 点 · 没淋",
       "date": "2026-08-13",
       "city": "上海",
       "walk-hour": 21,
@@ -1084,6 +1158,7 @@
       "rule": "driest"
     },
     {
+      "summary": "6 点 · 不方便",
       "date": "2026-08-14",
       "city": "上海",
       "walk-hour": 6,
@@ -1098,6 +1173,7 @@
       "rule": "driest"
     },
     {
+      "summary": "8 点 · 没淋",
       "date": "2026-08-15",
       "city": "上海",
       "walk-hour": 8,
@@ -1112,6 +1188,7 @@
       "rule": "driest"
     },
     {
+      "summary": "22 点 · 不方便",
       "date": "2026-08-16",
       "city": "上海",
       "walk-hour": 22,
@@ -1126,6 +1203,7 @@
       "rule": "driest"
     },
     {
+      "summary": "21 点 · 没淋",
       "date": "2026-08-17",
       "city": "上海",
       "walk-hour": 21,
@@ -1140,6 +1218,7 @@
       "rule": "driest"
     },
     {
+      "summary": "20 点 · 没淋",
       "date": "2026-08-18",
       "city": "上海",
       "walk-hour": 20,
@@ -1154,6 +1233,7 @@
       "rule": "driest"
     },
     {
+      "summary": "18 点 · 没淋",
       "date": "2026-08-19",
       "city": "上海",
       "walk-hour": 18,
@@ -1168,6 +1248,7 @@
       "rule": "driest"
     },
     {
+      "summary": "6 点 · 不方便",
       "date": "2026-08-20",
       "city": "上海",
       "walk-hour": 6,
@@ -1182,6 +1263,7 @@
       "rule": "driest"
     },
     {
+      "summary": "6 点 · 不方便",
       "date": "2026-08-21",
       "city": "上海",
       "walk-hour": 6,
@@ -1196,6 +1278,7 @@
       "rule": "driest"
     },
     {
+      "summary": "22 点 · 不方便",
       "date": "2026-08-22",
       "city": "上海",
       "walk-hour": 22,
@@ -1210,6 +1293,7 @@
       "rule": "driest"
     },
     {
+      "summary": "21 点 · 没淋",
       "date": "2026-08-23",
       "city": "上海",
       "walk-hour": 21,
@@ -1224,6 +1308,7 @@
       "rule": "driest"
     },
     {
+      "summary": "18 点 · 没淋",
       "date": "2026-08-24",
       "city": "上海",
       "walk-hour": 18,
@@ -1238,6 +1323,7 @@
       "rule": "driest"
     },
     {
+      "summary": "18 点 · 没淋",
       "date": "2026-08-25",
       "city": "上海",
       "walk-hour": 18,
@@ -1252,6 +1338,7 @@
       "rule": "driest"
     },
     {
+      "summary": "19 点 · 没淋",
       "date": "2026-08-26",
       "city": "上海",
       "walk-hour": 19,
@@ -1266,6 +1353,7 @@
       "rule": "driest"
     },
     {
+      "summary": "8 点 · 没淋",
       "date": "2026-08-27",
       "city": "上海",
       "walk-hour": 8,
@@ -1280,6 +1368,7 @@
       "rule": "driest"
     },
     {
+      "summary": "21 点 · 没淋",
       "date": "2026-08-28",
       "city": "上海",
       "walk-hour": 21,
@@ -1294,6 +1383,7 @@
       "rule": "driest"
     },
     {
+      "summary": "20 点 · 没淋",
       "date": "2026-08-29",
       "city": "上海",
       "walk-hour": 20,
@@ -1308,6 +1398,7 @@
       "rule": "driest"
     },
     {
+      "summary": "22 点 · 不方便",
       "date": "2026-08-30",
       "city": "上海",
       "walk-hour": 22,
@@ -1322,6 +1413,7 @@
       "rule": "driest"
     },
     {
+      "summary": "6 点 · 不方便",
       "date": "2026-08-31",
       "city": "上海",
       "walk-hour": 6,
@@ -1336,6 +1428,7 @@
       "rule": "driest"
     },
     {
+      "summary": "18 点 · 没淋",
       "date": "2026-09-01",
       "city": "上海",
       "walk-hour": 18,
@@ -1350,6 +1443,7 @@
       "rule": "default"
     },
     {
+      "summary": "7 点 · 没淋",
       "date": "2026-09-02",
       "city": "上海",
       "walk-hour": 7,
@@ -1364,6 +1458,7 @@
       "rule": "switched-rain"
     },
     {
+      "summary": "8 点 · 没淋",
       "date": "2026-09-03",
       "city": "上海",
       "walk-hour": 8,
@@ -1378,6 +1473,7 @@
       "rule": "switched-rain"
     },
     {
+      "summary": "8 点 · 没淋",
       "date": "2026-09-04",
       "city": "上海",
       "walk-hour": 8,
@@ -1392,6 +1488,7 @@
       "rule": "switched-rain"
     },
     {
+      "summary": "18 点 · 没淋",
       "date": "2026-09-05",
       "city": "上海",
       "walk-hour": 18,
@@ -1406,6 +1503,7 @@
       "rule": "default"
     },
     {
+      "summary": "18 点 · 没淋",
       "date": "2026-09-06",
       "city": "上海",
       "walk-hour": 18,
@@ -1420,6 +1518,7 @@
       "rule": "default"
     },
     {
+      "summary": "8 点 · 没淋",
       "date": "2026-09-07",
       "city": "上海",
       "walk-hour": 8,
@@ -1434,6 +1533,7 @@
       "rule": "switched-rain"
     },
     {
+      "summary": "18 点 · 没淋",
       "date": "2026-09-08",
       "city": "上海",
       "walk-hour": 18,
@@ -1448,6 +1548,7 @@
       "rule": "default"
     },
     {
+      "summary": "18 点 · 没淋",
       "date": "2026-09-09",
       "city": "上海",
       "walk-hour": 18,
@@ -1462,6 +1563,7 @@
       "rule": "default"
     },
     {
+      "summary": "8 点 · 没淋",
       "date": "2026-09-10",
       "city": "上海",
       "walk-hour": 8,
@@ -1476,6 +1578,7 @@
       "rule": "switched-rain"
     },
     {
+      "summary": "18 点 · 没淋",
       "date": "2026-09-11",
       "city": "上海",
       "walk-hour": 18,
@@ -1490,6 +1593,7 @@
       "rule": "default"
     },
     {
+      "summary": "18 点 · 没淋",
       "date": "2026-09-12",
       "city": "上海",
       "walk-hour": 18,
@@ -1504,6 +1608,7 @@
       "rule": "default"
     },
     {
+      "summary": "18 点 · 没淋",
       "date": "2026-09-13",
       "city": "上海",
       "walk-hour": 18,
@@ -1518,6 +1623,7 @@
       "rule": "default"
     },
     {
+      "summary": "18 点 · 没淋",
       "date": "2026-09-14",
       "city": "上海",
       "walk-hour": 18,
@@ -1532,6 +1638,7 @@
       "rule": "default"
     },
     {
+      "summary": "18 点 · 没淋",
       "date": "2026-09-15",
       "city": "上海",
       "walk-hour": 18,
@@ -1546,6 +1653,7 @@
       "rule": "default"
     },
     {
+      "summary": "18 点 · 没淋",
       "date": "2026-09-16",
       "city": "上海",
       "walk-hour": 18,
@@ -1560,6 +1668,7 @@
       "rule": "default"
     },
     {
+      "summary": "18 点 · 没淋",
       "date": "2026-09-17",
       "city": "上海",
       "walk-hour": 18,
@@ -1574,6 +1683,7 @@
       "rule": "default"
     },
     {
+      "summary": "8 点 · 没淋",
       "date": "2026-09-18",
       "city": "上海",
       "walk-hour": 8,
@@ -1588,6 +1698,7 @@
       "rule": "switched-rain"
     },
     {
+      "summary": "8 点 · 没淋",
       "date": "2026-09-19",
       "city": "上海",
       "walk-hour": 8,
@@ -1602,6 +1713,7 @@
       "rule": "switched-rain"
     },
     {
+      "summary": "18 点 · 没淋",
       "date": "2026-09-20",
       "city": "上海",
       "walk-hour": 18,
@@ -1616,6 +1728,7 @@
       "rule": "default"
     },
     {
+      "summary": "18 点 · 没淋",
       "date": "2026-09-21",
       "city": "上海",
       "walk-hour": 18,
@@ -1630,6 +1743,7 @@
       "rule": "default"
     },
     {
+      "summary": "18 点 · 没淋",
       "date": "2026-09-22",
       "city": "上海",
       "walk-hour": 18,
@@ -1644,6 +1758,7 @@
       "rule": "default"
     },
     {
+      "summary": "18 点 · 没淋",
       "date": "2026-09-23",
       "city": "上海",
       "walk-hour": 18,
@@ -1658,6 +1773,7 @@
       "rule": "default"
     },
     {
+      "summary": "18 点 · 没淋",
       "date": "2026-09-24",
       "city": "上海",
       "walk-hour": 18,
@@ -1672,6 +1788,7 @@
       "rule": "default"
     },
     {
+      "summary": "18 点 · 没淋",
       "date": "2026-09-25",
       "city": "上海",
       "walk-hour": 18,
@@ -1686,6 +1803,7 @@
       "rule": "default"
     },
     {
+      "summary": "8 点 · 淋雨",
       "date": "2026-09-26",
       "city": "上海",
       "walk-hour": 8,
@@ -1700,6 +1818,7 @@
       "rule": "switched-rain"
     },
     {
+      "summary": "8 点 · 淋雨",
       "date": "2026-09-27",
       "city": "上海",
       "walk-hour": 8,
@@ -1714,6 +1833,7 @@
       "rule": "switched-rain"
     },
     {
+      "summary": "8 点 · 没淋",
       "date": "2026-09-28",
       "city": "上海",
       "walk-hour": 8,
@@ -1728,6 +1848,7 @@
       "rule": "switched-rain"
     },
     {
+      "summary": "21 点 · 没淋",
       "date": "2026-09-29",
       "city": "上海",
       "walk-hour": 21,
@@ -1742,6 +1863,7 @@
       "rule": "switched-rain"
     },
     {
+      "summary": "7 点 · 淋雨",
       "date": "2026-09-30",
       "city": "上海",
       "walk-hour": 7,

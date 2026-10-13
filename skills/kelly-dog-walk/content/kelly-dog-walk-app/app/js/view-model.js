@@ -4,8 +4,16 @@ import { VERDICT, isoWeekday, judgeWalk, parsePlaybookHistory, summarize } from 
 
 const num = (value) => (value === null || value === undefined || value === "" ? null : Number(value));
 
+/**
+ * The 摘要 of one day, e.g. `18 点 · 淋雨`. It is 每天的决定's first field, so it is the record
+ * title: Busabase's calendar and kanban cards show only the title, and without it the calendar
+ * view would show each day's own date and nothing else.
+ */
+export const decisionSummary = (hour, verdict) => `${hour} 点 · ${verdict}`;
+
 /** A replayed or decided day (walk-model's row shape) → the 每天的决定 field slugs. */
 export const decisionFields = (row) => ({
+  summary: decisionSummary(row.hour, row.verdict),
   date: row.date,
   city: row.city,
   "walk-hour": row.hour,

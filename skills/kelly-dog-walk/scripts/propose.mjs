@@ -8,7 +8,7 @@
 //   1. 读手册现在的 SKILL.md 和它的 contentHash（变更请求要基于这个版本，别人先改了就会冲突）；
 //   2. 检查新手册：规则卡读得懂、版本号往上走、版本记录只增不减、「已退休」一条都不能少；
 //   3. 用裁判规则（Busabase 里那份）在每个 --month 上把现在的手册和新手册各回放一遍，同月对照；
-//   4. 证据表由这个脚本算出来写进变更请求说明——证据只认裁判数据，不认 Agent 自己写的数字；
+//   4. 回放证据由这个脚本算出来写进变更请求说明（每个月一句）——证据只认裁判数据，不认 Agent 自己写的数字；
 //   5. 任何一个月没通过就拒绝提交，除非用 --despite 写明理由（比如：回滚时裁判规则还不看护栏）；
 //   6. autoMerge: false 提交，等主人在 Busabase 里审核合并。
 //
@@ -114,18 +114,16 @@ run(async () => {
   lines.push(`遛狗手册 ${before.version} → ${after.version}：${title}`);
   lines.push("");
   lines.push(
-    `回放证据（Open-Meteo，${place.name} ${place.latitude}, ${place.longitude}；裁判规则 ${judge.version}：淋雨 ≥ ${judge.wetMm} mm，太热 ≥ ${judge.hotC}°C，${judge.guardrails ? `护栏 太热 ${judge.guardrails.hot} 次、不方便 ${judge.guardrails.off} 次` : "没有护栏"}）`,
+    `回放证据（Open-Meteo，${place.name} ${place.latitude}, ${place.longitude}；裁判规则 ${judge.version}：淋雨 ≥ ${judge.wetMm} mm，太热 ≥ ${judge.hotC}°C，${judge.guardrails ? `护栏 太热 ${judge.guardrails.hot} 次、不方便 ${judge.guardrails.off} 次` : "没有护栏"}）：`,
   );
   lines.push("");
-  lines.push("| 月份 | 手册 | 淋雨 | 太热 | 不方便 | 裁判 |");
-  lines.push("| --- | --- | --- | --- | --- | --- |");
+  // One sentence per month, not a Markdown table: Busabase's review page shows the message as plain
+  // text with line breaks collapsed, and a table there reads as one run of pipes.
+  const counts = (version, s) => `${version} 淋雨 ${s.wet}/${s.days}、太热 ${s.hot}、不方便 ${s.off}`;
   for (const item of evidence) {
-    lines.push(
-      `| ${item.month} | ${before.version}（现在） | ${item.mine.wet}/${item.mine.days} | ${item.mine.hot} | ${item.mine.off} | |`,
-    );
     const warn = item.result.warnings.map((key) => `${METRIC_LABEL[key]}变多`).join("、");
     lines.push(
-      `| ${item.month} | ${after.version}（提议） | ${item.theirs.wet}/${item.theirs.days} | ${item.theirs.hot} | ${item.theirs.off} | ${item.result.pass ? "通过" : "不通过"}：${GATE_WHY[item.result.why]}${warn ? `；${warn}（这版裁判不计）` : ""} |`,
+      `- ${item.month}：现在 ${counts(before.version, item.mine)}；提议 ${counts(after.version, item.theirs)} → ${item.result.pass ? "通过" : "不通过"}：${GATE_WHY[item.result.why]}${warn ? `；${warn}（这版裁判不计）` : ""}。`,
     );
   }
   lines.push("");

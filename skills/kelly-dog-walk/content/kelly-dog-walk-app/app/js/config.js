@@ -45,6 +45,9 @@ export const appConfig = {
         "一天一行：Agent 按遛狗手册选的钟点、依据的规则、当时的预报、实际天气和裁判的结论。回放和每日模式都写这里；按「日期 + 城市」更新，不重复。",
       readLimit: 50,
       fields: [
+        // First on purpose: the lowest-position field is the record title, and the calendar and
+        // kanban cards show only the title. `18 点 · 淋雨` is what a day cell should say.
+        field("summary", "摘要", "text"),
         field("date", "日期", "date", { required: true, options: { date: { includeTime: false } } }),
         field("city", "城市", "text", { required: true }),
         field("walk-hour", "遛狗钟点", "number"),
