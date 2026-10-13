@@ -36,7 +36,7 @@ AI Agent: Claude
 - **SKILL.md says to install the scripts' dependency first.** A skill installed from GitHub
   (`npx skills add mr-kelly/skills --skill kelly-dog-walk`) has no `node_modules`, and every script then
   fails with `Cannot find package 'busabase-sdk'`. Step 0 of 安装 and the cheat sheet now say
-  `npm install --prefix <skill dir>`.
+  `npm install --prefix <skill dir> --no-package-lock` (no lockfile, so a later template install does not upload one).
 
 ## Files Affected
 
