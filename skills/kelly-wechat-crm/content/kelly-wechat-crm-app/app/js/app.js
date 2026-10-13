@@ -13,13 +13,18 @@ import { WriteResultUnknownError, createWithConfirmation, updateWithConfirmation
 import { getProvider } from "./providers/index.js";
 import { connectionHintKey, getRuntime, runtimeLabel } from "./runtime.js";
 
+// Where a record opens, per Base — declared once in config.js `ui.detail_modes`.
+// `page` replaces the list; `drawer` overlays it; `split` keeps a worked queue
+// beside the record. A `/<record>` path always opens the full page; `?peek=`
+// drives drawer/split. On a phone every mode becomes a page (base-ui.css).
+const DETAIL_MODES = appConfig.ui.detail_modes;
+const RECORD_BASES = appConfig.bases.map((base) => base.key);
+
 const state = {
   provider: null,
   payload: null,
   runtime: null,
-  activeBase: appConfig.ui.primaryBase,
-  selectedRecordId: null,
-  query: "",
+  route: parseRoute(),
   authStatus: null,
   wechatStatus: null,
   settingsTab: "guide",
@@ -27,7 +32,6 @@ const state = {
   flash: "",
   candidateResults: [],
   selectedCandidates: new Set(),
-  actionFilter: "review",
   pendingActions: new Set(),
   unknownActions: new Set(),
 };
@@ -43,32 +47,96 @@ const escapeHtml = (value) =>
 
 const recordLabel = (id) => {
   const record = (state.payload?.records || []).find((item) => item.id === id);
-  if (!record) return id;
+  if (!record) return messages.notLoaded || "-";
   const base = appConfig.bases.find((item) => item.key === record.baseKey);
-  return record.fields?.[base?.fields?.[0]?.slug] || id;
+  return record.fields?.[base?.fields?.[0]?.slug] || messages.notLoaded || "-";
 };
 
 const displayValue = (value) => {
   if (value == null || value === "") return "-";
   if (Array.isArray(value))
     return value.map((item) => (typeof item === "string" ? recordLabel(item) : displayValue(item))).join(", ");
-  if (typeof value === "object") return value.name || value.title || value.id || JSON.stringify(value);
+  if (typeof value === "object") return value.name || value.title || "-";
   if (typeof value === "boolean") return value ? "Yes" : "No";
   return String(value);
 };
 
-const baseConfig = () => appConfig.bases.find((base) => base.key === state.activeBase) || appConfig.bases[0];
-const recordsForBase = () => (state.payload?.records || []).filter((record) => record.baseKey === baseConfig()?.key);
+// ── Routing ──────────────────────────────────────────────────────────────
+// `#/overview` (default) | `#/<base>[/<record>][?q=…&status=…&peek=…]`.
+// Search, the actions-status filter and the peeked record live in the URL so
+// refresh, shared links and Back restore the same list context.
+// `#/help-settings` and `#/goals/new` are modal overlays, not pages: they are
+// intercepted in `applyHashRoute` before reaching here, so the page behind
+// the modal (whatever it was) never changes. `hash` is only ever overridden
+// by `applyHashRoute` to synthesize the goals list for the goals/new case.
+function parseRoute(hash = location.hash) {
+  const raw = (hash || "#/overview").replace(/^#\/?/, "");
+  const [path, query = ""] = raw.split("?");
+  const parts = path.split("/").filter(Boolean);
+  const params = new URLSearchParams(query);
+  let view = parts[0] || "overview";
+  let id = "";
+  try {
+    id = parts[1] ? decodeURIComponent(parts[1]) : "";
+  } catch {
+    id = "";
+  }
+  if (!RECORD_BASES.includes(view)) view = "overview";
+  const mode = DETAIL_MODES[view];
+  const peek = mode && mode !== "page" && !id ? params.get("peek") || "" : "";
+  return {
+    view,
+    id,
+    peek,
+    selectedId: mode ? id || peek : "",
+    presentation: !mode ? null : id ? "page" : mode === "page" ? null : mode,
+    query: params.get("q") || "",
+    status: params.get("status") || "review",
+  };
+}
+
+const routeQuery = (extra = {}, route = state.route) => {
+  const params = new URLSearchParams();
+  if (route.query) params.set("q", route.query);
+  if (route.view === "actions" && route.status !== "review") params.set("status", route.status);
+  for (const [key, value] of Object.entries(extra)) if (value) params.set(key, value);
+  const text = params.toString();
+  return text ? `?${text}` : "";
+};
+
+const listUrl = (route = state.route) => `#/${route.view}${routeQuery({}, route)}`;
+// The full page: the record id in the path, whatever the Base's mode.
+const detailUrl = (id, view = state.route.view) => {
+  const route = view === state.route.view ? state.route : { view, query: "", status: "review" };
+  return `#/${view}/${encodeURIComponent(id)}${routeQuery({}, route)}`;
+};
+// What a row (or a cross-link) opens: the page for a `page` Base, else `?peek=`.
+const recordUrl = (id, view = state.route.view) => {
+  if (DETAIL_MODES[view] === "page") return detailUrl(id, view);
+  const route = view === state.route.view ? state.route : { view, query: "", status: "review" };
+  return `#/${view}${routeQuery({ peek: id }, route)}`;
+};
+
+let previousRouteWasList = false;
+
+function closeDetail() {
+  if (history.state?.fromList) history.back();
+  else location.hash = listUrl();
+}
+
+const baseConfig = () => appConfig.bases.find((base) => base.key === state.route.view);
+const recordsForBase = () =>
+  (state.payload?.records || []).filter((record) => record.baseKey === baseConfig()?.key);
 const pageInfoForBase = () => state.payload?.pageInfo?.[baseConfig()?.key] || {};
 const loadedCount = (count, hasMore) => `${count}${hasMore ? "+" : ""}`;
 const primaryField = () => baseConfig()?.fields?.[0]?.slug || "name";
 const filteredRecords = () => {
-  const query = state.query.trim().toLowerCase();
+  const query = state.route.query.trim().toLowerCase();
   const queried = query
     ? recordsForBase().filter((record) => JSON.stringify(record.fields).toLowerCase().includes(query))
     : recordsForBase();
-  return state.activeBase === "actions"
-    ? queried.filter((record) => actionMatchesFilter(record, state.actionFilter))
+  return state.route.view === "actions"
+    ? queried.filter((record) => actionMatchesFilter(record, state.route.status))
     : queried;
 };
 const activeGoals = () =>
@@ -78,7 +146,6 @@ const setMobileSidebar = (open) => {
   document.body.classList.toggle("sidebar-open", open);
   byId("sidebarScrim").hidden = !open;
 };
-const setMobileDetail = (open) => document.body.classList.toggle("mobile-detail-open", open);
 const setText = (id, value) => {
   const element = byId(id);
   if (element) element.textContent = value;
@@ -94,11 +161,12 @@ function renderNavigation() {
     settings: "设",
   };
   const navigationOrder = appConfig.ui.navigationOrder || appConfig.bases.map((base) => base.key);
-  byId("baseNav").innerHTML = [...appConfig.bases]
+  byId("overviewNav").classList.toggle("active", state.route.view === "overview");
+  byId("baseNavList").innerHTML = [...appConfig.bases]
     .sort((left, right) => navigationOrder.indexOf(left.key) - navigationOrder.indexOf(right.key))
     .map(
       (base) => `
-    <button class="nav-item ${base.key === state.activeBase ? "active" : ""}" type="button" data-base="${escapeHtml(base.key)}">
+    <button class="nav-item ${base.key === state.route.view ? "active" : ""}" type="button" data-base="${escapeHtml(base.key)}">
       <span class="nav-icon" aria-hidden="true">${icons[base.key] || "·"}</span>
       <span class="nav-label">${escapeHtml(base.name)}</span>
       <span class="nav-count">${loadedCount((state.payload?.records || []).filter((record) => record.baseKey === base.key).length, state.payload?.pageInfo?.[base.key]?.nextCursor)}</span>
@@ -108,10 +176,23 @@ function renderNavigation() {
     .join("");
 }
 
-function renderMetrics() {
-  const pending = (state.payload?.records || []).filter(
+const pendingActionCount = () =>
+  (state.payload?.records || []).filter(
     (record) => record.baseKey === "actions" && record.fields?.status === "needs-review",
   ).length;
+
+// Sidebar "needs your judgement" summary — part of the shared shell, shown on
+// every page (Overview and every record view), so it updates on every
+// render(), not only when Overview is the active page.
+function renderAttention() {
+  const pending = pendingActionCount();
+  setText("attentionValue", pending);
+  setText("attentionCopy", pending ? messages.attentionPending : messages.attentionEmpty);
+}
+
+// The `.ws-metrics` band itself is Overview-only, per the two-kinds-of-page
+// contract: a record view never repeats it above the table.
+function renderMetrics() {
   const metrics = [
     [
       messages.totalRecords,
@@ -121,17 +202,15 @@ function renderMetrics() {
       ),
     ],
     [messages.bases, state.payload?.bases?.length || 0],
-    [messages.pending, pending],
+    [messages.pending, pendingActionCount()],
   ];
   byId("metrics").innerHTML = metrics
     .map(
       ([label, value]) => `
-    <div class="metric"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>
+    <div><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>
   `,
     )
     .join("");
-  setText("attentionValue", pending);
-  setText("attentionCopy", pending ? messages.attentionPending : messages.attentionEmpty);
 }
 
 const wechatStatusCopy = (status) => {
@@ -165,9 +244,13 @@ const wechatStatusCopy = (status) => {
   return { title: "WeChat CLI 无法读取数据", summary: "检查微信登录和本机数据库权限后重新检测。" };
 };
 
+function wechatReady() {
+  return Boolean(state.wechatStatus?.ready) || state.wechatStatus?.state === "local_companion_required" || isDemo();
+}
+
 function renderWechatStatus() {
   const status = state.wechatStatus;
-  const ready = Boolean(status?.ready) || status?.state === "local_companion_required" || isDemo();
+  const ready = wechatReady();
   const copy = wechatStatusCopy(status);
   byId("wechatConnector").hidden = isDemo() || !status;
   byId("wechatConnector").classList.toggle("is-ready", ready);
@@ -179,7 +262,7 @@ function renderWechatStatus() {
   byId("wechatInstallLink").hidden = status?.state !== "missing";
   byId("wechatRecheck").disabled = status?.state === "checking";
   byId("metrics").hidden = !ready;
-  byId("contentSplit").hidden = !ready;
+  byId("workspace").hidden = !ready;
 }
 
 async function readWechatStatus() {
@@ -188,13 +271,19 @@ async function readWechatStatus() {
   return response.json();
 }
 
+function renderOverview() {
+  setText("overviewTitle", appConfig.appName);
+  setText("overviewSummary", appConfig.ui.summary);
+  renderMetrics();
+}
+
 function renderList() {
   const base = baseConfig();
   const records = filteredRecords();
-  setText("listTitle", base?.name || messages.records);
+  setText("viewTitle", base?.name || messages.records);
+  byId("viewTitle").title = base?.description || "";
   setText("recordCount", loadedCount(records.length, pageInfoForBase().nextCursor));
-  setText("mobileTitle", base?.name || appConfig.appName);
-  byId("loadMore").hidden = !pageInfoForBase().nextCursor || Boolean(state.query);
+  byId("loadMore").hidden = !pageInfoForBase().nextCursor || Boolean(state.route.query);
   byId("goalOpen").hidden = base?.key !== "goals";
   byId("discoverOpen").hidden = base?.key !== "people" || !activeGoals().length;
   const filters = byId("actionFilters");
@@ -202,55 +291,75 @@ function renderList() {
   if (base?.key === "actions") {
     filters.innerHTML = ACTION_FILTERS.map(
       (filter) =>
-        `<button class="action-filter ${filter.key === state.actionFilter ? "active" : ""}" type="button" role="tab" aria-selected="${filter.key === state.actionFilter}" data-action-filter="${filter.key}">${escapeHtml(filter.label)}</button>`,
+        `<button class="action-filter ${filter.key === state.route.status ? "active" : ""}" type="button" role="tab" aria-selected="${filter.key === state.route.status}" data-action-filter="${filter.key}">${escapeHtml(filter.label)}</button>`,
     ).join("");
   }
   setText("loadMore", messages.loadMore);
+  const wrap = byId("recordListWrap");
   if (!records.length) {
-    if (state.query) {
-      byId("recordList").innerHTML = `<div class="empty-list">${escapeHtml(messages.noMatches)}</div>`;
+    if (state.route.query) {
+      wrap.innerHTML = `<div class="empty-list">${escapeHtml(messages.noMatches)}</div>`;
     } else if (base?.key === "goals") {
-      byId("recordList").innerHTML = `
+      wrap.innerHTML = `
         <div class="empty-workflow">
           <strong>先创建一个目标</strong>
           <p>目标决定 Agent 应该寻找谁、读取多大范围，以及哪些边界不能越过。</p>
           <button class="primary-action" type="button" data-empty-action="new-goal">创建目标</button>
         </div>`;
     } else if (base?.key === "people") {
-      byId("recordList").innerHTML = `
+      wrap.innerHTML = `
         <div class="empty-workflow">
           <strong>${activeGoals().length ? "还没有重点联系人" : "需要先创建目标"}</strong>
           <p>${activeGoals().length ? "从本机通讯录搜索候选人，只有你勾选的人才会进入 People。" : "联系人晋升必须服务于一个明确目标。"}</p>
           <button class="primary-action" type="button" data-empty-action="${activeGoals().length ? "discover" : "new-goal"}">${activeGoals().length ? "选择联系人" : "创建目标"}</button>
         </div>`;
     } else {
-      byId("recordList").innerHTML = `<div class="empty-list">${escapeHtml(messages.noRecords)}</div>`;
+      wrap.innerHTML = `<div class="empty-list">${escapeHtml(messages.noRecords)}</div>`;
     }
     return;
   }
-  const secondaryFields = (base?.fields || []).filter((field) => field.slug !== "username").slice(1, 4);
-  byId("recordList").innerHTML = records
-    .map(
-      (record) => `
-    <button class="record-row ${record.id === state.selectedRecordId ? "selected" : ""}" type="button" data-record="${escapeHtml(record.id)}">
-      <strong>${escapeHtml(displayValue(record.fields?.[primaryField()]))}</strong>
-      <span>${secondaryFields.map((field) => escapeHtml(displayValue(record.fields?.[field.slug]))).join(" / ")}</span>
-    </button>
-  `,
-    )
-    .join("");
+  const columns = [base.fields[0], ...(base?.fields || []).filter((field) => field.slug !== "username").slice(1, 4)];
+  wrap.innerHTML = `
+    <table class="ws-table">
+      <thead><tr>${columns.map((field) => `<th>${escapeHtml(field.name)}</th>`).join("")}</tr></thead>
+      <tbody>
+        ${records
+          .map(
+            (record) => `
+          <tr data-record="${escapeHtml(record.id)}" ${record.id === state.route.selectedId ? 'class="ws-selected"' : ""}>
+            ${columns
+              .map(
+                (field, index) =>
+                  `<td>${index === 0 ? "<strong>" : ""}${escapeHtml(displayValue(record.fields?.[field.slug]))}${index === 0 ? "</strong>" : ""}</td>`,
+              )
+              .join("")}
+          </tr>
+        `,
+          )
+          .join("")}
+      </tbody>
+    </table>
+  `;
 }
 
 function renderDetail() {
-  const record = recordsForBase().find((item) => item.id === state.selectedRecordId);
+  const record = recordsForBase().find((item) => item.id === state.route.selectedId);
   byId("detailEmpty").hidden = Boolean(record);
   byId("detailContent").hidden = !record;
+  byId("detailBar").hidden = !state.route.selectedId;
+  const phone = window.matchMedia("(max-width: 720px)").matches;
+  setText("backButton", state.route.presentation === "page" || phone ? messages.back : messages.closeDetail);
+  byId("detailExpand").hidden = !state.route.selectedId || state.route.presentation === "page";
+  setText("detailExpand", messages.openFullPage);
+  if (state.route.selectedId) byId("detailExpand").href = detailUrl(state.route.selectedId, state.route.view);
   if (!record) {
-    setText("detailEmpty", messages.selectRecord);
+    setText(
+      "detailEmpty",
+      DETAIL_MODES[state.route.view] === "split" && !state.route.selectedId ? messages.selectRecord : "",
+    );
     return;
   }
   const base = baseConfig();
-  setText("detailEyebrow", base?.name || messages.record);
   setText("detailTitle", displayValue(record.fields?.[primaryField()]));
   byId("detailFields").innerHTML = (base?.fields || [])
     .slice(1)
@@ -387,22 +496,41 @@ function render() {
   setText("viewEyebrow", messages.overview);
   byId("modeBadge").hidden = !isDemo();
   setText("modeBadge", "Demo · 刷新后重置");
-  setText("viewTitle", appConfig.appName);
-  setText("viewSummary", appConfig.ui.summary);
+  setText("overviewNavLabel", messages.overview);
   setText("attentionTitle", messages.attentionTitle);
-  setText("listEyebrow", messages.records);
   setText("searchLabel", messages.search);
   byId("searchInput").placeholder = messages.searchPlaceholder;
+  byId("searchInput").value = state.route.query;
   setText("settingsOpen", messages.settings);
   setText("settingsEyebrow", messages.settingsEyebrow);
   setText("settingsTitle", messages.settingsTitle);
-  setText("backButton", messages.back);
+
+  const ready = Boolean(state.payload);
+  const onRecordView = ready && RECORD_BASES.includes(state.route.view);
+  const onOverview = state.route.view === "overview";
+  const base = document.body.classList;
+  base.toggle("ws-detail-open", onRecordView && Boolean(state.route.selectedId));
+  base.toggle("ws-detail-page", onRecordView && state.route.presentation === "page" && Boolean(state.route.selectedId));
+  base.toggle("ws-detail-drawer", onRecordView && state.route.presentation === "drawer");
+  base.toggle(
+    "ws-layout-split",
+    onRecordView && DETAIL_MODES[state.route.view] === "split" && state.route.presentation !== "page",
+  );
+  base.toggle("ws-searching", onRecordView && Boolean(state.route.query));
+
+  setText("mobileTitle", onOverview ? appConfig.appName : baseConfig()?.name || appConfig.appName);
+  byId("overviewPage").hidden = !onOverview;
+  byId("recordView").hidden = !onRecordView;
+
   renderNavigation();
-  renderMetrics();
+  renderAttention();
   renderWechatStatus();
   renderFlash();
-  renderList();
-  renderDetail();
+  if (onOverview) renderOverview();
+  if (onRecordView) {
+    renderList();
+    renderDetail();
+  }
   renderSettings();
 }
 
@@ -443,9 +571,8 @@ async function load() {
     state.provider = await getProvider();
     state.payload = await state.provider.getState();
     if (!activeGoals().length) {
-      state.activeBase = "goals";
-      state.selectedRecordId = null;
       window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}#/goals`);
+      state.route = parseRoute();
     }
     setText("loadingState", "");
     render();
@@ -486,8 +613,8 @@ async function reliableCreate({ baseKey, fields, message, idempotencyKey, findFi
 }
 
 async function submitActionDecision(status) {
-  const record = recordsForBase().find((item) => item.id === state.selectedRecordId);
-  if (!record || state.activeBase !== "actions" || state.pendingActions.has(record.id)) return;
+  const record = recordsForBase().find((item) => item.id === state.route.selectedId);
+  if (!record || state.route.view !== "actions" || state.pendingActions.has(record.id)) return;
   const comment = byId("reviewNote")?.value.trim() || "";
   const key = operationKey();
   state.pendingActions.add(record.id);
@@ -547,7 +674,7 @@ function setOutcomeModal(open) {
 
 async function submitOutcome(event) {
   event.preventDefault();
-  const action = recordsForBase().find((item) => item.id === state.selectedRecordId);
+  const action = recordsForBase().find((item) => item.id === state.route.selectedId);
   if (!action || state.pendingActions.has(action.id)) return;
   const form = new FormData(byId("outcomeForm"));
   const outcome = String(form.get("outcome") || "").trim();
@@ -716,8 +843,6 @@ async function submitGoal(event) {
     if (state.provider.name === "demo") {
       const id = result.id;
       state.payload.records.push({ id, headCommitId: `demo-head-${id}`, baseKey: "goals", fields });
-      state.activeBase = "people";
-      state.selectedRecordId = null;
       byId("goalForm").reset();
       setGoalModal(false);
       window.location.hash = "#/people";
@@ -725,8 +850,6 @@ async function submitGoal(event) {
       render();
     } else {
       state.payload = await state.provider.getState();
-      state.activeBase = "people";
-      state.selectedRecordId = null;
       byId("goalForm").reset();
       setGoalModal(false);
       window.location.hash = "#/people";
@@ -868,7 +991,6 @@ async function promoteCandidates() {
       state.payload = await state.provider.getState();
     }
     setCandidateModal(false);
-    state.activeBase = "people";
     window.location.hash = "#/people";
     state.flash = `已加入 ${selected.length} 位重点联系人${state.provider.name === "demo" ? "（Demo 临时预览）" : ""}。`;
     render();
@@ -897,20 +1019,18 @@ async function loadMore() {
   }
 }
 
-byId("baseNav").addEventListener("click", (event) => {
-  const button = event.target.closest("[data-base]");
-  if (!button) return;
-  state.activeBase = button.dataset.base;
-  state.selectedRecordId = null;
-  state.query = "";
-  byId("searchInput").value = "";
-  window.location.hash = `#/${state.activeBase}`;
-  setMobileSidebar(false);
-  setMobileDetail(false);
-  render();
+byId("overviewNav").addEventListener("click", () => {
+  window.location.hash = "#/overview";
 });
 
-byId("recordList").addEventListener("click", (event) => {
+byId("baseNavList").addEventListener("click", (event) => {
+  const button = event.target.closest("[data-base]");
+  if (!button) return;
+  window.location.hash = `#/${button.dataset.base}`;
+  setMobileSidebar(false);
+});
+
+byId("recordListWrap").addEventListener("click", (event) => {
   const emptyAction = event.target.closest("[data-empty-action]");
   if (emptyAction) {
     if (emptyAction.dataset.emptyAction === "discover") setCandidateModal(true);
@@ -920,27 +1040,31 @@ byId("recordList").addEventListener("click", (event) => {
     }
     return;
   }
-  const button = event.target.closest("[data-record]");
-  if (!button) return;
-  state.selectedRecordId = button.dataset.record;
-  window.location.hash = `#/${state.activeBase}/${state.selectedRecordId}`;
-  setMobileDetail(true);
-  renderList();
-  renderDetail();
+  const row = event.target.closest("tr[data-record]");
+  if (!row) return;
+  const url = recordUrl(row.dataset.record);
+  // Switching records while a drawer/split is open replaces the entry, so
+  // Close still steps back to the list the drawer was opened from.
+  if (state.route.peek) {
+    history.replaceState(history.state, "", url);
+    applyHashRoute();
+  } else {
+    window.location.hash = url;
+  }
 });
 
 byId("actionFilters").addEventListener("click", (event) => {
   const button = event.target.closest("[data-action-filter]");
   if (!button) return;
-  state.actionFilter = button.dataset.actionFilter;
-  state.selectedRecordId = null;
-  setMobileDetail(false);
-  renderList();
-  renderDetail();
+  const url = `#/actions${routeQuery({ peek: state.route.peek }, { ...state.route, status: button.dataset.actionFilter })}`;
+  history.replaceState(history.state, "", url);
+  applyHashRoute();
 });
 
 byId("searchInput").addEventListener("input", (event) => {
-  state.query = event.target.value;
+  const url = `#/${state.route.view}${routeQuery({ peek: state.route.peek }, { ...state.route, query: event.target.value })}`;
+  history.replaceState(history.state, "", url);
+  state.route = parseRoute();
   renderList();
 });
 byId("loadMore").addEventListener("click", loadMore);
@@ -996,12 +1120,14 @@ byId("sidebarClose").addEventListener("click", () => {
   else document.body.classList.toggle("sidebar-collapsed");
 });
 byId("sidebarScrim").addEventListener("click", () => setMobileSidebar(false));
-byId("backButton").addEventListener("click", () => {
-  state.selectedRecordId = null;
-  window.location.hash = `#/${state.activeBase}`;
-  setMobileDetail(false);
-  renderList();
-  renderDetail();
+byId("backButton").addEventListener("click", closeDetail);
+document.addEventListener("keydown", (event) => {
+  if (event.key !== "Escape") return;
+  if (event.target.closest?.("textarea, input")) {
+    event.target.blur();
+    return;
+  }
+  if (state.route.selectedId && state.route.presentation && state.route.presentation !== "page") closeDetail();
 });
 
 const setSettings = (open) => {
@@ -1014,7 +1140,7 @@ const openSettings = () => {
 };
 const closeSettings = () => {
   setSettings(false);
-  window.location.hash = `#/${state.activeBase}${state.selectedRecordId ? `/${state.selectedRecordId}` : ""}`;
+  window.location.hash = listUrl();
 };
 byId("settingsOpen").addEventListener("click", openSettings);
 byId("mobileSettings").addEventListener("click", openSettings);
@@ -1036,28 +1162,33 @@ byId("settingsModal").addEventListener("click", (event) => {
 byId("settingsModal").addEventListener("click", (event) => {
   if (event.target === byId("settingsModal")) closeSettings();
 });
+
 function applyHashRoute() {
-  const parts = window.location.hash.replace(/^#\/?/, "").split("/").filter(Boolean);
+  const raw = (location.hash || "#/overview").replace(/^#\/?/, "");
+  const parts = raw.split("?")[0].split("/").filter(Boolean);
+  // Overlay hashes: the page behind the modal keeps whatever route it had.
   if (parts[0] === "help-settings") {
     setSettings(true);
     return;
   }
+  setSettings(false);
   if (parts[0] === "goals" && parts[1] === "new") {
-    state.activeBase = "goals";
-    state.selectedRecordId = null;
+    const previous = state.route;
+    state.route = parseRoute("#/goals");
+    previousRouteWasList = true;
     if (state.payload) {
-      render();
+      if (previous.view !== "goals") render();
       setGoalModal(true);
     }
     return;
   }
-  const key = parts[0] === "base" ? parts[1] : parts[0];
-  const id = parts[0] === "base" ? parts[2] : parts[1];
-  if (appConfig.bases.some((base) => base.key === key)) state.activeBase = key;
-  state.selectedRecordId = id || null;
-  setSettings(false);
   setGoalModal(false);
-  setMobileDetail(Boolean(id));
+  const previous = state.route;
+  state.route = parseRoute();
+  if (state.route.selectedId && previousRouteWasList && previous.view === state.route.view) {
+    history.replaceState({ fromList: true }, "");
+  }
+  previousRouteWasList = RECORD_BASES.includes(state.route.view) && !state.route.selectedId;
   if (state.payload) render();
 }
 window.addEventListener("hashchange", applyHashRoute);
@@ -1066,11 +1197,11 @@ function syncResponsiveShell() {
     document.body.classList.remove("sidebar-collapsed");
   } else {
     setMobileSidebar(false);
-    setMobileDetail(false);
   }
 }
 window.addEventListener("resize", syncResponsiveShell);
 
+previousRouteWasList = RECORD_BASES.includes(state.route.view) && !state.route.selectedId;
 applyHashRoute();
 syncResponsiveShell();
 load();

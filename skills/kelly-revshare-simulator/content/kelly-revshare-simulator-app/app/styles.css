@@ -367,12 +367,20 @@ body.sidebar-collapsed .sidebar-footer {
   background: color-mix(in srgb, var(--surface) 72%, transparent);
 }
 
+/* Flex column, not grid: base-ui.css's `.ws-view`/`.ws-overview` size
+ * themselves with `flex: 1 1 auto`, so whichever page section is not
+ * `[hidden]` claims the remaining height after the mobile topbar and
+ * load-state. A `grid-template-rows: auto 1fr` parent put every extra
+ * sibling (one page section per route, now that the app is split into
+ * overview/scenarios/comparison/settings instead of one shared `#content`)
+ * into its own implicit auto-sized row, so the visible page only got as
+ * tall as its own content -- about a fifth of the viewport. */
 .main {
   min-width: 0;
   min-height: 0;
   height: 100vh;
-  display: grid;
-  grid-template-rows: auto 1fr;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
 }
 
@@ -384,30 +392,27 @@ body.sidebar-collapsed .sidebar-footer {
   display: none;
 }
 
-.topbar {
-  position: static;
-  z-index: 1;
-  min-height: 58px;
-  padding: 10px 18px;
-  border-bottom: 1px solid var(--line);
-  background: var(--surface-blur);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.load-state {
+  padding: 16px 18px;
+}
+
+.load-state[hidden] {
+  display: none;
 }
 
 h1,
 h2 {
   margin: 0;
   letter-spacing: -0.01em;
-}
-
-.topbar h1 {
-  font-size: var(--text-xl);
-  font-weight: 660;
-  line-height: 1.25;
-  letter-spacing: -0.015em;
 }
 
 h2 {
@@ -421,12 +426,6 @@ h2 {
   color: var(--muted);
   font-size: var(--text-sm);
   margin: 4px 0 0;
-}
-
-.topbar-actions {
-  display: flex;
-  gap: 8px;
-  align-items: center;
 }
 
 button,
@@ -475,6 +474,67 @@ button.danger:hover {
   min-height: 0;
   overflow: auto;
   padding: 16px 18px 24px;
+}
+
+/* Comparison and Settings are not record views -- no table, no detail peek
+ * -- but they still sit under a `.ws-toolbar` header inside a `.ws-view`
+ * section, so their own scrolling body needs to claim the remaining height. */
+.ws-view > .content {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+/* Toolbar search (record view toolbar; see base-ui.css `.ws-toolbar`). */
+.toolbar-search {
+  flex: 0 1 240px;
+  min-width: 160px;
+}
+
+/* The scenario status filter is chips (`.filter-row`) on desktop and this
+ * native select on phones, where five chips would wrap the toolbar into
+ * several rows. Hidden by default; the phone media query below shows it. */
+.status-select {
+  display: none;
+}
+
+/* `.muted` carries a block top-margin that misaligns as a flex item inside a
+ * toolbar row (e.g. the Comparison page's hint). */
+.ws-actions .muted {
+  margin: 0;
+}
+
+.due-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.due-row:last-child {
+  border-bottom: 0;
+}
+
+.due-row:hover strong {
+  color: var(--accent);
+}
+
+.due-row small {
+  display: block;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.due-meta {
+  display: grid;
+  gap: 4px;
+  justify-items: end;
+}
+
+.empty-inline {
+  padding: 8px 0;
+  color: var(--muted);
 }
 
 .metrics {
@@ -529,21 +589,25 @@ button.danger:hover {
   overflow: auto;
 }
 
-table {
+/* Scoped to `.table-wrap` (the Comparison page's own pivot table) so it
+ * never reaches `.ws-table` (base-ui.css's record-view table): an unscoped
+ * `table { min-width: 900px }` would force a horizontal scrollbar on the
+ * scenario list at phone widths. */
+.table-wrap table {
   width: 100%;
   min-width: 900px;
   border-collapse: collapse;
 }
 
-th,
-td {
+.table-wrap th,
+.table-wrap td {
   padding: 11px 12px;
   border-bottom: 1px solid var(--line);
   text-align: left;
   vertical-align: top;
 }
 
-th {
+.table-wrap th {
   color: var(--muted);
   font-size: var(--text-sm);
   font-weight: 650;
@@ -552,15 +616,15 @@ th {
   background: var(--surface-hover);
 }
 
-tbody tr {
+.table-wrap tbody tr {
   transition: background-color 0.1s ease;
 }
 
-tbody tr:hover {
+.table-wrap tbody tr:hover {
   background: var(--panel-subtle);
 }
 
-tbody tr:last-child td {
+.table-wrap tbody tr:last-child td {
   border-bottom: none;
 }
 
@@ -965,7 +1029,6 @@ dd {
   }
 
   .main {
-    grid-template-rows: auto minmax(0, 1fr);
     height: 100dvh;
   }
 
@@ -1018,10 +1081,6 @@ dd {
     padding: 0;
   }
 
-  .topbar {
-    display: none;
-  }
-
   .content {
     padding: 12px;
   }
@@ -1034,8 +1093,32 @@ dd {
     max-width: 100%;
   }
 
-  table {
+  .table-wrap table {
     min-width: 640px;
+  }
+
+  .ws-actions {
+    flex-wrap: nowrap;
+  }
+
+  #scenarioFilters {
+    display: none;
+  }
+
+  .status-select {
+    display: block;
+    flex: 0 1 38%;
+    min-width: 0;
+  }
+
+  #newScenarioBtn {
+    flex: 0 0 auto;
+    padding: 0 10px;
+  }
+
+  .toolbar-search {
+    flex: 1 1 auto;
+    min-width: 0;
   }
 }
 

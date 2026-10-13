@@ -53,30 +53,36 @@ def test_demo_ui(browser, base_url: str) -> None:
     assert page.locator("#count-blocked").inner_text() == "0"
     assert_no_horizontal_overflow(page)
 
+    # signals/actions/drafts are all `split` (see DETAIL_MODES in app.js): one
+    # ws-table row per record, with the queue beside the detail pane.
     page.goto(f"{base_url}/?demo=signals&lang=en#/signals")
     page.wait_for_load_state("networkidle")
-    assert page.locator(".item-list .item-row").count() == 3
+    assert page.locator("#listPanel .ws-table tbody tr[data-id]").count() == 3
 
     page.goto(f"{base_url}/?demo=actions&lang=en#/actions")
     page.wait_for_load_state("networkidle")
-    assert page.locator(".item-list .item-row").count() == 3
+    assert page.locator("#listPanel .ws-table tbody tr[data-id]").count() == 3
 
     page.goto(f"{base_url}/?demo=drafts&lang=en#/drafts")
     page.wait_for_load_state("networkidle")
-    assert page.locator(".item-list .item-row").count() == 3
+    assert page.locator("#listPanel .ws-table tbody tr[data-id]").count() == 3
 
+    # sources has no detail mode (flat reference list) — a plain full-bleed table.
     page.goto(f"{base_url}/?demo=overview&lang=en#/sources")
     page.wait_for_load_state("networkidle")
-    assert page.locator(".source-row").count() == 3
+    assert page.locator("#sourcesBody .ws-table tbody tr").count() == 3
 
+    # A `/record` path is always a full page: the list hides, the record's
+    # detail markup (same one `?peek=` renders in the split pane) takes over.
     page.goto(f"{base_url}/?demo=detail&lang=en#/signals/signal-1")
     page.wait_for_load_state("networkidle")
-    assert "A market event needs a clear client explanation" in page.locator("#page-title").inner_text()
+    assert page.locator("body.ws-detail-page").count() == 1
+    assert "A market event needs a clear client explanation" in page.locator("#detailBody .queue-subject").inner_text()
     assert page.locator("[data-decision-actions] button[data-action='approve']").is_visible()
 
     page.goto(f"{base_url}/?demo=overview&lang=en#/settings")
     page.wait_for_load_state("networkidle")
-    assert page.locator("#page-title").inner_text() == "Help & Settings"
+    assert page.locator("#settingsTitle").inner_text() == "Help & Settings"
 
     assert not errors, errors
     desktop.close()

@@ -5,6 +5,13 @@ import { copy as c } from "./messages.js";
 import { calendarRange, dayKey, filterRows, mergeRows, monthGrid, safeUrl } from "./model.js";
 import { getRuntime } from "./runtime.js";
 
+// Where each Base opens a record — declared once in config.js `ui.detail_modes`
+// and read from there, not re-decided here. `sources` is a reference fact you
+// scan many of and return to (drawer); `articles` is a workplace you stay in
+// (page). Every mode is still addressable at `#/<base>/<id>` for the full
+// page; only `drawer` additionally opens at `#/<base>?peek=<id>` beside the list.
+const DETAIL_MODES = appConfig.ui.detail_modes;
+
 const root = document.getElementById("app");
 const isDemo = new URLSearchParams(location.search).get("demo") === "1";
 const now = isDemo ? new Date(2026, 8, 29) : new Date();
@@ -49,22 +56,67 @@ const badge = (status) =>
 const verified = (value) =>
   `<span class="verification ${value ? "is-verified" : "is-unverified"}">${icon(value ? "circle-check" : "circle-alert")}${value ? c.verified : c.unverified}</span>`;
 const date = (value) => dayKey(value) || "未排期";
-const route = () => location.hash.slice(2).split("/").filter(Boolean);
-const link = (key, id) => `#/${key}/${encodeURIComponent(id)}`;
-const names = (row) =>
-  row.fields.sources.map(
-    (id) => state.records.sources.find((source) => source.id === id)?.fields.title || "查看关联资料",
-  );
+
+// ── Routing ──────────────────────────────────────────────────────────────
+// `#/<page>[/<id>][?peek=<id>]`. A path id always opens the full page,
+// whatever the Base's declared mode; `?peek=` only applies to a `drawer`
+// (or `split`) Base and leaves the list in place beside it.
+function currentHash() {
+  const raw = location.hash.slice(2);
+  const [path, query = ""] = raw.split("?");
+  const parts = path.split("/").filter(Boolean);
+  return { parts, params: new URLSearchParams(query) };
+}
+function currentRoute() {
+  const { parts, params } = currentHash();
+  const page = parts[0] || "overview";
+  let sub = "";
+  try {
+    sub = parts[1] ? decodeURIComponent(parts[1]) : "";
+  } catch {
+    sub = "";
+  }
+  const peek = params.get("peek") || "";
+  let selectedId = "";
+  let presentation = null;
+  if (page === "sources") {
+    if (sub) {
+      selectedId = sub;
+      presentation = "page";
+    } else if (peek && DETAIL_MODES.sources !== "page") {
+      selectedId = peek;
+      presentation = DETAIL_MODES.sources;
+    }
+  } else if (page === "articles") {
+    if (sub && !["table", "board", "calendar"].includes(sub)) {
+      selectedId = sub;
+      presentation = "page";
+    }
+  }
+  return { page, sub, peek, selectedId, presentation };
+}
+// What a row (or a cross-link) opens: the full page for a `page` Base, a
+// `?peek=` beside the list for `drawer`/`split`.
+const recordUrl = (key, id) =>
+  DETAIL_MODES[key] === "page" ? `#/${key}/${encodeURIComponent(id)}` : `#/${key}?peek=${encodeURIComponent(id)}`;
+// Always the full page, whatever the Base's mode (used by "Open full page").
+const fullPageUrl = (key, id) => `#/${key}/${encodeURIComponent(id)}`;
 const native = (key, view, id) => {
   const url = provider.nativeUrl(key, view, id);
   return url
     ? `<a class="button native-link" href="${h(url)}" target="_blank" rel="noopener">${icon("external-link")}${c.native}</a>`
     : "";
 };
+const names = (row) =>
+  row.fields.sources.map(
+    (id) => state.records.sources.find((source) => source.id === id)?.fields.title || "查看关联资料",
+  );
 const countLabel = (key) => `${state.records[key].length}${state.pages[key]?.nextCursor ? "+" : ""}`;
+const isPartial = (key) => Boolean(state.pages[key]?.nextCursor);
 
 function shell() {
-  const [page = "overview"] = route();
+  const route = currentRoute();
+  const page = route.page;
   const nav = [
     ["overview", "layout-dashboard", c.overview],
     ["sources", "library", c.sources],
@@ -82,22 +134,77 @@ function shell() {
     <main class="main"><div class="mobile-topbar"><button class="icon-button" data-action="sidebar" aria-label="${c.menu}" aria-expanded="${state.mobileOpen}">${icon("panel-left")}</button><strong>${c.brandShort}</strong><a class="icon-button" href="#/settings" aria-label="${c.settings}">${icon("circle-help")}</a></div><div id="workspace" class="workspace"></div></main></div>`;
   document.body.classList.toggle("sidebar-open", state.mobileOpen);
 }
-function heading(title, subtitle, action = "") {
-  return `<header class="page-header"><div><div class="eyebrow">${c.brand}</div><h1>${h(title)}</h1>${subtitle ? `<p>${h(subtitle)}</p>` : ""}</div><div class="header-actions">${action}<button class="icon-button" data-action="refresh" title="${c.refresh}" aria-label="${c.refresh}">${icon("refresh-cw")}</button></div></header>`;
+// Lightweight header for every page that is not Overview: the title (with
+// the long-form description as a tooltip instead of a repeated line) and a
+// count that only shows while a search narrows it (handled by base-ui.css
+// via body.ws-searching). No eyebrow — the app name already lives in the
+// sidebar brand.
+function toolbar(title, hint, countText, actionsHtml) {
+  return `<header class="ws-toolbar"><div class="ws-title"><h1 title="${h(hint)}">${h(title)}</h1><span class="ws-count">${h(countText)}</span></div><div class="ws-actions">${actionsHtml}</div></header>`;
 }
 function filters(key) {
   return `<div class="filterbar"><label class="searchbox">${icon("search")}<input type="search" id="search" placeholder="${c.search}" value="${h(state.filters.query)}" aria-label="搜索已加载记录"></label><select id="topic-filter" aria-label="主题筛选"><option value="">${c.allTopics}</option>${topics.map((topic) => `<option value="${topic.id}" ${state.filters.topic === topic.id ? "selected" : ""}>${topic.name}</option>`).join("")}</select>${key === "articles" ? `<select id="status-filter" aria-label="进度筛选"><option value="">${c.allStatuses}</option>${statuses.map((status) => `<option value="${status.id}" ${state.filters.status === status.id ? "selected" : ""}>${status.name}</option>`).join("")}</select>` : ""}</div>`;
 }
+function refreshButton() {
+  return `<button class="icon-button" data-action="refresh" title="${c.refresh}" aria-label="${c.refresh}">${icon("refresh-cw")}</button>`;
+}
 function loadedNote(key) {
   return `<div class="list-footer"><span>已加载 ${countLabel(key)} 条 · 搜索和筛选作用于已加载记录</span>${state.pages[key]?.nextCursor ? `<button class="button" data-action="more" data-key="${key}" ${state.busy ? "disabled" : ""}>${icon("chevrons-down")}${c.more}</button>` : ""}</div>`;
 }
+function emptyState(iconName, text) {
+  return `<div class="empty-state"><span class="empty-state-icon">${icon(iconName)}</span><strong>${h(text)}</strong></div>`;
+}
+// Compact feed rows for Overview and the review queue — summary context, not
+// the dedicated record view, so they keep a second line instead of a column.
 function articleRows(rows) {
   if (!rows.length) return `<div class="empty">${icon("inbox")}${c.empty}</div>`;
-  return `<div class="table-wrap"><table class="articles-table"><thead><tr><th>文章标题</th><th>进度</th><th>负责人</th><th>计划发布</th><th>关联资料</th></tr></thead><tbody>${rows.map((row) => `<tr><td><a class="row-title" href="${link("articles", row.id)}">${h(row.fields.title)}</a><span class="row-secondary">${h(label(topics, row.fields.topic))}</span></td><td>${badge(row.fields.status)}</td><td>${h(row.fields.owner || "未分配")}</td><td class="nowrap">${date(row.fields.publish_date)}</td><td class="source-names">${h(names(row).join("、") || c.noSource)}</td></tr>`).join("")}</tbody></table></div>`;
+  return `<div class="table-wrap"><table class="articles-table"><thead><tr><th>文章标题</th><th>进度</th><th>负责人</th><th>计划发布</th><th>关联资料</th></tr></thead><tbody>${rows.map((row) => `<tr><td><a class="row-title" href="${recordUrl("articles", row.id)}">${h(row.fields.title)}</a><span class="row-secondary">${h(label(topics, row.fields.topic))}</span></td><td>${badge(row.fields.status)}</td><td>${h(row.fields.owner || "未分配")}</td><td class="nowrap">${date(row.fields.publish_date)}</td><td class="source-names">${h(names(row).join("、") || c.noSource)}</td></tr>`).join("")}</tbody></table></div>`;
 }
 function sourceRows(rows) {
   if (!rows.length) return `<div class="empty">${icon("library")}${c.empty}</div>`;
-  return `<div class="source-list">${rows.map((row) => `<a class="source-row" href="${link("sources", row.id)}"><span class="source-kind">${icon(row.fields.kind === "screenshot" ? "image" : row.fields.kind === "report" ? "file-chart-column" : "file-text")}</span><div><div class="source-top"><strong>${h(row.fields.title)}</strong>${verified(row.fields.verified)}</div><p>${h(row.fields.summary || "暂无摘要")}</p><div class="source-meta"><span>${h(label(kinds, row.fields.kind))}</span><span>${h(label(topics, row.fields.topic))}</span><span>${date(row.fields.source_date)}</span></div></div>${icon("chevron-right")}</a>`).join("")}</div>`;
+  return `<div class="source-list">${rows.map((row) => `<a class="source-row" href="${recordUrl("sources", row.id)}"><span class="source-kind">${icon(row.fields.kind === "screenshot" ? "image" : row.fields.kind === "report" ? "file-chart-column" : "file-text")}</span><div><div class="source-top"><strong>${h(row.fields.title)}</strong>${verified(row.fields.verified)}</div><p>${h(row.fields.summary || "暂无摘要")}</p><div class="source-meta"><span>${h(label(kinds, row.fields.kind))}</span><span>${h(label(topics, row.fields.topic))}</span><span>${date(row.fields.source_date)}</span></div></div>${icon("chevron-right")}</a>`).join("")}</div>`;
+}
+// ── The dedicated record views: one toolbar row over a full-bleed table ──
+function sourcesTable(rows) {
+  if (!rows.length) return emptyState("library", c.empty);
+  return `<table class="ws-table"><thead><tr><th>${h("资料标题")}</th><th class="ws-col-narrow">${h("类型")}</th><th class="ws-col-narrow">${h("主题")}</th><th class="ws-col-narrow">${h("核对")}</th><th class="ws-col-narrow">${h("资料日期")}</th></tr></thead><tbody>${rows
+    .map((row) => {
+      const { peek } = currentRoute();
+      return `<tr data-row-key="${h(row.id)}" data-row-base="sources"${row.id === peek ? ' class="ws-selected"' : ""}><td>${h(row.fields.title)}</td><td>${h(label(kinds, row.fields.kind))}</td><td>${h(label(topics, row.fields.topic))}</td><td>${verified(row.fields.verified)}</td><td>${date(row.fields.source_date)}</td></tr>`;
+    })
+    .join("")}</tbody></table>`;
+}
+function articlesTable(rows) {
+  if (!rows.length) return emptyState("inbox", state.filters.query ? c.empty : c.empty);
+  return `<table class="ws-table"><thead><tr><th>${h("文章标题")}</th><th class="ws-col-narrow">${h("进度")}</th><th class="ws-col-narrow">${h("负责人")}</th><th class="ws-col-narrow">${h("计划发布")}</th><th class="ws-col-wide">${h("关联资料")}</th></tr></thead><tbody>${rows
+    .map(
+      (row) =>
+        `<tr data-row-key="${h(row.id)}" data-row-base="articles"><td>${h(row.fields.title)}</td><td>${badge(row.fields.status)}</td><td>${h(row.fields.owner || "未分配")}</td><td>${date(row.fields.publish_date)}</td><td>${h(names(row).join("、") || c.noSource)}</td></tr>`,
+    )
+    .join("")}</tbody></table>`;
+}
+// Overview owns the hero and the metrics band. Three numbers the sidebar
+// does not already show it (the per-Base totals sit next to each nav item,
+// the attention total sits in the sidebar block) — each one takes a small
+// computation to know, which is the point of putting it here.
+function overviewMetricsBand() {
+  const today = dayKey(now);
+  const monthPrefix = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  const overdue = state.records.articles.filter(
+    (row) => row.fields.status !== "published" && row.fields.publish_date && dayKey(row.fields.publish_date) < today,
+  ).length;
+  const dueThisMonth = state.records.articles.filter(
+    (row) => row.fields.status !== "published" && String(row.fields.publish_date || "").startsWith(monthPrefix),
+  ).length;
+  const noSource = state.records.articles.filter((row) => !row.fields.sources.length).length;
+  const scope = isPartial("articles") ? `（已加载 ${state.records.articles.length} 篇）` : "";
+  return [
+    [`逾期未发布${scope}`, overdue],
+    [`本月待发布${scope}`, dueThisMonth],
+    [`缺关联资料${scope}`, noSource],
+  ]
+    .map(([text, value]) => `<div><span>${h(text)}</span><strong>${value}</strong></div>`)
+    .join("");
 }
 function overview() {
   const planned = state.records.articles
@@ -105,14 +212,14 @@ function overview() {
     .sort((a, b) => String(a.fields.publish_date).localeCompare(String(b.fields.publish_date)))
     .slice(0, 5);
   const review = state.records.articles.filter((row) => row.fields.status === "review").slice(0, 3);
-  return `${heading("工作总览", `${now.getFullYear()} 年 ${now.getMonth() + 1} 月 ${now.getDate()} 日 · 内容与排期`)}<div class="metrics"><a href="#/sources"><span>资料库</span><strong>${state.counts.sources ?? "—"}</strong><small>可复用的内容依据</small></a><a href="#/articles"><span>文章排期</span><strong>${state.counts.articles ?? "—"}</strong><small>从选题到发布</small></a><a href="#/needs-review"><span>草稿待审核</span><strong class="accent-number">${state.counts.review ?? "—"}</strong><small>确认内容和引用</small></a><a href="#/needs-review"><span>资料待核对</span><strong class="warning-number">${state.counts.unverified ?? "—"}</strong><small>确认出处和事实</small></a></div><div class="overview-columns"><section><div class="section-heading"><h2>接下来发布</h2><a href="#/articles/calendar">查看月历${icon("arrow-up-right")}</a></div>${articleRows(planned)}<div class="section-heading"><h2>需要你的审核</h2><a href="#/needs-review">查看全部${icon("arrow-up-right")}</a></div><div class="review-list">${review.length ? review.map((row) => `<a class="review-row" href="${link("articles", row.id)}">${badge(row.fields.status)}<strong>${h(row.fields.title)}</strong><p>${h(row.fields.review_note || "核对草稿与关联资料后再安排发布。")}</p><span>${h(row.fields.owner)} · ${date(row.fields.publish_date)}</span></a>`).join("") : `<div class="empty">没有待审核草稿</div>`}</div></section><aside class="right-column"><div class="section-heading"><h2>文章进度</h2></div><div class="progress-list">${statuses
+  return `<div class="ws-overview"><header class="page-hero"><div><h1>工作总览</h1><p>${h(`${now.getFullYear()} 年 ${now.getMonth() + 1} 月 ${now.getDate()} 日 · 内容与排期`)}</p></div><div class="page-actions">${refreshButton()}</div></header><div class="ws-metrics" aria-label="内容指标">${overviewMetricsBand()}</div><div class="overview-columns"><section><div class="section-heading"><h2>接下来发布</h2><a href="#/articles/calendar">查看月历${icon("arrow-up-right")}</a></div>${articleRows(planned)}<div class="section-heading"><h2>需要你的审核</h2><a href="#/needs-review">查看全部${icon("arrow-up-right")}</a></div><div class="review-list">${review.length ? review.map((row) => `<a class="review-row" href="${recordUrl("articles", row.id)}">${badge(row.fields.status)}<strong>${h(row.fields.title)}</strong><p>${h(row.fields.review_note || "核对草稿与关联资料后再安排发布。")}</p><span>${h(row.fields.owner)} · ${date(row.fields.publish_date)}</span></a>`).join("") : `<div class="empty">没有待审核草稿</div>`}</div></section><aside class="right-column"><div class="section-heading"><h2>文章进度</h2></div><div class="progress-list">${statuses
     .map((status) => {
       const n = state.groups.find((group) => group.value === status.id)?.count || 0;
       return `<a href="#/articles/board">${badge(status.id)}<strong>${n}</strong></a>`;
     })
     .join(
       "",
-    )}</div><div class="section-heading"><h2>最近整理的资料</h2><a href="#/sources">${icon("arrow-up-right")}</a></div>${sourceRows(state.records.sources.slice(0, 3))}</aside></div>`;
+    )}</div><div class="section-heading"><h2>最近整理的资料</h2><a href="#/sources">${icon("arrow-up-right")}</a></div>${sourceRows(state.records.sources.slice(0, 3))}</aside></div></div>`;
 }
 function board(rows) {
   return `<div class="board">${statuses
@@ -123,7 +230,7 @@ function board(rows) {
             .filter((row) => row.fields.status === status.id)
             .map(
               (row) =>
-                `<a class="board-item" href="${link("articles", row.id)}"><span class="topic-label">${h(label(topics, row.fields.topic))}</span><h3>${h(row.fields.title)}</h3><p>${h(row.fields.review_note || row.fields.outline || "")}</p><div class="board-meta"><span>${h(row.fields.owner || "未分配")}</span><span>${date(row.fields.publish_date).slice(5)}</span></div><div class="board-sources">${icon("link")}${row.fields.sources.length} 份资料</div></a>`,
+                `<a class="board-item" href="${recordUrl("articles", row.id)}"><span class="topic-label">${h(label(topics, row.fields.topic))}</span><h3>${h(row.fields.title)}</h3><p>${h(row.fields.review_note || row.fields.outline || "")}</p><div class="board-meta"><span>${h(row.fields.owner || "未分配")}</span><span>${date(row.fields.publish_date).slice(5)}</span></div><div class="board-sources">${icon("link")}${row.fields.sources.length} 份资料</div></a>`,
             )
             .join("") || `<div class="board-empty">暂无已加载文章</div>`
         }</div></section>`,
@@ -140,7 +247,7 @@ function calendar() {
           .filter((row) => dayKey(row.fields.publish_date) === dayKey(day))
           .map(
             (row) =>
-              `<a class="calendar-event status-${h(row.fields.status)}" href="${link("articles", row.id)}"><span class="status-dot"></span>${h(row.fields.title)}</a>`,
+              `<a class="calendar-event status-${h(row.fields.status)}" href="${recordUrl("articles", row.id)}"><span class="status-dot"></span>${h(row.fields.title)}</a>`,
           )
           .join("")}</div>`,
     )
@@ -148,10 +255,14 @@ function calendar() {
       "",
     )}</div><div class="calendar-agenda"><h2>本月排期</h2>${articleRows(rows.filter((row) => new Date(row.fields.publish_date).getMonth() === state.month))}</div><div class="list-footer"><span>当前日历范围共 ${state.calendarTotal} 篇文章</span>${state.calendarPage < state.calendarPages ? `<button class="button" data-action="more-calendar">${c.more}</button>` : ""}</div>`;
 }
-function articles(mode = "table") {
+// Record view: one toolbar row (title, count, mode switch, filters, search)
+// over a full-bleed table/board/calendar. Detail mode is `page` (config.js
+// ui.detail_modes.articles), so the record simply replaces the list — no
+// drawer markup needed here.
+function articlesView(mode) {
   const rows = filterRows(state.records.articles, state.filters);
-  const view = mode === "board" ? "进度看板" : mode === "calendar" ? "发布日历" : "文章列表";
-  return `${heading(c.articles, "选题、写作、审核与发布排期", native("articles", view))}<div class="view-tabs" role="tablist">${[
+  const viewName = mode === "board" ? "进度看板" : mode === "calendar" ? "发布日历" : "文章列表";
+  const modeSwitch = `<div class="view-tabs" role="tablist">${[
     ["table", "table-2", c.table],
     ["board", "columns-3", c.board],
     ["calendar", "calendar-days", c.calendar],
@@ -160,17 +271,38 @@ function articles(mode = "table") {
       ([key, name, title]) =>
         `<a role="tab" aria-selected="${key === mode}" href="#/articles/${key}" class="${key === mode ? "active" : ""}">${icon(name)}${title}</a>`,
     )
-    .join(
-      "",
-    )}</div>${filters("articles")}${mode === "calendar" ? calendar() : mode === "board" ? board(rows) + loadedNote("articles") : articleRows(rows) + loadedNote("articles")}`;
+    .join("")}</div>`;
+  const actions = `${modeSwitch}${filters("articles")}${native("articles", viewName)}${refreshButton()}`;
+  const body =
+    mode === "calendar"
+      ? calendar()
+      : mode === "board"
+        ? board(rows) + loadedNote("articles")
+        : articlesTable(rows) + loadedNote("articles");
+  return `<div class="ws-view">${toolbar(c.articles, "选题、写作、审核与发布排期", `${countLabel("articles")}`, actions)}<div class="ws-workspace"><div class="ws-list">${body}</div></div></div>`;
+}
+// Record view for sources. Detail mode is `drawer` (config.js
+// ui.detail_modes.sources): the list stays visible with the record sliding
+// over its right edge. `?peek=<id>` drives it; `#/sources/<id>` opens the
+// same content as a full page instead.
+function sourcesView(selectedId, presentation) {
+  const rows = filterRows(state.records.sources, state.filters);
+  const actions = `${filters("sources")}${native("sources", "全部资料")}${refreshButton()}`;
+  const detailMarkup =
+    presentation === "drawer"
+      ? `<aside class="ws-detail" aria-live="polite"><div class="ws-detail-bar"><button class="button" type="button" data-action="close-detail">${icon("x")}${c.close}</button><a class="button" href="${fullPageUrl("sources", selectedId)}">${icon("external-link")}${c.openFull}</a></div><div id="detailBody"></div></aside>`
+      : "";
+  return `<div class="ws-view">${toolbar(c.sources, "一份资料，支持多篇文章复用", countLabel("sources"), actions)}<div class="ws-workspace"><div class="ws-list">${sourcesTable(rows)}${loadedNote("sources")}</div>${detailMarkup}</div></div>`;
 }
 function reviewPage() {
-  return `${heading(c.review, "先核对内容依据，再安排发布", native("articles", "待审核"))}<div class="section-heading"><h2>草稿待审核</h2><span>${state.counts.review} 篇</span></div>${articleRows(state.records.articles.filter((row) => row.fields.status === "review"))}${loadedNote("articles")}<div class="section-heading"><h2>资料待核对</h2><span>${state.counts.unverified} 份</span></div>${sourceRows(state.records.sources.filter((row) => !row.fields.verified))}${loadedNote("sources")}`;
+  return `<div class="ws-view">${toolbar(c.review, "先核对内容依据，再安排发布", "", native("articles", "待审核"))}<div class="ws-workspace"><div class="ws-list"><div class="section-heading"><h2>草稿待审核</h2><span>${state.counts.review} 篇</span></div>${articleRows(state.records.articles.filter((row) => row.fields.status === "review"))}${loadedNote("articles")}<div class="section-heading"><h2>资料待核对</h2><span>${state.counts.unverified} 份</span></div>${sourceRows(state.records.sources.filter((row) => !row.fields.verified))}${loadedNote("sources")}</div></div></div>`;
 }
 function prose(text, fallback) {
   return `<div class="prose">${h(text || fallback).replace(/\n/g, "<br>")}</div>`;
 }
-function detail(key, row) {
+// The record detail. Identical markup whatever the presentation (full page,
+// or inside the sources drawer) — only the surrounding chrome differs.
+function detailBody(key, row) {
   const f = row.fields;
   const linked =
     key === "articles"
@@ -187,7 +319,7 @@ function detail(key, row) {
     })
     .join("");
   const imageUrl = f.kind === "screenshot" && /\.(png|jpg|jpeg|webp)(\?|$)/i.test(f.url || "") ? safeUrl(f.url) : "";
-  return `<div class="detail-top"><a class="back-link" href="#/${key}">${icon("arrow-left")}${c.back}</a>${native(key, "", row.id)}</div>${heading(f.title, key === "articles" ? "文章排期 / 文章详情" : "资料库 / 资料详情")}<div class="detail-layout"><article><div class="detail-meta">${key === "articles" ? badge(f.status) : verified(f.verified)}<span>${h(label(topics, f.topic))}</span><span>${key === "articles" ? `${h(f.owner || "未分配")} · ${date(f.publish_date)}` : `${h(label(kinds, f.kind))} · ${date(f.source_date)}`}</span></div>${key === "articles" ? `<section class="detail-section"><h2>审核备注</h2>${prose(f.review_note, "暂无审核备注")}</section><section class="detail-section"><h2>文章提纲</h2>${prose(f.outline, c.noOutline)}</section><section class="detail-section"><h2>文章草稿</h2>${prose(f.draft, c.noDraft)}</section>${safeUrl(f.public_url) ? `<a class="button" href="${h(safeUrl(f.public_url))}" target="_blank" rel="noopener">${icon("external-link")}查看已发布文章</a>` : ""}` : `<section class="detail-section"><h2>资料摘要</h2>${prose(f.summary, "暂无摘要")}</section>${imageUrl ? `<figure class="source-image"><img src="${h(imageUrl)}" alt="${h(f.title)}" loading="lazy"><figcaption>${h(f.title)}</figcaption></figure>` : ""}<section class="detail-section"><h2>检索文字摘录</h2>${prose(f.search_text, "暂无文字摘录")}</section><section class="detail-section"><h2>资料备注</h2>${prose(f.notes, "暂无备注")}</section><div class="attachment-links">${attachmentHtml}${safeUrl(f.url) ? `<a class="button" href="${h(safeUrl(f.url))}" target="_blank" rel="noopener">${icon("external-link")}查看来源</a>` : ""}</div>`}</article><aside class="linked-panel"><h2>${key === "articles" ? c.sourceTitle : "引用这份资料的文章"}</h2><div class="linked-records">${linked.length ? linked.map(({ id, row: related }) => `<a class="linked-record" href="${link(key === "articles" ? "sources" : "articles", id)}">${icon(key === "articles" ? "file-text" : "notebook-pen")}<div><strong>${h(related?.fields.title || "打开关联记录")}</strong><span>${related ? (key === "articles" ? label(kinds, related.fields.kind) : label(statuses, related.fields.status)) : "读取详情"}</span></div>${icon("chevron-right")}</a>`).join("") : `<p class="muted">${key === "articles" ? c.noSource : "尚未被已加载文章引用"}</p>`}</div>${key === "sources" ? `<p class="muted small">引用列表来自已加载文章。</p>` : ""}</aside></div>`;
+  return `<h1 class="detail-heading">${h(f.title)}</h1><div class="detail-layout"><article><div class="detail-meta">${key === "articles" ? badge(f.status) : verified(f.verified)}<span>${h(label(topics, f.topic))}</span><span>${key === "articles" ? `${h(f.owner || "未分配")} · ${date(f.publish_date)}` : `${h(label(kinds, f.kind))} · ${date(f.source_date)}`}</span></div>${key === "articles" ? `<section class="detail-section"><h2>审核备注</h2>${prose(f.review_note, "暂无审核备注")}</section><section class="detail-section"><h2>文章提纲</h2>${prose(f.outline, c.noOutline)}</section><section class="detail-section"><h2>文章草稿</h2>${prose(f.draft, c.noDraft)}</section>${safeUrl(f.public_url) ? `<a class="button" href="${h(safeUrl(f.public_url))}" target="_blank" rel="noopener">${icon("external-link")}查看已发布文章</a>` : ""}` : `<section class="detail-section"><h2>资料摘要</h2>${prose(f.summary, "暂无摘要")}</section>${imageUrl ? `<figure class="source-image"><img src="${h(imageUrl)}" alt="${h(f.title)}" loading="lazy"><figcaption>${h(f.title)}</figcaption></figure>` : ""}<section class="detail-section"><h2>检索文字摘录</h2>${prose(f.search_text, "暂无文字摘录")}</section><section class="detail-section"><h2>资料备注</h2>${prose(f.notes, "暂无备注")}</section><div class="attachment-links">${attachmentHtml}${safeUrl(f.url) ? `<a class="button" href="${h(safeUrl(f.url))}" target="_blank" rel="noopener">${icon("external-link")}查看来源</a>` : ""}</div>`}</article><aside class="linked-panel"><h2>${key === "articles" ? c.sourceTitle : "引用这份资料的文章"}</h2><div class="linked-records">${linked.length ? linked.map(({ id, row: related }) => `<a class="linked-record" href="${recordUrl(key === "articles" ? "sources" : "articles", id)}">${icon(key === "articles" ? "file-text" : "notebook-pen")}<div><strong>${h(related?.fields.title || "打开关联记录")}</strong><span>${related ? (key === "articles" ? label(kinds, related.fields.kind) : label(statuses, related.fields.status)) : "读取详情"}</span></div>${icon("chevron-right")}</a>`).join("") : `<p class="muted">${key === "articles" ? c.noSource : "尚未被已加载文章引用"}</p>`}</div>${key === "sources" ? `<p class="muted small">引用列表来自已加载文章。</p>` : ""}</aside></div>`;
 }
 function stylePanel() {
   const active = document.documentElement.dataset.theme;
@@ -205,19 +337,26 @@ function stylePanel() {
   return `<section class="detail-section"><h2>界面颜色</h2><div class="theme-swatches" role="group" aria-label="颜色系列">${families.map(([id, name]) => `<button class="theme-swatch" data-action="theme" data-family="${id}" style="--swatch-paper:${h(palettes.get(id).paper)};--swatch-accent:${h(palettes.get(id).accent)}" title="${name}" aria-label="${name}" aria-pressed="${id === active}">${id === active ? icon("circle-check") : ""}</button>`).join("")}</div><p class="theme-note">明暗外观跟随系统。颜色选择仅用于本次预览。</p></section>`;
 }
 function settings() {
-  return `${heading(c.settings, "确认当前工作台与数据位置")}${stylePanel()}<dl class="settings-list"><div><dt>工作台</dt><dd>${c.brand}</dd></div><div><dt>当前模式</dt><dd>${isDemo ? c.demo : c.live}</dd></div><div><dt>目录</dt><dd>${h(state.resources?.folder?.name || c.brand)}</dd></div>${state.resources?.folder?.spaceId ? `<div><dt>空间</dt><dd>${h(state.resources.folder.spaceId)}</dd></div>` : ""}<div><dt>资料库</dt><dd>${native("sources", "全部资料") || "演示资料"}</dd></div><div><dt>文章排期</dt><dd>${native("articles", "文章列表") || "演示文章"}</dd></div></dl><section class="detail-section"><h2>工作方式</h2><p>资料库维护一份资料，文章通过关联复用。文章提纲、草稿、审核备注和发布日期都保存在文章排期中。</p><p>需要修改时，在 Busabase 原生表格或看板中提交修改，也可以让 Agent 按同目录 Skill 整理资料、起草文章或更新排期。对外发布需要单独确认。</p></section>${!isDemo ? `<button class="button" data-action="disconnect">${icon("log-out")}断开本地连接</button>` : ""}`;
+  return `<div class="ws-view">${toolbar(c.settings, "确认当前工作台与数据位置", "", "")}<div class="ws-workspace"><div class="ws-list">${stylePanel()}<dl class="settings-list"><div><dt>工作台</dt><dd>${c.brand}</dd></div><div><dt>当前模式</dt><dd>${isDemo ? c.demo : c.live}</dd></div><div><dt>目录</dt><dd>${h(state.resources?.folder?.name || c.brand)}</dd></div>${state.resources?.folder?.spaceId ? `<div><dt>空间</dt><dd>${h(state.resources.folder.spaceId)}</dd></div>` : ""}<div><dt>资料库</dt><dd>${native("sources", "全部资料") || "演示资料"}</dd></div><div><dt>文章排期</dt><dd>${native("articles", "文章列表") || "演示文章"}</dd></div></dl><section class="detail-section"><h2>工作方式</h2><p>资料库维护一份资料，文章通过关联复用。文章提纲、草稿、审核备注和发布日期都保存在文章排期中。</p><p>需要修改时，在 Busabase 原生表格或看板中提交修改，也可以让 Agent 按同目录 Skill 整理资料、起草文章或更新排期。对外发布需要单独确认。</p></section>${!isDemo ? `<button class="button" data-action="disconnect">${icon("log-out")}断开本地连接</button>` : ""}</div></div></div>`;
 }
 async function render() {
   const token = ++generation;
-  const [page = "overview", sub] = route();
+  const route = currentRoute();
+  const { page, selectedId, presentation } = route;
   shell();
   const workspace = document.getElementById("workspace");
-  if (["articles", "sources"].includes(page) && sub && !["table", "board", "calendar"].includes(sub)) {
-    const id = decodeURIComponent(sub);
-    let row = state.records[page].find((record) => record.id === id);
+  const recordView = page === "sources" || page === "articles";
+  const body = document.body.classList;
+  body.toggle("ws-detail-open", recordView && Boolean(selectedId));
+  body.toggle("ws-detail-page", recordView && presentation === "page" && Boolean(selectedId));
+  body.toggle("ws-detail-drawer", recordView && presentation === "drawer");
+  body.toggle("ws-searching", recordView && Boolean(state.filters.query));
+
+  if (recordView && presentation === "page" && selectedId) {
     workspace.innerHTML = `<div class="loading">${c.loading}</div>`;
     try {
-      row ||= await provider.detail(page, id);
+      let row = state.records[page].find((record) => record.id === selectedId);
+      row ||= await provider.detail(page, selectedId);
       if (page === "articles" && row) {
         const missing = row.fields.sources.filter(
           (sourceId) => !state.records.sources.some((source) => source.id === sourceId),
@@ -227,26 +366,49 @@ async function render() {
         state.records.sources = mergeRows(state.records.sources, results.filter(Boolean));
       }
       if (token !== generation) return;
-      workspace.innerHTML = row
-        ? detail(page, row)
-        : `<div class="empty">没有找到这条记录。<a href="#/${page}">返回列表</a></div>`;
+      const bar = `<div class="ws-detail-bar"><a class="button" href="#/${page}">${icon("arrow-left")}${c.back}</a>${native(page, "", selectedId)}</div>`;
+      workspace.innerHTML = `<div class="ws-view"><div class="ws-detail">${bar}${
+        row
+          ? detailBody(page, row)
+          : `<div class="empty-state"><strong>${c.recordMissing}</strong><p>${c.recordMissingHint}</p><a class="button" href="#/${page}">${c.back}</a></div>`
+      }</div></div>`;
     } catch {
       if (token === generation)
-        workspace.innerHTML = `<div class="empty">无法读取这条记录，请检查权限。<a href="#/${page}">返回列表</a></div>`;
+        workspace.innerHTML = `<div class="ws-view"><div class="ws-detail"><div class="empty-state"><strong>无法读取这条记录</strong><p>请检查权限。</p><a class="button" href="#/${page}">${c.back}</a></div></div></div>`;
     }
-  } else {
-    workspace.innerHTML =
-      page === "sources"
-        ? `${heading(c.sources, "一份资料，支持多篇文章复用", native("sources", "全部资料"))}${filters("sources")}${sourceRows(filterRows(state.records.sources, state.filters))}${loadedNote("sources")}`
-        : page === "articles"
-          ? articles(sub || "table")
-          : page === "needs-review"
-            ? reviewPage()
-            : page === "settings"
-              ? settings()
-              : overview();
+    createIcons({ icons });
+    return;
   }
+
+  workspace.innerHTML =
+    page === "sources"
+      ? sourcesView(selectedId, presentation)
+      : page === "articles"
+        ? articlesView(route.sub || "table")
+        : page === "needs-review"
+          ? reviewPage()
+          : page === "settings"
+            ? settings()
+            : overview();
   createIcons({ icons });
+
+  if (recordView && presentation === "drawer" && selectedId) {
+    const detailEl = document.getElementById("detailBody");
+    if (detailEl) detailEl.innerHTML = `<div class="loading">${c.loading}</div>`;
+    try {
+      let row = state.records[page].find((record) => record.id === selectedId);
+      row ||= await provider.detail(page, selectedId);
+      if (token !== generation) return;
+      if (detailEl)
+        detailEl.innerHTML = row
+          ? detailBody(page, row)
+          : `<div class="empty-state"><strong>${c.recordMissing}</strong><p>${c.recordMissingHint}</p></div>`;
+      createIcons({ icons });
+    } catch {
+      if (token === generation && detailEl)
+        detailEl.innerHTML = `<div class="empty-state"><strong>无法读取这条记录</strong><p>请检查权限。</p></div>`;
+    }
+  }
 }
 
 async function loadCalendar(append = false) {
@@ -261,7 +423,7 @@ async function refresh() {
   const data = await provider.load();
   Object.assign(state, data);
   state.resources = provider.resources;
-  if (route()[1] === "calendar") await loadCalendar();
+  if (currentRoute().sub === "calendar") await loadCalendar();
   await render();
 }
 function errorScreen(error) {
@@ -291,7 +453,11 @@ async function init() {
 }
 root.addEventListener("click", async (event) => {
   const action = event.target.closest("[data-action]")?.dataset.action;
-  if (!action) return;
+  if (!action) {
+    const row = event.target.closest("tr[data-row-key]");
+    if (row && !event.target.closest("a, button")) location.hash = recordUrl(row.dataset.rowBase, row.dataset.rowKey);
+    return;
+  }
   if (action === "sidebar") {
     if (matchMedia("(max-width: 720px)").matches) state.mobileOpen = !state.mobileOpen;
     else state.collapsed = !state.collapsed;
@@ -301,6 +467,10 @@ root.addEventListener("click", async (event) => {
   if (action === "close-sidebar") {
     state.mobileOpen = false;
     await render();
+    return;
+  }
+  if (action === "close-detail") {
+    location.hash = `#/${currentRoute().page}`;
     return;
   }
   if (action === "retry") {
@@ -365,20 +535,24 @@ window.addEventListener("hashchange", async () => {
   state.mobileOpen = false;
   state.filters = { query: "", topic: "", status: "" };
   try {
-    if (provider && route()[1] === "calendar") await loadCalendar();
+    if (provider && currentRoute().sub === "calendar") await loadCalendar();
     if (provider) await render();
   } catch (error) {
     errorScreen(error);
   }
 });
 window.addEventListener("keydown", (event) => {
-  if (event.key === "Escape" && state.mobileOpen) {
+  if (event.key !== "Escape") return;
+  if (state.mobileOpen) {
     state.mobileOpen = false;
     render();
+    return;
   }
+  const route = currentRoute();
+  if (route.presentation === "drawer") location.hash = `#/${route.page}`;
 });
 matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
-  if (provider && route()[0] === "settings") render();
+  if (provider && currentRoute().page === "settings") render();
 });
 setInterval(() => {
   if (

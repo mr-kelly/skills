@@ -70,6 +70,12 @@ export const messages = {
     decisionSaving: "Saving…",
     decisionSaved: "Saved",
     decisionError: "Could not save decision",
+    selectItem: "Select an item to review it here",
+    noMatches: "No matches",
+    notLoaded: "not on the loaded page",
+    recordMissing: "This record is not on the loaded page",
+    close: "Close",
+    openFullPage: "Open full page",
     enum: {
       status: {
         needs_review: "needs review",
@@ -148,6 +154,12 @@ export const messages = {
     decisionSaving: "保存中…",
     decisionSaved: "已保存",
     decisionError: "无法保存决定",
+    selectItem: "选择一项以在此查看详情",
+    noMatches: "没有匹配结果",
+    notLoaded: "不在已加载的页面中",
+    recordMissing: "该记录不在已加载的页面中",
+    close: "关闭",
+    openFullPage: "在整页中打开",
     enum: {
       status: {
         needs_review: "待处理",

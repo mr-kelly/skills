@@ -27,8 +27,15 @@
   box-sizing: border-box;
 }
 
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+}
+
 body {
   margin: 0;
+  min-height: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   font-size: var(--text-md);
   line-height: 1.5;
@@ -43,10 +50,20 @@ a {
   text-decoration: none;
 }
 
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
 .app-shell {
   display: grid;
-  grid-template-columns: var(--sidebar-w) 1fr;
-  min-height: 100vh;
+  grid-template-columns: var(--sidebar-w) minmax(0, 1fr);
+  height: 100vh;
+  min-height: 0;
+  overflow: hidden;
 }
 
 /* ---- Sidebar ---- */
@@ -240,105 +257,40 @@ body.sidebar-collapsed .sidebar-footer label {
   display: flex;
   flex-direction: column;
   min-width: 0;
+  min-height: 0;
+  overflow: hidden;
 }
 .mobile-topbar {
   display: none;
 }
 
-.topbar {
+.load-state {
   display: flex;
+  flex: 1 1 auto;
   align-items: center;
-  justify-content: space-between;
-  padding: 18px 28px;
-  border-bottom: 1px solid var(--border);
-  background: var(--surface);
+  justify-content: center;
+  color: var(--muted);
+  font-size: var(--text-base);
 }
-.topbar h1 {
-  margin: 0;
-  font-size: var(--text-xl);
-  font-weight: 650;
-  letter-spacing: -0.01em;
+.load-state.error {
+  color: var(--danger);
 }
+
 .muted {
   color: var(--muted);
   font-size: var(--text-sm);
   margin: 3px 0 0;
 }
-.topbar-actions {
-  display: flex;
-  gap: 8px;
-}
-.topbar-actions button,
+
 .form-actions button,
 .detail-actions button {
-  border: 1px solid var(--border);
-  background: var(--surface);
-  border-radius: var(--radius-sm);
-  padding: 7px 13px;
-  font-size: var(--text-base);
-  font-weight: 500;
-  color: var(--text-soft);
   cursor: pointer;
-  transition: background-color .12s ease, border-color .12s ease;
-}
-.topbar-actions button:hover,
-.detail-actions button:hover {
-  background: var(--bg);
-  border-color: var(--muted-soft);
-}
-button.primary {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: var(--accent-contrast);
-  font-weight: 600;
-}
-button.primary:hover {
-  background: var(--accent-strong);
-  border-color: var(--accent-strong);
 }
 
-.content {
-  padding: 22px 28px 32px;
-  overflow-y: auto;
-}
+/* The overview hero's own Refresh button and the "New agent" toolbar action
+ * are styled by base-ui.css's shared `.button` / `.button.primary`. */
 
-/* ---- Metrics / overview ---- */
-
-.metrics {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px;
-  margin-bottom: 20px;
-}
-.metric {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 14px 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  box-shadow: var(--shadow-sm);
-}
-.metric span {
-  font-size: var(--text-sm);
-  font-weight: 600;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: .04em;
-}
-.metric strong {
-  font-size: var(--text-2xl);
-  font-weight: 650;
-  letter-spacing: -0.01em;
-}
-.metric small {
-  color: var(--muted-soft);
-  font-size: var(--text-xs);
-}
-.metric strong.negative {
-  color: var(--danger);
-}
+/* ---- Overview ---- */
 
 .overview-panel {
   background: var(--surface);
@@ -346,6 +298,9 @@ button.primary:hover {
   border-radius: var(--radius);
   padding: 16px 18px;
   box-shadow: var(--shadow-sm);
+}
+.overview-panel.wide {
+  grid-column: 1 / -1;
 }
 .overview-panel h2 {
   margin: 0 0 12px;
@@ -508,56 +463,21 @@ button.primary:hover {
   margin: 10px 0 4px;
 }
 
-/* ---- Table ---- */
+/* ---- Table (shape/sizing from base-ui.css's `.ws-table`; only the
+ * sort-header affordance and column alignment below are this app's own) ---- */
 
-.table-wrap {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  overflow: hidden;
-  box-shadow: var(--shadow-sm);
-}
-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: var(--text-base);
-}
-th,
-td {
-  padding: 11px 16px;
-  text-align: left;
-  border-bottom: 1px solid var(--border-soft);
-}
-th {
-  font-size: var(--text-xs);
-  font-weight: 650;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: .04em;
-  background: var(--bg);
-  border-bottom: 1px solid var(--border);
-}
-th.sortable {
+.ws-table th.sortable {
   cursor: pointer;
   user-select: none;
 }
-th.sortable:hover {
+.ws-table th.sortable:hover {
   color: var(--text-soft);
 }
-th.active {
+.ws-table th.active {
   color: var(--accent-strong);
 }
-td.num {
+.ws-table td.num {
   text-align: right;
-}
-tbody tr {
-  transition: background-color .1s ease;
-}
-tbody tr:hover {
-  background: var(--bg);
-}
-tr:last-child td {
-  border-bottom: none;
 }
 .strong {
   font-weight: 600;
@@ -568,20 +488,21 @@ tr:last-child td {
 
 .detail {
   display: grid;
-  grid-template-columns: 1fr 288px;
+  grid-template-columns: minmax(0, 1fr) 288px;
   gap: 20px;
   align-items: start;
 }
-.back-link {
-  display: inline-flex;
-  align-items: center;
-  margin-bottom: 14px;
-  color: var(--muted);
-  font-size: var(--text-base);
-  font-weight: 500;
+.detail-head {
+  margin-bottom: 4px;
 }
-.back-link:hover {
-  color: var(--text-soft);
+.detail-head h2 {
+  margin: 0;
+  font-size: var(--text-xl);
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+.detail-head p {
+  margin: 4px 0 0;
 }
 .agent-form {
   background: var(--surface);
@@ -673,16 +594,6 @@ tr:last-child td {
   margin-top: 2px;
   padding-top: 14px;
 }
-.form-actions .action {
-  padding: 7px 12px;
-  border-radius: var(--radius-sm);
-  font-size: var(--text-base);
-  font-weight: 500;
-  color: var(--muted);
-}
-.form-actions .action:hover {
-  background: var(--bg);
-}
 
 .detail-side {
   background: var(--surface);
@@ -723,6 +634,12 @@ tr:last-child td {
   border-top: 1px solid var(--border-soft);
 }
 
+.settings-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 22px 28px 32px;
+  overflow: auto;
+}
 .settings section {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -772,9 +689,6 @@ tr:last-child td {
   .sidebar-scrim[hidden] {
     display: none;
   }
-  .topbar {
-    display: none;
-  }
   .mobile-topbar {
     display: flex;
     align-items: center;
@@ -807,36 +721,14 @@ tr:last-child td {
     font-size: var(--text-sm);
     color: var(--muted);
   }
-  .content {
+  .settings-scroll {
     padding: 14px;
-  }
-  .metrics {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .detail {
     grid-template-columns: 1fr;
   }
   .tool-checklist {
     grid-template-columns: 1fr;
-  }
-  table,
-  thead,
-  tbody,
-  th,
-  td,
-  tr {
-    display: block;
-  }
-  thead {
-    display: none;
-  }
-  tbody tr {
-    border-bottom: 1px solid var(--border);
-    padding: 8px 12px;
-  }
-  tbody td {
-    border: none;
-    padding: 3px 0;
   }
 }
 .pager {

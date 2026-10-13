@@ -9,6 +9,7 @@ import {
   normalizeAction,
   normalizeDraft,
   normalizeSignal,
+  normalizeSource,
   parseBatchMeta,
   statusForAction,
 } from "../real-estate-model.js?v=0.1.0";
@@ -67,6 +68,17 @@ function base(key) {
   if (!declared) throw new Error(`SETUP_REQUIRED: ${key}`);
   return declared;
 }
+
+// The business-id field each browsable Base is addressed by in the URL
+// (`#/signals/<id>`, `?peek=<id>`), and the normalizer that turns its raw
+// Busabase fields back into the item shape the UI renders.
+const ID_FIELD_SLUG = { signals: "signal-id", actions: "action-id", drafts: "draft-id", sources: "source-id" };
+const NORMALIZE_BY_KEY = {
+  signals: normalizeSignal,
+  actions: normalizeAction,
+  drafts: normalizeDraft,
+  sources: normalizeSource,
+};
 
 async function readPage(key, cursor) {
   if (!allowedReads.has("records.list")) throw new Error("PROCEDURE_DENIED: records.list");
@@ -200,8 +212,23 @@ export const busabaseProvider = {
   async fetchPage(key, cursor) {
     await ensureResources();
     const page = await readPage(key, cursor);
-    const normalize = { signals: normalizeSignal, actions: normalizeAction, drafts: normalizeDraft }[key];
+    const normalize = NORMALIZE_BY_KEY[key];
     return { ...page, rows: normalize ? page.rows.map(normalize) : page.rows };
+  },
+
+  // A record named by the URL (a shared `?peek=` link, or a reload that
+  // lands on `/<id>` of a record not on the loaded page) that is not on the
+  // loaded page: a single records.get, never a scan for it.
+  async getRecord(key, businessId) {
+    if (!allowedReads.has("records.get") || !ID_FIELD_SLUG[key]) return null;
+    await ensureResources();
+    const record = await findRecord(key, ID_FIELD_SLUG[key], businessId);
+    if (!record) return null;
+    const fields = normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields);
+    const normalize = NORMALIZE_BY_KEY[key];
+    return normalize
+      ? normalize({ ...fields, __recordId: record.id, __headCommitId: record.headCommitId || record.headCommit?.id })
+      : fields;
   },
 
   // Human verdict on a signal/action/draft (approve/request_changes/block,

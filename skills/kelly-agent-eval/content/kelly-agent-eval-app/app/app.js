@@ -3,7 +3,23 @@ import { appConfig } from "./js/config.js?v=0.1.0";
 import { closeConnectGate, passConnectGate, renderSetupRequired } from "./js/connect-gate.js?v=0.1.0";
 import { getProvider } from "./js/providers/index.js?v=0.1.0";
 
-const state = {
+// Where a record opens, per view. Both views read the same `cases` Base —
+// the choice is about the task, not the data:
+//   regressions → split: the review queue is worked top to bottom, one
+//                         draft after the next, so the queue stays beside
+//                         the record.
+//   cases       → page:  the full suite is browsed and dived into — the
+//                         rubric bars + side-by-side transcript diff are
+//                         long enough content that a reader stays a while.
+// A `/record` path always opens the full page; `?peek=` drives the split.
+// On a phone every mode is a page (base-ui.css handles that).
+// Declared once, in config.js `ui.detail_modes`.
+export const DETAIL_MODES = appConfig.ui.detail_modes;
+const RECORD_VIEWS = Object.keys(DETAIL_MODES);
+const RUBRIC_KEYS = ["helpfulness", "correctness", "safety", "tone"];
+const STATUS_VALUES = ["all", "needs_review", "blocking", "acceptable"];
+
+export const state = {
   pageCursors: {},
   currentPage: {},
   pageLoading: {},
@@ -11,10 +27,10 @@ const state = {
   run: null,
   release: null,
   settings: null,
+  provider: null,
+  // Cases opened by URL that are not on the loaded page (records.get).
+  extraCases: new Map(),
   route: parseRoute(),
-  query: "",
-  category: "",
-  statusFilter: "all",
   lang: normalizeLang(
     new URLSearchParams(location.search).get("lang") || localStorage.getItem("kelly-agent-eval-language") || "auto",
   ),
@@ -22,26 +38,35 @@ const state = {
 };
 
 const SIDEBAR_COLLAPSED_STORAGE_KEY = "kelly-agent-eval.sidebarCollapsed";
-const RUBRIC_KEYS = ["helpfulness", "correctness", "safety", "tone"];
 
+const byId = (id) => document.getElementById(id);
 const els = {
-  title: document.querySelector("#page-title"),
-  subtitle: document.querySelector("#page-subtitle"),
-  content: document.querySelector("#content"),
-  search: document.querySelector("#search"),
-  refresh: document.querySelector("#refresh"),
-  mobileRefresh: document.querySelector("#mobileRefresh"),
-  sidebarToggle: document.querySelector("#sidebarToggle"),
-  mobileSidebarToggle: document.querySelector("#mobileSidebarToggle"),
-  sidebarScrim: document.querySelector("#sidebarScrim"),
-  mobileViewTitle: document.querySelector("#mobileViewTitle"),
-  mobileViewMeta: document.querySelector("#mobileViewMeta"),
-  syncStatus: document.querySelector("#sync-status"),
-  regressionFigure: document.querySelector("#regression-figure"),
-  pendingReviewLine: document.querySelector("#pending-review-line"),
-  countBlocking: document.querySelector("#count-blocking"),
-  countRelease: document.querySelector("#count-release"),
-  language: document.querySelector("#language"),
+  loadState: byId("loadState"),
+  lockBanner: byId("lockBanner"),
+  overviewPage: byId("overviewPage"),
+  viewPage: byId("viewPage"),
+  settingsPage: byId("settingsPage"),
+  viewTitle: byId("viewTitle"),
+  viewCount: byId("viewCount"),
+  viewFilters: byId("viewFilters"),
+  listPanel: byId("listPanel"),
+  detailPanel: byId("detailPanel"),
+  detailBody: byId("detailBody"),
+  detailBack: byId("detailBack"),
+  detailExpand: byId("detailExpand"),
+  search: byId("search"),
+  refresh: byId("refresh"),
+  mobileRefresh: byId("mobileRefresh"),
+  sidebarToggle: byId("sidebarToggle"),
+  mobileSidebarToggle: byId("mobileSidebarToggle"),
+  sidebarScrim: byId("sidebarScrim"),
+  mobileViewTitle: byId("mobileViewTitle"),
+  mobileViewMeta: byId("mobileViewMeta"),
+  syncStatus: byId("sync-status"),
+  pendingReviewFigure: byId("pending-review-figure"),
+  countBlocking: byId("count-blocking"),
+  countRelease: byId("count-release"),
+  language: byId("language"),
 };
 
 function isMobileLayout() {
@@ -105,20 +130,98 @@ function num1(value) {
   );
 }
 
+// ── Routing ────────────────────────────────────────────────────────────────
+// `#/<view>[/<record>][?q=…&category=…&status=…&peek=…]`. Search and the
+// regression status filter live in the URL so refresh, shared links and Back
+// restore the same list context.
 function parseRoute() {
-  const parts = (location.hash || "#/overview").replace(/^#\/?/, "").split("?")[0].split("/").filter(Boolean);
-  const query = new URLSearchParams(location.hash.split("?")[1] || "");
-  return { view: parts[0] || "overview", id: parts[1] ? decodeURIComponent(parts[1]) : "", query };
+  const raw = (location.hash || "#/overview").replace(/^#\/?/, "");
+  const [path, query = ""] = raw.split("?");
+  const parts = path.split("/").filter(Boolean);
+  const params = new URLSearchParams(query);
+  let view = parts[0] || "overview";
+  let id = "";
+  try {
+    id = parts[1] ? decodeURIComponent(parts[1]) : "";
+  } catch {
+    id = "";
+  }
+  if (!RECORD_VIEWS.includes(view) && view !== "settings") view = "overview";
+  const mode = DETAIL_MODES[view];
+  const peek = mode && mode !== "page" && !id ? params.get("peek") || "" : "";
+  const status = params.get("status") || "all";
+  return {
+    view,
+    id,
+    peek,
+    selectedId: mode ? id || peek : "",
+    presentation: !mode ? null : id ? "page" : mode === "page" ? null : mode,
+    query: params.get("q") || "",
+    category: params.get("category") || "",
+    status: STATUS_VALUES.includes(status) ? status : "all",
+  };
 }
 
+const routeQuery = (extra = {}, route = state.route) => {
+  const params = new URLSearchParams();
+  if (route.query) params.set("q", route.query);
+  if (route.view === "cases" && route.category) params.set("category", route.category);
+  if (route.view === "regressions" && route.status && route.status !== "all") params.set("status", route.status);
+  for (const [key, value] of Object.entries(extra)) if (value) params.set(key, value);
+  const text = params.toString();
+  return text ? `?${text}` : "";
+};
+
+const listUrl = (route = state.route) => `#/${route.view}${routeQuery({}, route)}`;
+// The full page: the record in the path. Always a page, whatever the view's mode.
+const detailUrl = (id, view = state.route.view) => {
+  const route = view === state.route.view ? state.route : { view, query: state.route.query, status: "all", category: "" };
+  return `#/${view}/${encodeURIComponent(id)}${routeQuery({}, route)}`;
+};
+// What a row (or a cross-link) opens: the page for a `page` view, else `?peek=`.
+const recordUrl = (id, view = state.route.view) => {
+  if (DETAIL_MODES[view] === "page") return detailUrl(id, view);
+  const route = view === state.route.view ? state.route : { view, query: state.route.query, status: "all", category: "" };
+  return `#/${view}${routeQuery({ peek: id }, route)}`;
+};
+
+let previousRouteWasList = false;
+let routeSerial = 0;
+
 function setRoute() {
+  const previous = state.route;
   state.route = parseRoute();
-  if (state.route.query.get("status")) state.statusFilter = state.route.query.get("status");
+  // Mark a detail entry opened from its list so Back/Close/Escape step back to
+  // that exact list entry instead of pushing a new one.
+  if (state.route.selectedId && previousRouteWasList && previous.view === state.route.view) {
+    history.replaceState({ fromList: true }, "");
+  }
+  previousRouteWasList = RECORD_VIEWS.includes(state.route.view) && !state.route.selectedId;
+  if (els.search) els.search.value = state.route.query;
+  setMobileSidebarOpen(false);
+  render();
+  ensureSelectedRecord();
+}
+
+// Replace the current entry without a hashchange: search keystrokes and
+// filter clicks should not each become a Back step.
+function replaceRoute(url) {
+  history.replaceState(history.state, "", url);
+  const previousWasList = previousRouteWasList;
+  state.route = parseRoute();
+  previousRouteWasList = previousWasList;
   render();
 }
 
+function closeDetail() {
+  if (history.state?.fromList) history.back();
+  else location.hash = listUrl();
+}
+
+// ── Data ───────────────────────────────────────────────────────────────────
 async function loadState() {
   const provider = await getProvider();
+  state.provider = provider;
   const data = await provider.getState();
   state.pageCursors = {};
   state.currentPage = {};
@@ -132,8 +235,10 @@ async function loadState() {
   state.run = data.run;
   state.release = data.release_decision;
   state.settings = data;
+  state.extraCases = new Map();
   window.dispatchEvent(new CustomEvent("kelly-agent-eval:state", { detail: data }));
   render();
+  ensureSelectedRecord();
 }
 
 async function submitReview(id, action, note) {
@@ -148,6 +253,89 @@ async function submitReleaseDecision(decision, note) {
   await loadState();
 }
 
+// The configured page size for the paginated `cases` Base, straight from config.js.
+function pageSize(key) {
+  return appConfig.bases.find((entry) => entry.key === key)?.readLimit || 50;
+}
+
+function pageCount(key) {
+  const total = state.totals?.[key];
+  return total == null ? null : Math.max(1, Math.ceil(total / pageSize(key)));
+}
+
+function isPartial(key) {
+  const total = state.totals?.[key];
+  if (total == null) return false;
+  return (state.run?.cases || []).length < total;
+}
+
+function replacePageRows(path, rows) {
+  const parts = path.split(".");
+  let target = state;
+  for (const part of parts.slice(0, -1)) {
+    target = target?.[part];
+    if (!target) return;
+  }
+  target[parts.at(-1)] = rows;
+}
+
+async function goToPage(key, targetPage) {
+  if (state.pageLoading[key] || !state.pageCursors[key]) return;
+  const totalPages = pageCount(key);
+  const page = totalPages == null ? Math.max(1, targetPage) : Math.min(Math.max(1, targetPage), totalPages);
+  if (page === state.currentPage[key]) return;
+  state.pageLoading[key] = true;
+  render();
+  try {
+    const provider = await getProvider();
+    let result;
+    for (let next = state.pageCursors[key].length; next <= page; next += 1) {
+      const cursor = state.pageCursors[key][next - 1];
+      if (next > 1 && !cursor) return;
+      result = await provider.fetchPage(key, cursor);
+      state.pageCursors[key][next] = result.nextCursor;
+    }
+    if (!result || state.pageCursors[key].length > page + 1) {
+      result = await provider.fetchPage(key, state.pageCursors[key][page - 1]);
+      state.pageCursors[key][page] = result.nextCursor;
+    }
+    replacePageRows("run.cases", result.rows);
+    state.currentPage[key] = page;
+  } finally {
+    state.pageLoading[key] = false;
+    render();
+  }
+}
+
+// A case named by the URL (`?peek=` or a `/record` path) but not on the
+// loaded page is read on its own (records.get) instead of loading more pages.
+async function ensureSelectedRecord() {
+  const { selectedId } = state.route;
+  if (!state.run || !selectedId) return;
+  if ((state.run.cases || []).some((item) => item.id === selectedId) || state.extraCases.has(selectedId)) return;
+  const provider = state.provider;
+  if (typeof provider?.getRecord !== "function") {
+    state.extraCases.set(selectedId, null);
+    render();
+    return;
+  }
+  const serial = ++routeSerial;
+  state.extraCases.set(selectedId, undefined);
+  try {
+    const row = await provider.getRecord(selectedId);
+    state.extraCases.set(selectedId, row || null);
+  } catch {
+    state.extraCases.set(selectedId, null);
+  }
+  if (serial === routeSerial) render();
+}
+
+function caseById(id) {
+  if (!id) return null;
+  return (state.run?.cases || []).find((item) => item.id === id) || state.extraCases.get(id) || null;
+}
+
+// ── Shell / shared helpers ───────────────────────────────────────────────
 function applyI18n() {
   document.documentElement.lang = activeLang() === "zh" ? "zh-CN" : "en";
   document.querySelectorAll("[data-i18n]").forEach((node) => {
@@ -158,9 +346,9 @@ function applyI18n() {
   for (const option of els.language.options) {
     option.textContent = languageLabels[option.value] || option.textContent;
   }
-  els.search.placeholder = t("search");
-  els.refresh.textContent = t("refresh");
+  if (els.search) els.search.placeholder = t("search");
   if (els.mobileRefresh) els.mobileRefresh.title = t("refresh");
+  if (els.detailExpand) els.detailExpand.textContent = t("openFullPage");
 }
 
 function isConnected() {
@@ -187,32 +375,11 @@ function statusBadge(item) {
   return `<span class="badge badge-dot ${status}"><span class="badge-dot-mark" aria-hidden="true"></span>${escapeHtml(label)}</span>`;
 }
 
-function renderShell() {
-  applyI18n();
-  const run = state.run;
-  const metrics = run?.metrics || {};
-  const connected = isConnected();
-  els.syncStatus.textContent = connected
-    ? run?.generated_at
-      ? `${t("generated")} ${new Date(run.generated_at).toLocaleString()}`
-      : t("synced")
-    : t("needsRun");
-  if (els.regressionFigure) els.regressionFigure.textContent = metrics.regressions ?? 0;
-  if (els.pendingReviewLine) els.pendingReviewLine.textContent = String(metrics.pending_review ?? 0);
-  if (els.countBlocking) els.countBlocking.textContent = metrics.blocking ?? 0;
-  if (els.countRelease) {
-    els.countRelease.textContent = state.release?.decision ? (state.release.decision === "approve" ? "✓" : "✕") : "—";
-  }
-  if (els.mobileViewTitle) els.mobileViewTitle.textContent = viewLabel(state.route.view);
-  if (els.mobileViewMeta) {
-    els.mobileViewMeta.textContent = connected
-      ? `${metrics.regressions ?? 0} ${t("regressionsCount").toLowerCase()}`
-      : t("needsRun");
-  }
-  document.querySelectorAll("[data-route]").forEach((link) => {
-    const route = link.getAttribute("href").replace(/^#\//, "").split("?")[0].split("/")[0];
-    link.classList.toggle("active", route === state.route.view);
-  });
+function scoreDelta(item) {
+  const delta = item.candidate.overall - item.baseline.overall;
+  const sign = delta > 0 ? "+" : "";
+  const cls = delta < -0.5 ? "negative" : delta > 0.5 ? "positive" : "";
+  return `<span class="score-delta ${cls}">${sign}${num1(delta)}</span>`;
 }
 
 function viewLabel(view) {
@@ -220,6 +387,69 @@ function viewLabel(view) {
   if (view === "cases") return t("casesTitle");
   if (view === "settings") return t("settings");
   return t("overview");
+}
+
+function pendingReviewCount() {
+  return state.run?.metrics?.pending_review ?? 0;
+}
+
+function renderShell() {
+  applyI18n();
+  const run = state.run;
+  const metrics = run?.metrics || {};
+  const connected = isConnected();
+  if (els.syncStatus) {
+    els.syncStatus.textContent = !state.settings
+      ? t("loading")
+      : !connected
+        ? t("needsRun")
+        : state.settings?.demo
+          ? t("demoData")
+          : t("liveData");
+  }
+  if (els.pendingReviewFigure) els.pendingReviewFigure.textContent = pendingReviewCount();
+  if (els.countBlocking) els.countBlocking.textContent = metrics.blocking ?? 0;
+  if (els.countRelease) {
+    els.countRelease.textContent = state.release?.decision ? (state.release.decision === "approve" ? "✓" : "✕") : "—";
+  }
+  if (els.mobileViewTitle) els.mobileViewTitle.textContent = viewLabel(state.route.view);
+  if (els.mobileViewMeta) {
+    els.mobileViewMeta.textContent = !state.settings
+      ? t("loading")
+      : connected
+        ? `${pendingReviewCount()} ${t("needDecision")}`
+        : t("needsRun");
+  }
+  document.querySelectorAll("[data-route]").forEach((link) => {
+    const route = link.getAttribute("href").replace(/^#\//, "").split("?")[0].split("/")[0];
+    link.classList.toggle("active", route === state.route.view);
+  });
+  if (els.lockBanner) {
+    const owner = state.settings?.lock?.owner;
+    els.lockBanner.hidden = !owner;
+    if (owner) {
+      els.lockBanner.innerHTML = `<strong>${escapeHtml(t("locked"))}</strong>`;
+    }
+  }
+}
+
+function emptyState(title, detail = "") {
+  return `<div class="empty-state"><strong>${escapeHtml(title)}</strong>${detail ? `<p>${escapeHtml(detail)}</p>` : ""}</div>`;
+}
+
+// ── Overview ───────────────────────────────────────────────────────────────
+// Three numbers the sidebar and metrics band do not already show elsewhere
+// on screen (pending review / blocking / release live in the sidebar;
+// baseline/candidate pass rate is its own chart below).
+function metricsBand() {
+  const metrics = state.run?.metrics || {};
+  return [
+    [t("totalCases"), metrics.total_cases ?? 0],
+    [t("improvementsCount"), metrics.improvements ?? 0],
+    [t("acceptableCount"), metrics.acceptable ?? 0],
+  ]
+    .map(([label, value]) => `<div><span>${escapeHtml(label)}</span><strong>${value}</strong></div>`)
+    .join("");
 }
 
 function passRatePanel() {
@@ -252,12 +482,6 @@ function passRatePanel() {
           <div class="compare-row-value">${num1(candRate)}%</div>
         </div>
       </div>
-    </div>
-    <div class="metrics">
-      <div class="metric"><span>${t("totalCases")}</span><strong>${metrics.total_cases ?? 0}</strong></div>
-      <div class="metric"><span>${t("regressionsCount")}</span><strong class="${metrics.regressions ? "negative" : ""}">${metrics.regressions ?? 0}</strong></div>
-      <div class="metric"><span>${t("improvementsCount")}</span><strong class="${metrics.improvements ? "positive" : ""}">${metrics.improvements ?? 0}</strong></div>
-      <div class="metric"><span>${t("pendingReview")}</span><strong>${metrics.pending_review ?? 0}</strong></div>
     </div>
   `;
 }
@@ -293,16 +517,11 @@ function bindReleasePanel() {
   });
 }
 
-function scoreDelta(item) {
-  const delta = item.candidate.overall - item.baseline.overall;
-  const sign = delta > 0 ? "+" : "";
-  const cls = delta < -0.5 ? "negative" : delta > 0.5 ? "positive" : "";
-  return `<span class="score-delta ${cls}">${sign}${num1(delta)}</span>`;
-}
-
-function caseRow(item) {
+// An overview preview row — always jumps into the review queue (split) with
+// that case selected, since that is the task the number on the card points at.
+function dueRow(item) {
   return `
-    <a class="case-row" href="#/cases/${encodeURIComponent(item.id)}">
+    <a class="case-row" href="${recordUrl(item.id, "regressions")}">
       <span class="case-title"><strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(item.category)} · ${escapeHtml(item.baseline.overall.toFixed(1))} → ${escapeHtml(item.candidate.overall.toFixed(1))}</span></span>
       ${scoreDelta(item)}
       <span class="badge ${item.regression ? "regression" : item.improvement ? "improvement" : ""}">${item.regression ? t("regressionsCount") : item.improvement ? t("improvementsCount") : t("statusPass")}</span>
@@ -312,124 +531,182 @@ function caseRow(item) {
 }
 
 function renderOverview() {
-  els.title.textContent = t("overview");
-  els.subtitle.textContent = state.run?.generated_at
-    ? `${t("generated")} ${new Date(state.run.generated_at).toLocaleString()}`
-    : t("empty");
+  const run = state.run;
+  byId("overviewSummary").textContent = run?.generated_at
+    ? `${t("generated")} ${new Date(run.generated_at).toLocaleString()}`
+    : isConnected()
+      ? ""
+      : t("needsRun");
+  byId("overviewMetrics").innerHTML = metricsBand();
   if (!isConnected()) {
-    els.content.innerHTML = `<div class="empty">${t("needsRun")}</div>`;
+    byId("overviewBody").innerHTML = emptyState(t("needsRun"));
     return;
   }
-  const topRegressions = (state.run.cases || []).filter((c) => c.regression).slice(0, 6);
-  els.content.innerHTML = `
+  const topRegressions = (run.cases || []).filter((c) => c.regression).slice(0, 6);
+  byId("overviewBody").innerHTML = `
     ${passRatePanel()}
     ${releasePanel()}
     <section class="overview-panel wide">
       <h2>${t("regressionsTitle")}</h2>
       <div class="regression-list" style="margin-top:12px">
-        ${topRegressions.length ? topRegressions.map(caseRow).join("") : `<div class="empty">${t("regressionsEmpty")}</div>`}
+        ${topRegressions.length ? topRegressions.map(dueRow).join("") : emptyState(t("regressionsEmpty"))}
       </div>
     </section>
   `;
   bindReleasePanel();
 }
 
+// ── Record views (regressions / cases) ──────────────────────────────────────
 function filteredCases(onlyRegressions) {
-  const query = state.query.trim().toLowerCase();
+  const query = state.route.query.trim().toLowerCase();
   return (state.run?.cases || []).filter((item) => {
     if (onlyRegressions && !item.regression) return false;
-    if (state.category && item.category !== state.category) return false;
-    if (state.statusFilter && state.statusFilter !== "all" && caseStatus(item) !== state.statusFilter) return false;
+    if (!onlyRegressions && state.route.category && item.category !== state.route.category) return false;
+    if (onlyRegressions && state.route.status !== "all" && caseStatus(item) !== state.route.status) return false;
     if (!query) return true;
-    return [item.title, item.category, item.prompt]
-      .filter(Boolean)
-      .some((v) => String(v).toLowerCase().includes(query));
+    return [item.title, item.category, item.prompt].filter(Boolean).some((v) => String(v).toLowerCase().includes(query));
   });
 }
 
-function categoryLegend() {
+function categoryFilterChips() {
   const categories = [...new Set((state.run?.cases || []).map((c) => c.category))];
-  return `
-    <div class="category-legend">
-      <button type="button" class="category-chip ${!state.category ? "active" : ""}" data-category="">${t("allCategories")}</button>
-      ${categories
-        .map(
-          (cat) =>
-            `<button type="button" class="category-chip ${state.category === cat ? "active" : ""}" data-category="${escapeHtml(cat)}">${escapeHtml(cat)}</button>`,
-        )
-        .join("")}
-    </div>
-  `;
+  const chip = (value, label) =>
+    `<button type="button" class="category-chip ${state.route.category === value ? "active" : ""}" data-category="${escapeHtml(value)}">${escapeHtml(label)}</button>`;
+  return `<div class="category-legend">${chip("", t("allCategories"))}${categories.map((cat) => chip(cat, cat)).join("")}</div>`;
 }
 
-function statusFilterBar() {
+function statusFilterChips() {
   const options = [
     ["all", t("filterAll")],
     ["needs_review", t("filterNeedsReview")],
     ["blocking", t("filterBlocking")],
     ["acceptable", t("filterAcceptable")],
   ];
+  return `<div class="category-legend">${options
+    .map(
+      ([value, label]) =>
+        `<button type="button" class="category-chip ${state.route.status === value ? "active" : ""}" data-status="${value}">${escapeHtml(label)}</button>`,
+    )
+    .join("")}</div>`;
+}
+
+const tableHead = (columns) =>
+  `<thead><tr>${columns.map(([label, cls = ""]) => `<th${cls ? ` class="${cls}"` : ""}>${escapeHtml(label)}</th>`).join("")}</tr></thead>`;
+
+const rowOpen = (id) =>
+  `<tr data-id="${escapeHtml(id)}"${id === state.route.selectedId ? ' class="ws-selected"' : ""}>`;
+
+const cell = (html, title = "", cls = "") =>
+  `<td${cls ? ` class="${cls}"` : ""}${title ? ` title="${escapeHtml(title)}"` : ""}>${html}</td>`;
+
+// Column 2 is the status — the one fact the review queue's narrow split list
+// needs beside the title (base-ui shows columns 1-2 in split by default, so
+// this needs no `.ws-split-keep`). Category/scores stay for the full cases
+// page and simply drop out of the narrow split queue.
+function casesTable(items) {
   return `
-    <div class="category-legend">
-      ${options
-        .map(
-          ([value, label]) =>
-            `<button type="button" class="category-chip ${state.statusFilter === value ? "active" : ""}" data-status="${value}">${escapeHtml(label)}</button>`,
-        )
-        .join("")}
-    </div>
+    <table class="ws-table eval-table">
+      ${tableHead([
+        [t("caseLabel")],
+        [t("status")],
+        [t("category")],
+        [`${t("baseline")} → ${t("candidate")}`, "ws-col-num"],
+        ["Δ", "ws-col-num"],
+      ])}
+      <tbody>
+        ${items
+          .map(
+            (item) => `${rowOpen(item.id)}
+              ${cell(`<span class="strong">${escapeHtml(item.title)}</span>`, item.title)}
+              ${cell(statusBadge(item))}
+              ${cell(escapeHtml(item.category), item.category)}
+              ${cell(`${item.baseline.overall.toFixed(1)} → ${item.candidate.overall.toFixed(1)}`, "", "ws-col-num")}
+              ${cell(scoreDelta(item), "", "ws-col-num")}
+            </tr>`,
+          )
+          .join("")}
+      </tbody>
+    </table>
   `;
 }
 
-function renderRegressions() {
-  els.title.textContent = t("regressionsTitle");
+// Page-jump pager: a click fetches exactly the one neighbouring/target page
+// needed, using a cursor already learned — never an automatic loop.
+function pagerControl(key) {
+  if (!state.pageCursors[key]) return "";
+  const total = pageCount(key);
+  const current = state.currentPage[key] || 1;
+  const loading = Boolean(state.pageLoading[key]);
+  const hasNext = total == null ? Boolean(state.pageCursors[key][current]) : current < total;
+  if ((total === 1 || total == null) && current === 1 && !hasNext) return "";
+  const pages =
+    total == null
+      ? []
+      : total <= 7
+        ? Array.from({ length: total }, (_, index) => index + 1)
+        : [...new Set([1, total, current - 1, current, current + 1].filter((page) => page >= 1 && page <= total))].sort(
+            (a, b) => a - b,
+          );
+  const items = [];
+  let previous = 0;
+  for (const page of pages) {
+    if (previous && page - previous > 1) items.push('<span class="pager-ellipsis">…</span>');
+    items.push(
+      `<button type="button" class="pager-page ${page === current ? "active" : ""}" data-goto-page="${key}:${page}" ${loading || page === current ? "disabled" : ""}>${page}</button>`,
+    );
+    previous = page;
+  }
+  return `<nav class="pager" aria-label="${t("pagination")}">
+    <button type="button" class="pager-nav" data-goto-page="${key}:${current - 1}" ${loading || current <= 1 ? "disabled" : ""}>${t("prevPage")}</button>
+    ${items.join("")}
+    <button type="button" class="pager-nav" data-goto-page="${key}:${current + 1}" ${loading || !hasNext ? "disabled" : ""}>${t("nextPage")}</button>
+    ${total == null ? "" : `<span class="pager-summary">${t("pageOf").replace("{current}", current).replace("{total}", total)}</span>`}
+  </nav>`;
+}
+
+function renderRecordView() {
+  const { view } = state.route;
+  els.viewTitle.textContent = viewLabel(view);
+  els.viewTitle.title = t(view === "cases" ? "casesHint" : "regressionsHint");
   if (!isConnected()) {
-    els.content.innerHTML = `<div class="empty">${t("needsRun")}</div>`;
+    els.viewCount.textContent = "";
+    els.viewFilters.hidden = true;
+    els.listPanel.innerHTML = emptyState(t("needsRun"));
+    renderDetail();
     return;
   }
-  const cases = filteredCases(true);
-  els.subtitle.textContent = `${cases.length} ${t("regressionsCount").toLowerCase()}`;
-  els.content.innerHTML = `
-    ${statusFilterBar()}
-    <div class="regression-list">
-      ${cases.length ? cases.map(caseRow).join("") : `<div class="empty">${t("regressionsEmpty")}</div>`}
-    </div>
-    ${pagerControl("cases")}
-  `;
-  bindFilterBar();
+  const onlyRegressions = view === "regressions";
+  const items = filteredCases(onlyRegressions);
+  els.viewCount.textContent = String(items.length);
+  els.viewFilters.hidden = false;
+  els.viewFilters.innerHTML = view === "cases" ? categoryFilterChips() : statusFilterChips();
+  const empty = onlyRegressions
+    ? emptyState(t("regressionsEmpty"))
+    : emptyState(state.route.query || state.route.category ? t("noMatches") : t("empty"));
+  els.listPanel.innerHTML = `${items.length ? casesTable(items) : empty}${isPartial("cases") || pageCount("cases") > 1 ? pagerControl("cases") : ""}`;
+  renderDetail();
 }
 
-function renderCases() {
-  els.title.textContent = t("casesTitle");
-  if (!isConnected()) {
-    els.content.innerHTML = `<div class="empty">${t("needsRun")}</div>`;
+function renderDetail() {
+  const { view, selectedId, presentation } = state.route;
+  const phone = isMobileLayout();
+  els.detailBack.textContent = presentation === "page" || phone ? t("backToList") : t("close");
+  els.detailExpand.hidden = !selectedId || presentation === "page";
+  if (selectedId) els.detailExpand.href = detailUrl(selectedId, "cases");
+  els.detailPanel.querySelector(".ws-detail-bar").hidden = !selectedId;
+
+  if (!selectedId) {
+    els.detailBody.innerHTML = DETAIL_MODES[view] === "split" ? emptyState(t("selectRegression")) : "";
     return;
   }
-  const cases = filteredCases(false);
-  els.subtitle.textContent = `${cases.length} / ${recordCountLabel("cases", state.run.cases.length)} ${t("totalCases").toLowerCase()}`;
-  els.content.innerHTML = `
-    ${categoryLegend()}
-    <div class="case-list">
-      ${cases.length ? cases.map(caseRow).join("") : `<div class="empty">${t("empty")}</div>`}
-    </div>
-    ${pagerControl("cases")}
-  `;
-  bindFilterBar();
-}
-
-function bindFilterBar() {
-  els.content.querySelectorAll("[data-category]").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      state.category = btn.dataset.category;
-      render();
-    });
-  });
-  els.content.querySelectorAll("[data-status]").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      state.statusFilter = btn.dataset.status;
-      render();
-    });
-  });
+  const item = caseById(selectedId);
+  if (!item) {
+    const pending = state.extraCases.has(selectedId) && state.extraCases.get(selectedId) === undefined;
+    els.detailBody.innerHTML = pending ? `<div class="empty-inline">${t("loading")}</div>` : emptyState(t("recordMissing"), t("recordMissingDetail"));
+    return;
+  }
+  els.detailBody.innerHTML = caseDetailMarkup(item);
+  bindDetailActions(item);
 }
 
 function rubricRow(key, baselineScores, candidateScores) {
@@ -457,20 +734,16 @@ function rubricRow(key, baselineScores, candidateScores) {
   `;
 }
 
-function renderCaseDetail() {
-  const item = (state.run?.cases || []).find((c) => c.id === state.route.id);
-  if (!item) {
-    renderCases();
-    return;
-  }
-  els.title.textContent = item.title;
-  els.subtitle.textContent = `${item.category} · ${t("baseline")} ${item.baseline.overall.toFixed(1)} → ${t("candidate")} ${item.candidate.overall.toFixed(1)}`;
+function caseDetailMarkup(item) {
   const locked = Boolean(state.settings?.lock?.owner);
   const decidedNote = item.decision?.note || "";
-  els.content.innerHTML = `
+  return `
+    <header class="detail-head">
+      <h2>${escapeHtml(item.title)}</h2>
+      <p class="muted">${escapeHtml(item.category)} · ${t("baseline")} ${item.baseline.overall.toFixed(1)} → ${t("candidate")} ${item.candidate.overall.toFixed(1)}</p>
+    </header>
     <section class="detail">
       <div class="detail-main">
-        <a class="back-link" href="#/cases">← ${t("back")}</a>
         <div class="overview-panel">
           <h2>${t("prompt")}</h2>
           <p style="margin:10px 0 0; white-space:pre-wrap">${escapeHtml(item.prompt)}</p>
@@ -518,6 +791,9 @@ function renderCaseDetail() {
       </aside>
     </section>
   `;
+}
+
+function bindDetailActions(item) {
   document.querySelector("#markBlockingBtn")?.addEventListener("click", () => {
     const note = document.querySelector("#decisionNote")?.value.trim() || "";
     if (!note) {
@@ -536,11 +812,10 @@ function renderCaseDetail() {
   });
 }
 
+// ── Settings ─────────────────────────────────────────────────────────────
 function renderSettings() {
-  els.title.textContent = t("settings");
-  els.subtitle.textContent = t("localFilesOnly");
   const summary = state.settings?.config_summary || {};
-  els.content.innerHTML = `
+  byId("settingsContent").innerHTML = `
     <div class="settings">
       <section>
         <h2>${t("configuration")}</h2>
@@ -554,25 +829,30 @@ function renderSettings() {
           <dt>${t("onboarding")}</dt><dd>${state.settings?.onboarding?.completed ? t("completed") : t("incomplete")}</dd>
         </dl>
       </section>
-      <section id="settingsContent"></section>
     </div>
   `;
 }
 
-function warnings() {
-  if (!state.settings?.lock?.owner) return "";
-  return `<div class="warnings"><strong>${escapeHtml(t("locked"))}</strong></div>`;
-}
-
+// ── Render ─────────────────────────────────────────────────────────────────
 function render() {
   renderShell();
-  if (state.route.view === "regressions") renderRegressions();
-  else if (state.route.view === "cases" && state.route.id) renderCaseDetail();
-  else if (state.route.view === "cases") renderCases();
-  else if (state.route.view === "settings") renderSettings();
+  const { view, selectedId, presentation } = state.route;
+  const ready = Boolean(state.settings);
+  const onRecordView = ready && RECORD_VIEWS.includes(view);
+  const body = document.body.classList;
+  body.toggle("ws-detail-open", onRecordView && Boolean(selectedId));
+  body.toggle("ws-detail-page", onRecordView && presentation === "page" && Boolean(selectedId));
+  body.toggle("ws-detail-drawer", onRecordView && presentation === "drawer");
+  body.toggle("ws-layout-split", onRecordView && DETAIL_MODES[view] === "split" && presentation !== "page");
+  body.toggle("ws-searching", onRecordView && Boolean(state.route.query));
+  els.loadState.hidden = ready;
+  els.overviewPage.hidden = !ready || view !== "overview";
+  els.viewPage.hidden = !onRecordView;
+  els.settingsPage.hidden = !ready || view !== "settings";
+  if (!ready) return;
+  if (onRecordView) renderRecordView();
+  else if (view === "settings") renderSettings();
   else renderOverview();
-  const lockBanner = warnings();
-  if (lockBanner) els.content.insertAdjacentHTML("afterbegin", lockBanner);
 }
 
 function escapeHtml(value) {
@@ -589,14 +869,56 @@ function escapeHtml(value) {
   );
 }
 
+// ── Events ─────────────────────────────────────────────────────────────────
+els.listPanel.addEventListener("click", (event) => {
+  const pager = event.target.closest("[data-goto-page]");
+  if (pager) {
+    const [key, page] = pager.dataset.gotoPage.split(":");
+    goToPage(key, Number(page));
+    return;
+  }
+  if (event.target.closest("a, button")) return;
+  const row = event.target.closest("tr[data-id]");
+  if (!row) return;
+  const url = recordUrl(row.dataset.id);
+  // Switching records while the split is open replaces the entry, so Close
+  // still steps back to the list it was opened from.
+  if (state.route.peek) {
+    history.replaceState(history.state, "", url);
+    setRoute();
+  } else {
+    location.hash = url;
+  }
+});
+els.viewFilters.addEventListener("click", (event) => {
+  const catBtn = event.target.closest("[data-category]");
+  if (catBtn) {
+    replaceRoute(`#/cases${routeQuery({}, { ...state.route, category: catBtn.dataset.category })}`);
+    return;
+  }
+  const statusBtn = event.target.closest("[data-status]");
+  if (!statusBtn) return;
+  replaceRoute(
+    `#/regressions${routeQuery({ peek: state.route.peek }, { ...state.route, status: statusBtn.dataset.status })}`,
+  );
+});
+els.detailBack.addEventListener("click", closeDetail);
+document.addEventListener("keydown", (event) => {
+  if (event.key !== "Escape") return;
+  // Escape inside a draft only leaves the field; a second Escape closes.
+  if (event.target.closest?.("textarea, input")) {
+    event.target.blur();
+    return;
+  }
+  if (state.route.selectedId && state.route.presentation && state.route.presentation !== "page") closeDetail();
+});
 window.addEventListener("hashchange", setRoute);
 window.addEventListener("resize", syncResponsiveShell);
 els.sidebarToggle?.addEventListener("click", toggleSidebar);
 els.mobileSidebarToggle?.addEventListener("click", () => setMobileSidebarOpen(true));
 els.sidebarScrim?.addEventListener("click", () => setMobileSidebarOpen(false));
 els.search.addEventListener("input", () => {
-  state.query = els.search.value;
-  render();
+  replaceRoute(`#/${state.route.view}${routeQuery({ peek: state.route.peek }, { ...state.route, query: els.search.value })}`);
 });
 els.refresh.addEventListener("click", () => loadState().catch((error) => alert(error.message)));
 els.mobileRefresh?.addEventListener("click", () => loadState().catch((error) => alert(error.message)));
@@ -621,117 +943,13 @@ async function boot() {
       renderSetupRequired(error, boot);
       return;
     }
-    els.content.innerHTML = `<div class="empty">${escapeHtml(error.message)}</div>`;
+    els.loadState.hidden = false;
+    els.loadState.classList.add("error");
+    els.loadState.textContent = error instanceof Error ? error.message : String(error);
   }
 }
 
+els.search.value = state.route.query;
+previousRouteWasList = RECORD_VIEWS.includes(state.route.view) && !state.route.selectedId;
 syncResponsiveShell();
-
-const PAGE_BINDINGS = {
-  regressions: { key: "cases", path: "run.cases" },
-  cases: { key: "cases", path: "run.cases" },
-};
-
-function pageSize(key) {
-  return appConfig.bases.find((entry) => entry.key === key)?.readLimit || 50;
-}
-
-function pageCount(key) {
-  const total = state.totals?.[key];
-  return total == null ? null : Math.max(1, Math.ceil(total / pageSize(key)));
-}
-
-function replacePageRows(path, rows) {
-  const parts = path.split(".");
-  let target = state;
-  for (const part of parts.slice(0, -1)) {
-    target = target?.[part];
-    if (!target) return;
-  }
-  target[parts.at(-1)] = rows;
-}
-
-async function goToPage(key, targetPage) {
-  if (state.pageLoading[key] || !state.pageCursors[key]) return;
-  const binding = Object.values(PAGE_BINDINGS).find((entry) => entry.key === key);
-  if (!binding) return;
-  const totalPages = pageCount(key);
-  const page = totalPages == null ? Math.max(1, targetPage) : Math.min(Math.max(1, targetPage), totalPages);
-  if (page === state.currentPage[key]) return;
-  state.pageLoading[key] = true;
-  if (typeof render === "function") render();
-  else route();
-  try {
-    const provider = await getProvider();
-    let result;
-    for (let next = state.pageCursors[key].length; next <= page; next += 1) {
-      const cursor = state.pageCursors[key][next - 1];
-      if (next > 1 && !cursor) return;
-      result = await provider.fetchPage(key, cursor);
-      state.pageCursors[key][next] = result.nextCursor;
-    }
-    if (!result || state.pageCursors[key].length > page + 1) {
-      result = await provider.fetchPage(key, state.pageCursors[key][page - 1]);
-      state.pageCursors[key][page] = result.nextCursor;
-    }
-    replacePageRows(binding.path, result.rows);
-    state.currentPage[key] = page;
-  } finally {
-    state.pageLoading[key] = false;
-    if (typeof render === "function") render();
-    else route();
-  }
-}
-
-function pagerMessage(key, fallback) {
-  return typeof t === "function" ? t(key) : fallback;
-}
-
-export function recordCountLabel(key, loadedCount, filtered = false) {
-  if (filtered) return loadedCount;
-  const total = state.totals?.[key];
-  if (total != null) return total;
-  const current = state.currentPage?.[key] || 1;
-  return `${loadedCount}${state.pageCursors?.[key]?.[current] ? "+" : ""}`;
-}
-
-export function pagerControl(key) {
-  if (!state.pageCursors[key]) return "";
-  const total = pageCount(key);
-  const current = state.currentPage[key] || 1;
-  const loading = Boolean(state.pageLoading[key]);
-  const hasNext = total == null ? Boolean(state.pageCursors[key][current]) : current < total;
-  if ((total === 1 || total == null) && current === 1 && !hasNext) return "";
-  const pages =
-    total == null
-      ? []
-      : total <= 7
-        ? Array.from({ length: total }, (_, index) => index + 1)
-        : [...new Set([1, total, current - 1, current, current + 1].filter((page) => page >= 1 && page <= total))].sort(
-            (a, b) => a - b,
-          );
-  const items = [];
-  let previous = 0;
-  for (const page of pages) {
-    if (previous && page - previous > 1) items.push('<span class="pager-ellipsis">…</span>');
-    items.push(
-      `<button type="button" class="pager-page ${page === current ? "active" : ""}" data-goto-page="${key}:${page}" ${loading || page === current ? "disabled" : ""}>${page}</button>`,
-    );
-    previous = page;
-  }
-  return `<nav class="pager" aria-label="${pagerMessage("pagination", "Pagination")}">
-    <button type="button" class="pager-nav" data-goto-page="${key}:${current - 1}" ${loading || current <= 1 ? "disabled" : ""}>${pagerMessage("prevPage", "Prev")}</button>
-    ${items.join("")}
-    <button type="button" class="pager-nav" data-goto-page="${key}:${current + 1}" ${loading || !hasNext ? "disabled" : ""}>${pagerMessage("nextPage", "Next")}</button>
-    ${total == null ? "" : `<span class="pager-summary">${pagerMessage("pageOf", "Page {current} of {total}").replace("{current}", current).replace("{total}", total)}</span>`}
-  </nav>`;
-}
-
-document.querySelector("#content")?.addEventListener("click", (event) => {
-  const button = event.target.closest("[data-goto-page]");
-  if (!button) return;
-  const [key, page] = button.dataset.gotoPage.split(":");
-  goToPage(key, Number(page));
-});
-
 boot();

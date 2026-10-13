@@ -177,7 +177,6 @@ body.sidebar-collapsed .brand {
 }
 
 body.sidebar-collapsed .brand-copy,
-body.sidebar-collapsed .sidebar-search,
 body.sidebar-collapsed .human-work,
 body.sidebar-collapsed .sidebar-separator,
 body.sidebar-collapsed .filters,
@@ -411,26 +410,62 @@ button:disabled {
   min-width: 0;
   min-height: 0;
   height: 100vh;
-  display: grid;
-  grid-template-rows: auto 1fr;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
+}
+
+.load-state {
+  padding: 24px;
+  color: var(--muted);
+}
+
+.load-state.error {
+  color: var(--danger, var(--bad));
+}
+
+.load-state[hidden] {
+  display: none;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.toolbar-search {
+  flex: 0 1 240px;
+  min-width: 160px;
+}
+
+.detail-head {
+  margin-bottom: 16px;
+}
+
+.detail-head h2 {
+  font-size: var(--text-xl);
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--ink);
+}
+
+.detail-head p {
+  margin: 4px 0 0;
+  font-size: var(--text-base);
+}
+
+.empty-inline {
+  padding: 16px;
+  color: var(--muted);
 }
 
 .mobile-topbar,
 .mobile-sidebar-toggle {
   display: none;
-}
-
-.topbar {
-  z-index: 1;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  min-height: 58px;
-  padding: 10px 18px;
-  border-bottom: 1px solid var(--line);
-  background: var(--surface-blur);
 }
 
 h1,
@@ -454,70 +489,22 @@ h2 {
   letter-spacing: 0.04em;
 }
 
-.topbar-actions {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-.content {
-  min-height: 0;
-  overflow: auto;
-  padding: 16px 18px 24px;
-}
-
 .muted {
   color: var(--muted);
   font-size: var(--text-sm);
 }
 
-.metrics {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px;
-  margin-bottom: 14px;
-}
-
-.metric,
+/* Overview metrics band: base-ui (.ws-metrics) lays out the cells; the
+ * label/value markup is ours (see metricsBand() in app.js). No app-owned
+ * table rules below — the record views (regressions/cases) render into
+ * base-ui's `.ws-table`, not a bare `<table>`. */
 .overview-panel,
 .settings section,
 .detail-side,
-.empty,
-.warnings,
-.table-wrap {
+.warnings {
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
   background: var(--panel);
-}
-
-.metric {
-  padding: 12px;
-}
-
-.metric span {
-  display: block;
-  color: var(--muted);
-  font-size: var(--text-sm);
-}
-
-.metric strong {
-  display: block;
-  margin-top: 6px;
-  font-size: var(--text-xl);
-}
-
-.metric strong.positive {
-  color: var(--good);
-}
-
-.metric strong.negative {
-  color: var(--bad);
-}
-
-.overview-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 18px;
 }
 
 .overview-panel {
@@ -526,41 +513,6 @@ h2 {
 
 .overview-panel.wide {
   grid-column: 1 / -1;
-}
-
-.table-wrap {
-  overflow: auto;
-}
-
-table {
-  width: 100%;
-  min-width: 760px;
-  border-collapse: collapse;
-}
-
-th,
-td {
-  padding: 11px 12px;
-  border-bottom: 1px solid var(--line);
-  text-align: left;
-  vertical-align: top;
-}
-
-th {
-  color: var(--muted);
-  font-size: var(--text-sm);
-  font-weight: 700;
-  background: var(--surface-hover);
-}
-
-th.sortable {
-  cursor: pointer;
-  user-select: none;
-}
-
-th.sortable:hover,
-th.sortable.active {
-  color: var(--text);
 }
 
 .num {
@@ -636,23 +588,8 @@ th.sortable.active {
   color: var(--good);
 }
 
-.back-link {
-  display: inline-block;
-  margin-bottom: 12px;
-  color: var(--muted);
-  font-size: var(--text-base);
-}
-
-.back-link:hover {
-  color: var(--text);
-}
-
-.empty,
 .warnings {
   padding: 16px;
-}
-
-.warnings {
   margin-bottom: 18px;
   color: var(--warn);
 }
@@ -861,8 +798,7 @@ button.block:hover {
   background: var(--surface-soft);
 }
 
-.regression-list,
-.case-list {
+.regression-list {
   display: grid;
   gap: 8px;
 }
@@ -1139,10 +1075,6 @@ button.acceptable-btn {
     grid-template-columns: 220px minmax(0, 1fr);
   }
 
-  .metrics {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
   .compare-row {
     grid-template-columns: minmax(90px, 160px) minmax(0, 1fr) 48px;
   }
@@ -1268,20 +1200,6 @@ button.acceptable-btn {
     padding: 0;
   }
 
-  .topbar {
-    display: none;
-  }
-
-  .content {
-    padding: 12px;
-  }
-
-  .metrics,
-  .overview-grid {
-    grid-template-columns: 1fr;
-    gap: 8px;
-  }
-
   .compare-row {
     grid-template-columns: 1fr;
     gap: 4px;
@@ -1300,54 +1218,79 @@ button.acceptable-btn {
     grid-template-columns: 1fr;
   }
 
-  table {
-    min-width: 640px;
+  /* Record-view toolbar: the app's own phone top bar already names the view
+   * (ws-has-mobile-bar would hide the title), filter chips would wrap the
+   * toolbar into extra rows, and the detail is already full-page on a phone
+   * so "Open full page" is a no-op link to the same content. */
+  #detailExpand {
+    display: none;
+  }
+
+  .ws-toolbar,
+  .ws-actions {
+    flex-wrap: nowrap;
+  }
+
+  .ws-actions {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .toolbar-search {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  #viewFilters {
+    display: none;
   }
 }
+
 .pager {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.4rem;
-  min-height: 2.5rem;
-  margin-top: 1rem;
+  gap: 6px;
+  min-height: 40px;
+  margin-top: 16px;
   flex-wrap: wrap;
 }
 
-.pager button {
-  min-width: 2.25rem;
-  height: 2.25rem;
-  border: 1px solid var(--border, currentColor);
-  border-radius: 0.375rem;
-  background: var(--surface, transparent);
-  color: var(--foreground, inherit);
+.pager-nav,
+.pager-page {
+  min-width: 32px;
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: var(--text-sm);
   cursor: pointer;
 }
 
-.pager button:hover:not(:disabled) {
-  border-color: var(--primary, currentColor);
-  color: var(--primary, inherit);
+.pager-nav:hover:not(:disabled),
+.pager-page:hover:not(:disabled) {
+  border-color: var(--line-strong);
+  background: var(--surface-soft);
 }
 
-.pager button:disabled {
-  cursor: default;
+.pager-nav:disabled,
+.pager-page:disabled {
+  cursor: not-allowed;
   opacity: 0.5;
 }
 
 .pager-page.active {
-  border-color: var(--primary, currentColor);
-  background: var(--primary, currentColor);
-  color: var(--primary-foreground, white);
-  opacity: 1;
-}
-
-.pager-nav {
-  padding-inline: 0.75rem;
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
 }
 
 .pager-ellipsis,
 .pager-summary {
-  color: var(--muted-foreground, inherit);
+  color: var(--muted);
+  font-size: var(--text-sm);
 }
 
 @media (max-width: 480px) {

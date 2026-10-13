@@ -12,6 +12,18 @@ export const appConfig = {
     slug: "kelly-invest-stock",
   },
   airApp: { name: "Kelly Invest Stock", slug: "kelly-invest-stock-app", resourceKey: "kelly-invest-stock-app" },
+  ui: {
+    // Only `strategies` opens as an addressable record (#/<view>/<id>/<tab>). The other four
+    // Bases (ledger-accounts, ledger-positions, strategy-backtests, strategy-reviews) are
+    // related resources merged into that strategy's own detail tabs — they have no
+    // standalone record view or nav entry of their own, so they take no detail mode.
+    detail_modes: {
+      // The strategy detail is a multi-tab workplace (portfolio / research / logic /
+      // backtest) that a reviewer stays on for minutes while working through the
+      // approval checklist — not a quick-scan fact (drawer) or a worked queue (split).
+      strategies: "page",
+    },
+  },
   bases: [
     {
       key: "strategies",

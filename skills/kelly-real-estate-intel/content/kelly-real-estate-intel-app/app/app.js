@@ -4,11 +4,38 @@ import { closeConnectGate, passConnectGate, renderSetupRequired } from "./js/con
 import { getProvider } from "./js/providers/index.js?v=0.1.0";
 import { computeMetrics } from "./js/real-estate-model.js?v=0.1.0";
 
-const state = {
+// Where a record opens, per view (busabase-app-creator references/ui-and-
+// validation.md "Choose The Detail Mode"). signals/actions/drafts are all the
+// same shape — a review queue worked top to bottom, one item after the next
+// — so all three get `split`. `sources` is a handful of facts scanned one at
+// a time and returned from, so it gets `drawer`. A `/record` path always
+// opens the full page; `?peek=` drives drawer/split. On a phone every mode is
+// a page (base-ui.css handles that). Declared once, in config.js
+// `ui.detail_modes`.
+export const DETAIL_MODES = appConfig.ui.detail_modes;
+const RECORD_VIEWS = Object.keys(DETAIL_MODES);
+const VIEW_KINDS = { signals: "signal", actions: "action", drafts: "draft" };
+
+export const state = {
   batch: null,
   bootstrap: null,
+  provider: null,
+  // Prev/Next pager for the Bases that have their own browsed list (signals,
+  // actions, drafts). records.list only exposes a forward keyset cursor, so
+  // pageCursors[key][i] is the cursor that fetches page i+1. Only
+  // neighbouring pages are reachable: one click, one request; there is no
+  // "jump to page N" because reaching it would mean reading every page in
+  // between (busabase-app-creator references/runtime-and-sdk.md "A full scan
+  // in disguise").
+  pageCursors: {},
+  currentPage: {},
+  pageLoading: {},
+  totals: {},
+  // Records opened by URL that are not on the loaded page (records.get).
+  extra: { signals: new Map(), actions: new Map(), drafts: new Map(), sources: new Map() },
   route: parseRoute(),
-  query: "",
+  edits: {},
+  notice: "",
   lang: normalizeLang(
     new URLSearchParams(location.search).get("lang") ||
       localStorage.getItem("kelly-real-estate-intel-language") ||
@@ -16,34 +43,36 @@ const state = {
   ),
   demo: new URLSearchParams(location.search).get("demo") || "",
   saving: false,
-  pageError: "",
-  pageCursors: {},
-  currentPage: {},
-  pageLoading: {},
-  totals: {},
 };
 
 const SIDEBAR_COLLAPSED_STORAGE_KEY = "kelly-real-estate-intel.sidebarCollapsed";
-const KIND_VIEWS = { signal: "signals", action: "actions", draft: "drafts" };
-const VIEW_KINDS = { signals: "signal", actions: "action", drafts: "draft" };
 
+const byId = (id) => document.getElementById(id);
 const els = {
-  title: document.querySelector("#page-title"),
-  subtitle: document.querySelector("#page-subtitle"),
-  content: document.querySelector("#content"),
-  search: document.querySelector("#search"),
-  refresh: document.querySelector("#refresh"),
-  mobileRefresh: document.querySelector("#mobileRefresh"),
-  sidebarToggle: document.querySelector("#sidebarToggle"),
-  mobileSidebarToggle: document.querySelector("#mobileSidebarToggle"),
-  sidebarScrim: document.querySelector("#sidebarScrim"),
-  mobileViewTitle: document.querySelector("#mobileViewTitle"),
-  mobileViewMeta: document.querySelector("#mobileViewMeta"),
-  syncStatus: document.querySelector("#sync-status"),
-  needsReviewCount: document.querySelector("#count-needs-review"),
-  approvedCount: document.querySelector("#count-approved"),
-  blockedCount: document.querySelector("#count-blocked"),
-  language: document.querySelector("#language"),
+  loadState: byId("loadState"),
+  overviewPage: byId("overviewPage"),
+  viewPage: byId("viewPage"),
+  settingsPage: byId("settingsPage"),
+  viewTitle: byId("viewTitle"),
+  viewCount: byId("viewCount"),
+  listPanel: byId("listPanel"),
+  detailPanel: byId("detailPanel"),
+  detailBody: byId("detailBody"),
+  detailBack: byId("detailBack"),
+  detailExpand: byId("detailExpand"),
+  search: byId("search"),
+  refresh: byId("refresh"),
+  mobileRefresh: byId("mobileRefresh"),
+  sidebarToggle: byId("sidebarToggle"),
+  mobileSidebarToggle: byId("mobileSidebarToggle"),
+  sidebarScrim: byId("sidebarScrim"),
+  mobileViewTitle: byId("mobileViewTitle"),
+  mobileViewMeta: byId("mobileViewMeta"),
+  syncStatus: byId("sync-status"),
+  needsReviewCount: byId("count-needs-review"),
+  approvedCount: byId("count-approved"),
+  blockedCount: byId("count-blocked"),
+  language: byId("language"),
 };
 
 function isMobileLayout() {
@@ -107,25 +136,101 @@ function enumLabel(value, group = "status") {
   return messages[activeLang()]?.enum?.[group]?.[key] || messages.en.enum?.[group]?.[key] || key.replaceAll("_", " ");
 }
 
+// ── Routing ──────────────────────────────────────────────────────────────
+// `#/<view>[/<record>][?q=…&peek=…]`. Search and the peeked record live in
+// the URL so refresh, shared links and Back restore the same list context.
 function parseRoute() {
-  const parts = (location.hash || "#/overview").replace(/^#\/?/, "").split("/").filter(Boolean);
-  return { view: parts[0] || "overview", id: parts[1] ? decodeURIComponent(parts[1]) : "" };
+  const raw = (location.hash || "#/overview").replace(/^#\/?/, "");
+  const [path, query = ""] = raw.split("?");
+  const parts = path.split("/").filter(Boolean);
+  const params = new URLSearchParams(query);
+  let view = parts[0] || "overview";
+  let id = "";
+  try {
+    id = parts[1] ? decodeURIComponent(parts[1]) : "";
+  } catch {
+    id = "";
+  }
+  if (!RECORD_VIEWS.includes(view) && view !== "settings") view = "overview";
+  const mode = DETAIL_MODES[view];
+  const peek = mode && mode !== "page" && !id ? params.get("peek") || "" : "";
+  return {
+    view,
+    id,
+    peek,
+    selectedId: mode ? id || peek : "",
+    presentation: !mode ? null : id ? "page" : mode === "page" ? null : mode,
+    query: params.get("q") || "",
+  };
 }
 
+const routeQuery = (extra = {}, route = state.route) => {
+  const params = new URLSearchParams();
+  if (route.query) params.set("q", route.query);
+  for (const [key, value] of Object.entries(extra)) if (value) params.set(key, value);
+  const text = params.toString();
+  return text ? `?${text}` : "";
+};
+
+const listUrl = (route = state.route) => `#/${route.view}${routeQuery({}, route)}`;
+// The full page: the record in the path. Always a page, whatever the view's mode.
+const detailUrl = (id, view = state.route.view) => {
+  const route = view === state.route.view ? state.route : { view, query: "" };
+  return `#/${view}/${encodeURIComponent(id)}${routeQuery({}, route)}`;
+};
+// What a row opens: the page for a `page` view, else `?peek=`.
+const recordUrl = (id, view = state.route.view) => {
+  if (DETAIL_MODES[view] === "page") return detailUrl(id, view);
+  const route = view === state.route.view ? state.route : { view, query: "" };
+  return `#/${view}${routeQuery({ peek: id }, route)}`;
+};
+
+let previousRouteWasList = false;
+let routeSerial = 0;
+
 function setRoute() {
+  const previous = state.route;
   state.route = parseRoute();
+  // Mark a detail entry opened from its list so Back/Close/Escape step back
+  // to that exact list entry instead of pushing a new one.
+  if (state.route.selectedId && previousRouteWasList && previous.view === state.route.view) {
+    history.replaceState({ fromList: true }, "");
+  }
+  previousRouteWasList = RECORD_VIEWS.includes(state.route.view) && !state.route.selectedId;
+  state.notice = "";
+  if (els.search) els.search.value = state.route.query;
+  setMobileSidebarOpen(false);
+  render();
+  ensureSelectedRecord();
+}
+
+// Replace the current entry without a hashchange: search keystrokes should
+// not each become a Back step.
+function replaceRoute(url) {
+  history.replaceState(history.state, "", url);
+  const previousWasList = previousRouteWasList;
+  state.route = parseRoute();
+  previousRouteWasList = previousWasList;
   render();
 }
 
+function closeDetail() {
+  if (history.state?.fromList) history.back();
+  else location.hash = listUrl();
+}
+
+// ── Data ─────────────────────────────────────────────────────────────────
 async function loadState() {
   const provider = await getProvider();
+  state.provider = provider;
   const data = await provider.getState();
   closeConnectGate();
   state.batch = data.batch;
   state.bootstrap = data;
+  state.extra = { signals: new Map(), actions: new Map(), drafts: new Map(), sources: new Map() };
+  state.totals = data.totals || {};
   state.pageCursors = {};
   state.currentPage = {};
-  state.totals = data.totals || {};
   for (const [key, nextCursor] of Object.entries(data.pagination || {})) {
     state.pageCursors[key] = [undefined, nextCursor];
     state.currentPage[key] = 1;
@@ -133,6 +238,7 @@ async function loadState() {
   window.dispatchEvent(new CustomEvent("kelly-real-estate-intel:state", { detail: data }));
   applyDemoRoute();
   render();
+  ensureSelectedRecord();
 }
 
 function pageSize(key) {
@@ -140,77 +246,68 @@ function pageSize(key) {
 }
 
 function pageCount(key) {
+  if (!state.pageCursors[key]) return 1;
   const total = state.totals[key];
-  return total == null ? null : Math.max(1, Math.ceil(total / pageSize(key)));
+  return total == null ? Math.max(1, state.currentPage[key] || 1) : Math.max(1, Math.ceil(total / pageSize(key)));
 }
 
-function recordTotal(key, loaded) {
-  if (state.totals[key] != null) return state.totals[key];
-  return `${loaded}${state.pageCursors[key]?.[1] ? "+" : ""}`;
+// True while a Base holds only part of its rows — more pages exist, or the
+// user is on a later page. Anything summed from loaded rows must say so.
+function isPartial(key) {
+  const cursors = state.pageCursors[key];
+  if (!cursors) return false;
+  const current = state.currentPage[key] || 1;
+  return current > 1 || Boolean(cursors[current]);
 }
 
+// Replaces the displayed page for `key` with a NEIGHBOURING page: exactly
+// one request per click, using a cursor already learned. Never appends, and
+// never loops to reach an arbitrary page.
 async function goToPage(key, targetPage) {
-  if (state.pageLoading[key] || !state.pageCursors[key]) return;
-  const totalPages = pageCount(key);
-  const page = totalPages == null ? Math.max(1, targetPage) : Math.min(Math.max(1, targetPage), totalPages);
-  if (page === state.currentPage[key]) return;
+  if (state.pageLoading[key]) return;
+  const cursors = state.pageCursors[key];
+  if (!cursors) return;
+  const current = state.currentPage[key] || 1;
+  if (Math.abs(targetPage - current) !== 1 || targetPage < 1) return;
+  if (targetPage > current && !cursors[current]) return; // no next page
   state.pageLoading[key] = true;
-  state.pageError = "";
   render();
   try {
     const provider = await getProvider();
-    let result;
-    for (let next = state.pageCursors[key].length; next <= page; next += 1) {
-      const cursor = state.pageCursors[key][next - 1];
-      if (next > 1 && !cursor) return;
-      result = await provider.fetchPage(key, cursor);
-      state.pageCursors[key][next] = result.nextCursor;
-    }
-    if (!result || state.pageCursors[key].length > page + 1) {
-      result = await provider.fetchPage(key, state.pageCursors[key][page - 1]);
-      state.pageCursors[key][page] = result.nextCursor;
-    }
-    state.batch[key] = result.rows;
+    const { rows, nextCursor } = await provider.fetchPage(key, cursors[targetPage - 1]);
+    state.batch[key] = rows;
     state.batch.metrics = computeMetrics(state.batch);
-    state.currentPage[key] = page;
+    cursors[targetPage] = nextCursor;
+    state.currentPage[key] = targetPage;
   } catch (error) {
-    state.pageError = error instanceof Error ? error.message : String(error);
+    state.notice = error instanceof Error ? error.message : String(error);
   } finally {
     state.pageLoading[key] = false;
     render();
   }
 }
 
-function pagerControl(key) {
-  if (!state.pageCursors[key]) return "";
-  const total = pageCount(key);
-  const current = state.currentPage[key] || 1;
-  const loading = Boolean(state.pageLoading[key]);
-  const hasNext = total == null ? Boolean(state.pageCursors[key][current]) : current < total;
-  if ((total === 1 || total == null) && current === 1 && !hasNext) return "";
-  const pages =
-    total == null
-      ? []
-      : total <= 7
-        ? Array.from({ length: total }, (_, index) => index + 1)
-        : [...new Set([1, total, current - 1, current, current + 1].filter((page) => page >= 1 && page <= total))].sort(
-            (a, b) => a - b,
-          );
-  const items = [];
-  let previous = 0;
-  for (const page of pages) {
-    if (previous && page - previous > 1) items.push('<span class="pager-ellipsis">…</span>');
-    items.push(
-      `<button type="button" class="pager-page ${page === current ? "active" : ""}" data-goto-page="${key}:${page}" ${loading || page === current ? "disabled" : ""}>${page}</button>`,
-    );
-    previous = page;
+// A record named by the URL but not on the loaded page is read on its own
+// (records.get by its business id) instead of loading more pages to find it.
+async function ensureSelectedRecord() {
+  const { view, selectedId } = state.route;
+  if (!state.batch || !selectedId || !RECORD_VIEWS.includes(view)) return;
+  if (findItem(view, selectedId) || state.extra[view].has(selectedId)) return;
+  const provider = state.provider;
+  if (typeof provider?.getRecord !== "function") {
+    state.extra[view].set(selectedId, null);
+    render();
+    return;
   }
-  return `<nav class="pager" aria-label="${t("pagination")}">
-    <button type="button" class="pager-nav" data-goto-page="${key}:${current - 1}" ${loading || current <= 1 ? "disabled" : ""}>${t("prevPage")}</button>
-    ${items.join("")}
-    <button type="button" class="pager-nav" data-goto-page="${key}:${current + 1}" ${loading || !hasNext ? "disabled" : ""}>${t("nextPage")}</button>
-    ${total == null ? "" : `<span class="pager-summary">${t("pageOf").replace("{current}", current).replace("{total}", total)}</span>`}
-  </nav>`;
+  const serial = ++routeSerial;
+  state.extra[view].set(selectedId, undefined);
+  try {
+    const row = await provider.getRecord(view, selectedId);
+    state.extra[view].set(selectedId, row || null);
+  } catch {
+    state.extra[view].set(selectedId, null);
+  }
+  if (serial === routeSerial) render();
 }
 
 function applyDemoRoute() {
@@ -224,7 +321,7 @@ function applyDemoRoute() {
         : scenario === "drafts"
           ? "#/drafts"
           : scenario === "detail"
-            ? `#/signals/${encodeURIComponent(state.batch?.signals?.[0]?.id || "")}`
+            ? detailUrl(state.batch?.signals?.[0]?.id || "", "signals")
             : "#/overview";
   history.replaceState(null, "", `${location.pathname}${location.search}${route}`);
   state.route = parseRoute();
@@ -239,14 +336,11 @@ function applyI18n() {
   for (const option of els.language.options) {
     option.textContent = languageLabels[option.value] || option.textContent;
   }
-  els.search.placeholder = t("search");
-  els.refresh.textContent = t("refresh");
+  if (els.search) els.search.placeholder = t("search");
+  if (els.refresh) els.refresh.title = t("refresh");
   if (els.mobileRefresh) els.mobileRefresh.title = t("refresh");
-}
-
-function allItems() {
-  const b = state.batch || {};
-  return [...(b.signals || []), ...(b.actions || []), ...(b.drafts || [])];
+  if (els.detailExpand) els.detailExpand.textContent = t("openFullPage");
+  if (els.detailBack) els.detailBack.textContent = t("back");
 }
 
 function itemsForView(view) {
@@ -254,11 +348,12 @@ function itemsForView(view) {
   if (view === "signals") return b.signals || [];
   if (view === "actions") return b.actions || [];
   if (view === "drafts") return b.drafts || [];
+  if (view === "sources") return b.sources || [];
   return [];
 }
 
 function findItem(view, id) {
-  return itemsForView(view).find((item) => item.id === id);
+  return itemsForView(view).find((item) => item.id === id) || state.extra[view]?.get(id) || null;
 }
 
 function isConnected() {
@@ -268,9 +363,13 @@ function isConnected() {
 function renderShell() {
   applyI18n();
   const metrics = state.batch?.metrics || {};
-  els.syncStatus.textContent = state.batch?.generated_at
-    ? `${t("generated")} ${new Date(state.batch.generated_at).toLocaleString()}`
-    : t("empty");
+  els.syncStatus.textContent = !state.batch
+    ? t("loading")
+    : state.bootstrap?.demo
+      ? t("demoModeTitle")
+      : state.batch.generated_at
+        ? `${t("generated")} ${new Date(state.batch.generated_at).toLocaleString()}`
+        : t("empty");
   if (els.needsReviewCount) els.needsReviewCount.textContent = metrics.needs_review ?? 0;
   if (els.approvedCount) els.approvedCount.textContent = metrics.approved ?? 0;
   if (els.blockedCount) els.blockedCount.textContent = metrics.blocked ?? 0;
@@ -307,92 +406,235 @@ function demoBanner() {
   return `<div class="warnings"><div class="info"><strong>${t("demoModeTitle")}</strong><span>${t("demoModeBody")}</span></div></div>`;
 }
 
+function noticeBanner() {
+  if (!state.notice) return "";
+  return `<div class="notice-banner">${escapeHtml(state.notice)}</div>`;
+}
+
 function itemLabel(item) {
-  return item.title || item.channel || item.id;
+  return item.title || item.label || item.channel || item.id;
 }
 
 function itemSummary(item) {
-  return item.summary || item.effective_body || item.body || "";
+  return item.summary || item.effective_body || item.body || item.coverage || "";
 }
 
-function itemRow(view, item) {
-  const active = state.route.view === view && state.route.id === item.id ? "active" : "";
+function matches(values, query) {
+  return values.filter(Boolean).some((value) => String(value).toLowerCase().includes(query));
+}
+
+function filteredItems(view) {
+  const query = state.route.query.trim().toLowerCase();
+  const items = itemsForView(view);
+  if (!query) return items;
+  return items.filter((item) => matches([itemLabel(item), itemSummary(item), item.status], query));
+}
+
+/* ---------- Overview ---------- */
+// Three numbers the nav/attention block does not already show (those cover
+// needs_review/approved/blocked). Today's per-channel volume answers "how
+// much did the agent collect today" instead of repeating "what needs me".
+function metricsBand() {
+  const b = state.batch || {};
+  const scope = (key) => (isPartial(key) ? "+" : "");
+  return [
+    [t("signals"), `${state.totals.signals ?? (b.signals || []).length}${scope("signals")}`],
+    [t("actions"), `${state.totals.actions ?? (b.actions || []).length}${scope("actions")}`],
+    [t("drafts"), `${state.totals.drafts ?? (b.drafts || []).length}${scope("drafts")}`],
+  ]
+    .map(
+      ([label, value]) => `<div><span>${escapeHtml(label)}</span><strong>${escapeHtml(String(value))}</strong></div>`,
+    )
+    .join("");
+}
+
+function overviewRow(view, item) {
   return `
-    <a class="item-row ${active}" href="#/${view}/${encodeURIComponent(item.id)}">
-      <span class="item-row-ref">#${item.ref}</span>
-      <span class="item-row-main">
-        <strong>${escapeHtml(itemLabel(item))}</strong>
-        <span>${escapeHtml(itemSummary(item))}</span>
-      </span>
+    <a class="due-row" href="${recordUrl(item.id, view)}">
+      <span><strong>${escapeHtml(itemLabel(item))}</strong><small>${escapeHtml(itemSummary(item))}</small></span>
       ${statusBadge(item.status)}
     </a>
   `;
 }
 
-/* ---------- Overview ---------- */
-
 function renderOverview() {
-  els.title.textContent = t("overview");
-  els.subtitle.textContent = state.batch?.generated_at
-    ? `${t("generated")} ${new Date(state.batch.generated_at).toLocaleString()}`
-    : t("empty");
+  const b = state.batch || {};
+  document.getElementById("overviewTitle").textContent = t("overview");
+  document.getElementById("overviewSummary").textContent = [
+    b.vertical || "",
+    b.generated_at ? `${t("generated")} ${new Date(b.generated_at).toLocaleString()}` : "",
+  ]
+    .filter(Boolean)
+    .join(" · ");
   if (!isConnected()) {
-    els.content.innerHTML = `<div class="empty">${t("setupNeeded")}</div>`;
+    document.getElementById("overviewMetrics").innerHTML = "";
+    document.getElementById("overviewBody").innerHTML =
+      `<div class="empty-state"><strong>${t("setupNeeded")}</strong></div>`;
     return;
   }
-  const b = state.batch;
+  document.getElementById("overviewMetrics").innerHTML = metricsBand();
   const topSignals = (b.signals || []).slice(0, 4);
   const readyActions = (b.actions || []).filter((item) => item.status === "approved").slice(0, 4);
   const actionsToShow = readyActions.length ? readyActions : (b.actions || []).slice(0, 4);
-  els.content.innerHTML = `
+  document.getElementById("overviewBody").innerHTML = `
     ${demoBanner()}
-    <div class="metrics">
-      <a class="metric" href="#/signals"><span>${t("signals")}</span><strong>${recordTotal("signals", b.signals.length)}</strong></a>
-      <a class="metric" href="#/actions"><span>${t("actions")}</span><strong>${recordTotal("actions", b.actions.length)}</strong></a>
-      <a class="metric" href="#/drafts"><span>${t("drafts")}</span><strong>${recordTotal("drafts", b.drafts.length)}</strong></a>
-      <div class="metric"><span>${t("buyer")}</span><strong class="muted">${escapeHtml(b.buyer || "")}</strong></div>
-    </div>
     <section class="overview-grid">
-      <div class="overview-panel">
+      <div class="card overview-panel">
         <h2>${t("topSignals")}</h2>
-        <div class="item-list">${topSignals.map((item) => itemRow("signals", item)).join("") || `<div class="empty">${t("empty")}</div>`}</div>
+        ${topSignals.map((item) => overviewRow("signals", item)).join("") || `<div class="empty-inline">${t("empty")}</div>`}
       </div>
-      <div class="overview-panel">
+      <div class="card overview-panel">
         <h2>${t("readyActions")}</h2>
-        <div class="item-list">${actionsToShow.map((item) => itemRow("actions", item)).join("") || `<div class="empty">${t("empty")}</div>`}</div>
+        ${actionsToShow.map((item) => overviewRow("actions", item)).join("") || `<div class="empty-inline">${t("empty")}</div>`}
       </div>
     </section>
   `;
 }
 
-/* ---------- Signals / Actions / Drafts list ---------- */
+/* ---------- Record views: one toolbar row over a full-bleed table ---------- */
 
-function filteredItems(view) {
-  const query = state.query.trim().toLowerCase();
-  const items = itemsForView(view);
-  if (!query) return items;
-  return items.filter((item) =>
-    [itemLabel(item), itemSummary(item), item.status]
-      .filter(Boolean)
-      .some((value) => String(value).toLowerCase().includes(query)),
-  );
-}
+const cell = (html, title = "", className = "") =>
+  `<td${className ? ` class="${className}"` : ""}${title ? ` title="${escapeHtml(title)}"` : ""}>${html}</td>`;
+const tableHead = (columns) =>
+  `<thead><tr>${columns.map(([label, className = ""]) => `<th${className ? ` class="${className}"` : ""}>${escapeHtml(label)}</th>`).join("")}</tr></thead>`;
+const rowOpen = (id) =>
+  `<tr data-id="${escapeHtml(id)}"${id === state.route.selectedId ? ' class="ws-selected"' : ""}>`;
+const emptyState = (title, detail = "") =>
+  `<div class="empty-state"><strong>${escapeHtml(title)}</strong>${detail ? `<p>${escapeHtml(detail)}</p>` : ""}</div>`;
 
-function renderList(view) {
-  els.title.textContent = viewLabel(view);
-  const items = filteredItems(view);
-  const needs = items.filter((item) => item.status === "needs_review").length;
-  els.subtitle.textContent = `${items.length} ${viewLabel(view).toLowerCase()} · ${needs} ${t("needsReview")}`;
-  els.content.innerHTML = `
-    ${demoBanner()}
-    ${state.pageError ? `<div class="warnings"><div class="warning"><strong>${escapeHtml(state.pageError)}</strong></div></div>` : ""}
-    <div class="item-list">${items.map((item) => itemRow(view, item)).join("")}</div>
-    ${items.length ? "" : `<div class="empty">${t("empty")}</div>`}
-    ${pagerControl(view)}
+function signalsTable(items) {
+  return `
+    <table class="ws-table">
+      ${tableHead([[t("title")], [t("source")], [t("confidence"), "ws-col-num"], [t("status"), "ws-col-narrow"]])}
+      <tbody>
+        ${items
+          .map(
+            (item) => `${rowOpen(item.id)}
+              ${cell(`<span class="strong">${escapeHtml(item.title)}</span>`, item.title)}
+              ${cell(escapeHtml(item.source?.name || ""), item.source?.name)}
+              ${cell(`${Math.round((item.confidence || 0) * 100)}%`, "", "ws-col-num")}
+              ${cell(statusBadge(item.status), "", "ws-col-narrow")}
+            </tr>`,
+          )
+          .join("")}
+      </tbody>
+    </table>
   `;
 }
 
-/* ---------- Item detail + decision panel ---------- */
+function actionsTable(items) {
+  return `
+    <table class="ws-table">
+      ${tableHead([[t("title")], [t("priority"), "ws-col-narrow"], [t("owner"), "ws-col-narrow"], [t("status"), "ws-col-narrow"]])}
+      <tbody>
+        ${items
+          .map(
+            (item) => `${rowOpen(item.id)}
+              ${cell(`<span class="strong">${escapeHtml(item.title)}</span>`, item.title)}
+              ${cell(escapeHtml(enumLabel(item.priority, "priority") || item.priority), "", "ws-col-narrow")}
+              ${cell(escapeHtml(item.owner || ""), item.owner, "ws-col-narrow")}
+              ${cell(statusBadge(item.status), "", "ws-col-narrow")}
+            </tr>`,
+          )
+          .join("")}
+      </tbody>
+    </table>
+  `;
+}
+
+function draftsTable(items) {
+  return `
+    <table class="ws-table">
+      ${tableHead([[t("title")], [t("channel"), "ws-col-wide"], [t("status"), "ws-col-narrow"]])}
+      <tbody>
+        ${items
+          .map(
+            (item) => `${rowOpen(item.id)}
+              ${cell(`<span class="strong">${escapeHtml(item.title)}</span>`, item.title)}
+              ${cell(escapeHtml(item.channel || ""), item.channel, "ws-col-wide")}
+              ${cell(statusBadge(item.status), "", "ws-col-narrow")}
+            </tr>`,
+          )
+          .join("")}
+      </tbody>
+    </table>
+  `;
+}
+
+function sourcesTable(items) {
+  return `
+    <table class="ws-table">
+      ${tableHead([[t("label")], [t("coverage"), "ws-col-wide"], [t("freshness"), "ws-col-narrow"], [t("status"), "ws-col-narrow"]])}
+      <tbody>
+        ${items
+          .map(
+            (item) => `${rowOpen(item.id)}
+              ${cell(`<span class="strong">${escapeHtml(item.label)}</span>`, item.label)}
+              ${cell(escapeHtml(item.coverage || ""), item.coverage, "ws-col-wide")}
+              ${cell(escapeHtml(item.freshness || ""), item.freshness, "ws-col-narrow")}
+              ${cell(statusBadge(item.status), "", "ws-col-narrow")}
+            </tr>`,
+          )
+          .join("")}
+      </tbody>
+    </table>
+  `;
+}
+
+const TABLE_BY_VIEW = { signals: signalsTable, actions: actionsTable, drafts: draftsTable, sources: sourcesTable };
+
+// Prev / Next only. Each click is one request for a neighbouring page with a
+// cursor already in hand; the total comes from records.count.
+function pagerControl(key) {
+  const cursors = state.pageCursors[key];
+  if (!cursors) return "";
+  const total = pageCount(key);
+  const current = state.currentPage[key] || 1;
+  const hasNext = Boolean(cursors[current]);
+  if (current === 1 && !hasNext) return "";
+  const loading = Boolean(state.pageLoading[key]);
+  return `
+    <div class="pager">
+      <button type="button" class="button" data-goto-page="${key}:${current - 1}" ${loading || current <= 1 ? "disabled" : ""}>${t("prevPage")}</button>
+      <span class="pager-summary">${t("pageOf").replace("{current}", current).replace("{total}", Math.max(total, current))}</span>
+      <button type="button" class="button" data-goto-page="${key}:${current + 1}" ${loading || !hasNext ? "disabled" : ""}>${t("nextPage")}</button>
+    </div>
+  `;
+}
+
+function renderRecordView() {
+  const { view } = state.route;
+  els.viewTitle.textContent = viewLabel(view);
+  const items = filteredItems(view);
+  els.viewCount.textContent = `${items.length}${isPartial(view) ? "+" : ""}`;
+  const table = TABLE_BY_VIEW[view](items);
+  const empty = emptyState(state.route.query ? t("noMatches") : t("empty"));
+  // No demo banner here: a record view is one toolbar row over a full-bleed
+  // table, nothing else — the demo state is already in the sidebar's sync
+  // status and (once) on Overview.
+  els.listPanel.innerHTML = `${items.length ? table : empty}${pagerControl(view)}`;
+  renderDetail();
+}
+
+/* ---------- Detail panel + decision form ---------- */
+
+// A relation is a business id ("signal-1", "action-2") — resolve it to the
+// target's own title. When the target is not on the loaded page, say so
+// rather than printing the bare id (busabase-app-creator references/
+// ui-and-validation.md "Resource ids never reach the screen").
+function linkedSignalLink(id) {
+  const target = findItem("signals", id);
+  return target
+    ? `<a href="${recordUrl(id, "signals")}">${escapeHtml(itemLabel(target))}</a>`
+    : `<span class="muted">${t("notLoaded")}</span>`;
+}
+
+function linkedActionLink(id) {
+  const target = findItem("actions", id);
+  return target
+    ? `<a href="${recordUrl(id, "actions")}">${escapeHtml(itemLabel(target))}</a>`
+    : `<span class="muted">${t("notLoaded")}</span>`;
+}
 
 function signalDetailFields(item) {
   return `
@@ -409,7 +651,7 @@ function actionDetailFields(item) {
     <div class="field"><span>${t("priority")}</span><p>${escapeHtml(enumLabel(item.priority, "priority") || item.priority)}</p></div>
     <div class="field"><span>${t("owner")}</span><p>${escapeHtml(item.owner)}</p></div>
     ${item.reason ? `<div class="field"><span>${t("reason")}</span><p>${escapeHtml(item.reason)}</p></div>` : ""}
-    ${(item.linked_signal_ids || []).length ? `<div class="field"><span>${t("linkedSignals")}</span><p>${item.linked_signal_ids.map((id) => escapeHtml(id)).join(", ")}</p></div>` : ""}
+    ${(item.linked_signal_ids || []).length ? `<div class="field"><span>${t("linkedSignals")}</span><p>${item.linked_signal_ids.map((id) => linkedSignalLink(id)).join(", ")}</p></div>` : ""}
     ${item.next_step ? `<div class="field"><span>${t("nextStep")}</span><p>${escapeHtml(item.next_step)}</p></div>` : ""}
   `;
 }
@@ -417,71 +659,97 @@ function actionDetailFields(item) {
 function draftDetailFields(item) {
   return `
     <div class="field"><span>${t("channel")}</span><p>${escapeHtml(item.channel)}</p></div>
-    ${item.linked_action_id ? `<div class="field"><span>${t("linkedAction")}</span><p>${escapeHtml(item.linked_action_id)}</p></div>` : ""}
+    ${item.linked_action_id ? `<div class="field"><span>${t("linkedAction")}</span><p>${linkedActionLink(item.linked_action_id)}</p></div>` : ""}
     <div class="field"><span>${t("summary")}</span><p>${escapeHtml(item.effective_body)}</p></div>
     <label class="field"><span>${t("editedDraft")}</span><textarea data-edited-body>${escapeHtml(item.edited_body || item.body || "")}</textarea></label>
+  `;
+}
+
+function sourceDetailFields(item) {
+  return `
+    <div class="field"><span>${t("freshness")}</span><p>${escapeHtml(item.freshness || "")}</p></div>
+    <div class="field"><span>${t("coverage")}</span><p>${escapeHtml(item.coverage || "")}</p></div>
   `;
 }
 
 function decisionActions(kind) {
   const disabled = state.saving ? "disabled" : "";
   const buttons = [
-    `<button type="button" class="primary" data-action="approve" ${disabled}>${t("approve")}</button>`,
-    `<button type="button" data-action="request_changes" ${disabled}>${t("requestChanges")}</button>`,
-    `<button type="button" class="danger" data-action="block" ${disabled}>${t("block")}</button>`,
+    `<button type="button" class="button primary" data-action="approve" ${disabled}>${t("approve")}</button>`,
+    `<button type="button" class="button" data-action="request_changes" ${disabled}>${t("requestChanges")}</button>`,
+    `<button type="button" class="button danger" data-action="block" ${disabled}>${t("block")}</button>`,
   ];
-  if (kind === "draft") buttons.push(`<button type="button" data-action="revise" ${disabled}>${t("revise")}</button>`);
+  if (kind === "draft")
+    buttons.push(`<button type="button" class="button" data-action="revise" ${disabled}>${t("revise")}</button>`);
   return buttons.join("");
 }
 
-function renderDetail(view) {
-  const kind = VIEW_KINDS[view];
-  const item = findItem(view, state.route.id);
-  if (!item) {
-    renderList(view);
+function renderDetail() {
+  const { view, selectedId, presentation } = state.route;
+  const phone = isMobileLayout();
+  if (els.detailBack)
+    els.detailBack.textContent =
+      presentation === "page" || phone ? t("backToList") || t("back") : t("close") || t("back");
+  if (els.detailExpand) {
+    els.detailExpand.hidden = !selectedId || presentation === "page";
+    if (selectedId) els.detailExpand.href = detailUrl(selectedId, view);
+  }
+  const bar = els.detailPanel.querySelector(".ws-detail-bar");
+  if (bar) bar.hidden = !selectedId;
+
+  if (!selectedId) {
+    els.detailBody.innerHTML =
+      DETAIL_MODES[view] === "split" ? `<div class="ws-detail-empty">${t("selectItem")}</div>` : "";
     return;
   }
-  els.title.textContent = itemLabel(item);
-  els.subtitle.textContent = `#${item.ref} · ${enumLabel(item.status)}`;
+  const item = findItem(view, selectedId);
+  if (!item) {
+    const pending = state.extra[view]?.has(selectedId) && state.extra[view].get(selectedId) === undefined;
+    els.detailBody.innerHTML = pending
+      ? `<div class="empty-inline">${t("loading")}</div>`
+      : emptyState(t("recordMissing"));
+    return;
+  }
+  const kind = VIEW_KINDS[view];
   const fields =
     kind === "signal"
       ? signalDetailFields(item)
       : kind === "action"
         ? actionDetailFields(item)
-        : draftDetailFields(item);
-  els.content.innerHTML = `
-    ${demoBanner()}
-    <section class="item-detail">
-      <div class="item-list">${itemsForView(view)
-        .map((entry) => itemRow(view, entry))
-        .join("")}</div>
-      <div class="item-panel">
-        <a class="back-link" href="#/${view}">← ${t("back")}</a>
-        <div class="item-panel-head">
-          ${statusBadge(item.status)}
-          ${riskBadges(item.risk)}
-        </div>
-        <h2>${escapeHtml(itemLabel(item))}</h2>
-        ${item.summary ? `<p>${escapeHtml(item.summary)}</p>` : ""}
-        ${fields}
-        <label class="field"><span>${t("reviewNote")}</span><textarea data-review-note>${escapeHtml(item.decision?.comment || "")}</textarea></label>
-        <div class="actions-bar" data-decision-actions>${decisionActions(kind)}</div>
-        <div class="decision-feedback" data-decision-feedback></div>
+        : kind === "draft"
+          ? draftDetailFields(item)
+          : sourceDetailFields(item);
+  els.detailBody.innerHTML = `
+    <header class="detail-head">
+      <div class="item-panel-head">
+        ${statusBadge(item.status)}
+        ${riskBadges(item.risk)}
       </div>
-    </section>
+      <h2>${escapeHtml(itemLabel(item))}</h2>
+      ${item.summary ? `<p class="muted">${escapeHtml(item.summary)}</p>` : ""}
+    </header>
+    ${fields}
+    ${
+      kind
+        ? `
+      <label class="field"><span>${t("reviewNote")}</span><textarea data-review-note>${escapeHtml(item.decision?.comment || "")}</textarea></label>
+      ${noticeBanner()}
+      <div class="actions-bar" data-decision-actions>${decisionActions(kind)}</div>
+    `
+        : ""
+    }
   `;
-  bindDecisionForm(view, kind, item);
+  if (kind) bindDecisionForm(view, kind, item);
 }
 
 function bindDecisionForm(view, kind, item) {
-  const panel = els.content.querySelector("[data-decision-actions]");
+  const panel = els.detailBody.querySelector("[data-decision-actions]");
   if (!panel) return;
   panel.querySelectorAll("[data-action]").forEach((button) => {
     button.addEventListener("click", async () => {
       const action = button.dataset.action;
-      const note = els.content.querySelector("[data-review-note]")?.value || "";
-      const editedBody = els.content.querySelector("[data-edited-body]")?.value || "";
-      const feedback = els.content.querySelector("[data-decision-feedback]");
+      const note = els.detailBody.querySelector("[data-review-note]")?.value || "";
+      const editedBody = els.detailBody.querySelector("[data-edited-body]")?.value || "";
       state.saving = true;
       render();
       try {
@@ -494,69 +762,27 @@ function bindDecisionForm(view, kind, item) {
           edited_body: editedBody,
         });
         if (!result.ok) throw new Error(result.error || t("decisionError"));
+        state.saving = false;
         await loadState();
-        location.hash = `#/${view}/${encodeURIComponent(item.id)}`;
-        const again = els.content.querySelector("[data-decision-feedback]");
-        if (again) {
-          again.textContent = t("decisionSaved");
-          again.className = "decision-feedback positive";
-        }
+        state.notice = t("decisionSaved");
+        render();
       } catch (error) {
         state.saving = false;
+        state.notice = error instanceof Error ? error.message : String(error);
         render();
-        const again = els.content.querySelector("[data-decision-feedback]");
-        if (again) {
-          again.textContent = error instanceof Error ? error.message : String(error);
-          again.className = "decision-feedback negative";
-        } else if (feedback) {
-          feedback.textContent = error instanceof Error ? error.message : String(error);
-          feedback.className = "decision-feedback negative";
-        }
-      } finally {
-        state.saving = false;
       }
     });
   });
 }
 
-/* ---------- Sources ---------- */
-
-function renderSources() {
-  els.title.textContent = t("sources");
-  const sources = state.batch?.sources || [];
-  els.subtitle.textContent = `${sources.length} ${t("sources").toLowerCase()}`;
-  els.content.innerHTML = `
-    ${demoBanner()}
-    <div class="source-list">
-      ${
-        sources
-          .map(
-            (source) => `
-        <div class="source-row">
-          <div class="source-row-head">
-            <strong>${escapeHtml(source.label)}</strong>
-            ${statusBadge(source.status)}
-          </div>
-          <p class="muted">${escapeHtml(source.coverage || "")}</p>
-          <span class="muted">${t("freshness")}: ${escapeHtml(source.freshness || "")}</span>
-        </div>
-      `,
-          )
-          .join("") || `<div class="empty">${t("empty")}</div>`
-      }
-    </div>
-  `;
-}
-
-/* ---------- Settings ---------- */
+/* ---------- Help & Settings ---------- */
 
 function renderSettings() {
-  els.title.textContent = t("settings");
-  els.subtitle.textContent = state.batch?.vertical || "";
+  document.getElementById("settingsTitle").textContent = t("settings");
   const b = state.batch || {};
-  els.content.innerHTML = `
-    <div class="settings-grid">
-      <section class="item-panel">
+  document.getElementById("settingsBody").innerHTML = `
+    <div class="settings">
+      <section class="card">
         <h2>${t("configuration")}</h2>
         <dl>
           <dt>${t("dataProvider")}</dt><dd>${escapeHtml(state.bootstrap?.data_provider || "busabase")}</dd>
@@ -570,12 +796,23 @@ function renderSettings() {
   `;
 }
 
-function render() {
+export function render() {
   renderShell();
-  const { view, id } = state.route;
-  if ((view === "signals" || view === "actions" || view === "drafts") && id) renderDetail(view);
-  else if (view === "signals" || view === "actions" || view === "drafts") renderList(view);
-  else if (view === "sources") renderSources();
+  const { view, selectedId, presentation } = state.route;
+  const ready = Boolean(state.batch);
+  const onRecordView = ready && RECORD_VIEWS.includes(view);
+  const body = document.body.classList;
+  body.toggle("ws-detail-open", onRecordView && Boolean(selectedId));
+  body.toggle("ws-detail-page", onRecordView && presentation === "page" && Boolean(selectedId));
+  body.toggle("ws-detail-drawer", onRecordView && presentation === "drawer");
+  body.toggle("ws-layout-split", onRecordView && DETAIL_MODES[view] === "split" && presentation !== "page");
+  body.toggle("ws-searching", onRecordView && Boolean(state.route.query));
+  els.loadState.hidden = ready;
+  els.overviewPage.hidden = !ready || view !== "overview";
+  els.viewPage.hidden = !onRecordView;
+  els.settingsPage.hidden = !ready || view !== "settings";
+  if (!ready) return;
+  if (onRecordView) renderRecordView();
   else if (view === "settings") renderSettings();
   else renderOverview();
 }
@@ -594,23 +831,47 @@ function escapeHtml(value) {
   );
 }
 
-els.content.addEventListener("click", (event) => {
-  const button = event.target.closest("[data-goto-page]");
-  if (!button) return;
-  const [key, page] = button.dataset.gotoPage.split(":");
-  goToPage(key, Number(page));
+// ── Events ───────────────────────────────────────────────────────────────
+els.listPanel.addEventListener("click", (event) => {
+  const pager = event.target.closest("[data-goto-page]");
+  if (pager) {
+    const [key, page] = pager.dataset.gotoPage.split(":");
+    goToPage(key, Number(page));
+    return;
+  }
+  if (event.target.closest("a, button")) return;
+  const row = event.target.closest("tr[data-id]");
+  if (!row) return;
+  const url = recordUrl(row.dataset.id);
+  // Switching records while a drawer/split is open replaces the entry, so
+  // Close still steps back to the list the drawer was opened from.
+  if (state.route.peek) {
+    history.replaceState(history.state, "", url);
+    setRoute();
+  } else {
+    location.hash = url;
+  }
 });
-
+els.detailBack.addEventListener("click", closeDetail);
+document.addEventListener("keydown", (event) => {
+  if (event.key !== "Escape") return;
+  if (event.target.closest?.("textarea, input")) {
+    event.target.blur();
+    return;
+  }
+  if (state.route.selectedId && state.route.presentation && state.route.presentation !== "page") closeDetail();
+});
 window.addEventListener("hashchange", setRoute);
 window.addEventListener("resize", syncResponsiveShell);
 els.sidebarToggle?.addEventListener("click", toggleSidebar);
 els.mobileSidebarToggle?.addEventListener("click", () => setMobileSidebarOpen(true));
 els.sidebarScrim?.addEventListener("click", () => setMobileSidebarOpen(false));
 els.search.addEventListener("input", () => {
-  state.query = els.search.value;
-  render();
+  replaceRoute(
+    `#/${state.route.view}${routeQuery({ peek: state.route.peek }, { ...state.route, query: els.search.value })}`,
+  );
 });
-els.refresh.addEventListener("click", () => loadState());
+els.refresh?.addEventListener("click", () => loadState());
 els.mobileRefresh?.addEventListener("click", () => loadState());
 els.language.value = state.lang;
 els.language.addEventListener("change", () => {
@@ -629,9 +890,13 @@ async function boot() {
       renderSetupRequired(error, boot);
       return;
     }
-    els.content.innerHTML = `<div class="empty">${escapeHtml(error.message)}</div>`;
+    els.loadState.hidden = false;
+    els.loadState.classList.add("error");
+    els.loadState.textContent = error instanceof Error ? error.message : String(error);
   }
 }
 
+if (els.search) els.search.value = state.route.query;
+previousRouteWasList = RECORD_VIEWS.includes(state.route.view) && !state.route.selectedId;
 syncResponsiveShell();
 boot();

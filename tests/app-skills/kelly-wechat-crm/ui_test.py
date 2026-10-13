@@ -83,11 +83,12 @@ def test_demo_ui(browser, base_url: str) -> None:
     errors = attach_errors(page)
     page.goto(f"{base_url}/?demo=1#/actions")
     page.wait_for_load_state("networkidle")
-    assert page.locator(".record-row").count() == 8
+    assert page.locator(".ws-table tbody tr").count() == 8
     assert page.locator("#attentionValue").inner_text() == "8"
     assert_no_horizontal_overflow(page)
 
-    page.locator(".record-row").first.click()
+    # actions is `split` mode: a row opens via `?peek=`, not a `/record` path.
+    page.locator(".ws-table tbody tr").first.click()
     page.locator("#reviewNote").fill("先确认近况，不直接发送消息。")
     page.locator("[data-action-status='approved']").click()
     page.locator(".action-notice").get_by_text("demo-change-").wait_for(timeout=5_000)
@@ -97,7 +98,7 @@ def test_demo_ui(browser, base_url: str) -> None:
     page.locator('#outcomeForm button[type="submit"]').click()
     page.locator("#outcomeModal").wait_for(state="hidden")
     assert page.locator(".action-notice").get_by_text("等待回复").is_visible()
-    assert "/actions/" in page.url
+    assert "/actions" in page.url and "peek=" in page.url
 
     page.goto(f"{base_url}/?demo=1#/goals")
     page.wait_for_load_state("networkidle")
@@ -117,7 +118,7 @@ def test_demo_ui(browser, base_url: str) -> None:
     page.locator("#candidateSearchForm button[type='submit']").click()
     page.locator(".candidate-row input").check()
     page.locator("#candidatePromote").click()
-    page.locator(".record-row", has_text="Lina").wait_for(timeout=5_000)
+    page.locator(".ws-table tbody tr", has_text="Lina").wait_for(timeout=5_000)
     assert "已加入 1 位重点联系人" in page.locator("#appNotice").inner_text()
 
     page.locator("#settingsOpen").click()
@@ -128,7 +129,7 @@ def test_demo_ui(browser, base_url: str) -> None:
     page.locator("#settingsClose").click()
     page.goto(f"{base_url}/?demo=1#/settings")
     page.wait_for_load_state("networkidle")
-    assert page.locator("#listTitle").inner_text() == "系统状态"
+    assert page.locator("#viewTitle").inner_text() == "系统状态"
     assert page.locator("#settingsModal").is_hidden()
     page.locator("#sidebarClose").click()
     assert page.locator("body.sidebar-collapsed").count() == 1
@@ -148,12 +149,19 @@ def test_demo_ui(browser, base_url: str) -> None:
         assert page.locator("#sidebarScrim").is_visible()
         page.locator("#sidebarScrim").click(position={"x": width - 5, "y": 5})
         assert page.locator("body.sidebar-open").count() == 0
-        page.locator(".record-row").first.click()
-        assert page.locator("body.mobile-detail-open").count() == 1
+        # Sidebar close is a CSS transform; Playwright's actionability check
+        # can still see the fixed-position sidebar as a hit-test candidate for
+        # a few frames after the scrim click toggles it off, which fails a
+        # plain click intermittently even though the row is genuinely visible
+        # and un-occluded. `force=True` clicks it directly; the assertions
+        # below still verify the real resulting app state, not just the click.
+        page.wait_for_timeout(250)
+        page.locator(".ws-table tbody tr").first.click(force=True)
+        assert page.locator("body.ws-detail-open").count() == 1
         assert page.locator("#backButton").is_visible()
         assert_no_horizontal_overflow(page)
         page.locator("#backButton").click()
-        assert page.locator("body.mobile-detail-open").count() == 0
+        assert page.locator("body.ws-detail-open").count() == 0
         page.goto(f"{base_url}/?demo=1#/goals/new")
         page.wait_for_load_state("networkidle")
         assert page.locator("#goalModal").is_visible()
@@ -217,7 +225,7 @@ def test_oss_provisioning_and_review(browser) -> None:
                     page.locator("[data-provision]").click()
                     page.wait_for_selector("[data-provision]", state="detached", timeout=20_000)
                     page.wait_for_timeout(800)
-                    assert page.locator(".record-row").count() == 0
+                    assert page.locator(".ws-table tbody tr").count() == 0
                     assert_no_horizontal_overflow(page)
                     assert not errors, errors
                     context.close()
@@ -304,7 +312,7 @@ def test_oss_provisioning_and_review(browser) -> None:
                     errors = attach_errors(page)
                     page.goto(f"{app_url}/#/actions")
                     page.wait_for_load_state("networkidle")
-                    card = page.locator(".record-row", has_text="验收联系人：需要人工判断")
+                    card = page.locator(".ws-table tbody tr", has_text="验收联系人：需要人工判断")
                     card.click()
                     page.locator("#reviewNote").fill("真实验收直接保存工作台决定。")
                     page.locator("[data-action-status='approved']").click()

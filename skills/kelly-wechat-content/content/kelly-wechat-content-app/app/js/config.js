@@ -30,6 +30,11 @@ export const appConfig = {
   schemaVersion: 1,
   folder: { slug: "kelly-wechat-content", name: "公众号内容工作台", description: "公众号资料库与文章排期" },
   airApp: { slug: "kelly-wechat-content-app", name: "公众号内容工作台", resourceKey: "kelly-wechat-content-app" },
+  // Where each Base opens a record (see DETAIL_MODES in app.js for the why):
+  //   sources  → drawer: a reference fact you scan many of, skim, and return to.
+  //   articles → page:   an article is a workplace — outline, draft, review
+  //                      note, publish link — you stay a while.
+  ui: { detail_modes: { sources: "drawer", articles: "page" } },
   permissions: {
     readProcedures: [
       "nodes.get",

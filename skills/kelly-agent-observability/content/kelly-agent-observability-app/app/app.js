@@ -1,17 +1,32 @@
 import { messages } from "./i18n/messages.js";
-import { appConfig } from "./js/config.js?v=0.1.0";
+import { appConfig } from "./js/config.js?v=0.2.0";
 import { closeConnectGate, passConnectGate, renderSetupRequired } from "./js/connect-gate.js?v=0.1.0";
 import { getProvider } from "./js/providers/index.js?v=0.1.0";
 
-const state = {
-  pageCursors: {},
-  currentPage: {},
-  pageLoading: {},
-  totals: {},
+// Detail mode per Base — declared once in config.js `ui.detail_modes`. Both
+// agents and traces are `page`: an agent is a workplace you stay on for a
+// minute (metrics, sparkline, recent traces, the handoff form); a trace is
+// drilled into from its agent to read one step timeline at a time. Neither
+// uses `?peek=` — a page is always addressed by path, `#/<view>/<id>`.
+// `handoffs` carries no mode: it is a flat append-only log, every field
+// already on the row, so no record ever opens.
+export const DETAIL_MODES = appConfig.ui.detail_modes;
+const RECORD_VIEWS = ["agents", "handoffs", "traces"];
+// Bases with their own Prev/Next browsed list. `traces` has none (it has no
+// standalone list — see DETAIL_MODES above); `records.list` only exposes a
+// forward keyset cursor, so only a neighbouring page is ever reachable.
+const PAGE_BINDINGS = { agents: { path: "fleet.agents" }, handoffs: { path: "handoffs" } };
+
+export const state = {
   fleet: null,
   summary: null,
   handoffs: [],
   bootstrap: null,
+  provider: null,
+  pageCursors: {},
+  currentPage: {},
+  pageLoading: {},
+  totals: {},
   route: parseRoute(),
   query: "",
   sort: { key: "calls_24h", dir: "desc" },
@@ -26,23 +41,35 @@ const state = {
 
 const SIDEBAR_COLLAPSED_STORAGE_KEY = "kelly-agent-observability.sidebarCollapsed";
 
+const byId = (id) => document.getElementById(id);
 const els = {
-  title: document.querySelector("#page-title"),
-  subtitle: document.querySelector("#page-subtitle"),
-  content: document.querySelector("#content"),
-  search: document.querySelector("#search"),
-  refresh: document.querySelector("#refresh"),
-  mobileRefresh: document.querySelector("#mobileRefresh"),
-  sidebarToggle: document.querySelector("#sidebarToggle"),
-  mobileSidebarToggle: document.querySelector("#mobileSidebarToggle"),
-  sidebarScrim: document.querySelector("#sidebarScrim"),
-  mobileViewTitle: document.querySelector("#mobileViewTitle"),
-  mobileViewMeta: document.querySelector("#mobileViewMeta"),
-  syncStatus: document.querySelector("#sync-status"),
-  degradedCount: document.querySelector("#summary-degraded-count"),
-  agentCount: document.querySelector("#count-agents"),
-  handoffCount: document.querySelector("#count-handoffs"),
-  language: document.querySelector("#language"),
+  loadState: byId("loadState"),
+  overviewPage: byId("overviewPage"),
+  viewPage: byId("viewPage"),
+  settingsPage: byId("settingsPage"),
+  overviewSummary: byId("overviewSummary"),
+  overviewMetrics: byId("overviewMetrics"),
+  overviewBody: byId("overviewBody"),
+  viewTitle: byId("viewTitle"),
+  viewCount: byId("viewCount"),
+  viewSearch: byId("viewSearch"),
+  listPanel: byId("listPanel"),
+  detailPanel: byId("detailPanel"),
+  detailBody: byId("detailBody"),
+  detailBack: byId("detailBack"),
+  search: byId("search"),
+  refresh: byId("refresh"),
+  mobileRefresh: byId("mobileRefresh"),
+  sidebarToggle: byId("sidebarToggle"),
+  mobileSidebarToggle: byId("mobileSidebarToggle"),
+  sidebarScrim: byId("sidebarScrim"),
+  mobileViewTitle: byId("mobileViewTitle"),
+  mobileViewMeta: byId("mobileViewMeta"),
+  syncStatus: byId("sync-status"),
+  degradedCount: byId("summary-degraded-count"),
+  agentCount: byId("count-agents"),
+  handoffCount: byId("count-handoffs"),
+  language: byId("language"),
 };
 
 function isMobileLayout() {
@@ -133,24 +160,76 @@ function statusClass(status) {
   return status === "critical" ? "negative" : status === "degraded" ? "warn" : "positive";
 }
 
+function capitalize(value) {
+  const s = String(value || "");
+  return s ? s[0].toUpperCase() + s.slice(1) : s;
+}
+
+function escapeHtml(value) {
+  return String(value ?? "").replace(
+    /[&<>"']/g,
+    (char) =>
+      ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;",
+      })[char],
+  );
+}
+
+// ── Routing ──────────────────────────────────────────────────────────────
+// `#/<view>[/<record>]`. Both detail modes are `page`, so a record is always
+// in the path — there is no `?peek=`, no drawer, no split. `traces` has no
+// list of its own (see DETAIL_MODES above), so a bare `#/traces` redirects.
 function parseRoute() {
   const parts = (location.hash || "#/overview").replace(/^#\/?/, "").split("/").filter(Boolean);
-  return { view: parts[0] || "overview", id: parts[1] ? decodeURIComponent(parts[1]) : "" };
+  let view = parts[0] || "overview";
+  let id = "";
+  try {
+    id = parts[1] ? decodeURIComponent(parts[1]) : "";
+  } catch {
+    id = "";
+  }
+  if (!RECORD_VIEWS.includes(view) && view !== "settings") view = "overview";
+  if (view === "traces" && !id) view = "overview";
+  const selectedId = DETAIL_MODES[view] ? id : "";
+  return { view, id, selectedId };
 }
 
 function setRoute() {
+  const previousView = state.route.view;
   state.route = parseRoute();
+  if (state.route.view !== previousView) state.query = "";
+  els.search.value = state.query;
+  setMobileSidebarOpen(false);
   render();
 }
 
+export function listUrl(view) {
+  return `#/${view}`;
+}
+
+export function recordUrl(view, id) {
+  return `#/${view}/${encodeURIComponent(id)}`;
+}
+
+function closeDetail() {
+  location.hash = listUrl(state.route.view === "traces" ? "agents" : state.route.view);
+}
+
+// ── Data ─────────────────────────────────────────────────────────────────
 async function loadState() {
   const provider = await getProvider();
+  state.provider = provider;
   const data = await provider.getState();
   state.pageCursors = {};
   state.currentPage = {};
   state.pageLoading = {};
   state.totals = data.totals || {};
   for (const [key, nextCursor] of Object.entries(data.pagination || {})) {
+    if (!PAGE_BINDINGS[key]) continue;
     state.pageCursors[key] = [undefined, nextCursor];
     state.currentPage[key] = 1;
   }
@@ -177,6 +256,78 @@ function applyDemoRoute() {
   state.route = parseRoute();
 }
 
+// The configured page size for a paginated Base, straight from config.js.
+function pageSize(key) {
+  return appConfig.bases.find((entry) => entry.key === key)?.readLimit || 50;
+}
+
+function pageCount(key) {
+  const total = state.totals?.[key];
+  return total == null ? null : Math.max(1, Math.ceil(total / pageSize(key)));
+}
+
+// True while a Base holds only part of its rows — a later page is loaded, or
+// one is known to exist. Anything counted from loaded rows must say so.
+function isPartial(key) {
+  const cursors = state.pageCursors[key];
+  if (!cursors) return false;
+  const current = state.currentPage[key] || 1;
+  return current > 1 || Boolean(cursors[current]);
+}
+
+function replacePageRows(path, rows) {
+  const parts = path.split(".");
+  let target = state;
+  for (const part of parts.slice(0, -1)) {
+    target = target?.[part];
+    if (!target) return;
+  }
+  target[parts.at(-1)] = rows;
+}
+
+// Replaces the displayed page with a NEIGHBOURING one: one request per click,
+// using a cursor already in hand. `records.list` only exposes a forward
+// keyset cursor with no offset, so this never jumps — Prev/Next only, never a
+// numbered pager that would read every page in between to reach page N.
+async function goToPage(key, targetPage) {
+  const binding = PAGE_BINDINGS[key];
+  const cursors = state.pageCursors[key];
+  if (!binding || !cursors || state.pageLoading[key]) return;
+  const current = state.currentPage[key] || 1;
+  if (Math.abs(targetPage - current) !== 1 || targetPage < 1) return;
+  if (targetPage > current && !cursors[current]) return;
+  state.pageLoading[key] = true;
+  render();
+  try {
+    const provider = await getProvider();
+    const { rows, nextCursor } = await provider.fetchPage(key, cursors[targetPage - 1]);
+    replacePageRows(binding.path, rows);
+    cursors[targetPage] = nextCursor;
+    state.currentPage[key] = targetPage;
+  } finally {
+    state.pageLoading[key] = false;
+    render();
+  }
+}
+
+function pagerControl(key) {
+  const cursors = state.pageCursors[key];
+  if (!cursors) return "";
+  const total = pageCount(key);
+  const current = state.currentPage[key] || 1;
+  const hasNext = Boolean(cursors[current]);
+  if (current === 1 && !hasNext) return "";
+  const loading = Boolean(state.pageLoading[key]);
+  const summary = total == null ? "" : t("pageOf").replace("{current}", current).replace("{total}", total);
+  return `
+    <nav class="pager" aria-label="${escapeHtml(t("pagination"))}">
+      <button type="button" class="button" data-goto-page="${key}:${current - 1}" ${loading || current <= 1 ? "disabled" : ""}>${t("prevPage")}</button>
+      ${summary ? `<span class="pager-summary">${escapeHtml(summary)}</span>` : ""}
+      <button type="button" class="button" data-goto-page="${key}:${current + 1}" ${loading || !hasNext ? "disabled" : ""}>${t("nextPage")}</button>
+    </nav>
+  `;
+}
+
 function applyI18n() {
   document.documentElement.lang = activeLang() === "zh" ? "zh-CN" : "en";
   document.querySelectorAll("[data-i18n]").forEach((node) => {
@@ -190,6 +341,8 @@ function applyI18n() {
   els.search.placeholder = t("search");
   els.refresh.textContent = t("refresh");
   if (els.mobileRefresh) els.mobileRefresh.title = t("refresh");
+  byId("overviewTitle").textContent = t("overview");
+  byId("settingsTitle").textContent = t("settings");
 }
 
 function isConnected() {
@@ -202,6 +355,14 @@ function agentName(agentId) {
 
 function agentMetrics(agentId) {
   return state.fleet?.metrics?.find((m) => m.agent_id === agentId) || null;
+}
+
+function agents() {
+  return state.fleet?.agents || [];
+}
+
+function traces() {
+  return state.fleet?.traces || [];
 }
 
 function renderShell() {
@@ -235,17 +396,25 @@ function viewLabel(view) {
   return t("overview");
 }
 
-function summaryCards() {
+function recordCountLabel(key, loadedCount) {
+  const total = state.totals?.[key];
+  if (total != null) return total;
+  return `${loadedCount}${isPartial(key) ? "+" : ""}`;
+}
+
+// ── Overview ─────────────────────────────────────────────────────────────
+// Three numbers the nav does not already show: the sidebar's attention block
+// already names the degraded-agent count, so the band covers the two totals
+// and the one agent-health bucket (critical) that is nowhere else on screen.
+function metricsBand() {
   const s = state.summary || {};
-  return `
-    <div class="metrics">
-      <div class="metric"><span>${t("totalCalls")}</span><strong>${num(s.total_calls_24h)}</strong></div>
-      <div class="metric"><span>${t("totalCost")}</span><strong>${money(s.total_cost_today_usd)}</strong></div>
-      <div class="metric"><span>${t("degradedAgents")}</span><strong class="warn">${num(s.degraded_agent_count)}</strong></div>
-      <div class="metric"><span>${t("criticalAgents")}</span><strong class="negative">${num(s.critical_agent_count)}</strong></div>
-      <div class="metric"><span>${t("healthyAgents")}</span><strong class="positive">${num(s.healthy_agent_count)}</strong></div>
-    </div>
-  `;
+  return [
+    [t("totalCalls"), num(s.total_calls_24h), ""],
+    [t("totalCost"), money(s.total_cost_today_usd), ""],
+    [t("criticalAgents"), num(s.critical_agent_count), "negative"],
+  ]
+    .map(([label, value, cls]) => `<div><span>${escapeHtml(label)}</span><strong class="${cls}">${value}</strong></div>`)
+    .join("");
 }
 
 function sparkline(hourly) {
@@ -262,13 +431,21 @@ function sparkline(hourly) {
   return `<div class="sparkline">${bars}</div><div class="muted spark-caption">${t("sparklineCaption")}</div>`;
 }
 
+function demoBanner() {
+  if (!state.bootstrap?.demo) return "";
+  return `<div class="warnings"><div class="info"><strong>${t("demoModeTitle")}</strong><span>${t("demoModeBody")}</span></div></div>`;
+}
+
+function emptyState(title) {
+  return `<div class="empty-state"><strong>${escapeHtml(title)}</strong></div>`;
+}
+
 function fleetOverviewGrid() {
-  const agents = state.fleet?.agents || [];
-  const cards = agents
+  const cards = agents()
     .map((agent) => {
       const metrics = agentMetrics(agent.agent_id) || {};
       return `
-      <a class="overview-panel agent-card" href="#/agents/${encodeURIComponent(agent.agent_id)}">
+      <a class="overview-panel agent-card" href="${recordUrl("agents", agent.agent_id)}">
         <div class="row between">
           <strong>${escapeHtml(agent.name)}</strong>
           <span class="badge status-${metrics.status || "healthy"}"><span class="status-dot"></span>${t(`status${capitalize(metrics.status || "healthy")}`)}</span>
@@ -287,31 +464,18 @@ function fleetOverviewGrid() {
 }
 
 function renderOverview() {
-  els.title.textContent = t("overview");
-  els.subtitle.textContent = state.fleet?.generated_at
+  els.overviewSummary.textContent = state.fleet?.generated_at
     ? `${t("generated")} ${new Date(state.fleet.generated_at).toLocaleString()}`
     : t("empty");
+  els.overviewMetrics.innerHTML = metricsBand();
   if (!isConnected()) {
-    els.content.innerHTML = `<div class="empty">${t("setupNeeded")}</div>`;
+    els.overviewBody.innerHTML = emptyState(t("setupNeeded"));
     return;
   }
-  els.content.innerHTML = `
-    ${demoBanner()}
-    ${summaryCards()}
-    ${fleetOverviewGrid()}
-  `;
+  els.overviewBody.innerHTML = `${demoBanner()}${fleetOverviewGrid()}`;
 }
 
-function demoBanner() {
-  if (!state.bootstrap?.demo) return "";
-  return `<div class="warnings"><div class="info"><strong>${t("demoModeTitle")}</strong><span>${t("demoModeBody")}</span></div></div>`;
-}
-
-function capitalize(value) {
-  const s = String(value || "");
-  return s ? s[0].toUpperCase() + s.slice(1) : s;
-}
-
+// ── Record views (agents list/detail, handoffs list, trace detail) ───────
 function sortHeader(key, label, cls = "") {
   const active = state.sort.key === key;
   const arrow = active ? (state.sort.dir === "asc" ? " ▲" : " ▼") : "";
@@ -329,108 +493,119 @@ function sortedAgentRows(rows) {
   });
 }
 
+function matches(values, query) {
+  return values.filter(Boolean).some((value) => String(value).toLowerCase().includes(query));
+}
+
 function filteredAgentRows() {
   const query = state.query.trim().toLowerCase();
-  const rows = (state.fleet?.agents || []).map((agent) => ({ ...agent, metrics: agentMetrics(agent.agent_id) }));
+  const rows = agents().map((agent) => ({ ...agent, metrics: agentMetrics(agent.agent_id) }));
+  if (!query) return rows;
+  return rows.filter((row) => matches([row.name, row.agent_id, row.description], query));
+}
+
+function filteredHandoffRows() {
+  const query = state.query.trim().toLowerCase();
+  const rows = [...state.handoffs].sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
   if (!query) return rows;
   return rows.filter((row) =>
-    [row.name, row.agent_id, row.description].some((v) => String(v).toLowerCase().includes(query)),
+    matches([row.created_by, row.target_id, row.agent_id, row.note, tNested("handoffStatus", row.status)], query),
   );
 }
 
-function agentHealthTable() {
-  const rows = sortedAgentRows(filteredAgentRows());
-  if (!rows.length) return `<div class="empty">${t("empty")}</div>`;
+function agentsTable(rows) {
   return `
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            ${sortHeader("name", t("agentsTitle"))}
-            ${sortHeader("calls_24h", t("callVolume"), "num")}
-            ${sortHeader("p50_latency_ms", t("p50Latency"), "num")}
-            ${sortHeader("p95_latency_ms", t("p95Latency"), "num")}
-            ${sortHeader("error_rate_pct", t("errorRate"), "num")}
-            ${sortHeader("cost_today_usd", t("costToday"), "num")}
-            ${sortHeader("status", t("status"), "num")}
+    <table class="ws-table">
+      <thead>
+        <tr>
+          ${sortHeader("name", t("agentsTitle"))}
+          ${sortHeader("calls_24h", t("callVolume"), "ws-col-num")}
+          ${sortHeader("p50_latency_ms", t("p50Latency"), "ws-col-num")}
+          ${sortHeader("p95_latency_ms", t("p95Latency"), "ws-col-num")}
+          ${sortHeader("error_rate_pct", t("errorRate"), "ws-col-num")}
+          ${sortHeader("cost_today_usd", t("costToday"), "ws-col-num")}
+          ${sortHeader("status", t("status"))}
+        </tr>
+      </thead>
+      <tbody>
+        ${rows
+          .map((row) => {
+            const m = row.metrics || {};
+            return `
+          <tr data-id="${escapeHtml(row.agent_id)}">
+            <td><span class="strong">${escapeHtml(row.name)}</span></td>
+            <td class="ws-col-num">${num(m.calls_24h)}</td>
+            <td class="ws-col-num">${ms(m.p50_latency_ms)}</td>
+            <td class="ws-col-num">${ms(m.p95_latency_ms)}</td>
+            <td class="ws-col-num ${statusClass(m.status)}">${pct(m.error_rate_pct)}</td>
+            <td class="ws-col-num">${money(m.cost_today_usd)}</td>
+            <td><span class="badge status-${m.status || "healthy"}"><span class="status-dot"></span>${t(`status${capitalize(m.status || "healthy")}`)}</span></td>
           </tr>
-        </thead>
-        <tbody>
-          ${rows
-            .map((row) => {
-              const m = row.metrics || {};
-              return `
-            <tr>
-              <td><a href="#/agents/${encodeURIComponent(row.agent_id)}"><span class="strong">${escapeHtml(row.name)}</span></a><div class="muted agent-id">${escapeHtml(row.agent_id)}</div></td>
-              <td class="num">${num(m.calls_24h)}</td>
-              <td class="num">${ms(m.p50_latency_ms)}</td>
-              <td class="num">${ms(m.p95_latency_ms)}</td>
-              <td class="num ${statusClass(m.status)}">${pct(m.error_rate_pct)}</td>
-              <td class="num">${money(m.cost_today_usd)}</td>
-              <td class="num"><span class="badge status-${m.status || "healthy"}"><span class="status-dot"></span>${t(`status${capitalize(m.status || "healthy")}`)}</span></td>
-            </tr>
-          `;
-            })
-            .join("")}
-        </tbody>
-      </table>
-    </div>
+        `;
+          })
+          .join("")}
+      </tbody>
+    </table>
   `;
 }
 
-function renderAgents() {
-  els.title.textContent = t("agentsTitle");
-  const rows = filteredAgentRows();
-  els.subtitle.textContent = `${recordCountLabel("agents", rows.length, Boolean(state.query))} ${t("agents")}`;
-  if (!isConnected()) {
-    els.content.innerHTML = `${`<div class="empty">${t("setupNeeded")}</div>`}
-    ${pagerControl("agents")}`;
+function handoffsTable(rows) {
+  return `
+    <table class="ws-table">
+      <thead>
+        <tr>
+          <th>${t("createdBy")}</th>
+          <th>${tNested("targetType", "agent") || "Target"}</th>
+          <th>${t("status")}</th>
+          <th class="ws-col-wide">${t("handoffNote")}</th>
+          <th class="ws-col-num">${t("startedAt")}</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${rows
+          .map(
+            (h) => `
+          <tr>
+            <td>${escapeHtml(h.created_by)}</td>
+            <td>${escapeHtml(tNested("targetType", h.target_type))} · <a href="${recordUrl(h.target_type === "agent" ? "agents" : "traces", h.target_id)}">${escapeHtml(h.target_id)}</a></td>
+            <td><span class="badge status-${h.status === "needs_investigation" ? "critical" : "healthy"}">${escapeHtml(tNested("handoffStatus", h.status))}</span></td>
+            <td class="ws-col-wide">${escapeHtml(h.note || "")}</td>
+            <td class="ws-col-num">${new Date(h.created_at).toLocaleString()}</td>
+          </tr>
+        `,
+          )
+          .join("")}
+      </tbody>
+    </table>
+  `;
+}
+
+function renderList() {
+  const { view } = state.route;
+  els.viewTitle.textContent = viewLabel(view);
+  els.viewSearch.hidden = false;
+  if (view === "agents") {
+    const rows = sortedAgentRows(filteredAgentRows());
+    els.viewCount.textContent = recordCountLabel("agents", rows.length);
+    if (!isConnected()) {
+      els.listPanel.innerHTML = emptyState(t("setupNeeded"));
+      return;
+    }
+    els.listPanel.innerHTML = rows.length
+      ? `${agentsTable(rows)}${pagerControl("agents")}`
+      : emptyState(state.query ? t("noMatches") : t("empty"));
     return;
   }
-  els.content.innerHTML = `${demoBanner()}${agentHealthTable()}`;
+  // handoffs: a plain append-only log — every field is already on the row, so
+  // there is no detail to open and detailPanel never shows for this view.
+  const rows = filteredHandoffRows();
+  els.viewCount.textContent = recordCountLabel("handoffs", rows.length);
+  els.listPanel.innerHTML = rows.length
+    ? `${handoffsTable(rows)}${pagerControl("handoffs")}`
+    : emptyState(state.query ? t("noMatches") : t("noHandoffs"));
 }
 
-function tracesTable(agentId) {
-  const traces = (state.fleet?.traces || [])
-    .filter((tr) => tr.agent_id === agentId)
-    .sort((a, b) => (a.started_at < b.started_at ? 1 : -1))
-    .slice(0, 30);
-  if (!traces.length) return `<div class="empty">${t("empty")}</div>`;
-  return `
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>${t("traceId")}</th>
-            <th>${t("startedAt")}</th>
-            <th class="num">${t("duration")}</th>
-            <th class="num">${t("steps")}</th>
-            <th class="num">${t("cost")}</th>
-            <th class="num">${t("status")}</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${traces
-            .map(
-              (tr) => `
-            <tr>
-              <td><a href="#/traces/${encodeURIComponent(tr.trace_id)}"><span class="strong">${escapeHtml(tr.trace_id)}</span></a></td>
-              <td>${new Date(tr.started_at).toLocaleString()}</td>
-              <td class="num">${ms(tr.duration_ms)}</td>
-              <td class="num">${num(tr.steps.length)}</td>
-              <td class="num">${money(tr.cost_usd)}</td>
-              <td class="num ${tr.status === "error" ? "negative" : "positive"}">${tr.status === "error" ? t("error") : t("ok")}</td>
-            </tr>
-          `,
-            )
-            .join("")}
-        </tbody>
-      </table>
-    </div>
-  `;
-}
-
-function agentMetricCards(metrics) {
+function agentMetricTiles(metrics) {
   return `
     <div class="metrics">
       <div class="metric"><span>${t("callVolume")}</span><strong>${num(metrics.calls_24h)}</strong></div>
@@ -443,6 +618,44 @@ function agentMetricCards(metrics) {
   `;
 }
 
+function tracesMiniTable(agentId) {
+  const rows = traces()
+    .filter((tr) => tr.agent_id === agentId)
+    .sort((a, b) => (a.started_at < b.started_at ? 1 : -1))
+    .slice(0, 30);
+  if (!rows.length) return emptyState(t("empty"));
+  return `
+    <table class="mini-table">
+      <thead>
+        <tr>
+          <th>${t("traceId")}</th>
+          <th>${t("startedAt")}</th>
+          <th class="num">${t("duration")}</th>
+          <th class="num">${t("steps")}</th>
+          <th class="num">${t("cost")}</th>
+          <th class="num">${t("status")}</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${rows
+          .map(
+            (tr) => `
+          <tr>
+            <td><a href="${recordUrl("traces", tr.trace_id)}"><span class="strong">${escapeHtml(tr.trace_id)}</span></a></td>
+            <td>${new Date(tr.started_at).toLocaleString()}</td>
+            <td class="num">${ms(tr.duration_ms)}</td>
+            <td class="num">${num(tr.steps.length)}</td>
+            <td class="num">${money(tr.cost_usd)}</td>
+            <td class="num ${tr.status === "error" ? "negative" : "positive"}">${tr.status === "error" ? t("error") : t("ok")}</td>
+          </tr>
+        `,
+          )
+          .join("")}
+      </tbody>
+    </table>
+  `;
+}
+
 function handoffForm(targetType, targetId, agentId) {
   const disabled = state.busy ? "disabled" : "";
   return `
@@ -450,40 +663,34 @@ function handoffForm(targetType, targetId, agentId) {
       <label class="handoff-label" for="handoffNote">${t("handoffNote")}</label>
       <textarea id="handoffNote" name="note" rows="3" placeholder="${escapeHtml(t("handoffNotePlaceholder"))}" ${disabled}></textarea>
       <div class="handoff-actions">
-        <button type="submit" data-status="acknowledged" ${disabled}>${t("acknowledge")}</button>
-        <button type="submit" data-status="needs_investigation" class="primary" ${disabled}>${t("needsInvestigation")}</button>
+        <button type="submit" data-status="acknowledged" class="button" ${disabled}>${t("acknowledge")}</button>
+        <button type="submit" data-status="needs_investigation" class="button primary" ${disabled}>${t("needsInvestigation")}</button>
       </div>
       <div class="handoff-form-message" data-handoff-message hidden></div>
     </form>
   `;
 }
 
-function renderAgentDetail() {
-  const agentId = state.route.id;
-  const agent = state.fleet?.agents?.find((a) => a.agent_id === agentId);
-  if (!agent) {
-    renderAgents();
-    return;
-  }
-  const metrics = agentMetrics(agentId) || {};
-  els.title.textContent = agent.name;
-  els.subtitle.textContent = agent.description;
-  els.content.innerHTML = `
+function agentDetail(agent) {
+  const metrics = agentMetrics(agent.agent_id) || {};
+  return `
+    <header class="detail-head">
+      <h2>${escapeHtml(agent.name)}</h2>
+      <p class="muted">${escapeHtml(agent.description)}</p>
+    </header>
     <section class="detail">
       <div class="detail-main">
-        <a class="back-link" href="#/agents">← ${t("back")}</a>
-        ${agentMetricCards(metrics)}
+        ${agentMetricTiles(metrics)}
         ${sparkline(metrics.hourly)}
-        <h2>${t("recentTraces")}</h2>
-        ${tracesTable(agentId)}
+        <h3>${t("recentTraces")}</h3>
+        ${tracesMiniTable(agent.agent_id)}
       </div>
-      <aside class="detail-side">
-        <h2>${t("acknowledge")} / ${t("needsInvestigation")}</h2>
-        ${handoffForm("agent", agentId, agentId)}
+      <aside class="card detail-side">
+        <h3>${t("acknowledge")} / ${t("needsInvestigation")}</h3>
+        ${handoffForm("agent", agent.agent_id, agent.agent_id)}
       </aside>
     </section>
   `;
-  bindHandoffForms();
 }
 
 function traceStepTimeline(trace) {
@@ -516,93 +723,74 @@ function traceStepTimeline(trace) {
   `;
 }
 
-function renderTraceDetail() {
-  const traceId = state.route.id;
-  const trace = state.fleet?.traces?.find((tr) => tr.trace_id === traceId);
-  if (!trace) {
-    els.title.textContent = t("traceDetail");
-    els.content.innerHTML = `<div class="empty">${t("empty")}</div>`;
-    return;
-  }
-  els.title.textContent = trace.trace_id;
-  els.subtitle.textContent = `${agentName(trace.agent_id)} · ${new Date(trace.started_at).toLocaleString()}`;
-  els.content.innerHTML = `
+function traceDetail(trace) {
+  return `
+    <header class="detail-head">
+      <h2>${escapeHtml(trace.trace_id)}</h2>
+      <p class="muted">${escapeHtml(agentName(trace.agent_id))} · ${new Date(trace.started_at).toLocaleString()}</p>
+    </header>
     <section class="detail">
       <div class="detail-main">
-        <a class="back-link" href="#/agents/${encodeURIComponent(trace.agent_id)}">← ${t("back")}</a>
-        ${demoBanner()}
         <div class="metrics">
           <div class="metric"><span>${t("duration")}</span><strong>${ms(trace.duration_ms)}</strong></div>
           <div class="metric"><span>${t("cost")}</span><strong>${money(trace.cost_usd)}</strong></div>
           <div class="metric"><span>${t("steps")}</span><strong>${num(trace.steps.length)}</strong></div>
           <div class="metric"><span>${t("status")}</span><strong class="${trace.status === "error" ? "negative" : "positive"}">${trace.status === "error" ? t("error") : t("ok")}</strong></div>
         </div>
-        <h2>${t("stepTimeline")}</h2>
+        <h3>${t("stepTimeline")}</h3>
         ${traceStepTimeline(trace)}
       </div>
-      <aside class="detail-side">
-        <h2>${t("acknowledge")} / ${t("needsInvestigation")}</h2>
+      <aside class="card detail-side">
+        <h3>${t("acknowledge")} / ${t("needsInvestigation")}</h3>
         ${handoffForm("trace", trace.trace_id, trace.agent_id)}
       </aside>
     </section>
   `;
-  bindHandoffForms();
 }
 
-function renderHandoffs() {
-  els.title.textContent = t("handoffHistory");
-  const handoffs = [...state.handoffs].sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
-  els.subtitle.textContent = `${recordCountLabel("handoffs", handoffs.length)} ${t("handoffs")}`;
-  if (!handoffs.length) {
-    els.content.innerHTML = `<div class="empty">${t("noHandoffs")}</div>`;
+function renderDetail() {
+  const { view, selectedId } = state.route;
+  els.detailPanel.querySelector(".ws-detail-bar").hidden = !selectedId;
+  if (!selectedId) {
+    els.detailBody.innerHTML = "";
     return;
   }
-  els.content.innerHTML = `
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>${t("createdBy")}</th>
-            <th>${t("targetType.agent") || "Target"}</th>
-            <th>${t("status")}</th>
-            <th>${t("handoffNote")}</th>
-            <th>${t("startedAt")}</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${handoffs
-            .map(
-              (h) => `
-            <tr>
-              <td>${escapeHtml(h.created_by)}</td>
-              <td>${escapeHtml(tNested("targetType", h.target_type))} · <a href="#/${h.target_type === "agent" ? "agents" : "traces"}/${encodeURIComponent(h.target_id)}">${escapeHtml(h.target_id)}</a></td>
-              <td><span class="badge status-${h.status === "needs_investigation" ? "critical" : "healthy"}">${escapeHtml(tNested("handoffStatus", h.status))}</span></td>
-              <td>${escapeHtml(h.note || "")}</td>
-              <td>${new Date(h.created_at).toLocaleString()}</td>
-            </tr>
-          `,
-            )
-            .join("")}
-        </tbody>
-      </table>
-    </div>
-    ${pagerControl("handoffs")}
-  `;
+  if (view === "agents") {
+    const agent = agents().find((a) => a.agent_id === selectedId);
+    els.detailBody.innerHTML = agent ? agentDetail(agent) : emptyState(t("empty"));
+    return;
+  }
+  if (view === "traces") {
+    const trace = traces().find((tr) => tr.trace_id === selectedId);
+    els.detailBody.innerHTML = trace ? traceDetail(trace) : emptyState(t("empty"));
+  }
 }
 
+function renderRecordView() {
+  const { view } = state.route;
+  if (view === "traces") {
+    // Detail-only: no list for this view (see DETAIL_MODES), so skip
+    // straight to the record — base-ui's `ws-detail-page` hides `.ws-list`.
+    els.viewTitle.textContent = viewLabel(view);
+    els.viewSearch.hidden = true;
+    els.listPanel.innerHTML = "";
+  } else {
+    renderList();
+  }
+}
+
+// ── Help & Settings ───────────────────────────────────────────────────────
 function renderSettings() {
-  els.title.textContent = t("settings");
-  els.subtitle.textContent = t("localFilesOnly");
-  els.content.innerHTML = `
+  byId("settingsBody").innerHTML = `
     <div class="settings">
-      <section>
+      <section class="card">
         <h2>${t("configuration")}</h2>
         <dl>
           <dt>${t("dataProvider")}</dt><dd>${escapeHtml(state.bootstrap?.data_provider || "busabase")}</dd>
           <dt>${t("agentCount")}</dt><dd>${num(state.summary?.agent_count || 0)}</dd>
         </dl>
       </section>
-      <section>
+      <section class="card">
         <h2>${t("thresholds")}</h2>
         <dl>
           <dt>${t("errorRateDegraded")}</dt><dd>3%</dd>
@@ -615,13 +803,28 @@ function renderSettings() {
   `;
 }
 
+// ── Render dispatch ────────────────────────────────────────────────────────
 function render() {
   renderShell();
-  if (state.route.view === "agents" && state.route.id) renderAgentDetail();
-  else if (state.route.view === "agents") renderAgents();
-  else if (state.route.view === "traces" && state.route.id) renderTraceDetail();
-  else if (state.route.view === "handoffs") renderHandoffs();
-  else if (state.route.view === "settings") renderSettings();
+  const { view, selectedId } = state.route;
+  const ready = Boolean(state.fleet);
+  const onRecordView = ready && RECORD_VIEWS.includes(view);
+  const body = document.body.classList;
+  body.toggle("ws-detail-open", onRecordView && Boolean(selectedId));
+  body.toggle("ws-detail-page", onRecordView && Boolean(selectedId));
+  body.toggle("ws-searching", onRecordView && Boolean(state.query));
+  els.loadState.hidden = ready;
+  els.overviewPage.hidden = !ready || view !== "overview";
+  els.viewPage.hidden = !onRecordView;
+  els.settingsPage.hidden = !ready || view !== "settings";
+  if (!ready) return;
+  if (onRecordView) {
+    renderRecordView();
+    renderDetail();
+    // After both the list and the detail panel are in the DOM — a handoff
+    // form can live in either (agent/trace page detail).
+    bindHandoffForms();
+  } else if (view === "settings") renderSettings();
   else renderOverview();
 }
 
@@ -629,8 +832,7 @@ function render() {
 // through the active provider (Busabase or demo) — there is no separate
 // approval step, since a handoff is always a brand-new row (never an update
 // to the agent/trace's own record). Demo mode never writes anywhere; it only
-// reflects the note in the in-memory handoff list already rendered, mirroring
-// the retired app/server/demo.ts's read-only demoHandoffs().
+// reflects the note in the in-memory handoff list already rendered.
 function bindHandoffForms() {
   document.querySelectorAll("[data-handoff-form]").forEach((form) => {
     form.addEventListener("submit", async (event) => {
@@ -667,7 +869,7 @@ function bindHandoffForms() {
         messageEl.className = "handoff-form-message positive";
         form.querySelector("textarea[name='note']").value = "";
         if (els.handoffCount) els.handoffCount.textContent = recordCountLabel("handoffs", state.handoffs.length);
-      } catch (error) {
+      } catch {
         messageEl.hidden = false;
         messageEl.textContent = t("handoffError");
         messageEl.className = "handoff-form-message negative";
@@ -678,20 +880,7 @@ function bindHandoffForms() {
   });
 }
 
-function escapeHtml(value) {
-  return String(value ?? "").replace(
-    /[&<>"']/g,
-    (char) =>
-      ({
-        "&": "&amp;",
-        "<": "&lt;",
-        ">": "&gt;",
-        '"': "&quot;",
-        "'": "&#39;",
-      })[char],
-  );
-}
-
+// ── Events ───────────────────────────────────────────────────────────────
 window.addEventListener("hashchange", setRoute);
 window.addEventListener("resize", syncResponsiveShell);
 els.sidebarToggle?.addEventListener("click", toggleSidebar);
@@ -701,16 +890,32 @@ els.search.addEventListener("input", () => {
   state.query = els.search.value;
   render();
 });
-els.content.addEventListener("click", (event) => {
-  const header = event.target.closest("[data-sort]");
-  if (!header) return;
-  const key = header.dataset.sort;
-  if (state.sort.key === key) {
-    state.sort.dir = state.sort.dir === "asc" ? "desc" : "asc";
-  } else {
-    state.sort = { key, dir: key === "name" ? "asc" : "desc" };
+els.listPanel.addEventListener("click", (event) => {
+  const pager = event.target.closest("[data-goto-page]");
+  if (pager) {
+    const [key, page] = pager.dataset.gotoPage.split(":");
+    goToPage(key, Number(page));
+    return;
   }
-  render();
+  const header = event.target.closest("[data-sort]");
+  if (header) {
+    const key = header.dataset.sort;
+    if (state.sort.key === key) state.sort.dir = state.sort.dir === "asc" ? "desc" : "asc";
+    else state.sort = { key, dir: key === "name" ? "asc" : "desc" };
+    render();
+    return;
+  }
+  if (event.target.closest("a, button")) return;
+  const row = event.target.closest("tr[data-id]");
+  if (!row) return;
+  location.hash = recordUrl(state.route.view, row.dataset.id);
+});
+els.detailBack.addEventListener("click", closeDetail);
+document.addEventListener("keydown", (event) => {
+  if (event.key !== "Escape") return;
+  if (event.target.closest?.("textarea, input")) {
+    event.target.blur();
+  }
 });
 els.refresh.addEventListener("click", () => loadState());
 els.mobileRefresh?.addEventListener("click", () => loadState());
@@ -720,8 +925,6 @@ els.language.addEventListener("change", () => {
   localStorage.setItem("kelly-agent-observability-language", state.lang);
   render();
 });
-
-syncResponsiveShell();
 
 async function boot() {
   const ready = await passConnectGate({ onReady: boot });
@@ -733,115 +936,16 @@ async function boot() {
       renderSetupRequired(error, boot);
       return;
     }
-    els.content.innerHTML = `<div class="empty">${escapeHtml(error.message)}</div>`;
+    els.loadState.hidden = false;
+    els.loadState.classList.add("error");
+    els.loadState.textContent = error instanceof Error ? error.message : String(error);
   }
 }
 
-const PAGE_BINDINGS = {
-  agents: { key: "agents", path: "fleet.agents" },
-  handoffs: { key: "handoffs", path: "handoffs" },
-};
-
-function pageSize(key) {
-  return appConfig.bases.find((entry) => entry.key === key)?.readLimit || 50;
-}
-
-function pageCount(key) {
-  const total = state.totals?.[key];
-  return total == null ? null : Math.max(1, Math.ceil(total / pageSize(key)));
-}
-
-function replacePageRows(path, rows) {
-  const parts = path.split(".");
-  let target = state;
-  for (const part of parts.slice(0, -1)) {
-    target = target?.[part];
-    if (!target) return;
-  }
-  target[parts.at(-1)] = rows;
-}
-
-async function goToPage(key, targetPage) {
-  if (state.pageLoading[key] || !state.pageCursors[key]) return;
-  const binding = Object.values(PAGE_BINDINGS).find((entry) => entry.key === key);
-  if (!binding) return;
-  const totalPages = pageCount(key);
-  const page = totalPages == null ? Math.max(1, targetPage) : Math.min(Math.max(1, targetPage), totalPages);
-  if (page === state.currentPage[key]) return;
-  state.pageLoading[key] = true;
-  if (typeof render === "function") render();
-  else route();
-  try {
-    const provider = await getProvider();
-    let result;
-    for (let next = state.pageCursors[key].length; next <= page; next += 1) {
-      const cursor = state.pageCursors[key][next - 1];
-      if (next > 1 && !cursor) return;
-      result = await provider.fetchPage(key, cursor);
-      state.pageCursors[key][next] = result.nextCursor;
-    }
-    if (!result || state.pageCursors[key].length > page + 1) {
-      result = await provider.fetchPage(key, state.pageCursors[key][page - 1]);
-      state.pageCursors[key][page] = result.nextCursor;
-    }
-    replacePageRows(binding.path, result.rows);
-    state.currentPage[key] = page;
-  } finally {
-    state.pageLoading[key] = false;
-    if (typeof render === "function") render();
-    else route();
-  }
-}
-
-function pagerMessage(key, fallback) {
-  return typeof t === "function" ? t(key) : fallback;
-}
-
-export function recordCountLabel(key, loadedCount, filtered = false) {
-  if (filtered) return loadedCount;
-  const total = state.totals?.[key];
-  if (total != null) return total;
-  const current = state.currentPage?.[key] || 1;
-  return `${loadedCount}${state.pageCursors?.[key]?.[current] ? "+" : ""}`;
-}
-
-export function pagerControl(key) {
-  if (!state.pageCursors[key]) return "";
-  const total = pageCount(key);
-  const current = state.currentPage[key] || 1;
-  const loading = Boolean(state.pageLoading[key]);
-  const hasNext = total == null ? Boolean(state.pageCursors[key][current]) : current < total;
-  if ((total === 1 || total == null) && current === 1 && !hasNext) return "";
-  const pages =
-    total == null
-      ? []
-      : total <= 7
-        ? Array.from({ length: total }, (_, index) => index + 1)
-        : [...new Set([1, total, current - 1, current, current + 1].filter((page) => page >= 1 && page <= total))].sort(
-            (a, b) => a - b,
-          );
-  const items = [];
-  let previous = 0;
-  for (const page of pages) {
-    if (previous && page - previous > 1) items.push('<span class="pager-ellipsis">…</span>');
-    items.push(
-      `<button type="button" class="pager-page ${page === current ? "active" : ""}" data-goto-page="${key}:${page}" ${loading || page === current ? "disabled" : ""}>${page}</button>`,
-    );
-    previous = page;
-  }
-  return `<nav class="pager" aria-label="${pagerMessage("pagination", "Pagination")}">
-    <button type="button" class="pager-nav" data-goto-page="${key}:${current - 1}" ${loading || current <= 1 ? "disabled" : ""}>${pagerMessage("prevPage", "Prev")}</button>
-    ${items.join("")}
-    <button type="button" class="pager-nav" data-goto-page="${key}:${current + 1}" ${loading || !hasNext ? "disabled" : ""}>${pagerMessage("nextPage", "Next")}</button>
-    ${total == null ? "" : `<span class="pager-summary">${pagerMessage("pageOf", "Page {current} of {total}").replace("{current}", current).replace("{total}", total)}</span>`}
-  </nav>`;
-}
-
-document.querySelector("#content")?.addEventListener("click", (event) => {
-  const button = event.target.closest("[data-goto-page]");
-  if (!button) return;
-  const [key, page] = button.dataset.gotoPage.split(":");
-  goToPage(key, Number(page));
-});
-
+els.search.value = state.query;
+// The phone top bar already names the current view (#mobileViewTitle), so
+// hide the record view's own h1 on phones — base-ui.css's
+// `body.ws-has-mobile-bar .ws-title h1 { display: none }` (phone-only).
+document.body.classList.add("ws-has-mobile-bar");
+syncResponsiveShell();
 boot();

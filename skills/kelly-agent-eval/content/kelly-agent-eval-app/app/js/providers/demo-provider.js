@@ -38,12 +38,15 @@ function buildDemoRun(zh) {
   };
 }
 
+let lastDemoRun = null;
+
 export const demoProvider = {
   kind: "demo",
 
   async getState() {
     const zh = activeLangIsZh();
     const run = buildDemoRun(zh);
+    lastDemoRun = run;
     return {
       demo: true,
       app: "kelly-agent-eval",
@@ -63,6 +66,13 @@ export const demoProvider = {
       run,
       release_decision: null,
     };
+  },
+
+  // Demo mode loads the fixed suite in one page, so every case is already in
+  // state — this is only a safety net for a stale/shared `?peek=`/`/record`
+  // URL pointing at a case id that is not (or no longer) in the demo set.
+  async getRecord(caseId) {
+    return lastDemoRun?.cases?.find((item) => item.id === caseId) || null;
   },
 
   async decideCase() {

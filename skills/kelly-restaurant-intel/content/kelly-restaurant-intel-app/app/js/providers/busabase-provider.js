@@ -204,6 +204,23 @@ export const busabaseProvider = {
     return { ...page, rows: normalize ? page.rows.map(normalize) : page.rows };
   },
 
+  // A record named by the URL (`/<id>` or `?peek=<id>`) that is not on the
+  // loaded page is read on its own by its business id — never by loading
+  // more pages to find it (that would be a full scan behind a deep link).
+  async getRecord(key, id) {
+    await ensureResources();
+    const idFieldSlug = { signals: "signal-id", actions: "action-id", drafts: "draft-id" }[key];
+    const normalize = { signals: normalizeSignal, actions: normalizeAction, drafts: normalizeDraft }[key];
+    if (!idFieldSlug || !normalize || !id) return null;
+    const record = await findRecord(key, idFieldSlug, id);
+    if (!record) return null;
+    return normalize({
+      ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields),
+      __recordId: record.id,
+      __headCommitId: record.headCommitId || record.headCommit?.id,
+    });
+  },
+
   // Human verdict on a signal/action/draft (approve/request_changes/block,
   // plus revise for a draft's edited body) — written directly onto the item
   // record. Ported from the retired local-file store's saveDecision():

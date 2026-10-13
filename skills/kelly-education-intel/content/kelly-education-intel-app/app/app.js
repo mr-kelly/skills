@@ -4,6 +4,17 @@ import { closeConnectGate, passConnectGate, renderSetupRequired } from "./js/con
 import { computeMetrics } from "./js/education-model.js?v=0.1.0";
 import { getProvider } from "./js/providers/index.js?v=0.1.0";
 
+// Where a record opens, per Base (declared in config.js `ui.detail_modes`):
+//   signals/actions → split: a triage queue worked top to bottom — read,
+//                      decide, move to the next — so the queue stays visible.
+//   drafts          → page: editing a draft's body wants the full page, not
+//                      a cramped side panel.
+// A `/record` path always opens the full page; `?peek=` drives the split.
+// On a phone every mode becomes a page (base-ui.css handles that).
+const DETAIL_MODES = appConfig.ui.detail_modes;
+const RECORD_VIEWS = ["signals", "actions", "drafts"];
+const VIEW_KINDS = { signals: "signal", actions: "action", drafts: "draft" };
+
 const state = {
   batch: null,
   bootstrap: null,
@@ -24,26 +35,38 @@ const state = {
 };
 
 const SIDEBAR_COLLAPSED_STORAGE_KEY = "kelly-education-intel.sidebarCollapsed";
-const KIND_VIEWS = { signal: "signals", action: "actions", draft: "drafts" };
-const VIEW_KINDS = { signals: "signal", actions: "action", drafts: "draft" };
 
+const byId = (id) => document.getElementById(id);
 const els = {
-  title: document.querySelector("#page-title"),
-  subtitle: document.querySelector("#page-subtitle"),
-  content: document.querySelector("#content"),
-  search: document.querySelector("#search"),
-  refresh: document.querySelector("#refresh"),
-  mobileRefresh: document.querySelector("#mobileRefresh"),
-  sidebarToggle: document.querySelector("#sidebarToggle"),
-  mobileSidebarToggle: document.querySelector("#mobileSidebarToggle"),
-  sidebarScrim: document.querySelector("#sidebarScrim"),
-  mobileViewTitle: document.querySelector("#mobileViewTitle"),
-  mobileViewMeta: document.querySelector("#mobileViewMeta"),
-  syncStatus: document.querySelector("#sync-status"),
-  needsReviewCount: document.querySelector("#count-needs-review"),
-  approvedCount: document.querySelector("#count-approved"),
-  blockedCount: document.querySelector("#count-blocked"),
-  language: document.querySelector("#language"),
+  loadState: byId("loadState"),
+  overviewPage: byId("overviewPage"),
+  recordPage: byId("recordPage"),
+  sourcesPage: byId("sourcesPage"),
+  settingsPage: byId("settingsPage"),
+  viewTitle: byId("viewTitle"),
+  viewCount: byId("viewCount"),
+  listPanel: byId("listPanel"),
+  detailPanel: byId("detailPanel"),
+  detailBar: document.querySelector("#detailPanel .ws-detail-bar"),
+  detailBody: byId("detailBody"),
+  detailBack: byId("detailBack"),
+  detailExpand: byId("detailExpand"),
+  sourcesList: byId("sourcesList"),
+  sourcesCount: byId("sourcesCount"),
+  search: byId("search"),
+  refresh: byId("refresh"),
+  viewRefresh: byId("viewRefresh"),
+  mobileRefresh: byId("mobileRefresh"),
+  sidebarToggle: byId("sidebarToggle"),
+  mobileSidebarToggle: byId("mobileSidebarToggle"),
+  sidebarScrim: byId("sidebarScrim"),
+  mobileViewTitle: byId("mobileViewTitle"),
+  mobileViewMeta: byId("mobileViewMeta"),
+  syncStatus: byId("sync-status"),
+  needsReviewCount: byId("count-needs-review"),
+  approvedCount: byId("count-approved"),
+  blockedCount: byId("count-blocked"),
+  language: byId("language"),
 };
 
 function isMobileLayout() {
@@ -107,14 +130,54 @@ function enumLabel(value, group = "status") {
   return messages[activeLang()]?.enum?.[group]?.[key] || messages.en.enum?.[group]?.[key] || key.replaceAll("_", " ");
 }
 
+// ── Routing ──────────────────────────────────────────────────────────────
+// `#/<view>[/<record>][?peek=<record>]`. A `/record` path is always a full
+// page; `?peek=` opens the split queue beside the list for a `split` Base.
 function parseRoute() {
-  const parts = (location.hash || "#/overview").replace(/^#\/?/, "").split("/").filter(Boolean);
-  return { view: parts[0] || "overview", id: parts[1] ? decodeURIComponent(parts[1]) : "" };
+  const raw = (location.hash || "#/overview").replace(/^#\/?/, "");
+  const [rawPath, rawQuery = ""] = raw.split("?");
+  const parts = rawPath.split("/").filter(Boolean);
+  const params = new URLSearchParams(rawQuery);
+  const view = parts[0] || "overview";
+  let id = "";
+  try {
+    id = parts[1] ? decodeURIComponent(parts[1]) : "";
+  } catch {
+    id = "";
+  }
+  const mode = RECORD_VIEWS.includes(view) ? DETAIL_MODES[view] || "page" : null;
+  const peek = mode && mode !== "page" && !id ? params.get("peek") || "" : "";
+  return {
+    view,
+    id,
+    peek,
+    mode,
+    selectedId: mode ? id || peek : "",
+    presentation: !mode ? null : id ? "page" : mode === "page" ? null : mode,
+  };
 }
 
 function setRoute() {
   state.route = parseRoute();
   render();
+}
+
+// What a row opens: the full page for a `page` Base, else `?peek=`, keeping
+// the list visible.
+function recordUrl(view, id) {
+  const mode = DETAIL_MODES[view] || "page";
+  if (mode === "page") return `#/${view}/${encodeURIComponent(id)}`;
+  return `#/${view}?peek=${encodeURIComponent(id)}`;
+}
+
+// Always the full page, whatever the Base's mode (the split's "open full
+// page" link).
+function detailUrl(view, id) {
+  return `#/${view}/${encodeURIComponent(id)}`;
+}
+
+function closeDetail() {
+  location.hash = `#/${state.route.view}`;
 }
 
 async function loadState() {
@@ -224,7 +287,7 @@ function applyDemoRoute() {
         : scenario === "drafts"
           ? "#/drafts"
           : scenario === "detail"
-            ? `#/signals/${encodeURIComponent(state.batch?.signals?.[0]?.id || "")}`
+            ? `#/signals?peek=${encodeURIComponent(state.batch?.signals?.[0]?.id || "")}`
             : "#/overview";
   history.replaceState(null, "", `${location.pathname}${location.search}${route}`);
   state.route = parseRoute();
@@ -241,12 +304,9 @@ function applyI18n() {
   }
   els.search.placeholder = t("search");
   els.refresh.textContent = t("refresh");
+  if (els.viewRefresh) els.viewRefresh.textContent = t("refresh");
+  els.detailExpand.textContent = t("openFullPage");
   if (els.mobileRefresh) els.mobileRefresh.title = t("refresh");
-}
-
-function allItems() {
-  const b = state.batch || {};
-  return [...(b.signals || []), ...(b.actions || []), ...(b.drafts || [])];
 }
 
 function itemsForView(view) {
@@ -259,6 +319,17 @@ function itemsForView(view) {
 
 function findItem(view, id) {
   return itemsForView(view).find((item) => item.id === id);
+}
+
+// A relation is a business id (`signal-1`, `action-2`). Resolve it to a name
+// and a link into that record; when it is not on the loaded page, say so —
+// never print the bare id (pre-existing bug found during the layout
+// migration: the retired detail panel printed raw ids here).
+function relatedLink(view, id) {
+  if (!id) return "";
+  const item = findItem(view, id);
+  if (!item) return `<span class="muted">${t("notLoaded")}</span>`;
+  return `<a href="${recordUrl(view, id)}">${escapeHtml(itemLabel(item))}</a>`;
 }
 
 function isConnected() {
@@ -295,11 +366,11 @@ function viewLabel(view) {
 }
 
 function statusBadge(status) {
-  return `<span class="badge ${escapeHtml(status)}">${escapeHtml(enumLabel(status))}</span>`;
+  return `<span class="badge status-${escapeHtml(status || "")}">${escapeHtml(enumLabel(status))}</span>`;
 }
 
 function riskBadges(risk = []) {
-  return risk.map((entry) => `<span class="badge blocked">${escapeHtml(entry)}</span>`).join(" ");
+  return risk.map((entry) => `<span class="badge status-blocked">${escapeHtml(entry)}</span>`).join(" ");
 }
 
 function demoBanner() {
@@ -315,57 +386,81 @@ function itemSummary(item) {
   return item.summary || item.effective_body || item.body || "";
 }
 
-function itemRow(view, item) {
-  const active = state.route.view === view && state.route.id === item.id ? "active" : "";
-  return `
-    <a class="item-row ${active}" href="#/${view}/${encodeURIComponent(item.id)}">
-      <span class="item-row-ref">#${item.ref}</span>
-      <span class="item-row-main">
-        <strong>${escapeHtml(itemLabel(item))}</strong>
-        <span>${escapeHtml(itemSummary(item))}</span>
-      </span>
-      ${statusBadge(item.status)}
-    </a>
-  `;
-}
-
 /* ---------- Overview ---------- */
 
 function renderOverview() {
-  els.title.textContent = t("overview");
-  els.subtitle.textContent = state.batch?.generated_at
+  byId("overviewTitle").textContent = t("overview");
+  byId("overviewSummary").textContent = state.batch?.generated_at
     ? `${t("generated")} ${new Date(state.batch.generated_at).toLocaleString()}`
     : t("empty");
   if (!isConnected()) {
-    els.content.innerHTML = `<div class="empty">${t("setupNeeded")}</div>`;
+    byId("overviewMetrics").innerHTML = "";
+    byId("overviewBody").innerHTML = `<div class="empty-inline">${t("setupNeeded")}</div>`;
     return;
   }
   const b = state.batch;
   const topSignals = (b.signals || []).slice(0, 4);
   const readyActions = (b.actions || []).filter((item) => item.status === "approved").slice(0, 4);
   const actionsToShow = readyActions.length ? readyActions : (b.actions || []).slice(0, 4);
-  els.content.innerHTML = `
+  // Three numbers the sidebar does not already show (it carries needs-review/
+  // approved/blocked across all kinds); the buyer names who this batch is for.
+  byId("overviewMetrics").innerHTML = [
+    [t("signals"), recordTotal("signals", b.signals.length), "#/signals"],
+    [t("actions"), recordTotal("actions", b.actions.length), "#/actions"],
+    [t("drafts"), recordTotal("drafts", b.drafts.length), "#/drafts"],
+  ]
+    .map(([label, value, href]) => `<a href="${href}"><span title="${escapeHtml(label)}">${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></a>`)
+    .join("");
+  byId("overviewBody").innerHTML = `
     ${demoBanner()}
-    <div class="metrics">
-      <a class="metric" href="#/signals"><span>${t("signals")}</span><strong>${recordTotal("signals", b.signals.length)}</strong></a>
-      <a class="metric" href="#/actions"><span>${t("actions")}</span><strong>${recordTotal("actions", b.actions.length)}</strong></a>
-      <a class="metric" href="#/drafts"><span>${t("drafts")}</span><strong>${recordTotal("drafts", b.drafts.length)}</strong></a>
-      <div class="metric"><span>${t("buyer")}</span><strong class="muted">${escapeHtml(b.buyer || "")}</strong></div>
-    </div>
     <section class="overview-grid">
-      <div class="overview-panel">
+      <div class="card overview-panel">
         <h2>${t("topSignals")}</h2>
-        <div class="item-list">${topSignals.map((item) => itemRow("signals", item)).join("") || `<div class="empty">${t("empty")}</div>`}</div>
+        ${
+          topSignals
+            .map(
+              (item) => `
+          <a class="signal-row" href="${recordUrl("signals", item.id)}">
+            <span class="signal-row-main">
+              <strong>${escapeHtml(itemLabel(item))}</strong>
+              <small>${escapeHtml(itemSummary(item))}</small>
+            </span>
+            ${statusBadge(item.status)}
+          </a>
+        `,
+            )
+            .join("") || `<div class="empty-inline">${t("empty")}</div>`
+        }
       </div>
-      <div class="overview-panel">
+      <div class="card overview-panel">
         <h2>${t("readyActions")}</h2>
-        <div class="item-list">${actionsToShow.map((item) => itemRow("actions", item)).join("") || `<div class="empty">${t("empty")}</div>`}</div>
+        ${
+          actionsToShow
+            .map(
+              (item) => `
+          <a class="signal-row" href="${recordUrl("actions", item.id)}">
+            <span class="signal-row-main">
+              <strong>${escapeHtml(itemLabel(item))}</strong>
+              <small>${escapeHtml(itemSummary(item))}</small>
+            </span>
+            ${statusBadge(item.status)}
+          </a>
+        `,
+            )
+            .join("") || `<div class="empty-inline">${t("empty")}</div>`
+        }
+      </div>
+      <div class="card overview-panel">
+        <h2>${t("buyer")}</h2>
+        <p class="muted">${escapeHtml(b.buyer || "")}</p>
+        <h2 style="margin-top: 14px">${t("offer")}</h2>
+        <p class="muted">${escapeHtml(b.offer || "")}</p>
       </div>
     </section>
   `;
 }
 
-/* ---------- Signals / Actions / Drafts list ---------- */
+/* ---------- Signals / Actions / Drafts: record view ---------- */
 
 function filteredItems(view) {
   const query = state.query.trim().toLowerCase();
@@ -378,110 +473,192 @@ function filteredItems(view) {
   );
 }
 
-function renderList(view) {
-  els.title.textContent = viewLabel(view);
-  const items = filteredItems(view);
-  const needs = items.filter((item) => item.status === "needs_review").length;
-  els.subtitle.textContent = `${items.length} ${viewLabel(view).toLowerCase()} · ${needs} ${t("needsReview")}`;
-  els.content.innerHTML = `
-    ${demoBanner()}
-    ${state.pageError ? `<div class="warnings"><div class="warning"><strong>${escapeHtml(state.pageError)}</strong></div></div>` : ""}
-    <div class="item-list">${items.map((item) => itemRow(view, item)).join("")}</div>
-    ${items.length ? "" : `<div class="empty">${t("empty")}</div>`}
-    ${pagerControl(view)}
+const cell = (html, title = "", className = "") =>
+  `<td${className ? ` class="${className}"` : ""}${title ? ` title="${escapeHtml(title)}"` : ""}>${html}</td>`;
+const rowOpen = (view, id) =>
+  `<tr data-view="${escapeHtml(view)}" data-id="${escapeHtml(id)}" tabindex="0"${id === state.route.selectedId ? ' class="ws-selected"' : ""}>`;
+
+function signalsTable(items) {
+  return `
+    <table class="ws-table edu-table signals-table">
+      <thead><tr><th>${t("title")}</th><th class="ws-col-num">${t("confidence")}</th><th class="ws-split-keep">${t("status")}</th><th class="muted-col">${t("detected")}</th></tr></thead>
+      <tbody>
+        ${items
+          .map(
+            (item) => `${rowOpen("signals", item.id)}
+              ${cell(`<span class="strong">${escapeHtml(itemLabel(item))}</span>`, itemSummary(item))}
+              ${cell(`${Math.round((item.confidence || 0) * 100)}%`, "", "ws-col-num")}
+              ${cell(statusBadge(item.status), "", "ws-split-keep")}
+              ${cell(item.detected_at ? new Date(item.detected_at).toLocaleDateString() : "", "", "muted-col")}
+            </tr>`,
+          )
+          .join("")}
+      </tbody>
+    </table>
   `;
 }
 
-/* ---------- Item detail + decision panel ---------- */
+function actionsTable(items) {
+  return `
+    <table class="ws-table edu-table actions-table">
+      <thead><tr><th>${t("title")}</th><th class="ws-col-narrow">${t("priority")}</th><th class="ws-split-keep">${t("status")}</th><th class="muted-col">${t("owner")}</th></tr></thead>
+      <tbody>
+        ${items
+          .map(
+            (item) => `${rowOpen("actions", item.id)}
+              ${cell(`<span class="strong">${escapeHtml(itemLabel(item))}</span>`, itemSummary(item))}
+              ${cell(`<span class="badge priority-${escapeHtml(item.priority || "")}">${escapeHtml(enumLabel(item.priority, "priority") || item.priority)}</span>`)}
+              ${cell(statusBadge(item.status), "", "ws-split-keep")}
+              ${cell(escapeHtml(item.owner || ""), "", "muted-col")}
+            </tr>`,
+          )
+          .join("")}
+      </tbody>
+    </table>
+  `;
+}
+
+function draftsTable(items) {
+  return `
+    <table class="ws-table edu-table drafts-table">
+      <thead><tr><th class="ws-col-narrow">${t("channel")}</th><th class="ws-col-wide">${t("title")}</th><th>${t("status")}</th></tr></thead>
+      <tbody>
+        ${items
+          .map(
+            (item) => `${rowOpen("drafts", item.id)}
+              ${cell(escapeHtml(item.channel || ""))}
+              ${cell(`<span class="strong">${escapeHtml(itemLabel(item))}</span>`, itemSummary(item), "ws-col-wide")}
+              ${cell(statusBadge(item.status))}
+            </tr>`,
+          )
+          .join("")}
+      </tbody>
+    </table>
+  `;
+}
+
+const EMPTY_ICON = { signals: "signals", actions: "actions", drafts: "drafts" };
+
+function renderRecordView(view) {
+  els.viewTitle.textContent = viewLabel(view);
+  els.viewTitle.title = itemsForView(view).length
+    ? `${itemsForView(view).filter((item) => item.status === "needs_review").length} ${t("needsReview")}`
+    : "";
+  const items = filteredItems(view);
+  els.viewCount.textContent = String(recordTotal(view, items.length));
+  document.body.classList.toggle("ws-searching", Boolean(state.query));
+
+  const table = view === "signals" ? signalsTable(items) : view === "actions" ? actionsTable(items) : draftsTable(items);
+  const empty = `<div class="empty-inline">${state.query ? t("noMatches") : t("empty")}</div>`;
+  els.listPanel.innerHTML = `
+    ${demoBanner()}
+    ${state.pageError ? `<div class="warnings"><div class="warning"><strong>${escapeHtml(state.pageError)}</strong></div></div>` : ""}
+    ${items.length ? table : empty}
+    ${pagerControl(view)}
+  `;
+  renderDetail(view);
+}
 
 function signalDetailFields(item) {
   return `
-    <div class="field"><span>${t("confidence")}</span><p>${Math.round((item.confidence || 0) * 100)}%</p></div>
-    <div class="field"><span>${t("detected")}</span><p>${item.detected_at ? new Date(item.detected_at).toLocaleString() : ""}</p></div>
-    ${item.source?.url ? `<div class="field"><span>${t("evidence")}</span><a href="${escapeHtml(item.source.url)}" target="_blank" rel="noreferrer noopener">${escapeHtml(item.source.name || item.source.url)}</a></div>` : ""}
-    ${item.why_it_matters ? `<div class="field"><span>${t("why")}</span><p>${escapeHtml(item.why_it_matters)}</p></div>` : ""}
-    ${item.buyer_intent ? `<div class="field"><span>${t("buyerIntent")}</span><p>${escapeHtml(item.buyer_intent)}</p></div>` : ""}
+    <dl class="detail-facts">
+      <dt>${t("confidence")}</dt><dd>${Math.round((item.confidence || 0) * 100)}%</dd>
+      <dt>${t("detected")}</dt><dd>${item.detected_at ? new Date(item.detected_at).toLocaleString() : ""}</dd>
+      ${item.source?.url ? `<dt>${t("evidence")}</dt><dd><a href="${escapeHtml(item.source.url)}" target="_blank" rel="noreferrer noopener">${escapeHtml(item.source.name || item.source.url)}</a></dd>` : ""}
+    </dl>
+    ${item.why_it_matters ? `<section class="detail-section"><h3>${t("why")}</h3><p>${escapeHtml(item.why_it_matters)}</p></section>` : ""}
+    ${item.buyer_intent ? `<section class="detail-section"><h3>${t("buyerIntent")}</h3><p>${escapeHtml(item.buyer_intent)}</p></section>` : ""}
   `;
 }
 
 function actionDetailFields(item) {
   return `
-    <div class="field"><span>${t("priority")}</span><p>${escapeHtml(enumLabel(item.priority, "priority") || item.priority)}</p></div>
-    <div class="field"><span>${t("owner")}</span><p>${escapeHtml(item.owner)}</p></div>
-    ${item.reason ? `<div class="field"><span>${t("reason")}</span><p>${escapeHtml(item.reason)}</p></div>` : ""}
-    ${(item.linked_signal_ids || []).length ? `<div class="field"><span>${t("linkedSignals")}</span><p>${item.linked_signal_ids.map((id) => escapeHtml(id)).join(", ")}</p></div>` : ""}
-    ${item.next_step ? `<div class="field"><span>${t("nextStep")}</span><p>${escapeHtml(item.next_step)}</p></div>` : ""}
+    <dl class="detail-facts">
+      <dt>${t("priority")}</dt><dd>${escapeHtml(enumLabel(item.priority, "priority") || item.priority)}</dd>
+      <dt>${t("owner")}</dt><dd>${escapeHtml(item.owner)}</dd>
+      ${(item.linked_signal_ids || []).length ? `<dt>${t("linkedSignals")}</dt><dd>${item.linked_signal_ids.map((id) => relatedLink("signals", id)).join(", ")}</dd>` : ""}
+    </dl>
+    ${item.reason ? `<section class="detail-section"><h3>${t("reason")}</h3><p>${escapeHtml(item.reason)}</p></section>` : ""}
+    ${item.next_step ? `<section class="detail-section"><h3>${t("nextStep")}</h3><p>${escapeHtml(item.next_step)}</p></section>` : ""}
   `;
 }
 
 function draftDetailFields(item) {
   return `
-    <div class="field"><span>${t("channel")}</span><p>${escapeHtml(item.channel)}</p></div>
-    ${item.linked_action_id ? `<div class="field"><span>${t("linkedAction")}</span><p>${escapeHtml(item.linked_action_id)}</p></div>` : ""}
-    <div class="field"><span>${t("summary")}</span><p>${escapeHtml(item.effective_body)}</p></div>
-    <label class="field"><span>${t("editedDraft")}</span><textarea data-edited-body>${escapeHtml(item.edited_body || item.body || "")}</textarea></label>
+    <dl class="detail-facts">
+      <dt>${t("channel")}</dt><dd>${escapeHtml(item.channel)}</dd>
+      ${item.linked_action_id ? `<dt>${t("linkedAction")}</dt><dd>${relatedLink("actions", item.linked_action_id)}</dd>` : ""}
+    </dl>
+    <section class="detail-section">
+      <h3>${t("summary")}</h3>
+      <p>${escapeHtml(item.effective_body)}</p>
+      <label class="note-label" for="edited-body">${t("editedDraft")}</label>
+      <textarea id="edited-body" class="review-note" data-edited-body>${escapeHtml(item.edited_body || item.body || "")}</textarea>
+    </section>
   `;
 }
 
 function decisionActions(kind) {
   const disabled = state.saving ? "disabled" : "";
   const buttons = [
-    `<button type="button" class="primary" data-action="approve" ${disabled}>${t("approve")}</button>`,
-    `<button type="button" data-action="request_changes" ${disabled}>${t("requestChanges")}</button>`,
-    `<button type="button" class="danger" data-action="block" ${disabled}>${t("block")}</button>`,
+    `<button type="button" class="button action primary" data-action="approve" ${disabled}>${t("approve")}</button>`,
+    `<button type="button" class="button action" data-action="request_changes" ${disabled}>${t("requestChanges")}</button>`,
+    `<button type="button" class="button action danger" data-action="block" ${disabled}>${t("block")}</button>`,
   ];
-  if (kind === "draft") buttons.push(`<button type="button" data-action="revise" ${disabled}>${t("revise")}</button>`);
+  if (kind === "draft") buttons.push(`<button type="button" class="button action" data-action="revise" ${disabled}>${t("revise")}</button>`);
   return buttons.join("");
 }
 
 function renderDetail(view) {
-  const kind = VIEW_KINDS[view];
-  const item = findItem(view, state.route.id);
-  if (!item) {
-    renderList(view);
+  const { selectedId, presentation } = state.route;
+  const phone = isMobileLayout();
+  if (els.detailBack) els.detailBack.textContent = presentation === "page" || phone ? t("back") : t("close");
+  if (els.detailExpand) {
+    els.detailExpand.hidden = !selectedId || presentation === "page";
+    if (selectedId) els.detailExpand.href = detailUrl(view, selectedId);
+  }
+  if (els.detailBar) els.detailBar.hidden = !selectedId;
+
+  if (!selectedId) {
+    els.detailBody.innerHTML = state.route.mode === "split" ? `<div class="empty-inline">${t("selectItem")}</div>` : "";
     return;
   }
-  els.title.textContent = itemLabel(item);
-  els.subtitle.textContent = `#${item.ref} · ${enumLabel(item.status)}`;
-  const fields =
-    kind === "signal"
-      ? signalDetailFields(item)
-      : kind === "action"
-        ? actionDetailFields(item)
-        : draftDetailFields(item);
-  els.content.innerHTML = `
+  const item = findItem(view, selectedId);
+  if (!item) {
+    els.detailBody.innerHTML = `<div class="empty-inline">${t("recordMissing")}</div>`;
+    return;
+  }
+  const kind = VIEW_KINDS[view];
+  const fields = kind === "signal" ? signalDetailFields(item) : kind === "action" ? actionDetailFields(item) : draftDetailFields(item);
+  els.detailBody.innerHTML = `
     ${demoBanner()}
-    <section class="item-detail">
-      <div class="item-list">${itemsForView(view)
-        .map((entry) => itemRow(view, entry))
-        .join("")}</div>
-      <div class="item-panel">
-        <a class="back-link" href="#/${view}">← ${t("back")}</a>
-        <div class="item-panel-head">
-          ${statusBadge(item.status)}
-          ${riskBadges(item.risk)}
-        </div>
-        <h2>${escapeHtml(itemLabel(item))}</h2>
-        ${item.summary ? `<p>${escapeHtml(item.summary)}</p>` : ""}
-        ${fields}
-        <label class="field"><span>${t("reviewNote")}</span><textarea data-review-note>${escapeHtml(item.decision?.comment || "")}</textarea></label>
-        <div class="actions-bar" data-decision-actions>${decisionActions(kind)}</div>
-        <div class="decision-feedback" data-decision-feedback></div>
+    <header class="detail-header">
+      <h2>${escapeHtml(itemLabel(item))}</h2>
+      <div class="detail-head">
+        ${statusBadge(item.status)}
+        ${riskBadges(item.risk)}
       </div>
+    </header>
+    ${item.summary ? `<p class="detail-lead">${escapeHtml(item.summary)}</p>` : ""}
+    ${fields}
+    <section class="detail-section">
+      <h3>${t("reviewNote")}</h3>
+      <textarea id="review-note" class="review-note" data-review-note>${escapeHtml(item.decision?.comment || "")}</textarea>
+      <div class="action-row" data-decision-actions>${decisionActions(kind)}</div>
+      <div id="decision-feedback" class="decision-feedback" role="status"></div>
     </section>
   `;
   bindDecisionForm(view, kind, item);
 }
 
 function bindDecisionForm(view, kind, item) {
-  const panel = els.content.querySelector("[data-decision-actions]");
+  const panel = els.detailBody.querySelector("[data-decision-actions]");
   if (!panel) return;
   panel.querySelectorAll("[data-action]").forEach((button) => {
     button.addEventListener("click", async () => {
       const action = button.dataset.action;
-      const note = els.content.querySelector("[data-review-note]")?.value || "";
-      const editedBody = els.content.querySelector("[data-edited-body]")?.value || "";
-      const feedback = els.content.querySelector("[data-decision-feedback]");
+      const note = els.detailBody.querySelector("[data-review-note]")?.value || "";
+      const editedBody = els.detailBody.querySelector("[data-edited-body]")?.value || "";
       state.saving = true;
       render();
       try {
@@ -495,8 +672,7 @@ function bindDecisionForm(view, kind, item) {
         });
         if (!result.ok) throw new Error(result.error || t("decisionError"));
         await loadState();
-        location.hash = `#/${view}/${encodeURIComponent(item.id)}`;
-        const again = els.content.querySelector("[data-decision-feedback]");
+        const again = els.detailBody.querySelector("#decision-feedback");
         if (again) {
           again.textContent = t("decisionSaved");
           again.className = "decision-feedback positive";
@@ -504,13 +680,10 @@ function bindDecisionForm(view, kind, item) {
       } catch (error) {
         state.saving = false;
         render();
-        const again = els.content.querySelector("[data-decision-feedback]");
+        const again = els.detailBody.querySelector("#decision-feedback");
         if (again) {
           again.textContent = error instanceof Error ? error.message : String(error);
           again.className = "decision-feedback negative";
-        } else if (feedback) {
-          feedback.textContent = error instanceof Error ? error.message : String(error);
-          feedback.className = "decision-feedback negative";
         }
       } finally {
         state.saving = false;
@@ -522,41 +695,39 @@ function bindDecisionForm(view, kind, item) {
 /* ---------- Sources ---------- */
 
 function renderSources() {
-  els.title.textContent = t("sources");
   const sources = state.batch?.sources || [];
-  els.subtitle.textContent = `${sources.length} ${t("sources").toLowerCase()}`;
-  els.content.innerHTML = `
+  els.sourcesCount.textContent = String(sources.length);
+  els.sourcesList.innerHTML = `
     ${demoBanner()}
-    <div class="source-list">
-      ${
-        sources
+    ${
+      sources.length
+        ? `<table class="ws-table edu-table sources-table">
+      <thead><tr><th>${t("source")}</th><th>${t("status")}</th><th class="ws-col-narrow muted-col">${t("freshness")}</th><th class="ws-col-wide">${t("coverage")}</th></tr></thead>
+      <tbody>
+        ${sources
           .map(
-            (source) => `
-        <div class="source-row">
-          <div class="source-row-head">
-            <strong>${escapeHtml(source.label)}</strong>
-            ${statusBadge(source.status)}
-          </div>
-          <p class="muted">${escapeHtml(source.coverage || "")}</p>
-          <span class="muted">${t("freshness")}: ${escapeHtml(source.freshness || "")}</span>
-        </div>
-      `,
+            (source) => `<tr>
+              ${cell(`<span class="strong">${escapeHtml(source.label)}</span>`)}
+              ${cell(statusBadge(source.status))}
+              ${cell(escapeHtml(source.freshness || ""), "", "muted-col")}
+              ${cell(escapeHtml(source.coverage || ""), source.coverage, "ws-col-wide")}
+            </tr>`,
           )
-          .join("") || `<div class="empty">${t("empty")}</div>`
-      }
-    </div>
+          .join("")}
+      </tbody>
+    </table>`
+        : `<div class="empty-inline">${t("empty")}</div>`
+    }
   `;
 }
 
 /* ---------- Settings ---------- */
 
 function renderSettings() {
-  els.title.textContent = t("settings");
-  els.subtitle.textContent = state.batch?.vertical || "";
   const b = state.batch || {};
-  els.content.innerHTML = `
-    <div class="settings-grid">
-      <section class="item-panel">
+  byId("settingsContent").innerHTML = `
+    <div class="settings">
+      <section class="card">
         <h2>${t("configuration")}</h2>
         <dl>
           <dt>${t("dataProvider")}</dt><dd>${escapeHtml(state.bootstrap?.data_provider || "busabase")}</dd>
@@ -572,9 +743,24 @@ function renderSettings() {
 
 function render() {
   renderShell();
-  const { view, id } = state.route;
-  if ((view === "signals" || view === "actions" || view === "drafts") && id) renderDetail(view);
-  else if (view === "signals" || view === "actions" || view === "drafts") renderList(view);
+  els.loadState.hidden = true;
+  const { view } = state.route;
+  const onRecordView = RECORD_VIEWS.includes(view);
+  const body = document.body.classList;
+  const selected = onRecordView && Boolean(state.route.selectedId);
+  body.add("ws-has-mobile-bar");
+  body.toggle("ws-detail-open", selected);
+  body.toggle("ws-detail-page", onRecordView && state.route.presentation === "page" && selected);
+  body.toggle("ws-detail-drawer", false);
+  body.toggle("ws-layout-split", onRecordView && state.route.mode === "split" && state.route.presentation !== "page");
+  for (const name of RECORD_VIEWS) body.toggle(`view-${name}`, onRecordView && view === name);
+
+  els.overviewPage.hidden = view !== "overview";
+  els.recordPage.hidden = !onRecordView;
+  els.sourcesPage.hidden = view !== "sources";
+  els.settingsPage.hidden = view !== "settings";
+
+  if (onRecordView) renderRecordView(view);
   else if (view === "sources") renderSources();
   else if (view === "settings") renderSettings();
   else renderOverview();
@@ -594,11 +780,31 @@ function escapeHtml(value) {
   );
 }
 
-els.content.addEventListener("click", (event) => {
+els.listPanel.addEventListener("click", (event) => {
   const button = event.target.closest("[data-goto-page]");
-  if (!button) return;
-  const [key, page] = button.dataset.gotoPage.split(":");
-  goToPage(key, Number(page));
+  if (button) {
+    const [key, page] = button.dataset.gotoPage.split(":");
+    goToPage(key, Number(page));
+    return;
+  }
+  if (event.target.closest("a")) return;
+  const row = event.target.closest("tr[data-id]");
+  if (!row) return;
+  location.hash = recordUrl(row.dataset.view, row.dataset.id);
+});
+els.listPanel.addEventListener("keydown", (event) => {
+  if (event.key !== "Enter") return;
+  const row = event.target.closest("tr[data-id]");
+  if (row) location.hash = recordUrl(row.dataset.view, row.dataset.id);
+});
+els.detailBack?.addEventListener("click", closeDetail);
+document.addEventListener("keydown", (event) => {
+  if (event.key !== "Escape") return;
+  if (event.target.closest?.("textarea, input")) {
+    event.target.blur();
+    return;
+  }
+  if (state.route.selectedId && state.route.presentation && state.route.presentation !== "page") closeDetail();
 });
 
 window.addEventListener("hashchange", setRoute);
@@ -611,6 +817,7 @@ els.search.addEventListener("input", () => {
   render();
 });
 els.refresh.addEventListener("click", () => loadState());
+els.viewRefresh?.addEventListener("click", () => loadState());
 els.mobileRefresh?.addEventListener("click", () => loadState());
 els.language.value = state.lang;
 els.language.addEventListener("change", () => {
@@ -629,7 +836,9 @@ async function boot() {
       renderSetupRequired(error, boot);
       return;
     }
-    els.content.innerHTML = `<div class="empty">${escapeHtml(error.message)}</div>`;
+    els.loadState.hidden = false;
+    els.loadState.classList.add("error");
+    els.loadState.textContent = error instanceof Error ? error.message : String(error);
   }
 }
 

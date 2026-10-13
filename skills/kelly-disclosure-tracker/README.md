@@ -51,6 +51,7 @@ pnpm --dir skills/kelly-disclosure-tracker/content/kelly-disclosure-tracker-app 
 Use the printed URL, then add one of these demo paths:
 
 ```text
+/?demo=1&lang=en#/overview
 /?demo=1&lang=en#/vehicles
 /?demo=1&lang=en#/vehicles/veh-01
 /?demo=1&lang=en#/flagged

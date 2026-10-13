@@ -6,6 +6,10 @@ export const appConfig = {
   readOnly: false,
   spaceId: "",
   schemaVersion: 1,
+  // One record view ("agents"), opened as a full page: an agent config is a
+  // workplace — form fields, tool checklist, quota, and lifecycle actions —
+  // you stay a while, same shape as busa-crm's "deals" page mode.
+  ui: { detail_modes: { catalog: "page" } },
   folder: {
     name: "Kelly Agent Builder",
     description: "Mock agent config catalog and governance console",
@@ -53,7 +57,10 @@ export const appConfig = {
     },
   ],
   permissions: {
-    readProcedures: ["nodes.list", "nodes.get", "bases.get", "records.list", "records.count"],
+    // records.get is used by upsert() to find an existing row before writing
+    // (busabase-provider.js#findRecord) — must be declared or the real
+    // Busabase server denies the call even though nothing here checks for it.
+    readProcedures: ["nodes.list", "nodes.get", "bases.get", "records.list", "records.count", "records.get"],
     setupProcedures: ["nodes.createChangeRequest", "nodes.updateMetadata"],
     writeProcedures: ["records.changeRequest", "bases.createChangeRequest"],
   },

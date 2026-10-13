@@ -17,6 +17,23 @@ export const appConfig = {
     slug: "kelly-agent-observability-app",
     resourceKey: "kelly-agent-observability-app",
   },
+  // Detail mode per Base, chosen by what an operator does with the record
+  // (busabase-app-creator ui-and-validation.md, "Choose The Detail Mode"):
+  //   agents → page:   an agent is a workplace of its own — metrics,
+  //                     sparkline, recent traces and the handoff form, the
+  //                     kind of screen you stay on for a minute.
+  //   traces → page:   a trace is drilled into from its agent to read one
+  //                     step timeline at a time; there is no standalone
+  //                     traces list/nav item, so it is reached only as
+  //                     `#/traces/<id>` and is addressed by path, never peek.
+  // `handoffs` is a plain append-only log — every field is already in the
+  // row, so it has no detail mode at all (no record ever opens).
+  ui: {
+    detail_modes: {
+      agents: "page",
+      traces: "page",
+    },
+  },
   bases: [
     {
       key: "agents",

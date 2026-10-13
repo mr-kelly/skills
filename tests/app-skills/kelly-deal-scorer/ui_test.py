@@ -51,35 +51,43 @@ def test_demo_ui(browser, base_url: str) -> None:
     assert page.locator("#review-count").inner_text() == "6"
     assert page.locator("#count-high").inner_text() == "6"
     assert page.locator("#count-blocked").inner_text() == "1"
-    assert page.locator(".candidate-row").count() == 8
+    # Overview no longer repeats the candidate list (that belongs to the
+    # Candidates record view, edge-to-edge under its own toolbar) -- it is
+    # the hero + <=3-number band + aggregate score-distribution chart only.
+    assert page.locator("#overviewMetrics > *").count() == 3
+    assert page.locator(".ws-table").count() == 0
     assert_no_horizontal_overflow(page)
 
     page.goto(f"{base_url}/?demo=1&lang=en#/candidates")
     page.wait_for_load_state("networkidle")
-    assert page.locator("#page-subtitle").inner_text() == "8 candidates"
-    assert page.locator(".candidate-row").count() == 8
+    assert page.locator(".ws-table tbody tr").count() == 8
 
     page.goto(f"{base_url}/?demo=1&lang=en#/candidates?status=blocked")
     page.wait_for_load_state("networkidle")
-    assert page.locator(".candidate-row").count() == 1
+    assert page.locator(".ws-table tbody tr").count() == 1
 
-    page.goto(f"{base_url}/?demo=1&lang=en#/candidates/cand-001")
+    # `candidates` is declared a `split` detail mode (a queue worked top to
+    # bottom): `?peek=<id>` opens the record beside the list.
+    page.goto(f"{base_url}/?demo=1&lang=en#/candidates?peek=cand-001")
     page.wait_for_load_state("networkidle")
-    assert page.locator("#page-title").inner_text() == "Maple & Thyme Kitchen"
+    assert page.locator("body.ws-layout-split.ws-detail-open").count() == 1
+    assert "Maple & Thyme Kitchen" in page.locator("#candidatesDetailBody").inner_text()
     assert page.locator(".revenue-bar").count() == 12
     assert page.locator(".factor-row").count() == 6  # 1 header row + 5 rubric factors
     assert "80.3" in page.locator(".metric strong").first.inner_text()
     assert "Approved" in page.locator(".decision-recorded").inner_text()
 
+    # `/<id>` is always a full page, whatever the declared mode.
     page.goto(f"{base_url}/?demo=1&lang=en#/candidates/cand-004")
     page.wait_for_load_state("networkidle")
-    assert page.locator("#page-title").inner_text() == "Ember & Oak BBQ"
+    assert page.locator("body.ws-detail-page.ws-detail-open").count() == 1
+    assert "Ember & Oak BBQ" in page.locator("#candidatesDetailBody").inner_text()
     assert page.locator(".flag-badge").count() == 2
     assert "Rejected" in page.locator(".decision-recorded").inner_text()
 
     page.goto(f"{base_url}/?demo=1&lang=en#/settings")
     page.wait_for_load_state("networkidle")
-    assert page.locator("#page-title").inner_text() == "Help & Settings"
+    assert page.locator("#settingsPage h1").inner_text() == "Help & Settings"
 
     page.goto(f"{base_url}/?demo=1&lang=zh#/overview")
     page.wait_for_load_state("networkidle")
@@ -276,7 +284,7 @@ def test_busabase_provisioning(browser) -> None:
                     page.goto(f"{app_url}/#/candidates/fixture-001")
                     page.wait_for_load_state("networkidle")
                     assert page.locator("[data-provision]").count() == 0
-                    assert "Fixture Bakery" in page.locator("#page-title").inner_text()
+                    assert "Fixture Bakery" in page.locator("#candidatesDetailBody").inner_text()
                     page.locator("[data-decision-note]").fill("Trusted: matches manual spot-check of the fixture.")
                     page.locator("[data-decision-action='approve_term_sheet']").click()
                     page.wait_for_timeout(500)

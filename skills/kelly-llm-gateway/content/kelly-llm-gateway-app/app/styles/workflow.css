@@ -10,27 +10,6 @@
     letter-spacing: -0.005em;
   }
 
-  .section-heading {
-    margin: 22px 0 10px;
-    color: var(--text);
-    font-size: var(--text-base);
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-  }
-
-  .metric span {
-    font-size: var(--text-xs);
-    font-weight: 650;
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-  }
-
-  .metric strong {
-    font-variant-numeric: tabular-nums;
-    letter-spacing: -0.01em;
-  }
-
   table .num,
   .balance,
   .trend-axis-label {
@@ -122,8 +101,9 @@
     font-size: var(--text-xs);
   }
 
-  /* Rollout board */
-  .rollout-card {
+  /* Rollout detail (Spend drawer / Rollouts split) */
+  .route-detail {
+    display: grid;
     gap: 10px;
   }
 
@@ -145,11 +125,11 @@
     transition: width 0.2s ease;
   }
 
-  .rollout-card[data-status="rollback"] .rollout-progress-fill {
+  .route-detail[data-status="rollback"] .rollout-progress-fill {
     background: var(--bad);
   }
 
-  .rollout-card[data-status="hold"] .rollout-progress-fill {
+  .route-detail[data-status="hold"] .rollout-progress-fill {
     opacity: 0.55;
   }
 

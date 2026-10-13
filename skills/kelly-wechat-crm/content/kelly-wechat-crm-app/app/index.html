@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="./styles.css">
     <link rel="stylesheet" href="./vendor/busabase-airapp-gate.css">
   </head>
-  <body>
+  <body class="ws-has-mobile-bar">
     <div class="app-shell">
       <aside class="sidebar" id="sidebar">
         <div class="brand-row">
@@ -28,7 +28,13 @@
           <strong id="attentionValue">0</strong>
           <span id="attentionCopy"></span>
         </section>
-        <nav class="base-nav" id="baseNav" aria-label="Data views"></nav>
+        <nav class="base-nav" id="baseNav" aria-label="Data views">
+          <button class="nav-item" id="overviewNav" type="button" data-base="overview">
+            <span class="nav-icon" aria-hidden="true">览</span>
+            <span class="nav-label" id="overviewNavLabel"></span>
+          </button>
+          <div id="baseNavList"></div>
+        </nav>
         <button class="settings-button" id="settingsOpen" type="button"></button>
       </aside>
 
@@ -40,21 +46,6 @@
           <strong id="mobileTitle">AirApp</strong>
           <button class="icon-button" id="mobileSettings" type="button" aria-label="Open settings" title="Open settings">i</button>
         </header>
-        <section class="workspace-header">
-          <div>
-            <div class="view-meta"><span class="eyebrow" id="viewEyebrow"></span><span class="mode-badge" id="modeBadge" hidden></span></div>
-            <h1 id="viewTitle"></h1>
-            <p id="viewSummary"></p>
-          </div>
-          <div class="workspace-tools">
-            <button class="goal-open" id="goalOpen" type="button" title="设置新目标" hidden><span aria-hidden="true">+</span> 新目标</button>
-            <button class="goal-open" id="discoverOpen" type="button" title="从本机通讯录选择" hidden><span aria-hidden="true">+</span> 选择联系人</button>
-            <label class="search">
-              <span class="sr-only" id="searchLabel"></span>
-              <input id="searchInput" type="search" autocomplete="off">
-            </label>
-          </div>
-        </section>
         <section class="connector-status" id="wechatConnector" aria-live="polite" hidden>
           <div class="connector-copy">
             <span class="connector-indicator" id="wechatIndicator" aria-hidden="true"></span>
@@ -75,29 +66,57 @@
           <span id="appNoticeText"></span>
           <button id="appNoticeClose" type="button" aria-label="关闭提示" title="关闭">x</button>
         </section>
-        <section class="metrics" id="metrics" aria-label="Summary metrics"></section>
-        <section class="content-split" id="contentSplit">
-          <section class="list-panel" id="listPanel">
-            <div class="panel-heading">
-              <div><span class="eyebrow" id="listEyebrow"></span><h2 id="listTitle"></h2></div>
-              <span class="count" id="recordCount"></span>
+
+        <div class="state-message" id="loadingState" role="status"></div>
+        <div class="state-message error" id="errorState" role="alert" hidden></div>
+
+        <!-- Overview is the only page with a hero and a metrics band. -->
+        <section class="ws-overview" id="overviewPage">
+          <header class="page-hero">
+            <div>
+              <div class="view-meta"><span class="eyebrow" id="viewEyebrow"></span><span class="mode-badge" id="modeBadge" hidden></span></div>
+              <h1 id="overviewTitle"></h1>
+              <p id="overviewSummary"></p>
             </div>
-            <div class="action-filters" id="actionFilters" role="tablist" aria-label="行动状态" hidden></div>
-            <div class="state-message" id="loadingState" role="status"></div>
-            <div class="state-message error" id="errorState" role="alert" hidden></div>
-            <div class="record-list" id="recordList"></div>
-            <button class="load-more" id="loadMore" type="button" hidden></button>
-          </section>
-          <aside class="detail-panel" id="detailPanel">
-            <button class="back-button" id="backButton" type="button"></button>
-            <div class="detail-empty" id="detailEmpty"></div>
-            <article id="detailContent" hidden>
-              <span class="eyebrow" id="detailEyebrow"></span>
-              <h2 id="detailTitle"></h2>
-              <section class="detail-actions" id="detailActions" aria-label="跟进处理" hidden></section>
-              <div class="detail-fields" id="detailFields"></div>
-            </article>
-          </aside>
+          </header>
+          <div class="ws-metrics" id="metrics" aria-label="Summary metrics"></div>
+        </section>
+
+        <!-- Record views: one toolbar row over a full-bleed table. -->
+        <section class="ws-view" id="recordView" hidden>
+          <header class="ws-toolbar">
+            <div class="ws-title">
+              <h1 id="viewTitle"></h1>
+              <span class="ws-count" id="recordCount"></span>
+            </div>
+            <div class="ws-actions">
+              <button class="goal-open" id="goalOpen" type="button" title="设置新目标" hidden><span aria-hidden="true">+</span> 新目标</button>
+              <button class="goal-open" id="discoverOpen" type="button" title="从本机通讯录选择" hidden><span aria-hidden="true">+</span> 选择联系人</button>
+              <div class="action-filters" id="actionFilters" role="tablist" aria-label="行动状态" hidden></div>
+              <label class="search toolbar-search">
+                <span class="sr-only" id="searchLabel"></span>
+                <input id="searchInput" type="search" autocomplete="off">
+              </label>
+            </div>
+          </header>
+          <div class="ws-workspace" id="workspace">
+            <div class="ws-list" id="listPanel">
+              <div id="recordListWrap"></div>
+              <button class="load-more" id="loadMore" type="button" hidden></button>
+            </div>
+            <aside class="ws-detail" id="detailPanel" aria-live="polite">
+              <div class="ws-detail-bar" id="detailBar">
+                <button class="button" id="backButton" type="button"></button>
+                <a class="button" id="detailExpand" type="button" hidden></a>
+              </div>
+              <div class="ws-detail-empty" id="detailEmpty"></div>
+              <article id="detailContent" hidden>
+                <h2 id="detailTitle"></h2>
+                <section class="detail-actions" id="detailActions" aria-label="跟进处理" hidden></section>
+                <div class="detail-fields" id="detailFields"></div>
+              </article>
+            </aside>
+          </div>
         </section>
       </main>
     </div>

@@ -41,31 +41,48 @@ def test_demo_ui(browser, base_url: str) -> None:
     errors = attach_error_capture(page)
     page.goto(f"{base_url}/?demo=overview#/overview")
     page.wait_for_load_state("networkidle")
-    assert page.locator(".metrics").first.is_visible()
+    # Overview is the only page with the hero + <=3-number metrics band
+    # (busabase-app-creator ui-and-validation.md "Two Kinds Of Page").
+    assert page.locator(".ws-metrics").first.is_visible()
     assert_no_horizontal_overflow(page)
 
     # The demo dataset ("Lumina Lighting Co.") has 12 inquiries across
-    # new/replied/quoted/negotiating/won/lost.
+    # new/replied/quoted/negotiating/won/lost. Inquiries open in a full page
+    # (ui.detail_modes.inquiries = "page"), so the list is a full-bleed
+    # .ws-table under the toolbar.
     page.goto(f"{base_url}/?demo=inquiries#/inquiries")
     page.wait_for_load_state("networkidle")
-    assert page.locator(".table-wrap table tbody tr").count() == 12
+    assert page.locator("#listPanel .ws-table tbody tr").count() == 12
 
-    # 5 quote worksheets.
+    # 5 quote worksheets. Quotes also open in a full page.
     page.goto(f"{base_url}/?demo=quotes#/quotes")
     page.wait_for_load_state("networkidle")
-    assert page.locator(".table-wrap table tbody tr").count() == 5
+    assert page.locator("#listPanel .ws-table tbody tr").count() == 5
 
-    # 7 products in the knowledge base.
+    # 7 products in the knowledge base. Products open in a drawer
+    # (ui.detail_modes.products = "drawer"): a fact you scan many of.
     page.goto(f"{base_url}/?demo=products#/products")
     page.wait_for_load_state("networkidle")
-    assert page.locator(".product-grid .product-card").count() == 7
+    assert page.locator("#listPanel .ws-table tbody tr").count() == 7
 
     # 6 approval items (refs 1-6): 2 needs_review, 1 changes_requested,
-    # 1 approved, 1 done, 1 blocked by the min-price guard.
+    # 1 approved, 1 done, 1 blocked by the min-price guard. Approvals is a
+    # split view (ui.detail_modes.approvals = "split"): the review queue
+    # worked top to bottom stays beside the record under review, so all 6
+    # rows are listed, each carrying its own status chip, and selecting one
+    # opens its full .approval-card in the detail pane.
     page.goto(f"{base_url}/?demo=approvals#/approvals")
     page.wait_for_load_state("networkidle")
-    assert page.locator(".approval-list .approval-card").count() == 6
-    assert page.locator(".approval-card .status-chip.blocked").count() == 1
+    assert page.locator("#listPanel .ws-table tbody tr").count() == 6
+    assert page.locator("#listPanel .ws-table tbody .status-chip.blocked").count() == 1
+    first_row = page.locator("#listPanel .ws-table tbody tr").first
+    first_row.click()
+    page.wait_for_selector("#detailBody .approval-card")
+    assert page.locator("#detailBody .approval-card").is_visible()
+    assert page.locator("body.ws-layout-split").count() == 1
+    page.keyboard.press("Escape")
+    page.wait_for_function("() => !document.body.classList.contains('ws-detail-open')")
+    assert page.locator("body.ws-detail-open").count() == 0
 
     # The featured hot WhatsApp inquiry has two pending drafts (a reply and a
     # quote) already queued, rendered as queued-bubbles in the transcript.
@@ -257,7 +274,13 @@ def test_busabase_provisioning(browser) -> None:
                     page.goto(f"{app_url}/#/approvals")
                     page.wait_for_load_state("networkidle")
                     assert page.locator("[data-provision]").count() == 0
-                    card = page.locator(".approval-card", has_text="Fixture Customer")
+                    # Approvals is a split view: the queue row only names the
+                    # ref + customer; selecting it opens the full
+                    # .approval-card (reason/text/decide buttons) in the
+                    # detail pane beside the queue.
+                    page.locator("#listPanel tr", has_text="Fixture Customer").click()
+                    page.wait_for_selector("#detailBody .approval-card")
+                    card = page.locator("#detailBody .approval-card", has_text="Fixture Customer")
                     assert card.is_visible()
                     card.locator("[data-action='decide'][data-decision='approve']").click()
                     page.wait_for_timeout(500)

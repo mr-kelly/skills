@@ -51,11 +51,14 @@
 }
 
 /* This token-only block stays unlayered so it wins over legacy app :root
- * declarations without duplicating any component rule. */
+ * declarations without duplicating any component rule. It must NOT redefine
+ * --accent itself: the hue is each app's identity (its own styles.css, or an
+ * accent-theme.css picker) and must survive into dark mode unchanged. Only
+ * the tints that depend on the hue are re-derived here, the same way
+ * accent-theme.css's own dark block re-derives them from var(--accent). */
 @media (prefers-color-scheme: dark) {
   html:root {
-    --accent: #3fae95;
-    --accent-strong: #4ec0a6;
+    --accent-strong: color-mix(in srgb, var(--accent) 86%, white);
     --accent-contrast: #0b1512;
     --canvas: #0e1013;
     --surface: #16191d;
@@ -538,5 +541,347 @@
       transition-duration: 0.01ms !important;
       animation-duration: 0.01ms !important;
     }
+  }
+}
+
+/* ── Record views (busabase-app-creator layout spec) ─────────────────────
+ * Deliberately NOT inside `@layer base-ui`. App stylesheets are unlayered,
+ * and an unlayered rule beats any layered one regardless of specificity, so
+ * a template's old `table`, `th, td`, `h1` or `button` rules would silently
+ * override these. Unlayered, a `.ws-*` class selector wins over an element
+ * selector on specificity, and an app can still customise with its own
+ * class selector (it loads after this file).
+ *
+ * Opt-in and `ws-` prefixed, so nothing here reaches an app that has not
+ * adopted it. Two kinds of page: `.ws-overview` (the only page with the hero
+ * and a ≤3-number `.ws-metrics` band) and `.ws-view` (one `.ws-toolbar` row
+ * over a full-bleed `.ws-table`).
+ *
+ * Body state, one rule for every mode: add `ws-detail-open` whenever a record
+ * is shown, plus exactly one mode class —
+ *   ws-detail-page    the record replaces the list
+ *   ws-detail-drawer  the record slides over the list's right edge
+ *   ws-layout-split   a queue beside the record (set it for the whole view,
+ *                     selected or not; `ws-detail-open` marks a selection)
+ * On a phone every mode becomes a page. Also: `ws-searching` (show the
+ * narrowed count), `ws-compact` (32px rows), `ws-has-mobile-bar` (the app's
+ * own phone top bar already names the view, so the toolbar title hides).
+ *
+ * Tunables: --ws-row-height, --ws-first-col, --ws-split-list,
+ * --ws-detail-pad, --ws-drawer-width. Column helpers on th/td:
+ * .ws-col-narrow, .ws-col-num, .ws-col-wide; .ws-split-keep keeps a column
+ * visible in the narrow split queue (by default only the first two show). */
+[hidden] {
+  display: none !important;
+}
+:root {
+  --ws-row-height: 40px;
+  --ws-first-col: 30%;
+  --ws-split-list: minmax(300px, 380px);
+  --ws-detail-pad: 28px;
+  --ws-drawer-width: 560px;
+}
+body.ws-compact {
+  --ws-row-height: 32px;
+}
+.ws-view,
+.ws-overview {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+.ws-toolbar {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  min-width: 0;
+  min-height: 56px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+  padding: 10px 20px;
+}
+.ws-title {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 10px;
+}
+.ws-title h1 {
+  overflow: hidden;
+  margin: 0;
+  font-size: var(--text-xl);
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ws-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.ws-count {
+  min-width: 24px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--surface-soft);
+  color: var(--muted);
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+/* The nav already shows the total; the toolbar repeats a number only while a
+ * search narrows it. */
+body:not(.ws-searching) .ws-title .ws-count {
+  display: none;
+}
+.ws-workspace {
+  position: relative;
+  display: block;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  border-top: 1px solid var(--line);
+  background: var(--surface);
+}
+.ws-list,
+.ws-detail {
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+}
+.ws-list {
+  height: 100%;
+}
+.ws-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+.ws-table th,
+.ws-table td {
+  height: var(--ws-row-height);
+  overflow: hidden;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ws-table td {
+  font-size: var(--text-base);
+}
+.ws-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  height: 36px;
+  background: var(--surface-blur);
+  backdrop-filter: blur(10px);
+  color: var(--muted);
+  font-size: var(--text-xs);
+  font-weight: 600;
+}
+.ws-table th:first-child {
+  width: var(--ws-first-col);
+}
+.ws-table .ws-col-narrow {
+  width: 9%;
+}
+.ws-table .ws-col-num {
+  width: 11%;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.ws-table .ws-col-wide {
+  width: 24%;
+}
+.ws-table tbody tr {
+  cursor: pointer;
+  transition: background var(--ease);
+}
+.ws-table tbody tr:hover {
+  background: var(--surface-hover);
+}
+.ws-table tbody tr.ws-selected {
+  background: var(--accent-soft);
+}
+.ws-detail {
+  display: none;
+  padding: 0 var(--ws-detail-pad) 32px;
+  background: var(--surface);
+}
+.ws-detail-bar {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 48px;
+  margin: 0 calc(var(--ws-detail-pad) * -1) 16px;
+  padding: 0 var(--ws-detail-pad);
+  border-bottom: 1px solid var(--line);
+  background: var(--surface-blur);
+  backdrop-filter: blur(10px);
+}
+/* The split queue's resting state, before a record is chosen. */
+.ws-detail-empty {
+  max-width: 42ch;
+  margin: 0 auto;
+  padding: 56px 20px;
+  color: var(--muted);
+  font-size: var(--text-md);
+  line-height: 1.6;
+  text-align: center;
+}
+body.ws-detail-page .ws-list {
+  display: none;
+}
+body.ws-detail-page .ws-detail {
+  display: block;
+  height: 100%;
+}
+body.ws-detail-drawer.ws-detail-open .ws-detail {
+  position: absolute;
+  inset: 0 0 0 auto;
+  z-index: 5;
+  display: block;
+  width: min(var(--ws-drawer-width), 100%);
+  border-left: 1px solid var(--line);
+  box-shadow: var(--shadow-modal);
+}
+body.ws-layout-split .ws-workspace {
+  display: grid;
+  grid-template-columns: var(--ws-split-list) minmax(0, 1fr);
+}
+body.ws-layout-split .ws-list {
+  border-right: 1px solid var(--line);
+}
+body.ws-layout-split .ws-detail {
+  display: block;
+  height: 100%;
+}
+body.ws-layout-split .ws-table :is(th, td):nth-child(n + 3):not(.ws-split-keep) {
+  display: none;
+}
+/* The narrow queue keeps two columns; a width helper on the second would
+ * squeeze the first, so let it size to its content. */
+body.ws-layout-split .ws-table :is(th, td):nth-child(2) {
+  width: auto;
+}
+body.ws-layout-split .ws-table th:first-child {
+  width: 65%;
+}
+/* The layered `.page-hero h1` loses to an app's unlayered `h1` rule; restate
+ * it here so the overview title keeps the shared size. */
+.ws-overview .page-hero h1 {
+  margin: 6px 0 0;
+  font-size: var(--text-3xl);
+  font-weight: 660;
+  letter-spacing: -0.02em;
+}
+.ws-overview .page-hero p {
+  margin: 8px 0 0;
+}
+.ws-overview {
+  display: grid;
+  align-content: start;
+  gap: 20px;
+  overflow: auto;
+  padding: 28px 24px 32px;
+}
+/* A band, not a row of cards: one line that never wraps, ≤3 numbers, on the
+ * overview only. Each cell is a label (`span`) and a value (`strong`). */
+.ws-metrics {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+}
+.ws-metrics > * {
+  display: flex;
+  min-width: 0;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 18px;
+  border-right: 1px solid var(--line);
+}
+.ws-metrics > :last-child {
+  border-right: 0;
+}
+.ws-metrics span {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: var(--text-sm);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ws-metrics strong {
+  font-size: var(--text-xl);
+  font-weight: 650;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+@media (max-width: 720px) {
+  .ws-toolbar {
+    min-height: 52px;
+    padding: 8px 14px;
+  }
+  body:not(.ws-searching) .ws-title .ws-count {
+    display: inline-block;
+  }
+  body.ws-has-mobile-bar .ws-title h1 {
+    display: none;
+  }
+  .ws-overview {
+    padding: 18px 14px 24px;
+  }
+  /* Still one row on a phone: the label stacks over the value. */
+  .ws-metrics > * {
+    display: grid;
+    gap: 2px;
+    padding: 9px 10px;
+  }
+  .ws-metrics span {
+    font-size: var(--text-xs);
+  }
+  .ws-metrics strong {
+    font-size: var(--text-lg);
+  }
+  body.ws-layout-split .ws-workspace {
+    display: block;
+  }
+  body.ws-detail-open .ws-list,
+  body.ws-detail-page .ws-list,
+  body.ws-layout-split:not(.ws-detail-open) .ws-detail {
+    display: none;
+  }
+  body.ws-detail-open .ws-detail,
+  body.ws-detail-page .ws-detail,
+  body.ws-detail-drawer.ws-detail-open .ws-detail {
+    --ws-detail-pad: 14px;
+    position: static;
+    display: block;
+    width: auto;
+    height: 100%;
+    padding-bottom: 24px;
+    border-left: 0;
+    box-shadow: none;
+  }
+  .ws-table :is(th, td):nth-child(n + 3):not(.ws-split-keep) {
+    display: none;
+  }
+  /* Only two columns survive here, so the name column takes most of the row. */
+  .ws-table {
+    --ws-first-col: 62%;
   }
 }

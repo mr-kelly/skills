@@ -6,6 +6,15 @@ export const appConfig = {
   readOnly: false,
   spaceId: "",
   schemaVersion: 1,
+  ui: {
+    // A scenario is a workplace of its own -- chart, risk flags, editable
+    // inputs, the underwriting decision -- that an analyst stays on for
+    // minutes, not a fact scanned in passing and returned from. So it always
+    // opens as a full page (`#/scenarios/<id>`), never a drawer/split peek.
+    detail_modes: {
+      scenarios: "page",
+    },
+  },
   folder: {
     name: "Kelly Revenue-Share Simulator",
     description:

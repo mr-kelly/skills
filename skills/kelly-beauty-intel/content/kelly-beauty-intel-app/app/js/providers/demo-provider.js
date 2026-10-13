@@ -60,7 +60,11 @@ function makeDemoBatch() {
     id: `draft-${index + 1}`,
     ref: index + 1,
     channel,
-    title: `${channel}: today's approved angle`,
+    // `title` and `channel` are separate fields (see config.js); keeping
+    // title free of the channel name here matches what a real record looks
+    // like — the table row composes "channel: title" itself and would
+    // otherwise double the channel name for every demo draft.
+    title: "Today's approved angle",
     body: `Draft for ${channel}: We noticed a timely update in beauty, wellness, and medical aesthetics. Here is the practical implication for customers, the careful caveat, and one simple next step. Reply if you want us to tailor this to your situation.`,
     status: "needs_review",
     risk: channel.toLowerCase().includes("client") || channel.toLowerCase().includes("whatsapp") ? ["outbound"] : [],
@@ -115,10 +119,13 @@ function makeDemoBatch() {
   };
 }
 
+let lastDemoBatch = null;
+
 export const demoProvider = {
   kind: "demo",
 
   async getState() {
+    lastDemoBatch = makeDemoBatch();
     return {
       app: "kelly-beauty-intel",
       demo: true,
@@ -133,13 +140,21 @@ export const demoProvider = {
       locked: false,
       lock: null,
       files: {},
-      batch: makeDemoBatch(),
+      batch: lastDemoBatch,
       decisions: {},
     };
   },
 
   async applyDecision() {
     throw new Error("Demo mode is read-only.");
+  },
+
+  // Demo loads every record up front, so this only serves a `?peek=`/`/id`
+  // deep link whose id does not exist in the deterministic demo set.
+  async fetchRecord(key, id) {
+    const rows = lastDemoBatch?.[key] || [];
+    const row = rows.find((item) => item.id === id);
+    return row ? { ...row, kind: key.slice(0, -1) } : null;
   },
 
   async provisionResources() {

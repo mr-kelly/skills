@@ -36,4 +36,7 @@ export const copy = {
   currentMonth: "本月",
   error: "工作台暂时无法读取数据",
   retry: "重新读取",
+  openFull: "打开整页",
+  recordMissing: "没有找到这条记录",
+  recordMissingHint: "请检查权限，或在原生记录中查看。",
 };

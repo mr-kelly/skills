@@ -22,13 +22,10 @@
           </div>
           <button id="sidebarToggle" class="sidebar-toggle" type="button" aria-controls="appSidebar" aria-expanded="true" title="Toggle sidebar" aria-label="Toggle sidebar"><span class="sidebar-toggle-icon" aria-hidden="true"></span></button>
         </div>
-        <div class="search sidebar-search">
-          <input id="search" type="search" placeholder="Search" aria-label="Search">
-        </div>
         <section class="human-work" aria-labelledby="humanWorkTitle">
           <div class="human-work-eyebrow" data-i18n="attention">Today's batch</div>
           <div id="humanWorkTitle" class="human-work-title" data-i18n="humanWorkTitle">What needs your attention</div>
-          <a class="human-work-primary" href="#/overview" data-route="overview">
+          <a class="human-work-primary" href="#/signals" data-route="signals">
             <span>
               <strong id="count-needs-review">0</strong>
               <span data-i18n="needsReview">needs review</span>
@@ -72,16 +69,54 @@
           </div>
           <button id="mobileRefresh" class="mobile-refresh-button" type="button" title="Refresh" aria-label="Refresh">↻</button>
         </div>
-        <header class="topbar">
-          <div>
-            <h1 id="page-title">Overview</h1>
-            <p id="page-subtitle" class="muted"></p>
+        <div id="loadState" class="load-state" role="status">Loading</div>
+        <!-- Overview is the only page with a hero and a metrics band. -->
+        <section id="overviewPage" class="ws-overview" hidden>
+          <header class="page-hero">
+            <div>
+              <h1 id="overviewTitle">Overview</h1>
+              <p id="overviewSummary"></p>
+            </div>
+            <div class="page-actions">
+              <button id="refresh" class="button" type="button" title="Refresh">Refresh</button>
+            </div>
+          </header>
+          <div id="overviewMetrics" class="ws-metrics" aria-label="Today's batch"></div>
+          <div id="overviewBody"></div>
+        </section>
+        <!-- Record views: one toolbar row over a full-bleed table. Reused for
+             Signals, Actions, Drafts and Sources — only the table columns and
+             detail fields change per view. -->
+        <section id="viewPage" class="ws-view" hidden>
+          <header class="ws-toolbar">
+            <div class="ws-title">
+              <h1 id="viewTitle"></h1>
+              <span id="viewCount" class="ws-count"></span>
+            </div>
+            <div class="ws-actions">
+              <label class="search toolbar-search">
+                <span class="sr-only" data-i18n="search">Search</span>
+                <input id="search" type="search" autocomplete="off" placeholder="Search">
+              </label>
+            </div>
+          </header>
+          <div id="workspace" class="ws-workspace">
+            <div id="listPanel" class="ws-list"></div>
+            <aside id="detailPanel" class="ws-detail" aria-live="polite">
+              <div class="ws-detail-bar">
+                <button id="detailBack" class="button" type="button">Back to list</button>
+                <a id="detailExpand" class="button" hidden>Open full page</a>
+              </div>
+              <div id="detailBody"></div>
+            </aside>
           </div>
-          <div class="topbar-actions">
-            <button id="refresh" type="button" title="Refresh" aria-label="Refresh">Refresh</button>
-          </div>
-        </header>
-        <section id="content" class="content"></section>
+        </section>
+        <section id="settingsPage" class="ws-view" hidden>
+          <header class="ws-toolbar">
+            <div class="ws-title"><h1 id="settingsTitle">Help &amp; Settings</h1></div>
+          </header>
+          <div id="settingsBody" class="settings-scroll settings"></div>
+        </section>
       </main>
     </div>
     <div id="sidebarScrim" class="sidebar-scrim" hidden></div>

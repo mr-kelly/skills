@@ -13,6 +13,16 @@ export const appConfig = {
     slug: "kelly-llm-gateway",
   },
   airApp: { name: "Kelly LLM Gateway", slug: "kelly-llm-gateway-app", resourceKey: "kelly-llm-gateway-app" },
+  // Where each record view opens a route (see DETAIL_MODES in app.js for the
+  // why). Anomalies are derived from routes, not their own Base, but they are
+  // addressed the same way.
+  //   spend     → drawer: a route is a fact scanned across many service×model
+  //               rows; read cost/error/canary, maybe act, return to the table.
+  //   rollouts  → split: the active-rollout board is a queue worked top to
+  //               bottom, one route after the next, so the queue stays beside it.
+  //   anomalies → drawer: an anomaly is scanned, optionally acknowledged with
+  //               a note, then dismissed back to the list.
+  ui: { detail_modes: { spend: "drawer", rollouts: "split", anomalies: "drawer" } },
   bases: [
     {
       key: "routes",
@@ -76,7 +86,7 @@ export const appConfig = {
     },
   ],
   permissions: {
-    readProcedures: ["nodes.list", "nodes.get", "bases.get", "records.list", "records.count"],
+    readProcedures: ["nodes.list", "nodes.get", "bases.get", "records.list", "records.get", "records.count"],
     setupProcedures: ["nodes.createChangeRequest", "nodes.updateMetadata"],
     writeProcedures: ["records.changeRequest", "bases.createChangeRequest"],
   },
