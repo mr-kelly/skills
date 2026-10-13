@@ -2253,11 +2253,11 @@
       "month": "2026-06",
       "rule": "周日和周二不遛",
       "evidence": "6 月淋雨 7 次，其中 4 次在周日或周二",
-      "reason": "关闭：样本只有 7 天。7 月一看，傍晚 6 点淋雨的日子周二只有 1 天（周二 1、周三 2、周四 2、周五 2、周六 1、周日 1）。",
+      "reason": "关闭：样本只有 7 天；那是 6 月 21–23 日（周日到周二）连着下的一阵雨，雨不看星期几；而且「周日和周二不遛」违反手册的「一天一定遛一次」。",
       "en": {
         "rule": "Skip walks on Sundays and Tuesdays",
         "evidence": "4 of June's 7 wet walks fell on a Sunday or Tuesday",
-        "reason": "Closed: a sample of 7 days. In July, 6 pm rain fell on only one Tuesday (Tue 1, Wed 2, Thu 2, Fri 2, Sat 1, Sun 1)."
+        "reason": "Closed: a sample of 7 days; those were one rainy spell on 21–23 June (Sunday to Tuesday), and rain does not follow the weekday; and skipping Sundays and Tuesdays breaks the playbook's \"walk once every day\"."
       }
     }
   ],
