@@ -1,0 +1,145 @@
+{
+  "name": "每天的决定",
+  "description": "一天一行：Agent 按遛狗手册选的钟点、依据的规则、当时的预报、实际天气和裁判的结论。回放和每日模式都写这里；按「日期 + 城市」更新，不重复。",
+  "position": 3,
+  "fields": [
+    {
+      "slug": "summary",
+      "name": "摘要",
+      "type": "text",
+      "required": false,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "date",
+      "name": "日期",
+      "type": "date",
+      "required": true,
+      "position": 1,
+      "options": {
+        "date": {
+          "includeTime": false
+        }
+      }
+    },
+    {
+      "slug": "city",
+      "name": "城市",
+      "type": "text",
+      "required": true,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "walk-hour",
+      "name": "遛狗钟点",
+      "type": "number",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "rule-applied",
+      "name": "依据规则",
+      "type": "longtext",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "forecast-precip-prob",
+      "name": "当时预报降水概率 %",
+      "type": "number",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "forecast-temp",
+      "name": "当时预报气温 °C",
+      "type": "number",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "actual-precip-mm",
+      "name": "实际降水 mm",
+      "type": "number",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "actual-temp",
+      "name": "实际气温 °C",
+      "type": "number",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "verdict",
+      "name": "结论",
+      "type": "select",
+      "required": false,
+      "position": 9,
+      "options": {
+        "choices": [
+          {
+            "id": "没淋",
+            "name": "没淋"
+          },
+          {
+            "id": "淋雨",
+            "name": "淋雨"
+          },
+          {
+            "id": "太热",
+            "name": "太热"
+          },
+          {
+            "id": "不方便",
+            "name": "不方便"
+          },
+          {
+            "id": "待判",
+            "name": "待判"
+          }
+        ]
+      }
+    },
+    {
+      "slug": "playbook-version",
+      "name": "手册版本",
+      "type": "text",
+      "required": false,
+      "position": 10,
+      "options": {}
+    },
+    {
+      "slug": "month",
+      "name": "月份",
+      "type": "text",
+      "required": false,
+      "position": 11,
+      "options": {}
+    }
+  ],
+  "views": [],
+  "agentPrompts": [
+    {
+      "key": "replay-month",
+      "label": "回放一个月",
+      "intent": "change",
+      "body": "{target}\n\n先读同目录的 kelly-dog-walk 技能和遛狗手册。用手册现在的规则，回放我说的城市和月份（没说就用上海 2026 年 6 月），按裁判规则判每一天，写进这张表。然后告诉我淋雨、太热、不方便各几次。"
+    },
+    {
+      "key": "monthly-review",
+      "label": "复盘并提议改手册",
+      "intent": "change",
+      "body": "{target}\n\n先读同目录的 kelly-dog-walk 技能、遛狗手册和裁判规则。复盘上个月：淋雨那几天当时的预报是多少、落在星期几，太热和不方便各几次。想改手册，先在同一个月和现在的手册对照，再换一个月验证，两个月都赢了才提变更请求，消息里附上回放证据。不要直接改手册，也不要改裁判规则。"
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "type": "airapp",
+  "name": "遛狗日历",
+  "description": "只读的遛狗日历：每天几点遛、结论、每月汇总、手册版本时间线，以及和一直用 v1 的对照。",
+  "position": 5,
+  "agentPrompts": [
+    {
+      "key": "how-did-we-do",
+      "label": "这个月遛得怎么样",
+      "intent": "read-only",
+      "body": "{target}\n\n先读同目录的 kelly-dog-walk 技能。看看遛狗日历：这个月每天几点遛、淋了几次雨，和一直用 v1 比怎么样，手册是从哪个版本变过来的。只看，不要改任何东西。"
+    }
+  ]
+}

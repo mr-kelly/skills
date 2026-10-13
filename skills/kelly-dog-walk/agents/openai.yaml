@@ -1,0 +1,4 @@
+interface:
+  display_name: "遛狗不淋雨 Kelly Dog Walk"
+  short_description: "Self-evolving agent demo: real weather judges, a human merges playbook changes"
+  default_prompt: "Use $kelly-dog-walk to decide today's dog-walk hour from the 遛狗手册 playbook, replay a month against real Open-Meteo weather, or review last month and propose a playbook change as a Busabase ChangeRequest."

@@ -1,0 +1,108 @@
+import { readFile, readdir } from "node:fs/promises";
+import path from "node:path";
+import { checkAirApp } from "busabase-sdk/airapp-check";
+import { editorialAssertions } from "./check-editorial.mjs";
+
+const root = path.resolve(import.meta.dirname, "..");
+const read = (relative) => readFile(path.join(root, relative), "utf8");
+const readIfExists = (relative) => read(relative).catch(() => undefined);
+
+const walk = async (dir) => {
+  const out = [];
+  for (const entry of await readdir(dir, { withFileTypes: true })) {
+    if (entry.name === "node_modules") continue;
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) out.push(...(await walk(full)));
+    else out.push(full);
+  }
+  return out;
+};
+
+const failures = [];
+const assert = (ok, message) => {
+  if (!ok) failures.push(message);
+};
+
+// ── busabase-sdk/airapp-check: the versioned AirApp runtime contract ────────
+const appFiles = (await walk(path.join(root, "app"))).filter((file) => !file.split(path.sep).includes("vendor"));
+const joined = async (files) => (await Promise.all(files.map((file) => readFile(file, "utf8")))).join("\n");
+const isLogic = (file) =>
+  ["app.js", "config.js", "runtime.js"].includes(path.basename(file)) ||
+  file.endsWith(path.join("providers", "busabase-provider.js"));
+const findings = await checkAirApp({
+  packageJson: await readIfExists("package.json"),
+  server: await readIfExists("server.js"),
+  serverLanguage: "node",
+  browserLogic: await joined(appFiles.filter(isLogic)),
+  browserDownloads: await joined(appFiles.filter((file) => /\.(?:js|html)$/.test(file))),
+  config: await readIfExists("app/js/config.js"),
+  shippedSlug: path.basename(root),
+});
+for (const finding of findings.filter((item) => item.severity === "error")) {
+  failures.push(`[airapp-check ${finding.rule}] ${finding.message}`);
+}
+
+// ── this app's own contract ─────────────────────────────────────────────────
+const pkg = JSON.parse(await read("package.json"));
+const config = await read("app/js/config.js");
+const html = await read("app/index.html");
+const server = await read("server.js");
+const browser = await joined(appFiles.filter((file) => file.endsWith(".js")));
+const { appConfig } = await import(path.join(root, "app", "js", "config.js"));
+
+assert(
+  pkg.scripts.start === "node server.js" && pkg.scripts.dev === "node server.js",
+  "dev/start must be `node server.js`",
+);
+assert(/^\d+\.\d+\.\d+$/.test(pkg.dependencies["busabase-sdk"]), "busabase-sdk must be an exact pin");
+assert(config.includes('deployment: "cloud"'), "config must declare deployment: cloud");
+assert(appConfig.readOnly === true, "遛狗日历 is read-only: appConfig.readOnly must be true");
+assert(appConfig.permissions.writeProcedures.length === 0, "a read-only AirApp declares no write procedures");
+assert(!/\b(?:href|src)="\/(?!api\/v1)/.test(html), "assets must use relative URLs");
+assert(
+  server.includes("describeBusabaseAirAppRuntime()") && server.includes('"/__airapp/runtime"'),
+  "server must expose /__airapp/runtime",
+);
+assert(server.includes("createBusabaseAirAppLocalGateway"), "server must use the SDK's local gateway");
+assert(
+  !/location\s*\.\s*hostname|window\.self\s*!==\s*window\.top/.test(browser),
+  "never infer the runtime from the hostname or iframe nesting",
+);
+assert(
+  browser.includes("__airapp/runtime") && !/["'`]\/__airapp\/runtime/.test(browser),
+  "probe __airapp/runtime relatively",
+);
+// No approve/merge/write path in the browser: approval happens in Busabase ChangeRequests.
+assert(
+  !/\b(?:changeRequest|createChangeRequest|createBulkChangeRequest|createBulkUpdateChangeRequest|updateMetadata|merge|review)\s*\(/.test(
+    browser.replace(/changeRequests\.list\(/g, ""),
+  ),
+  "the AirApp must never write, review or merge — it only reads",
+);
+assert(!/data-decision-action|data-action="approve"|批准|Approve</.test(browser), "no approve button");
+for (const procedure of appConfig.permissions.readProcedures) {
+  assert(/^[a-zA-Z]+\.[a-zA-Z]+$/.test(procedure), `bad procedure name ${procedure}`);
+}
+for (const base of appConfig.bases) {
+  assert(base.slug === `${appConfig.appId}-${base.key}`, `${base.key}: slug must be ${appConfig.appId}-${base.key}`);
+  assert(!("nodeId" in base) && !("baseId" in base), `${base.key}: a template never pins node ids`);
+  assert(base.readLimit > 0 && base.readLimit <= 100, `${base.key}: readLimit must be 1–100`);
+}
+
+// ── editorial theme contract ────────────────────────────────────────────────
+const theme = await read("app/styles/editorial.css");
+const styles = await read("app/styles.css");
+for (const assertion of editorialAssertions(theme, styles, html)) assert(assertion.ok, assertion.message);
+
+// ── the demo is generated from the recorded fixtures, never hand-edited ─────
+const demo = JSON.parse(await read("app/demo-data.json"));
+assert(demo.format === "kelly-dog-walk/demo@1", "demo-data.json must be generated by scripts/build-demo.mjs");
+assert(demo.decisions.length === 122, `demo should hold June–September 2026 (122 days), has ${demo.decisions.length}`);
+
+if (failures.length) {
+  console.error(
+    `遛狗日历 AirApp checks failed (${failures.length}):\n${failures.map((item) => `  - ${item}`).join("\n")}`,
+  );
+  process.exit(1);
+}
+console.log(`遛狗日历 AirApp checks OK (${appFiles.length} app files, ${findings.length} airapp-check note(s))`);

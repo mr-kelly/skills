@@ -236,6 +236,7 @@
 | `kelly-app-skill-creator` | 围绕 Research、Plan、Action、Retrospective 构建 Busabase-backed App-in-Skill。每个 skill 都包含完整规范 `app/`，用 `busabase-sdk` 读写持久配置、状态和数据，默认把同一套源码部署到 AirApp，只有明确要求时才启动 `pnpm dev`，拥有响应式 Kelly 操作台 UI，把运行时约束委托给 `$busabase-app-creator`，把 conformance 验收委托给 `$kelly-app-skill-creator-tests`。旧名 `kelly-app-creator`、`app-in-skill-creator` 保留为兼容别名。 | 构建 Busabase 研究台、审阅队列、计划看板、行动控制台、运营概览、控制面板或协作工作区时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-app-skill-creator.html?lang=zh) |
 | `kelly-app-skill-creator-tests` | 为规范 Kelly app skill 构建并运行可复用 conformance 测试，包括本地 server 与响应式浏览器检查、临时开源 Busabase provisioning 与持久化、环境变量门控的 Cloud OAuth，以及 AirApp parity；OSS 与 Cloud 始终分开报告。 | 给 `kelly-app-skill-creator` 生成的 skill 补测试、验收迁移后的 app skill、接入 app-skill CI，或诊断 SDK、OAuth、provisioning、持久化、AirApp 回归时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-app-skill-creator-tests.html?lang=zh) |
 | `kelly-devops` | 盯产品矩阵的运维面：服务可用性和延迟、SSL 证书和域名到期、API key 轮换、云支出异常，带 agent 提出的行动卡审批。 | 检查服务健康、避免域名/证书过期、review 云支出异常、批准续费和轮换动作时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-devops.html?lang=zh) |
+| `kelly-dog-walk` | 遛狗不淋雨：一个有靠谱裁判的自我进化 Agent。Agent 按遛狗手册每天定遛狗钟点，Open-Meteo 的真实天气当裁判；改手册只能提 Busabase 变更请求，主人合并才算数。附回放、月度复盘、提议脚本和只读遛狗日历。 | 讲风变「打造自我进化的 Agent」这一课、用真实天气回放任意城市任意月份、复盘一个月的证据，或在人工把关下提议和回滚手册规则时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-dog-walk.html?lang=zh) |
 | `kelly-ideas` | 带商业顾问的灵感库：通过必答问题把模糊想法问清楚，再依次推进到 BRD、MRD 和 PRD。 | 把产品或商业构想打磨成足够精确、可以交付开发的规格时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-ideas.html?lang=zh) |
 | `kelly-llm-gateway` | 共享 LLM 网关的成本与模型治理看板：花费趋势、按服务/模型的成本拆分、灰度发布状态板，以及确定性成本/错误异常检测。 | 查看 LLM 网关花费、灰度发布状态，或确认成本/错误异常时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-llm-gateway.html?lang=zh) |
 | `kelly-local-model-lab` | Busabase 支撑的本地模型实验室：审核训练样本、在 Apple Silicon 上用 MLX-LM 执行 LoRA/QLoRA 微调、锁定评估集对比原始模型与 adapter，并登记通过审核的 adapter。 | 需要以 Busabase 为工作流事实源，在本地训练、评估、晋级或管理语言模型 adapter 时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-local-model-lab.html?lang=zh) |
@@ -1631,6 +1632,19 @@ Kelly CLM 是一个刻意保持轻量的合同生命周期台，用于合同台�
   <tr>
     <td><strong>咨询师追问</strong><br>一次聚焦一个问题，展示提问原因，并提供明确的回答或跳过动作。</td>
     <td><strong>PRD 文档</strong><br>带版本、状态和未解决 gaps 的产品需求草案。</td>
+  </tr>
+</table>
+
+### `kelly-dog-walk`
+
+<table>
+  <tr>
+    <td width="50%"><img src="../skills/kelly-dog-walk/assets/screenshots/calendar-zh-CN.webp" alt="遛狗日历"></td>
+    <td width="50%"><img src="../skills/kelly-dog-walk/assets/screenshots/timeline-zh-CN.webp" alt="遛狗手册版本时间线"></td>
+  </tr>
+  <tr>
+    <td><strong>遛狗日历</strong><br>每天几点遛、真实天气判的结论、每月汇总，以及和一直用 v1 的对照。</td>
+    <td><strong>手册时间线</strong><br>从手册自己的版本记录读出 v1 → v4：改了什么、为什么、只看淋雨就赢的坏规则和它的退休。</td>
   </tr>
 </table>
 

@@ -94,7 +94,7 @@ it carries `surface:busabase` only.
 Currently in use: `busabase` (all but `agent-rules`, `publish-skills`,
 `kelly-app-skill-creator-tests`, `buda-community`, `sandock-community`), `buda` `sandock`
 `gsc` `github` `webull` `a-share` `stripe` `mercury`
-`airwallex` `creem` `sendgrid` `moonrouter` `byteplus-ark` `imap` `smtp` `whatsapp` `discord`
+`airwallex` `creem` `sendgrid` `moonrouter` `byteplus-ark` `open-meteo` `imap` `smtp` `whatsapp` `discord`
 `slack` `telegram` `instagram` `messenger` `wechat` `webchat`.
 
 ## Adding a skill

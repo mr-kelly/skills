@@ -1,0 +1,24 @@
+{
+  "name": "kelly-dog-walk",
+  "private": true,
+  "type": "module",
+  "version": "0.1.0",
+  "description": "遛狗不淋雨：可信脚本（抓天气、回放、每日决定、提议改手册、初始化）。",
+  "scripts": {
+    "weather": "node scripts/weather.mjs",
+    "replay": "node scripts/replay.mjs",
+    "today": "node scripts/today.mjs",
+    "propose": "node scripts/propose.mjs",
+    "setup": "node scripts/setup.mjs",
+    "sync:content": "node scripts/sync-content.mjs",
+    "check:content": "node scripts/sync-content.mjs --check",
+    "build:demo": "node scripts/build-demo.mjs",
+    "app:check": "pnpm --dir content/kelly-dog-walk-app check"
+  },
+  "dependencies": {
+    "busabase-sdk": "0.95.1"
+  },
+  "engines": {
+    "node": ">=24.18.0"
+  }
+}

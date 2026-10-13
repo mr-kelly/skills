@@ -1,0 +1,77 @@
+{
+  "title": "风变第二期第 10 节《打造自我进化的 Agent》：上海 2026 年 6–9 月，四轮复盘",
+  "city": "上海",
+  "months": [
+    {
+      "month": "2026-06",
+      "playbook": "v1",
+      "judge": "v1"
+    },
+    {
+      "month": "2026-07",
+      "playbook": "v2",
+      "judge": "v1"
+    },
+    {
+      "month": "2026-08",
+      "playbook": "v3",
+      "judge": "v1"
+    },
+    {
+      "month": "2026-09",
+      "playbook": "v4",
+      "judge": "v2"
+    }
+  ],
+  "closed": [
+    {
+      "id": "P2",
+      "afterVersion": "v1",
+      "month": "2026-06",
+      "rule": "周日和周二不遛",
+      "evidence": "6 月淋雨 7 次，其中 4 次在周日或周二",
+      "reason": "关闭：样本只有 7 天；那是 6 月 21–23 日（周日到周二）连着下的一阵雨，雨不看星期几；而且「周日和周二不遛」违反手册的「一天一定遛一次」。",
+      "en": {
+        "rule": "Skip walks on Sundays and Tuesdays",
+        "evidence": "4 of June's 7 wet walks fell on a Sunday or Tuesday",
+        "reason": "Closed: a sample of 7 days; those were one rainy spell on 21–23 June (Sunday to Tuesday), and rain does not follow the weekday; and skipping Sundays and Tuesdays breaks the playbook's \"walk once every day\"."
+      }
+    }
+  ],
+  "judgeChanges": [
+    {
+      "afterVersion": "v3",
+      "month": "2026-08",
+      "from": "v1",
+      "to": "v2",
+      "text": "主人亲手把裁判规则改成 v2：加上护栏（太热 0 次、不方便 0 次）和证据门槛（换一个月也要赢）。Agent 对裁判规则只读，只能建议。",
+      "en": "The owner changed the judge to v2 by hand: guardrails (0 hot, 0 off-hours walks) and an evidence bar (a new rule must also win another month). The agent can only suggest."
+    }
+  ],
+  "en": {
+    "versions": {
+      "v1": {
+        "change": "Start: walk at 6 pm every day, only in convenient hours, once a day.",
+        "why": ""
+      },
+      "v2": {
+        "change": "Add: when the 6 pm forecast chance of rain is 50% or more, switch hours.",
+        "why": "June had 7 wet walks, and the 6 pm forecast on those days was 100, 79, 100, 97, 91, 87, 100 — all at least 79%. Replaying June with the new rule: 7 → 3. Replaying May: 3 → 1."
+      },
+      "v3": {
+        "change": "Change: open the window to the whole day (6 am–10 pm) and pick the driest hour every day.",
+        "why": "Replaying July: 5 → 0 wet walks. Replaying June: 3 → 2."
+      },
+      "v4": {
+        "change": "Roll back v3 to the v2 rules, and add: never walk in an hour forecast at 32°C or more.",
+        "why": "In August v3 got wet only twice, but 14 walks fell in working hours and 5 at a scorching noon. Replaying August with v4: 2 wet, 0 hot, 0 off-hours. Against v3 in July: hot 14 → 2, off-hours 16 → 0, wet 0 → 3."
+      }
+    },
+    "retired": {
+      "v3": {
+        "rule": "P5 “open the window to the whole day, pick the driest hour” (v3, retired 2026-09)",
+        "reason": "Won on the main metric, lost on the guardrails: 2 wet walks in August, but 14 in working hours and 5 at a scorching noon. Retired rules stay listed."
+      }
+    }
+  }
+}
