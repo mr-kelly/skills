@@ -95,6 +95,13 @@ Agent 每天替主人决定几点遛狗。裁判是真实天气：遛狗的那�
 
 ## 安装
 
+0. 脚本要用 `busabase-sdk`。从 GitHub 装来的技能（`npx skills add mr-kelly/skills --skill kelly-dog-walk`）
+   不带 `node_modules`，第一次先在技能目录里装一次依赖，不然每个脚本都报 `Cannot find package 'busabase-sdk'`：
+
+   ```bash
+   npm install --prefix skills/kelly-dog-walk      # 路径换成技能实际装到的目录，比如 .claude/skills/kelly-dog-walk
+   ```
+
 1. **主人**用自己的账号装模板（不是 Agent 的账号）：
 
    ```bash
@@ -260,6 +267,7 @@ Busabase 没有一键回滚。回滚是**一个新的变更请求**：
 ## 命令速查
 
 ```bash
+npm install --prefix skills/kelly-dog-walk                                # 第一次：装脚本依赖
 node skills/kelly-dog-walk/scripts/setup.mjs --apply                      # 安装后收尾（主人）
 node skills/kelly-dog-walk/scripts/today.mjs --city 上海 --write           # 每日模式
 node skills/kelly-dog-walk/scripts/weather.mjs --city 上海 --month 2026-06 --write

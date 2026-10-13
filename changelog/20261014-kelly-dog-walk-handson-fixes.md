@@ -2,7 +2,7 @@
 title: 2026-10-14 kelly-dog-walk — calendar cards, playbook attribution, readable evidence
 ---
 
-# kelly-dog-walk: three fixes found by a hands-on run
+# kelly-dog-walk: four fixes found by a hands-on run
 
 Date: 2026-10-14
 Author: AI Assistant
@@ -32,6 +32,11 @@ AI Agent: Claude
   file cite nothing.
 - **Proposal evidence is one sentence per month, not a Markdown table.** The review page shows the
   ChangeRequest message as plain text with line breaks collapsed, so the table read as one run of pipes.
+
+- **SKILL.md says to install the scripts' dependency first.** A skill installed from GitHub
+  (`npx skills add mr-kelly/skills --skill kelly-dog-walk`) has no `node_modules`, and every script then
+  fails with `Cannot find package 'busabase-sdk'`. Step 0 of 安装 and the cheat sheet now say
+  `npm install --prefix <skill dir>`.
 
 ## Files Affected
 
