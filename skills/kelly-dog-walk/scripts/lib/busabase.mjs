@@ -40,8 +40,7 @@ const walk = (nodes, visit) => {
 /**
  * The installed 遛狗不淋雨 folder and every node in it.
  * `folderId` picks one when the Space has more than one install.
- */
-/**
+ *
  * @param {any} client
  * @param {{ folderId?: string }} [options]
  */
@@ -225,17 +224,6 @@ export const upsertDecisions = (client, ws, rows, message) => {
     pending: parts.flatMap((part) => part.pending),
   }));
 };
-
-/** `data` is one compact month (or a single day) from scripts/lib/open-meteo.mjs. */
-export const weatherFields = (city, date, hour, cell) => ({
-  city,
-  date,
-  hour,
-  "forecast-precip-prob": cell.prob ?? null,
-  "forecast-temp": cell.ftemp ?? null,
-  ...(cell.rain !== undefined ? { "actual-precip-mm": cell.rain } : {}),
-  ...(cell.temp !== undefined ? { "actual-temp": cell.temp } : {}),
-});
 
 export const upsertWeather = async (client, ws, rows, message) => {
   const base = requireNode(ws.bases.weather, "天气数据");

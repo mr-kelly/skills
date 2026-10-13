@@ -127,7 +127,7 @@ export async function createBusabaseProvider({ spaceId } = {}) {
         need("changeRequests.list");
         const result = await client.changeRequests.list({
           affectsNodeId: playbookNode.id,
-          status: "in_review",
+          status: ["in_review"],
           limit: 20,
         });
         const items = result.changeRequests || result.items || (Array.isArray(result) ? result : []);
