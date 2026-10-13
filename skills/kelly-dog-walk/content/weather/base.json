@@ -1,0 +1,76 @@
+{
+  "name": "天气数据",
+  "description": "Agent 自己从 Open-Meteo 抓的逐时数据（早 6 点到晚 10 点）：当时的预报和实际天气。这是裁判唯一认的证据；按「城市 + 日期 + 钟点」更新，不重复。",
+  "position": 4,
+  "fields": [
+    {
+      "slug": "city",
+      "name": "城市",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "date",
+      "name": "日期",
+      "type": "date",
+      "required": true,
+      "position": 1,
+      "options": {
+        "date": {
+          "includeTime": false
+        }
+      }
+    },
+    {
+      "slug": "hour",
+      "name": "钟点",
+      "type": "number",
+      "required": true,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "forecast-precip-prob",
+      "name": "预报降水概率 %",
+      "type": "number",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "forecast-temp",
+      "name": "预报气温 °C",
+      "type": "number",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "actual-precip-mm",
+      "name": "实际降水 mm",
+      "type": "number",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "actual-temp",
+      "name": "实际气温 °C",
+      "type": "number",
+      "required": false,
+      "position": 6,
+      "options": {}
+    }
+  ],
+  "views": [],
+  "agentPrompts": [
+    {
+      "key": "fetch-weather",
+      "label": "抓取天气",
+      "intent": "change",
+      "body": "{target}\n\n先读同目录的 kelly-dog-walk 技能。从 Open-Meteo 抓我说的城市和月份（没说就用上海、今天）每天早 6 点到晚 10 点的预报和实际天气，写进这张表。只写天气数据，不碰遛狗手册和裁判规则。"
+    }
+  ]
+}

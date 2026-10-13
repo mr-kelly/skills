@@ -1,0 +1,28 @@
+[
+  {
+    "resourceKey": "decisions",
+    "slug": "verdict-calendar",
+    "name": "遛狗日历",
+    "description": "按日期看每天几点遛、结论是什么",
+    "type": "calendar",
+    "config": {
+      "filters": [],
+      "sorts": [],
+      "dateFieldSlug": "date",
+      "visibleFieldSlugs": ["walk-hour", "verdict", "playbook-version"]
+    }
+  },
+  {
+    "resourceKey": "decisions",
+    "slug": "verdict-board",
+    "name": "按结论看板",
+    "description": "没淋、淋雨、太热、不方便、待判各一列",
+    "type": "kanban",
+    "config": {
+      "filters": [],
+      "sorts": [],
+      "stackByFieldSlug": "verdict",
+      "visibleFieldSlugs": ["date", "walk-hour", "city", "playbook-version"]
+    }
+  }
+]

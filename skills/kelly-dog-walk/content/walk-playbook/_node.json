@@ -1,0 +1,14 @@
+{
+  "type": "skill",
+  "name": "遛狗手册",
+  "description": "做事手册：Agent 每天定钟点前先读它。只能通过变更请求修改，主人合并才算数。",
+  "position": 1,
+  "agentPrompts": [
+    {
+      "key": "walk-today",
+      "label": "今天几点遛狗",
+      "intent": "change",
+      "body": "{target}\n\n先读这本遛狗手册，再读同目录的 kelly-dog-walk 技能。抓我所在城市今天的逐时预报（没说就用上海），按手册的规则卡定一个钟点，写进「每天的决定」，告诉我几点遛、为什么。再用昨天的实际天气给昨天的决定判个结论。不要改这本手册。"
+    }
+  ]
+}

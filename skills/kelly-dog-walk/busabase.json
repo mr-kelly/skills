@@ -1,0 +1,26 @@
+{
+  "format": "busabase-package@1",
+  "name": "kelly-dog-walk",
+  "description": "遛狗不淋雨：Agent 每天替主人决定几点遛狗，裁判是真实天气。进化的不是模型，是一本手册：Agent 只能提变更请求改手册，主人合并才算数。",
+  "version": "0.1.0",
+  "license": "MIT",
+  "tags": ["platform", "risk:local-write", "surface:busabase", "surface:open-meteo"],
+  "template": {
+    "category": "platform",
+    "schemaVersion": 1,
+    "airapp": "kelly-dog-walk-app",
+    "tags": ["self-evolving-agent", "playbook", "change-request", "calendar", "kanban"],
+    "screenshots": [
+      "assets/screenshots/calendar-zh-CN.webp",
+      "assets/screenshots/timeline-zh-CN.webp",
+      "assets/screenshots/calendar.webp",
+      "assets/screenshots/timeline.webp"
+    ],
+    "agentPrompts": [
+      "今天几点遛狗？先读遛狗手册，再按今天的预报定一个钟点。",
+      "用现在的遛狗手册回放上海 2026 年 6 月，告诉我淋了几次雨。",
+      "复盘上个月；有证据就提变更请求改遛狗手册，没有就别提。"
+    ],
+    "requires": { "airapp": true }
+  }
+}
