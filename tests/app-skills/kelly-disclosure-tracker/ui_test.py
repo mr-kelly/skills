@@ -52,17 +52,17 @@ def test_demo_ui(browser, base_url: str) -> None:
     assert page.locator("#count-needs-review").inner_text() == "27"
     assert page.locator("#count-blocked").inner_text() == "2"
     assert page.locator("#count-ready").inner_text() == "0"
-    assert page.locator(".vehicle-card").count() == 9
-    assert page.locator("#page-subtitle").inner_text() == "9 vehicles"
+    assert page.locator(".ws-table tbody tr").count() == 9
+    assert page.locator("#viewCount").inner_text() == "9"
     assert_no_horizontal_overflow(page)
 
     page.goto(f"{base_url}/?demo=1&lang=en#/flagged")
     page.wait_for_load_state("networkidle")
-    assert page.locator(".flagged-card").count() == 2
+    assert page.locator(".ws-table tbody tr").count() == 2
 
     page.goto(f"{base_url}/?demo=1&lang=en#/vehicles/veh-05")
     page.wait_for_load_state("networkidle")
-    assert page.locator("#page-title").inner_text() == "SPV Epsilon 09"
+    assert "SPV Epsilon 09" in page.locator("#detailBody h2").first.inner_text()
     assert page.locator(".checklist-row").count() == 6
     assert page.locator(".reconciliation-banner").count() == 1
 
@@ -73,11 +73,11 @@ def test_demo_ui(browser, base_url: str) -> None:
 
     page.goto(f"{base_url}/?demo=1&lang=en#/settings")
     page.wait_for_load_state("networkidle")
-    assert page.locator("#page-title").inner_text() == "Help & Settings"
+    assert page.locator("#settingsTitle").inner_text() == "Help & Settings"
 
     page.goto(f"{base_url}/?demo=1&lang=zh#/vehicles")
     page.wait_for_load_state("networkidle")
-    assert page.locator(".vehicle-card strong").first.inner_text() == "SPV 阿尔法 12"
+    assert page.locator(".ws-table tbody tr .strong").first.inner_text() == "SPV 阿尔法 12"
 
     assert not errors, errors
     desktop.close()
@@ -304,7 +304,7 @@ def test_busabase_provisioning(browser) -> None:
                     page.goto(f"{app_url}/#/vehicles/fixture-veh-01/fixture-item-001")
                     page.wait_for_load_state("networkidle")
                     assert page.locator("[data-provision]").count() == 0
-                    assert "Fixture Vehicle One" in page.locator("#page-title").inner_text()
+                    assert "Fixture Vehicle One" in page.locator("#detailBody h2").first.inner_text()
                     assert page.locator(".item-detail-side h2").inner_text() == "Asset pool schedule"
                     page.locator("#reviewNote").fill("Trusted: matches manual spot-check of the fixture.")
                     page.locator("[data-action='verified']").click()

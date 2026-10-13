@@ -50,7 +50,7 @@ def test_demo_ui(browser, base_url: str) -> None:
     # backtest accuracy 83%, price_sensitive_browser has 24 sessions.
     page.goto(f"{base_url}/?demo=1&lang=en#/overview")
     page.wait_for_load_state("networkidle")
-    assert page.locator("#page-subtitle").inner_text() == "100 sessions · 5 segments"
+    assert page.locator("#overviewSummary").inner_text() == "100 sessions · 5 segments"
     assert page.locator("#accuracy-figure").inner_text() == "83"
     assert page.locator("#summary-accuracy").inner_text() == "83.0%"
     assert page.locator("#count-needs-decision").inner_text() == "5"
@@ -59,13 +59,13 @@ def test_demo_ui(browser, base_url: str) -> None:
 
     page.goto(f"{base_url}/?demo=segments&lang=en#/segments")
     page.wait_for_load_state("networkidle")
-    assert page.locator(".segment-card").count() == 5
-    assert "5" in page.locator("#page-subtitle").inner_text()
+    assert page.locator(".ws-table tbody tr").count() == 5
+    assert page.locator("#segmentsCount").inner_text() == "5"
 
     page.goto(f"{base_url}/?demo=detail&lang=en#/segments/price_sensitive_browser")
     page.wait_for_load_state("networkidle")
-    assert page.locator("#page-title").inner_text() == "Price-sensitive browser"
-    assert page.locator("#page-subtitle").inner_text() == "24 sessions"
+    assert page.locator("#segmentsDetailBody h2").inner_text() == "Price-sensitive browser"
+    assert "24" in page.locator("#segmentsDetailBody p.muted").inner_text()
     assert page.locator(".table-wrap tbody tr").count() == 12
     assert page.locator(".trigger-row").count() == 5
     assert page.locator("#markTrusted").count() == 1
@@ -73,8 +73,9 @@ def test_demo_ui(browser, base_url: str) -> None:
 
     page.goto(f"{base_url}/?demo=backtest&lang=en#/backtest")
     page.wait_for_load_state("networkidle")
-    assert page.locator("#page-subtitle").inner_text() == "100 sessions"
-    assert page.locator(".panel.wide").count() == 6  # overall + 5 segments
+    # The backtest report page is title-only, no subtitle line (overall + 5
+    # segment counts are already covered by the overview assertions above).
+    assert page.locator(".overview-panel.overview-wide").count() == 6  # overall + 5 segments
 
     page.goto(f"{base_url}/?demo=1&lang=zh#/overview")
     page.wait_for_load_state("networkidle")
@@ -282,8 +283,8 @@ def test_busabase_provisioning(browser) -> None:
                     page.goto(f"{app_url}/#/segments/price_sensitive_browser")
                     page.wait_for_load_state("networkidle")
                     assert page.locator("[data-provision]").count() == 0
-                    assert "Price-sensitive browser" in page.locator("#page-title").inner_text()
-                    assert page.locator("#page-subtitle").inner_text() == "2 sessions"
+                    assert "Price-sensitive browser" in page.locator("#segmentsDetailBody h2").inner_text()
+                    assert "2" in page.locator("#segmentsDetailBody p.muted").inner_text()
                     page.locator("#decisionNote").fill("Trusted: matches manual spot-check of the two fixture sessions.")
                     page.locator("#markTrusted").click()
                     page.wait_for_timeout(500)

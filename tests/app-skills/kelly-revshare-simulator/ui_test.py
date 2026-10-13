@@ -57,11 +57,11 @@ def test_demo_ui(browser, base_url: str) -> None:
     # The demo batch is the four scenarios ported verbatim from the retired
     # app/server/demo.ts (also scripts/generate_batch.ts's seed set):
     # bubble tea / gym / hotpot / discount-mart.
-    page.locator("#page-subtitle").get_by_text("4 scenarios").wait_for(timeout=5_000)
+    page.locator("#overviewSummary").get_by_text("4 scenarios").wait_for(timeout=5_000)
 
     page.goto(f"{base_url}/?demo=scenarios")
     page.wait_for_load_state("networkidle")
-    assert page.locator(".table-wrap tbody tr").count() == 4
+    assert page.locator(".ws-table tbody tr").count() == 4
     assert_no_horizontal_overflow(page)
 
     page.goto(f"{base_url}/?demo=detail")
@@ -166,7 +166,7 @@ def test_busabase_provisioning(browser) -> None:
                         # `.table-wrap`/list markup to wait on in the empty
                         # overview state).
                         page.wait_for_selector("[data-provision]", state="detached", timeout=20_000)
-                        page.locator("#page-subtitle").get_by_text("0 scenarios").wait_for(timeout=15_000)
+                        page.locator("#overviewSummary").get_by_text("0 scenarios").wait_for(timeout=15_000)
                     except Exception:
                         nodes = read_json(f"{busabase_url}/api/v1/nodes?depth=2")
                         change_requests = read_json(f"{busabase_url}/api/v1/change-requests")
@@ -193,7 +193,7 @@ def test_busabase_provisioning(browser) -> None:
                     page.click("#scenarioForm button[type=submit]")
                     page.wait_for_url(re.compile(r"#/scenarios/scn_"), timeout=15_000)
                     page.wait_for_load_state("networkidle")
-                    assert page.locator("#page-title").inner_text() == "Fixture Bakery Chain"
+                    assert page.locator("#scenarioDetailBody h2").first.inner_text() == "Fixture Bakery Chain"
                     assert_no_horizontal_overflow(page)
                     assert not errors, errors
                     context.close()
@@ -228,9 +228,9 @@ def test_busabase_provisioning(browser) -> None:
                     page.goto(f"{app_url}/#/scenarios")
                     page.wait_for_load_state("networkidle")
                     assert page.locator("[data-provision]").count() == 0
-                    row = page.locator(".table-wrap tbody tr", has_text="Fixture Bakery Chain")
+                    row = page.locator(".ws-table tbody tr", has_text="Fixture Bakery Chain")
                     assert row.is_visible()
-                    row.get_by_role("link").click()
+                    row.click()  # row opens detail via row-level click handler, no inline link
                     page.wait_for_load_state("networkidle")
 
                     # Direct decision write, straight onto the scenario's own
@@ -265,7 +265,7 @@ def test_busabase_provisioning(browser) -> None:
                     errors = attach_error_capture(page)
                     page.goto(f"{app_url}/#/scenarios")
                     page.wait_for_load_state("networkidle")
-                    page.locator(".table-wrap tbody tr", has_text="Fixture Bakery Chain").get_by_role("link").click()
+                    page.locator(".ws-table tbody tr", has_text="Fixture Bakery Chain").click()
                     page.wait_for_load_state("networkidle")
                     page.once("dialog", lambda dialog: dialog.accept())
                     page.click("#deleteScenarioBtn")
@@ -279,12 +279,12 @@ def test_busabase_provisioning(browser) -> None:
                     # with an explicit refresh before treating this as a
                     # failure, the same tolerance other skills' OSS tests give
                     # provisioning under load.
-                    row = page.locator(".table-wrap tbody tr", has_text="Fixture Bakery Chain")
+                    row = page.locator(".ws-table tbody tr", has_text="Fixture Bakery Chain")
                     if row.count():
-                        page.click("#refresh")
+                        page.reload()
                         page.wait_for_load_state("networkidle")
                         page.wait_for_timeout(500)
-                    assert row.count() == 0, page.locator("#content").inner_text()
+                    assert row.count() == 0, page.locator("body").inner_text()
                     assert_no_horizontal_overflow(page)
                     context.close()
 

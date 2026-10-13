@@ -808,6 +808,14 @@ button:hover {
   font-size: var(--text-sm);
 }
 
+.notice-banner.positive {
+  color: var(--positive);
+}
+
+.notice-banner.negative {
+  color: var(--danger);
+}
+
 .detail-head {
   margin-bottom: 4px;
 }

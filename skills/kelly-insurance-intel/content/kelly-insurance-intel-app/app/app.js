@@ -440,7 +440,7 @@ function demoBanner() {
 
 function noticeBanner() {
   if (!state.notice) return "";
-  return `<div class="decision-feedback ${state.notice.negative ? "negative" : "positive"}">${escapeHtml(state.notice.text)}</div>`;
+  return `<div class="decision-feedback ${state.notice.negative ? "negative" : "positive"}" data-decision-feedback>${escapeHtml(state.notice.text)}</div>`;
 }
 
 function itemLabel(item) {

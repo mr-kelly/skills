@@ -657,7 +657,7 @@ function renderDetail(view) {
       <h3>${t("reviewNote")}</h3>
       <textarea id="review-note" class="review-note" data-review-note>${escapeHtml(item.decision?.comment || "")}</textarea>
       <div class="action-row" data-decision-actions>${decisionActions(kind)}</div>
-      <div id="decision-feedback" class="decision-feedback" role="status"></div>
+      <div id="decision-feedback" class="decision-feedback" role="status" data-decision-feedback></div>
     </section>
   `;
   bindDecisionForm(view, kind, item);

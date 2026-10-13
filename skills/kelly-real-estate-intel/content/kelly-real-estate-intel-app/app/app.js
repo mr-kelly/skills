@@ -36,6 +36,7 @@ export const state = {
   route: parseRoute(),
   edits: {},
   notice: "",
+  noticeNegative: false,
   lang: normalizeLang(
     new URLSearchParams(location.search).get("lang") ||
       localStorage.getItem("kelly-real-estate-intel-language") ||
@@ -198,6 +199,7 @@ function setRoute() {
   }
   previousRouteWasList = RECORD_VIEWS.includes(state.route.view) && !state.route.selectedId;
   state.notice = "";
+  state.noticeNegative = false;
   if (els.search) els.search.value = state.route.query;
   setMobileSidebarOpen(false);
   render();
@@ -281,6 +283,7 @@ async function goToPage(key, targetPage) {
     state.currentPage[key] = targetPage;
   } catch (error) {
     state.notice = error instanceof Error ? error.message : String(error);
+    state.noticeNegative = true;
   } finally {
     state.pageLoading[key] = false;
     render();
@@ -408,7 +411,8 @@ function demoBanner() {
 
 function noticeBanner() {
   if (!state.notice) return "";
-  return `<div class="notice-banner">${escapeHtml(state.notice)}</div>`;
+  const tone = state.noticeNegative ? "negative" : "positive";
+  return `<div class="notice-banner ${tone}" data-decision-feedback>${escapeHtml(state.notice)}</div>`;
 }
 
 function itemLabel(item) {
@@ -765,10 +769,12 @@ function bindDecisionForm(view, kind, item) {
         state.saving = false;
         await loadState();
         state.notice = t("decisionSaved");
+        state.noticeNegative = false;
         render();
       } catch (error) {
         state.saving = false;
         state.notice = error instanceof Error ? error.message : String(error);
+        state.noticeNegative = true;
         render();
       }
     });
