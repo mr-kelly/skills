@@ -175,13 +175,15 @@ const routeQuery = (extra = {}, route = state.route) => {
 const listUrl = (route = state.route) => `#/${route.view}${routeQuery({}, route)}`;
 // The full page: the record in the path. Always a page, whatever the view's mode.
 const detailUrl = (id, view = state.route.view) => {
-  const route = view === state.route.view ? state.route : { view, query: state.route.query, status: "all", category: "" };
+  const route =
+    view === state.route.view ? state.route : { view, query: state.route.query, status: "all", category: "" };
   return `#/${view}/${encodeURIComponent(id)}${routeQuery({}, route)}`;
 };
 // What a row (or a cross-link) opens: the page for a `page` view, else `?peek=`.
 const recordUrl = (id, view = state.route.view) => {
   if (DETAIL_MODES[view] === "page") return detailUrl(id, view);
-  const route = view === state.route.view ? state.route : { view, query: state.route.query, status: "all", category: "" };
+  const route =
+    view === state.route.view ? state.route : { view, query: state.route.query, status: "all", category: "" };
   return `#/${view}${routeQuery({ peek: id }, route)}`;
 };
 
@@ -564,7 +566,9 @@ function filteredCases(onlyRegressions) {
     if (!onlyRegressions && state.route.category && item.category !== state.route.category) return false;
     if (onlyRegressions && state.route.status !== "all" && caseStatus(item) !== state.route.status) return false;
     if (!query) return true;
-    return [item.title, item.category, item.prompt].filter(Boolean).some((v) => String(v).toLowerCase().includes(query));
+    return [item.title, item.category, item.prompt]
+      .filter(Boolean)
+      .some((v) => String(v).toLowerCase().includes(query));
   });
 }
 
@@ -702,7 +706,9 @@ function renderDetail() {
   const item = caseById(selectedId);
   if (!item) {
     const pending = state.extraCases.has(selectedId) && state.extraCases.get(selectedId) === undefined;
-    els.detailBody.innerHTML = pending ? `<div class="empty-inline">${t("loading")}</div>` : emptyState(t("recordMissing"), t("recordMissingDetail"));
+    els.detailBody.innerHTML = pending
+      ? `<div class="empty-inline">${t("loading")}</div>`
+      : emptyState(t("recordMissing"), t("recordMissingDetail"));
     return;
   }
   els.detailBody.innerHTML = caseDetailMarkup(item);
@@ -918,7 +924,9 @@ els.sidebarToggle?.addEventListener("click", toggleSidebar);
 els.mobileSidebarToggle?.addEventListener("click", () => setMobileSidebarOpen(true));
 els.sidebarScrim?.addEventListener("click", () => setMobileSidebarOpen(false));
 els.search.addEventListener("input", () => {
-  replaceRoute(`#/${state.route.view}${routeQuery({ peek: state.route.peek }, { ...state.route, query: els.search.value })}`);
+  replaceRoute(
+    `#/${state.route.view}${routeQuery({ peek: state.route.peek }, { ...state.route, query: els.search.value })}`,
+  );
 });
 els.refresh.addEventListener("click", () => loadState().catch((error) => alert(error.message)));
 els.mobileRefresh?.addEventListener("click", () => loadState().catch((error) => alert(error.message)));

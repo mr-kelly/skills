@@ -752,7 +752,10 @@ function render() {
   const detailOpen = onScenarios && Boolean(id);
   const body = document.body.classList;
   body.toggle("ws-detail-open", detailOpen);
-  body.toggle("ws-detail-page", detailOpen && DETAIL_MODES.scenarios !== "split" && DETAIL_MODES.scenarios !== "drawer");
+  body.toggle(
+    "ws-detail-page",
+    detailOpen && DETAIL_MODES.scenarios !== "split" && DETAIL_MODES.scenarios !== "drawer",
+  );
   body.toggle("ws-searching", onScenarios && !id && Boolean(state.query.trim()));
   els.loadState.hidden = ready;
   els.overviewPage.hidden = !ready || view !== "overview";

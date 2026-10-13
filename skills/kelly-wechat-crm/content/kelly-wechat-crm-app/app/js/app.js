@@ -125,8 +125,7 @@ function closeDetail() {
 }
 
 const baseConfig = () => appConfig.bases.find((base) => base.key === state.route.view);
-const recordsForBase = () =>
-  (state.payload?.records || []).filter((record) => record.baseKey === baseConfig()?.key);
+const recordsForBase = () => (state.payload?.records || []).filter((record) => record.baseKey === baseConfig()?.key);
 const pageInfoForBase = () => state.payload?.pageInfo?.[baseConfig()?.key] || {};
 const loadedCount = (count, hasMore) => `${count}${hasMore ? "+" : ""}`;
 const primaryField = () => baseConfig()?.fields?.[0]?.slug || "name";

@@ -375,7 +375,8 @@ function filteredSegments() {
   const segments = state.run?.segments || [];
   if (!query) return segments;
   return segments.filter(
-    (s) => s.segment_id.toLowerCase().includes(query) || enumLabel(s.segment_id, "segment").toLowerCase().includes(query),
+    (s) =>
+      s.segment_id.toLowerCase().includes(query) || enumLabel(s.segment_id, "segment").toLowerCase().includes(query),
   );
 }
 

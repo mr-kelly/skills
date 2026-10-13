@@ -97,10 +97,12 @@ export function renderOverview() {
       <div class="card overview-panel overview-wide">
         <h2>${t("products")}</h2>
         <div class="product-grid compact">
-          ${products()
-            .slice(0, 4)
-            .map((product) => productCard(product))
-            .join("") || `<div class="empty-inline">${t("empty")}</div>`}
+          ${
+            products()
+              .slice(0, 4)
+              .map((product) => productCard(product))
+              .join("") || `<div class="empty-inline">${t("empty")}</div>`
+          }
         </div>
       </div>
       <div class="card overview-panel">
@@ -112,15 +114,17 @@ export function renderOverview() {
       <div class="card overview-panel overview-wide">
         <h2>${t("activity")}</h2>
         <div class="timeline">
-          ${(state.snapshot?.activity_log || [])
-            .map(
-              (item) => `<div class="timeline-item">
+          ${
+            (state.snapshot?.activity_log || [])
+              .map(
+                (item) => `<div class="timeline-item">
                 <span>${date(item.at)}</span>
                 <strong>${esc(item.actor)}</strong>
                 <p>${esc(item.text)}</p>
               </div>`,
-            )
-            .join("") || `<div class="empty-inline">${t("empty")}</div>`}
+              )
+              .join("") || `<div class="empty-inline">${t("empty")}</div>`
+          }
         </div>
       </div>
     </section>`;
@@ -438,12 +442,14 @@ export function renderSettings() {
     </div>
     <h2>${t("platform")}</h2>
     <div class="settings-list">
-      ${(summary.platforms || [])
-        .map(
-          (platform) =>
-            `<div><strong>${enumLabel(platform.platform, "platform")}</strong><span>${esc(platform.store_name)}</span></div>`,
-        )
-        .join("") || `<div class="empty-inline">${t("empty")}</div>`}
+      ${
+        (summary.platforms || [])
+          .map(
+            (platform) =>
+              `<div><strong>${enumLabel(platform.platform, "platform")}</strong><span>${esc(platform.store_name)}</span></div>`,
+          )
+          .join("") || `<div class="empty-inline">${t("empty")}</div>`
+      }
     </div>
     <h2>${t("warehouses")}</h2>
     <div class="settings-list">

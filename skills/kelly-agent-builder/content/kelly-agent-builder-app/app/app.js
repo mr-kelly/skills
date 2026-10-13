@@ -273,7 +273,9 @@ function metricsBand(summary) {
     [t("quotaReached"), summary.quota_reached_count || 0],
     [t("draftAgents"), summary.draft_count || 0],
   ]
-    .map(([label, value]) => `<div><span>${escapeHtml(label)}</span><strong>${escapeHtml(String(value))}</strong></div>`)
+    .map(
+      ([label, value]) => `<div><span>${escapeHtml(label)}</span><strong>${escapeHtml(String(value))}</strong></div>`,
+    )
     .join("");
 }
 

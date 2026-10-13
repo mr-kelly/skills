@@ -364,7 +364,9 @@ function renderOverview() {
   document.getElementById("overviewSummary").textContent = isReady()
     ? [
         `${vehicles.length} ${t("vehicles")}`,
-        batch?.generated_at ? `${t("generated")} ${new Date(batch.generated_at).toLocaleString()}` : t("localFilesOnly"),
+        batch?.generated_at
+          ? `${t("generated")} ${new Date(batch.generated_at).toLocaleString()}`
+          : t("localFilesOnly"),
       ]
         .filter(Boolean)
         .join(" · ")
@@ -461,11 +463,13 @@ function renderVehiclesView() {
 // ── Flagged (plain table, no detail mode — rows open the owning vehicle) ───
 function filteredFlagged() {
   const query = state.query.trim().toLowerCase();
-  return (state.batch?.items || []).filter((item) => item.status === "blocked").filter((item) => {
-    if (!query) return true;
-    const haystack = [vehicleName(item.vehicle_id), item.title, item.reason].filter(Boolean).join(" ").toLowerCase();
-    return haystack.includes(query);
-  });
+  return (state.batch?.items || [])
+    .filter((item) => item.status === "blocked")
+    .filter((item) => {
+      if (!query) return true;
+      const haystack = [vehicleName(item.vehicle_id), item.title, item.reason].filter(Boolean).join(" ").toLowerCase();
+      return haystack.includes(query);
+    });
 }
 
 function flaggedTable(items) {

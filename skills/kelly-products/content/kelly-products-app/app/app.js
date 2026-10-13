@@ -77,7 +77,12 @@ export const els = {
   language: byId("language"),
 };
 
-const LIST_BY_VIEW = { products: els.productsList, review: els.reviewList, inventory: els.inventoryList, channels: els.channelsList };
+const LIST_BY_VIEW = {
+  products: els.productsList,
+  review: els.reviewList,
+  inventory: els.inventoryList,
+  channels: els.channelsList,
+};
 const DETAIL_BACK_BY_VIEW = { products: els.productsDetailBack, review: els.reviewDetailBack };
 
 export const pagination = createPagination({
@@ -394,7 +399,8 @@ export function reviewForProduct(productId) {
 function renderShell() {
   applyI18n();
   const metrics = state.snapshot?.metrics || {};
-  if (els.reviewCount) els.reviewCount.textContent = String(reviewItems().filter((item) => item.status === "needs_review").length);
+  if (els.reviewCount)
+    els.reviewCount.textContent = String(reviewItems().filter((item) => item.status === "needs_review").length);
   if (els.stockCount) els.stockCount.textContent = String(metrics.low_stock_count || 0);
   if (els.channelCount) els.channelCount.textContent = String(metrics.channel_issue_count || 0);
   els.syncStatus.textContent = !state.snapshot

@@ -470,7 +470,8 @@ function renderOverview() {
     .join(" · ");
   if (!isConnected()) {
     document.querySelector("#overviewMetrics").innerHTML = "";
-    document.querySelector("#overviewBody").innerHTML = `<div class="empty-state"><strong>${t("setupNeeded")}</strong></div>`;
+    document.querySelector("#overviewBody").innerHTML =
+      `<div class="empty-state"><strong>${t("setupNeeded")}</strong></div>`;
     return;
   }
   // Three numbers, none shown anywhere else on screen (the per-kind needs-
@@ -480,7 +481,9 @@ function renderOverview() {
     [t("actions"), recordTotal("actions", b.actions.length)],
     [t("drafts"), recordTotal("drafts", b.drafts.length)],
   ]
-    .map(([label, value]) => `<div><span>${escapeHtml(label)}</span><strong>${escapeHtml(String(value))}</strong></div>`)
+    .map(
+      ([label, value]) => `<div><span>${escapeHtml(label)}</span><strong>${escapeHtml(String(value))}</strong></div>`,
+    )
     .join("");
 
   const topSignals = (b.signals || []).slice(0, 4);
@@ -606,7 +609,8 @@ function decisionActions(kind) {
     `<button type="button" class="button" data-action="request_changes" ${disabled}>${t("requestChanges")}</button>`,
     `<button type="button" class="button danger" data-action="block" ${disabled}>${t("block")}</button>`,
   ];
-  if (kind === "draft") buttons.push(`<button type="button" class="button" data-action="revise" ${disabled}>${t("revise")}</button>`);
+  if (kind === "draft")
+    buttons.push(`<button type="button" class="button" data-action="revise" ${disabled}>${t("revise")}</button>`);
   return buttons.join("");
 }
 
@@ -820,7 +824,9 @@ els.sidebarToggle?.addEventListener("click", toggleSidebar);
 els.mobileSidebarToggle?.addEventListener("click", () => setMobileSidebarOpen(true));
 els.sidebarScrim?.addEventListener("click", () => setMobileSidebarOpen(false));
 els.search.addEventListener("input", () => {
-  replaceRoute(`#/${state.route.view}${routeQuery({ peek: state.route.peek }, { ...state.route, query: els.search.value })}`);
+  replaceRoute(
+    `#/${state.route.view}${routeQuery({ peek: state.route.peek }, { ...state.route, query: els.search.value })}`,
+  );
 });
 els.refresh.addEventListener("click", () => loadState());
 els.mobileRefresh?.addEventListener("click", () => loadState());

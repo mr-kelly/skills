@@ -302,7 +302,9 @@ function pagerControl(key) {
   return `
     <div class="pager">
       <button type="button" class="button" data-goto-page="${key}:${current - 1}" ${loading || current <= 1 ? "disabled" : ""}>${t("prevPage")}</button>
-      <span class="pager-summary">${t("pageOf").replace("{current}", current).replace("{total}", String(Math.max(total || 1, current)))}</span>
+      <span class="pager-summary">${t("pageOf")
+        .replace("{current}", current)
+        .replace("{total}", String(Math.max(total || 1, current)))}</span>
       <button type="button" class="button" data-goto-page="${key}:${current + 1}" ${loading || !hasNext ? "disabled" : ""}>${t("nextPage")}</button>
     </div>
   `;
@@ -363,11 +365,7 @@ function isConnected() {
 function renderShell() {
   applyI18n();
   const metrics = state.batch?.metrics || {};
-  els.syncStatus.textContent = !state.batch
-    ? t("loading")
-    : state.bootstrap?.demo
-      ? t("demoData")
-      : t("liveData");
+  els.syncStatus.textContent = !state.batch ? t("loading") : state.bootstrap?.demo ? t("demoData") : t("liveData");
   if (els.needsReviewCount) els.needsReviewCount.textContent = metrics.needs_review ?? 0;
   if (els.approvedCount) els.approvedCount.textContent = metrics.approved ?? 0;
   if (els.blockedCount) els.blockedCount.textContent = metrics.blocked ?? 0;
@@ -487,7 +485,8 @@ function renderOverview() {
 const tableHead = (columns) =>
   `<thead><tr>${columns.map(([label, className = ""]) => `<th${className ? ` class="${className}"` : ""}>${escapeHtml(label)}</th>`).join("")}</tr></thead>`;
 
-const rowOpen = (id) => `<tr data-id="${escapeHtml(id)}"${id === state.route.selectedId ? ' class="ws-selected"' : ""}>`;
+const rowOpen = (id) =>
+  `<tr data-id="${escapeHtml(id)}"${id === state.route.selectedId ? ' class="ws-selected"' : ""}>`;
 
 const cell = (html, title = "", className = "") =>
   `<td${className ? ` class="${className}"` : ""}${title ? ` title="${escapeHtml(title)}"` : ""}>${html}</td>`;
@@ -572,7 +571,8 @@ function renderRecordView() {
   els.viewTitle.textContent = viewLabel(view);
   const items = filteredItems(view);
   els.viewCount.textContent = `${items.length}${isPartial(view) ? "+" : ""}`;
-  const table = view === "signals" ? signalsTable(items) : view === "actions" ? actionsTable(items) : draftsTable(items);
+  const table =
+    view === "signals" ? signalsTable(items) : view === "actions" ? actionsTable(items) : draftsTable(items);
   const empty = `<div class="empty-state"><strong>${escapeHtml(state.route.query ? t("noMatches") : t("empty"))}</strong></div>`;
   els.listPanel.innerHTML = `
     ${state.pageError ? `<div class="warnings"><div class="warning"><strong>${escapeHtml(state.pageError)}</strong></div></div>` : ""}
@@ -666,7 +666,11 @@ function decisionActions(kind) {
 // `/record` full page, and a reloaded `?peek=`) all render identically.
 function itemDetail(view, kind, item) {
   const fields =
-    kind === "signal" ? signalDetailFields(item) : kind === "action" ? actionDetailFields(item) : draftDetailFields(item);
+    kind === "signal"
+      ? signalDetailFields(item)
+      : kind === "action"
+        ? actionDetailFields(item)
+        : draftDetailFields(item);
   return `
     <article class="item-review" data-item="${escapeHtml(item.id)}">
       <header class="queue-head">
@@ -796,7 +800,10 @@ function render() {
   body.toggle("ws-detail-open", onRecordView && Boolean(selectedId));
   body.toggle("ws-detail-page", onRecordView && presentation === "page" && Boolean(selectedId));
   body.toggle("ws-layout-split", onRecordView && presentation !== "page");
-  body.toggle("ws-searching", (onRecordView || onSourcesView) && Boolean((onSourcesView ? state.sourcesQuery : state.route.query)));
+  body.toggle(
+    "ws-searching",
+    (onRecordView || onSourcesView) && Boolean(onSourcesView ? state.sourcesQuery : state.route.query),
+  );
   els.loadState.hidden = ready;
   els.overviewPage.hidden = !ready || view !== "overview";
   els.viewPage.hidden = !onRecordView;
@@ -859,7 +866,9 @@ els.sidebarToggle?.addEventListener("click", toggleSidebar);
 els.mobileSidebarToggle?.addEventListener("click", () => setMobileSidebarOpen(true));
 els.sidebarScrim?.addEventListener("click", () => setMobileSidebarOpen(false));
 els.search.addEventListener("input", () => {
-  replaceRoute(`#/${state.route.view}${routeQuery({ peek: state.route.peek }, { ...state.route, query: els.search.value })}`);
+  replaceRoute(
+    `#/${state.route.view}${routeQuery({ peek: state.route.peek }, { ...state.route, query: els.search.value })}`,
+  );
 });
 els.sourcesSearch?.addEventListener("input", () => {
   state.sourcesQuery = els.sourcesSearch.value;

@@ -237,7 +237,9 @@ export const busabaseProvider = {
     await ensureResources();
     const record = await findRecord("routes", "route-id", businessId);
     if (!record) return null;
-    return deriveRouteMetrics(normalizeRouteRow(normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields)));
+    return deriveRouteMetrics(
+      normalizeRouteRow(normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields)),
+    );
   },
 
   async provisionResources() {

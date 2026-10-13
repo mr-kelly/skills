@@ -87,7 +87,8 @@ const listUrl = (view) => `#/${view}`;
 // The full page: the record in the path. Always a page, whatever the view's mode.
 const detailUrl = (id, view) => `#/${view}/${encodeURIComponent(id)}`;
 // What a row (or "Open full page") opens: a page view's own page, else `?peek=`.
-const recordUrl = (id, view) => (DETAIL_MODES[view] === "page" ? detailUrl(id, view) : `#/${view}${routeQuery({ peek: id })}`);
+const recordUrl = (id, view) =>
+  DETAIL_MODES[view] === "page" ? detailUrl(id, view) : `#/${view}${routeQuery({ peek: id })}`;
 
 let previousRouteWasList = false;
 
@@ -318,11 +319,21 @@ function renderOverview() {
       <section class="split">
         <div>
           <h2>${t.topSignals}</h2>
-          ${b.signals.slice(0, 4).map((item) => itemRow({ ...item, kind: "signal" })).join("") || `<p class="muted">${t.noItems}</p>`}
+          ${
+            b.signals
+              .slice(0, 4)
+              .map((item) => itemRow({ ...item, kind: "signal" }))
+              .join("") || `<p class="muted">${t.noItems}</p>`
+          }
         </div>
         <div>
           <h2>${t.readyActions}</h2>
-          ${b.actions.slice(0, 4).map((item) => itemRow({ ...item, kind: "action" })).join("") || `<p class="muted">${t.noItems}</p>`}
+          ${
+            b.actions
+              .slice(0, 4)
+              .map((item) => itemRow({ ...item, kind: "action" }))
+              .join("") || `<p class="muted">${t.noItems}</p>`
+          }
         </div>
       </section>
     </div>

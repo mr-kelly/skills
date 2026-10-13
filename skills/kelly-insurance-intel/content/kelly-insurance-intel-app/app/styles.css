@@ -471,11 +471,21 @@ textarea:disabled {
 }
 
 /* Record tables: the label column is widest; status/freshness are narrow. */
-.queue-table th:nth-child(1) { width: auto; }
-.queue-table th:nth-child(2) { width: 16%; }
-.sources-table th:nth-child(1) { width: auto; }
-.sources-table th:nth-child(2) { width: 16%; }
-.sources-table th:nth-child(3) { width: 16%; }
+.queue-table th:nth-child(1) {
+  width: auto;
+}
+.queue-table th:nth-child(2) {
+  width: 16%;
+}
+.sources-table th:nth-child(1) {
+  width: auto;
+}
+.sources-table th:nth-child(2) {
+  width: 16%;
+}
+.sources-table th:nth-child(3) {
+  width: 16%;
+}
 
 .strong {
   font-weight: 700;

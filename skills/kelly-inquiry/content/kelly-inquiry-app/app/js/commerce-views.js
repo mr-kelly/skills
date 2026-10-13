@@ -77,7 +77,8 @@ function filteredProducts() {
 
 /* ----- tables (list panels) ----- */
 
-const rowOpen = (id) => `<tr data-id="${escapeHtml(id)}"${id === state.route.selectedId ? ' class="ws-selected"' : ""}>`;
+const rowOpen = (id) =>
+  `<tr data-id="${escapeHtml(id)}"${id === state.route.selectedId ? ' class="ws-selected"' : ""}>`;
 
 function inquiriesTable(list) {
   return `

@@ -409,7 +409,10 @@ function renderOverview() {
     [t("actions"), recordTotal("actions", b.actions.length), "#/actions"],
     [t("drafts"), recordTotal("drafts", b.drafts.length), "#/drafts"],
   ]
-    .map(([label, value, href]) => `<a href="${href}"><span title="${escapeHtml(label)}">${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></a>`)
+    .map(
+      ([label, value, href]) =>
+        `<a href="${href}"><span title="${escapeHtml(label)}">${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></a>`,
+    )
     .join("");
   byId("overviewBody").innerHTML = `
     ${demoBanner()}
@@ -548,7 +551,8 @@ function renderRecordView(view) {
   els.viewCount.textContent = String(recordTotal(view, items.length));
   document.body.classList.toggle("ws-searching", Boolean(state.query));
 
-  const table = view === "signals" ? signalsTable(items) : view === "actions" ? actionsTable(items) : draftsTable(items);
+  const table =
+    view === "signals" ? signalsTable(items) : view === "actions" ? actionsTable(items) : draftsTable(items);
   const empty = `<div class="empty-inline">${state.query ? t("noMatches") : t("empty")}</div>`;
   els.listPanel.innerHTML = `
     ${demoBanner()}
@@ -605,7 +609,10 @@ function decisionActions(kind) {
     `<button type="button" class="button action" data-action="request_changes" ${disabled}>${t("requestChanges")}</button>`,
     `<button type="button" class="button action danger" data-action="block" ${disabled}>${t("block")}</button>`,
   ];
-  if (kind === "draft") buttons.push(`<button type="button" class="button action" data-action="revise" ${disabled}>${t("revise")}</button>`);
+  if (kind === "draft")
+    buttons.push(
+      `<button type="button" class="button action" data-action="revise" ${disabled}>${t("revise")}</button>`,
+    );
   return buttons.join("");
 }
 
@@ -629,7 +636,12 @@ function renderDetail(view) {
     return;
   }
   const kind = VIEW_KINDS[view];
-  const fields = kind === "signal" ? signalDetailFields(item) : kind === "action" ? actionDetailFields(item) : draftDetailFields(item);
+  const fields =
+    kind === "signal"
+      ? signalDetailFields(item)
+      : kind === "action"
+        ? actionDetailFields(item)
+        : draftDetailFields(item);
   els.detailBody.innerHTML = `
     ${demoBanner()}
     <header class="detail-header">

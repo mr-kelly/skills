@@ -413,7 +413,9 @@ function metricsBand() {
     [t("totalCost"), money(s.total_cost_today_usd), ""],
     [t("criticalAgents"), num(s.critical_agent_count), "negative"],
   ]
-    .map(([label, value, cls]) => `<div><span>${escapeHtml(label)}</span><strong class="${cls}">${value}</strong></div>`)
+    .map(
+      ([label, value, cls]) => `<div><span>${escapeHtml(label)}</span><strong class="${cls}">${value}</strong></div>`,
+    )
     .join("");
 }
 

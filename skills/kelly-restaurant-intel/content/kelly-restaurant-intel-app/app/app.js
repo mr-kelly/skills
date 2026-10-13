@@ -433,7 +433,9 @@ function metricsBand(b) {
     [t("actions"), recordTotal("actions", (b.actions || []).length)],
     [t("drafts"), recordTotal("drafts", (b.drafts || []).length)],
   ]
-    .map(([label, value]) => `<div><span>${escapeHtml(label)}</span><strong>${escapeHtml(String(value))}</strong></div>`)
+    .map(
+      ([label, value]) => `<div><span>${escapeHtml(label)}</span><strong>${escapeHtml(String(value))}</strong></div>`,
+    )
     .join("");
 }
 
@@ -572,7 +574,8 @@ function decisionActions(kind) {
     `<button type="button" class="button" data-action="request_changes" ${disabled}>${t("requestChanges")}</button>`,
     `<button type="button" class="button danger" data-action="block" ${disabled}>${t("block")}</button>`,
   ];
-  if (kind === "draft") buttons.push(`<button type="button" class="button" data-action="revise" ${disabled}>${t("revise")}</button>`);
+  if (kind === "draft")
+    buttons.push(`<button type="button" class="button" data-action="revise" ${disabled}>${t("revise")}</button>`);
   return buttons.join("");
 }
 
@@ -598,7 +601,11 @@ function renderDetail(view) {
   }
   const kind = KIND_BY_VIEW[view];
   const fields =
-    kind === "signal" ? signalDetailFields(item) : kind === "action" ? actionDetailFields(item) : draftDetailFields(item);
+    kind === "signal"
+      ? signalDetailFields(item)
+      : kind === "action"
+        ? actionDetailFields(item)
+        : draftDetailFields(item);
   els.detailBody.innerHTML = `
     <article data-item="${escapeHtml(item.id)}">
       <header class="detail-head">
@@ -803,7 +810,9 @@ els.sidebarToggle?.addEventListener("click", toggleSidebar);
 els.mobileSidebarToggle?.addEventListener("click", () => setMobileSidebarOpen(true));
 els.sidebarScrim?.addEventListener("click", () => setMobileSidebarOpen(false));
 els.search.addEventListener("input", () => {
-  replaceRoute(`#/${state.route.view}${routeQuery({ peek: state.route.peek }, { ...state.route, query: els.search.value })}`);
+  replaceRoute(
+    `#/${state.route.view}${routeQuery({ peek: state.route.peek }, { ...state.route, query: els.search.value })}`,
+  );
 });
 els.refresh.addEventListener("click", () => loadState());
 els.mobileRefresh?.addEventListener("click", () => loadState());

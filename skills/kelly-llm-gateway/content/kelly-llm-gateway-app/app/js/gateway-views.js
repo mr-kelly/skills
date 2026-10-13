@@ -194,7 +194,8 @@ export function renderOverview() {
 const tableHead = (columns) =>
   `<thead><tr>${columns.map(([label, className = ""]) => `<th${className ? ` class="${className}"` : ""}>${escapeHtml(label)}</th>`).join("")}</tr></thead>`;
 
-const rowOpen = (id) => `<tr data-id="${escapeHtml(id)}"${id === state.route.selectedId ? ' class="ws-selected"' : ""}>`;
+const rowOpen = (id) =>
+  `<tr data-id="${escapeHtml(id)}"${id === state.route.selectedId ? ' class="ws-selected"' : ""}>`;
 
 function sortHeader(key, label, cls = "") {
   const active = state.sort.key === key;
@@ -286,7 +287,8 @@ export function renderRollouts() {
 
 function anomalyLabel(anomaly) {
   const lang = document.documentElement.lang.toLowerCase().startsWith("zh") ? "zh" : "en";
-  const raw = state.messages[lang]?.anomalyTemplate?.[anomaly.kind] || state.messages.en?.anomalyTemplate?.[anomaly.kind] || "";
+  const raw =
+    state.messages[lang]?.anomalyTemplate?.[anomaly.kind] || state.messages.en?.anomalyTemplate?.[anomaly.kind] || "";
   const fmt = (value) => (anomaly.kind === "error_spike" ? errorRatePct(value) : money(value));
   return raw
     .replace("{actual}", fmt(anomaly.actual))
@@ -346,7 +348,9 @@ function renderDetail() {
   }
   if (view === "anomalies") {
     const anomaly = anomalyById(selectedId);
-    els.detailBody.innerHTML = anomaly ? anomalyDetail(anomaly) : emptyState(t("recordMissing"), t("recordMissingDetail"));
+    els.detailBody.innerHTML = anomaly
+      ? anomalyDetail(anomaly)
+      : emptyState(t("recordMissing"), t("recordMissingDetail"));
     return;
   }
   const route = routeById(selectedId);
