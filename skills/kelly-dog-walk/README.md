@@ -36,9 +36,15 @@ gate: the agent's own member account has **可提交变更** on the playbook, **
   </tr>
   <tr>
     <td><strong>遛狗日历</strong><br>中文界面，适合投影：每格一个钟点、一个结论。</td>
-    <td><strong>手机版</strong><br>8 月用了坏规则 v3：只淋 2 次雨，但 14 天遛在上班时间。</td>
+    <td><strong>手机版</strong><br>8 月用了坏规则 v3：只淋 2 次雨，但 14 天不在方便时段（早上 6 点、晚上 10 点、上班时间）。</td>
   </tr>
 </table>
+
+A recorded walkthrough (87 s, Chinese) runs the whole loop on a real local Busabase: replay June, the
+agent's ChangeRequest approved and merged, July's "driest hour of the whole day" rule merged on rain
+alone, August's hot and out-of-hours walks, the owner editing the judge, the rollback merged, and the
+playbook timeline from v1 to v4. It is at
+[`docs/demo-recordings/kelly-dog-walk/kelly-dog-walk-demo-zh-CN.mp4`](../../docs/demo-recordings/kelly-dog-walk/kelly-dog-walk-demo-zh-CN.mp4).
 
 ## The Course Data — Shanghai 2026, Four Reviews
 
