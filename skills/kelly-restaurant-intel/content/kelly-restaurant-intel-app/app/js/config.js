@@ -6,6 +6,12 @@ export const appConfig = {
   readOnly: false,
   spaceId: "",
   schemaVersion: 1,
+  // Signals/actions/drafts are all the same shape: today's batch worked one
+  // item after the next, decided, and moved past — a review queue, so each
+  // gets `split` (the queue stays beside the open record). Sources has no
+  // per-record decision story and is left out (validate-blueprint only warns
+  // for a Base that opens a record detail).
+  ui: { detail_modes: { signals: "split", actions: "split", drafts: "split" } },
   folder: {
     name: "Kelly Restaurant Intel",
     description:
@@ -120,7 +126,7 @@ export const appConfig = {
     },
   ],
   permissions: {
-    readProcedures: ["nodes.list", "nodes.get", "bases.get", "records.list", "records.count"],
+    readProcedures: ["nodes.list", "nodes.get", "bases.get", "records.list", "records.get", "records.count"],
     setupProcedures: ["nodes.createChangeRequest", "nodes.updateMetadata"],
     writeProcedures: ["records.changeRequest", "bases.createChangeRequest"],
   },

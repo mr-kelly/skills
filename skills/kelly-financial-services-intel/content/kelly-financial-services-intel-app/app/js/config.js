@@ -17,6 +17,19 @@ export const appConfig = {
     slug: "kelly-financial-services-intel-app",
     resourceKey: "kelly-financial-services-intel-app",
   },
+  // Where each Base opens a record (see DETAIL_MODES in app.js for the why).
+  // signals/actions/drafts are all a daily review queue worked top to bottom
+  // — one item approved/changed/blocked, then the next — so all three are
+  // `split`, the same mode busa-crm's followups queue uses. `sources` and
+  // `settings` have no per-record detail (no decision panel, nothing to
+  // open), so neither is listed here.
+  ui: {
+    detail_modes: {
+      signals: "split",
+      actions: "split",
+      drafts: "split",
+    },
+  },
   bases: [
     {
       key: "signals",

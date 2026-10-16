@@ -30,8 +30,8 @@ const viewMeta = {
 let currentState;
 let activeProvider;
 let desk;
-let contentRoute = { view: "strategies", id: null, tab: null };
-let lastContentHash = "#/strategies";
+let contentRoute = { view: "overview", id: null, tab: null };
+let lastContentHash = "#/overview";
 let sidebarCollapsed = false;
 let helpTab = "guide";
 let pendingApproval = null;
@@ -59,7 +59,8 @@ const parseHash = () => {
   if (parts[0] === "settings") {
     return { view: "settings", tab: ["guide", "resources", "connection"].includes(parts[1]) ? parts[1] : "guide" };
   }
-  const view = viewMeta[parts[0]] ? parts[0] : "strategies";
+  if (!parts[0] || parts[0] === "overview") return { view: "overview", id: null, tab: null };
+  const view = viewMeta[parts[0]] ? parts[0] : "overview";
   return {
     view,
     id: view === parts[0] && parts[1] ? decodeURIComponent(parts[1]) : null,
@@ -124,21 +125,15 @@ const strategyPositionSummary = (strategy) => {
     )}</strong><small>${strategy.positions.length} 个持仓 · 现金 ${formatPercent(strategy.account.cashRate, false)}</small>`;
 };
 
-const renderStrategyTable = (
-  strategies,
-  title = "策略与虚拟账本",
-) => `<section class="strategy-overview" aria-label="策略与虚拟账本总览">
-  <div class="strategy-overview-head"><div><strong>${escapeHtml(title)}</strong><span>${strategies.length} 个策略 · 点击整行查看详情${currentState.provider.name === "demo" ? " · 大师风格复刻，不代表真实持仓" : ""}</span></div><span>待复核优先 · 收益需同起算日比较</span></div>
-  <div class="strategy-table-wrap">
-    <table class="strategy-table">
-      <thead><tr><th class="rank-col">#</th><th class="strategy-col">策略</th><th class="thesis-col">策略简述</th><th>晋级阶段</th><th class="number-col">账本 NAV</th><th class="number-col">收益 / 基准</th><th class="number-col">超额</th><th class="number-col">最大回撤</th><th class="positions-col">账本持仓</th><th class="open-col"><span class="sr-only">打开</span></th></tr></thead>
+const renderStrategyTable = (strategies) => `<div class="strategy-table-wrap">
+    <table class="strategy-table ws-table">
+      <thead><tr><th class="strategy-col">策略</th><th class="thesis-col">策略简述</th><th>晋级阶段</th><th class="number-col">账本 NAV</th><th class="number-col">收益 / 基准</th><th class="number-col">超额</th><th class="number-col">最大回撤</th><th class="positions-col">账本持仓</th><th class="open-col"><span class="sr-only">打开</span></th></tr></thead>
       <tbody>${strategies
         .map((strategy, index) => {
           const account = strategy.account;
           const accountIssue = strategy.accountCount !== 1;
           return `<tr class="strategy-table-row ${accountIssue ? "account-issue" : ""}" data-select-id="${escapeHtml(strategy.id)}" tabindex="0" role="link" aria-label="打开策略 ${escapeHtml(strategy.name)}">
-            <td class="rank-col">${String(index + 1).padStart(2, "0")}</td>
-            <td class="strategy-col"><strong>${escapeHtml(strategy.name)}</strong><span>${escapeHtml(strategy.family)}</span></td>
+            <td class="strategy-col"><strong><span class="rank-tag" aria-hidden="true">${String(index + 1).padStart(2, "0")}</span>${escapeHtml(strategy.name)}</strong><span>${escapeHtml(strategy.family)}</span></td>
             <td class="thesis-col"><p>${escapeHtml(strategy.thesis)}</p><span>下次复核 ${escapeHtml(strategy.nextReviewAt || "待安排")} · ${escapeHtml(strategy.benchmark)}</span></td>
             <td>${strategyStageSummary(strategy)}</td>
             <td class="number-col"><strong>${account ? formatMoney(account.nav) : "--"}</strong><span>本金 ${account ? formatMoney(account.nominalCapital) : "--"}</span></td>
@@ -151,8 +146,7 @@ const renderStrategyTable = (
         })
         .join("")}</tbody>
     </table>
-  </div>
-</section>`;
+  </div>`;
 
 const fact = (label, value, extraClass = "") =>
   `<div class="detail-fact ${extraClass}"><span>${label}</span><strong>${value}</strong></div>`;
@@ -292,8 +286,7 @@ const renderStrategyDetail = (strategy) => {
           ? `<section class="strategy-detail-tab-panel backtest-tab-panel" role="tabpanel">${renderStrategyBacktest(strategy)}</section>`
           : renderPortfolioTab(strategy, investedRate);
   return `<div class="detail-scroll">
-    <button class="strategy-detail-back back-to-list" type="button" data-back-to-list>&larr; 返回策略总览</button>
-    <div class="detail-heading"><div><p class="eyebrow">${escapeHtml(strategy.family)}</p><h2>${escapeHtml(strategy.name)}</h2></div>${stageBadge(strategy.stage)}</div>
+    <div class="detail-heading"><p class="eyebrow">${escapeHtml(strategy.family)}</p>${stageBadge(strategy.stage)}</div>
     ${renderStageControl(strategy)}
     ${accountWarning}
     <div class="strategy-performance">
@@ -307,7 +300,10 @@ const renderStrategyDetail = (strategy) => {
   </div>`;
 };
 
-const renderFunnel = () => `<section class="workflow-band"><div class="funnel" aria-label="策略晋级漏斗">
+// Navigation into L1/L2/L3, not a metrics band: counts already sit next to the matching
+// sidebar nav items, so this restates nothing — it only links. Lives on Overview only.
+const renderFunnel =
+  () => `<section class="workflow-band overview-funnel" aria-label="策略晋级漏斗"><div class="funnel">
   ${[
     ["l1", "L1", "基础观察", desk.levels.L1.length],
     ["l2", "L2", "进阶观察", desk.levels.L2.length],
@@ -318,7 +314,7 @@ const renderFunnel = () => `<section class="workflow-band"><div class="funnel" a
         `<button class="funnel-step ${contentRoute.view === view ? "active" : ""}" type="button" data-view="${view}">${stageBadge(level)}<span><strong>${label}</strong><small>${count} 个策略</small></span>${index < 2 ? '<i aria-hidden="true">›</i>' : ""}</button>`,
     )
     .join("")}
-</div><div class="workflow-pulse"><span><strong>${desk.strategies.length}</strong> 策略在赛马</span><span class="${tone(desk.ledger.excessReturn)}"><strong>${formatPercent(desk.ledger.excessReturn)}</strong> 组合超额</span></div></section>`;
+</div></section>`;
 
 const renderSidebar = () => {
   const hasLedgerIssues = desk.integrity.issueCount > 0;
@@ -333,28 +329,61 @@ const renderSidebar = () => {
     <div class="brand"><div class="brand-icon" aria-hidden="true">KS</div><div class="brand-copy"><div class="brand-title">Kelly Invest Stock</div><div class="brand-subtitle">策略实验台</div></div><button class="sidebar-toggle" type="button" data-sidebar-toggle aria-controls="appSidebar" aria-expanded="${!sidebarCollapsed}" aria-label="切换侧栏" title="切换侧栏"><span class="sidebar-toggle-icon" aria-hidden="true"></span></button></div>
     <section class="human-work" aria-labelledby="humanWorkTitle"><div class="human-work-eyebrow">需要你</div><div id="humanWorkTitle" class="human-work-title">${hasLedgerIssues ? "账本完整性" : "策略标记"}</div><button class="human-work-primary" type="button" data-view="${hasLedgerIssues ? "strategies" : "l1"}"><span><strong>${hasLedgerIssues ? desk.integrity.issueCount : desk.attention.l1}</strong><span>${hasLedgerIssues ? "项策略账本待处理" : "L1 策略待观察"}</span></span></button><div class="human-work-secondary"><button type="button" data-view="l2"><strong>${desk.attention.l2}</strong><span>L2 标记</span></button><button type="button" data-view="l3"><strong>${desk.attention.l3}</strong><span>L3 标记</span></button></div></section>
     <div class="sidebar-separator"></div>
-    <nav class="filters" aria-label="工作流导航">${Object.entries(viewMeta)
-      .map(
-        ([key, meta]) =>
-          `<button class="${contentRoute.view === key ? "active" : ""}" type="button" data-view="${key}" aria-label="打开${meta.label}" title="打开${meta.label}"><span>${meta.label}</span><span>${counts[key]}</span></button>`,
-      )
-      .join("")}</nav>
+    <nav class="filters" aria-label="工作流导航">
+      <button class="${contentRoute.view === "overview" ? "active" : ""}" type="button" data-view="overview" aria-label="打开总览" title="打开总览"><span>总览</span></button>
+      ${Object.entries(viewMeta)
+        .map(
+          ([key, meta]) =>
+            `<button class="${contentRoute.view === key ? "active" : ""}" type="button" data-view="${key}" aria-label="打开${meta.label}" title="打开${meta.label}"><span>${meta.label}</span><span>${counts[key]}</span></button>`,
+        )
+        .join("")}
+    </nav>
     <div class="help-box"><div class="virtual-only"><span></span>全程虚拟 · 阶段可手工标记</div><button class="help-button" type="button" data-open-help>帮助与设置</button></div>
   </aside>`;
 };
 
-const renderSummaryStrip = () => `${
+// Actionable, not a number restated elsewhere — kept wherever the integrity gap is relevant.
+const renderLedgerIntegrityBand = () =>
   desk.integrity.isComplete
     ? ""
-    : `<section class="ledger-integrity-band" role="status"><strong>账本数据不完整</strong><span>${desk.integrity.missingAccountStrategyKeys.length} 个缺账户 · ${desk.integrity.missingBaselineStrategyKeys.length} 个缺起算日 · ${desk.integrity.incompleteQuoteStrategyKeys.length} 个缺价格来源 · ${desk.integrity.unreconciledStrategyKeys.length} 个 NAV 未对账</span></section>`
-}<section class="summary-strip" aria-label="策略账本组合摘要">
-  <div><span>名义本金</span><strong>${formatMoney(desk.ledger.nominalCapital)}</strong></div>
-  <div><span>当前净值</span><strong>${formatMoney(desk.ledger.nav)}</strong></div>
+    : `<section class="ledger-integrity-band" role="status"><strong>账本数据不完整</strong><span>${desk.integrity.missingAccountStrategyKeys.length} 个缺账户 · ${desk.integrity.missingBaselineStrategyKeys.length} 个缺起算日 · ${desk.integrity.incompleteQuoteStrategyKeys.length} 个缺价格来源 · ${desk.integrity.unreconciledStrategyKeys.length} 个 NAV 未对账</span></section>`;
+
+// Overview-only, per the shared layout spec: at most 3 numbers, and every one of them must be
+// unavailable elsewhere on screen. Per-base totals already sit next to each sidebar nav item, so
+// 名义本金/当前净值/现金比例 (plain balances) are left out; these three take a computation
+// (pnl, return vs capital, return vs benchmark) that nothing else on screen already shows.
+const renderOverviewMetrics = () => `<div class="ws-metrics" aria-label="策略账本组合摘要">
   <div><span>虚拟盈亏</span><strong class="${tone(desk.ledger.pnl)}">${formatMoney(desk.ledger.pnl)}</strong></div>
   <div><span>累计收益</span><strong class="${tone(desk.ledger.returnRate)}">${formatPercent(desk.ledger.returnRate)}</strong></div>
   <div><span>组合超额</span><strong class="${tone(desk.ledger.excessReturn)}">${formatPercent(desk.ledger.excessReturn)}</strong></div>
-  <div><span>现金比例</span><strong>${formatPercent(desk.ledger.cashRate, false)}</strong></div>
-</section>`;
+</div>`;
+
+// `.page-hero` is a two-item flex row (base-ui.css): a `<div>` carrying the
+// title block and `.page-actions` on the right. Both must stay wrapped in
+// their own `min-width: 0` div — an unwrapped h1 sitting directly as a flex
+// sibling of the supporting sentence has no basis to shrink against and
+// wraps one character per line on a narrow viewport.
+const renderOverviewPage = () => `<div class="ws-overview" id="overviewPage">
+  <header class="page-hero">
+    <div>
+      <p class="eyebrow">STRATEGY DESK</p>
+      <h1>策略实验台</h1>
+      <p>虚拟账本驱动的策略研究台：每个策略拥有独立虚拟账户，晋级阶段由人工标记，不接券商、不下真实订单。</p>
+    </div>
+  </header>
+  ${renderOverviewMetrics()}
+  ${renderLedgerIntegrityBand()}
+  ${renderFunnel()}
+</div>`;
+
+const backtestRows = () =>
+  desk.strategies
+    .map((strategy) => ({ strategy, backtest: strategy.backtests[0] || null }))
+    .filter(({ backtest }) => backtest)
+    .sort(
+      (left, right) =>
+        (right.backtest.sharpe ?? Number.NEGATIVE_INFINITY) - (left.backtest.sharpe ?? Number.NEGATIVE_INFINITY),
+    );
 
 const renderRegression = () => {
   const selected =
@@ -362,16 +391,10 @@ const renderRegression = () => {
     desk.strategies.find((strategy) => strategy.account) ||
     null;
   const latestReport = desk.backtests[0] || null;
-  const rows = desk.strategies
-    .map((strategy) => ({ strategy, backtest: strategy.backtests[0] || null }))
-    .filter(({ backtest }) => backtest)
-    .sort(
-      (left, right) =>
-        (right.backtest.sharpe ?? Number.NEGATIVE_INFINITY) - (left.backtest.sharpe ?? Number.NEGATIVE_INFINITY),
-    );
+  const rows = backtestRows();
   const snapshot = selected ? createRegressionSnapshot(desk, selected) : null;
   return `<section class="regression-view" aria-label="策略回测与当前账本">
-    <div class="regression-head"><div><strong>策略回测（回归测试）</strong><span>${latestReport ? `最新报告 ${escapeHtml(latestReport.reportDate)} · ${escapeHtml(latestReport.windowLabel)} · 共 ${rows.length} 个策略` : "尚无带时间区间的回测报告"}</span></div><div class="regression-total"><span>当前总盘收益</span><strong class="${tone(desk.ledger.returnRate)}">${formatPercent(desk.ledger.returnRate)}</strong></div></div>
+    <div class="regression-head"><div><strong>策略回测（回归测试）</strong><span>${latestReport ? `最新报告 ${escapeHtml(latestReport.reportDate)} · ${escapeHtml(latestReport.windowLabel)} · 共 ${rows.length} 个策略` : "尚无带时间区间的回测报告"}</span></div></div>
     <div class="backtest-scroll">
       ${rows.some(({ backtest }) => isHindsightBacktest(backtest)) ? '<div class="backtest-warning-band"><strong>后视偏差</strong><span>静态等权篮子按当前持仓回放，只用于波动、回撤和横向体检，不构成 Alpha 证据。</span></div>' : ""}
       ${
@@ -435,53 +458,76 @@ const renderApprovalModal = () => {
   </section></div>`;
 };
 
-const renderStrategyListContent = (items, meta) =>
-  `${contentRoute.view === "strategies" ? "" : renderFunnel()}${renderSummaryStrip()}${
-    items.length
-      ? renderStrategyTable(items, contentRoute.view === "strategies" ? "策略与虚拟账本" : meta.label)
-      : '<section class="strategy-overview"><div class="empty-state">当前阶段没有策略。</div></section>'
-  }`;
+const renderStrategyListContent = (items) =>
+  items.length ? renderStrategyTable(items) : '<div class="empty-state">当前阶段没有策略。</div>';
+
+// Detail is `page` mode (declared in config.js ui.detail_modes.strategies): the record replaces
+// the list outright, so only one of `.ws-list` / `.ws-detail` is ever in the DOM at a time — the
+// body-class toggle below is kept in sync for CSS that keys off it, but no simultaneous
+// list+detail markup exists to hide.
+const updateBodyModeClasses = (detailOpen) => {
+  document.body.classList.add("ws-has-mobile-bar");
+  document.body.classList.toggle("ws-detail-open", detailOpen);
+  document.body.classList.toggle("ws-detail-page", detailOpen);
+};
+
+const renderMobileTopbar = (title, metaText) =>
+  `<div class="mobile-topbar"><button class="mobile-sidebar-toggle" type="button" data-mobile-sidebar aria-controls="appSidebar" aria-label="打开侧栏"><span class="sidebar-toggle-icon" aria-hidden="true"></span></button><div class="mobile-topbar-copy"><div class="mobile-view-title" data-mobile-view-title>${escapeHtml(title)}</div><div class="mobile-view-meta" data-mobile-view-meta>${escapeHtml(metaText)}</div></div><button class="mobile-help-button" type="button" data-open-help aria-label="帮助与设置">帮助</button></div>`;
+
+const renderToolbarActions = () =>
+  `<div class="workspace-status ws-actions">${currentState.provider.name === "demo" ? '<span class="snapshot-badge" title="大师风格复刻，不代表真实持仓">DEMO</span>' : '<span class="status-dot"></span>'}<span>${escapeHtml(currentState.provider.asOf || "Busabase 当前数据")}</span><span class="read-only">虚拟模式</span><button type="button" data-refresh>刷新</button></div>`;
+
+const renderToolbar = (title, count) =>
+  `<header class="workspace-head ws-toolbar"><div class="ws-title"><h1 data-workspace-title>${escapeHtml(title)}</h1><span class="ws-count">${count}</span></div>${renderToolbarActions()}</header>`;
+
+const renderDetailToolbar = (strategy, meta) =>
+  `<header class="workspace-head ws-toolbar"><div class="ws-title"><button class="strategy-detail-back back-to-list" type="button" data-back-to-list aria-label="返回${escapeHtml(meta.label)}">&larr;</button><h1 data-workspace-title>${escapeHtml(strategy.name)}</h1></div>${renderToolbarActions()}</header>`;
 
 const renderApp = () => {
-  const items = itemsForView(contentRoute.view);
   const selected = contentRoute.id ? desk.strategies.find((item) => item.id === contentRoute.id) || null : null;
   const regressionView = contentRoute.view === "regression";
   const strategyDetail = Boolean(selected) && !regressionView;
-  const meta = viewMeta[contentRoute.view];
-  const workspaceTitle = strategyDetail ? "策略详情" : meta.label;
-  const mainContent = regressionView
-    ? `${renderSummaryStrip()}${renderRegression()}`
-    : strategyDetail
-      ? `<section class="strategy-detail-view detail-panel">${renderStrategyDetail(selected)}</section>`
-      : renderStrategyListContent(items, meta);
-  root.innerHTML = `<div class="app-shell ${sidebarCollapsed ? "sidebar-is-collapsed" : ""}">${renderSidebar()}<main class="main strategy-main ${strategyDetail ? "strategy-detail-mode" : ""}">
-    <div class="mobile-topbar"><button class="mobile-sidebar-toggle" type="button" data-mobile-sidebar aria-controls="appSidebar" aria-label="打开侧栏"><span class="sidebar-toggle-icon" aria-hidden="true"></span></button><div class="mobile-topbar-copy"><div class="mobile-view-title" data-mobile-view-title>${workspaceTitle}</div><div class="mobile-view-meta" data-mobile-view-meta>${strategyDetail ? escapeHtml(selected.name) : `${items.length} ${meta.noun}`}</div></div><button class="mobile-help-button" type="button" data-open-help aria-label="帮助与设置">帮助</button></div>
-    <header class="workspace-head"><div><p class="eyebrow" data-workspace-eyebrow>${meta.eyebrow}</p><h1 data-workspace-title>${workspaceTitle}</h1></div><div class="workspace-status">${currentState.provider.name === "demo" ? '<span class="snapshot-badge">DEMO</span>' : '<span class="status-dot"></span>'}<span>${escapeHtml(currentState.provider.asOf || "Busabase 当前数据")}</span><span class="read-only">虚拟模式</span><button type="button" data-refresh>刷新</button></div></header>
-    <div class="workspace-content" data-workspace-content>${mainContent}</div>
-  </main></div><div id="sidebarScrim" class="sidebar-scrim" hidden></div>${parseHash().view === "settings" ? renderHelp() : ""}${renderApprovalModal()}<div class="toast" role="status" aria-live="polite" hidden></div>`;
+  updateBodyModeClasses(strategyDetail);
+
+  let bodyHtml;
+  if (contentRoute.view === "overview") {
+    bodyHtml = `${renderMobileTopbar("总览", `${desk.strategies.length} 个策略`)}${renderOverviewPage()}`;
+  } else if (strategyDetail) {
+    const meta = viewMeta[contentRoute.view];
+    bodyHtml = `${renderMobileTopbar(selected.name, meta.label)}${renderDetailToolbar(selected, meta)}<div class="ws-workspace"><div class="strategy-detail-view detail-panel ws-detail">${renderStrategyDetail(selected)}</div></div>`;
+  } else if (regressionView) {
+    const meta = viewMeta.regression;
+    const rows = backtestRows();
+    bodyHtml = `${renderMobileTopbar(meta.label, `${rows.length} ${meta.noun}`)}${renderToolbar(meta.label, rows.length)}<div class="ws-workspace"><div class="ws-list">${renderRegression()}</div></div>`;
+  } else {
+    const items = itemsForView(contentRoute.view);
+    const meta = viewMeta[contentRoute.view];
+    bodyHtml = `${renderMobileTopbar(meta.label, `${items.length} ${meta.noun}`)}${renderToolbar(meta.label, items.length)}<div class="ws-workspace"><div class="ws-list">${renderStrategyListContent(items)}</div></div>`;
+  }
+
+  root.innerHTML = `<div class="app-shell ${sidebarCollapsed ? "sidebar-is-collapsed" : ""}">${renderSidebar()}<main class="main strategy-main">${bodyHtml}</main></div><div id="sidebarScrim" class="sidebar-scrim" hidden></div>${parseHash().view === "settings" ? renderHelp() : ""}${renderApprovalModal()}<div class="toast" role="status" aria-live="polite" hidden></div>`;
   bindEvents();
   if (pendingApproval) root.querySelector('textarea[name="reason"]')?.focus();
 };
 
 const patchStrategyListRoute = () => {
-  const workspace = root.querySelector("[data-workspace-content]");
-  if (!workspace) return false;
+  const list = root.querySelector(".ws-list");
+  if (!list) return false;
   const items = itemsForView(contentRoute.view);
   const meta = viewMeta[contentRoute.view];
-  root.querySelector(".strategy-main")?.classList.remove("strategy-detail-mode");
   root.querySelectorAll(".filters [data-view]").forEach((button) => {
     button.classList.toggle("active", button.dataset.view === contentRoute.view);
   });
-  const eyebrow = root.querySelector("[data-workspace-eyebrow]");
   const title = root.querySelector("[data-workspace-title]");
+  const count = root.querySelector(".ws-count");
   const mobileTitle = root.querySelector("[data-mobile-view-title]");
   const mobileMeta = root.querySelector("[data-mobile-view-meta]");
-  if (eyebrow) eyebrow.textContent = meta.eyebrow;
   if (title) title.textContent = meta.label;
+  if (count) count.textContent = String(items.length);
   if (mobileTitle) mobileTitle.textContent = meta.label;
   if (mobileMeta) mobileMeta.textContent = `${items.length} ${meta.noun}`;
-  workspace.innerHTML = renderStrategyListContent(items, meta);
-  bindEvents(workspace);
+  list.innerHTML = renderStrategyListContent(items);
+  bindEvents(list);
   return true;
 };
 
@@ -660,7 +706,7 @@ const load = async () => {
     currentState = await activeProvider.getState();
     closeConnectGate();
     desk = createStrategyDesk(currentState.records);
-    if (!window.location.hash) window.history.replaceState(null, "", "#/strategies");
+    if (!window.location.hash) window.history.replaceState(null, "", "#/overview");
     applyRoute();
   } catch (error) {
     if (String(error?.message || error).startsWith("SETUP_")) console.info("Busabase workspace setup is not complete");

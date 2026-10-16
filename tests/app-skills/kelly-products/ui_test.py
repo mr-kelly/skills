@@ -56,24 +56,24 @@ def test_demo_ui(browser, base_url: str) -> None:
 
     page.goto(f"{base_url}/?demo=products&lang=en#/products")
     page.wait_for_load_state("networkidle")
-    assert page.locator(".product-card").count() == 5
+    assert page.locator(".ws-table tbody tr").count() == 5
 
     page.goto(f"{base_url}/?demo=inventory&lang=en#/inventory")
     page.wait_for_load_state("networkidle")
-    assert page.locator(".table-wrap tbody tr").count() == 5
+    assert page.locator(".ws-table tbody tr").count() == 5
 
     page.goto(f"{base_url}/?demo=channels&lang=en#/channels")
     page.wait_for_load_state("networkidle")
-    assert page.locator(".table-wrap tbody tr").count() == 7
+    assert page.locator(".ws-table tbody tr").count() == 7
 
     page.goto(f"{base_url}/?demo=review&lang=en#/review")
     page.wait_for_load_state("networkidle")
-    assert page.locator(".review-item").count() == 3
-    assert "3" in page.locator("#page-subtitle").inner_text()
+    assert page.locator(".ws-table tbody tr").count() == 3
+    assert page.locator("#reviewViewCount").inner_text() == "3"
 
     page.goto(f"{base_url}/?demo=detail&lang=en")
     page.wait_for_load_state("networkidle")
-    assert "Aurora Gradient Desk Lamp" in page.locator("#page-title").inner_text()
+    assert "Aurora Gradient Desk Lamp" in page.locator("#productsDetailBody h2").first.inner_text()
 
     page.goto(f"{base_url}/?demo=overview&lang=zh#/overview")
     page.wait_for_load_state("networkidle")
@@ -258,6 +258,10 @@ def test_busabase_provisioning(browser) -> None:
                     page.wait_for_load_state("networkidle")
                     assert page.locator("[data-provision]").count() == 0
 
+                    # Approve now lives in the record's own detail panel (split on
+                    # desktop, a full page on this 390px phone viewport), not inline
+                    # on the review row — open it first.
+                    page.locator("tr[data-id='fixture-review']").click()
                     page.once("dialog", lambda dialog: dialog.accept("Approved via integration test"))
                     page.locator("[data-action='approve'][data-item='fixture-review']").click()
                     page.wait_for_timeout(1000)

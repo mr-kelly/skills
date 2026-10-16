@@ -25,11 +25,13 @@ a {
   text-decoration: none;
 }
 .app-shell {
-  min-height: 100vh;
+  height: 100vh;
   display: grid;
   grid-template-columns: 280px 1fr;
+  overflow: hidden;
 }
 .sidebar {
+  overflow-y: auto;
   background: var(--surface);
   border-right: 1px solid var(--line);
   padding: 18px;
@@ -63,7 +65,6 @@ a {
 .brand span,
 .eyebrow,
 .field span,
-.summary-grid span,
 .settings span {
   color: var(--muted);
   font-size: var(--text-sm);
@@ -89,6 +90,10 @@ nav {
   gap: 4px;
 }
 .nav-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
   padding: 10px 12px;
   border-radius: var(--radius-sm);
   color: var(--accent);
@@ -97,16 +102,50 @@ nav {
   background: var(--accent);
   color: white;
 }
-.main {
-  padding: 24px;
-  min-width: 0;
+.nav-item.active .nav-count {
+  background: color-mix(in srgb, var(--surface) 22%, transparent);
+  color: inherit;
 }
-.page-header {
+.nav-count {
+  min-width: 20px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--surface-soft);
+  color: var(--muted);
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+.main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  height: 100vh;
+  overflow: hidden;
+}
+/* Settings is the one page that is neither the full-bleed overview nor a
+ * record view's own ws-toolbar/ws-workspace shell, so it owns its padding
+ * and scroll here instead of relying on .main's (full-bleed pages must reach
+ * the edges, so .main itself carries none). */
+.page-shell {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 24px;
+  overflow: auto;
+}
+.page-header,
+.page-hero {
   display: flex;
   justify-content: space-between;
   gap: 16px;
   align-items: flex-start;
   margin-bottom: 18px;
+}
+.page-actions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 8px;
 }
 h1,
 h2 {
@@ -120,45 +159,23 @@ h2 {
   font-size: var(--text-lg);
   margin-bottom: 10px;
 }
-.page-header p {
+.page-header p,
+.page-hero p {
   margin: 6px 0 0;
   color: var(--muted);
   max-width: 900px;
 }
-.summary-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px;
-  margin-bottom: 18px;
-}
-.summary-grid div,
 .panel,
-.split > div,
-.detail {
+.split > div {
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
   padding: 16px;
 }
-.summary-grid strong {
-  display: block;
-  margin-top: 6px;
-  font-size: var(--text-lg);
-}
 .split {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px;
-}
-.workbench {
-  display: grid;
-  grid-template-columns: minmax(280px, 420px) minmax(0, 1fr);
-  gap: 16px;
-  align-items: start;
-}
-.list-pane,
-.detail-pane {
-  min-width: 0;
 }
 .item-row {
   display: grid;
@@ -220,9 +237,9 @@ h2 {
   gap: 10px;
   margin-bottom: 10px;
 }
-.detail p {
+.ws-detail article p {
   line-height: 1.5;
-  color: var(--accent);
+  color: var(--ink-soft);
 }
 .field {
   display: block;
@@ -264,17 +281,6 @@ button.danger {
   background: var(--surface-soft);
   color: var(--danger);
 }
-.source-row {
-  border-bottom: 1px solid var(--line);
-  padding: 12px 0;
-}
-.source-row:last-child {
-  border-bottom: 0;
-}
-.source-row p {
-  color: var(--accent);
-  margin: 8px 0 4px;
-}
 .settings {
   display: grid;
   gap: 12px;
@@ -312,9 +318,7 @@ select {
   .main {
     padding: 16px;
   }
-  .summary-grid,
-  .split,
-  .workbench {
+  .split {
     grid-template-columns: 1fr;
   }
   .item-row {

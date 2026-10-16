@@ -55,23 +55,23 @@ def test_demo_ui(browser, base_url: str) -> None:
     assert page.locator("#summary-degraded-count").inner_text() == "3"
     assert page.locator("#count-agents").inner_text() == "8"
     assert page.locator("#count-handoffs").inner_text() == "0"
-    assert page.locator("#page-subtitle").inner_text().startswith("Last seeded")
+    assert page.locator("#overviewSummary").inner_text().startswith("Last seeded")
     assert page.locator(".agent-card").count() == 8
     assert_no_horizontal_overflow(page)
 
     page.goto(f"{base_url}/?demo=agents&lang=en#/agents")
     page.wait_for_load_state("networkidle")
-    assert page.locator(".table-wrap tbody tr").count() == 8
+    assert page.locator(".ws-table tbody tr").count() == 8
 
     page.goto(f"{base_url}/?demo=1&lang=en#/agents/booking-assistant")
     page.wait_for_load_state("networkidle")
-    assert page.locator("#page-title").inner_text() == "Booking Assistant"
-    assert page.locator(".detail-side .table-wrap tbody tr").count() == 0
-    assert page.locator(".detail-main .table-wrap tbody tr").count() == 16
+    assert page.locator("#detailBody h2").first.inner_text() == "Booking Assistant"
+    assert page.locator(".detail-side .mini-table tbody tr").count() == 0
+    assert page.locator(".detail-main .mini-table tbody tr").count() == 16
 
     page.goto(f"{base_url}/?demo=trace&lang=en#/traces/expense-approval-trace-0002")
     page.wait_for_load_state("networkidle")
-    assert page.locator("#page-title").inner_text() == "expense-approval-trace-0002"
+    assert page.locator("#detailBody h2").first.inner_text() == "expense-approval-trace-0002"
     assert page.locator(".step-item").count() == 3
     assert page.locator(".step-break").count() == 1
     # .chain-break-flag is CSS text-transform: uppercase, so compare
@@ -220,7 +220,7 @@ def test_busabase_provisioning(browser) -> None:
                     page.wait_for_load_state("networkidle")
                     assert page.locator("[data-provision]").count() == 0
                     # Bases exist but the trusted generator has not run yet.
-                    assert page.locator("#content .empty").count() == 1
+                    assert page.locator("#overviewBody .empty-state").count() == 1
                     assert not errors, errors
                     context.close()
 
@@ -259,7 +259,7 @@ def test_busabase_provisioning(browser) -> None:
                     page.goto(f"{app_url}/#/agents/booking-assistant")
                     page.wait_for_load_state("networkidle")
                     assert page.locator("[data-provision]").count() == 0
-                    assert page.locator("#page-title").inner_text() == "Booking Assistant"
+                    assert page.locator("#detailBody h2").first.inner_text() == "Booking Assistant"
                     page.locator("#handoffNote").fill("Fixture check: matches the trusted generator's seed snapshot.")
                     page.locator('button[data-status="needs_investigation"]').click()
                     page.locator("[data-handoff-message]").get_by_text("Recorded").wait_for(

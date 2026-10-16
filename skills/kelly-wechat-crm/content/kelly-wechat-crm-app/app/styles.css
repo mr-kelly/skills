@@ -260,8 +260,8 @@ body.sidebar-collapsed .nav-item {
   color: var(--ink);
 }
 .main {
-  display: grid;
-  grid-template-rows: auto auto auto auto minmax(0, 1fr);
+  display: flex;
+  flex-direction: column;
   min-width: 0;
   min-height: 0;
 }
@@ -325,11 +325,6 @@ body.sidebar-collapsed .nav-item {
   border-bottom: 1px solid var(--line);
   background: var(--surface-soft);
 }
-.connector-status[hidden],
-.metrics[hidden],
-.content-split[hidden] {
-  display: none;
-}
 .connector-status.is-blocking {
   align-self: start;
   padding-top: 20px;
@@ -392,128 +387,64 @@ body.sidebar-collapsed .nav-item {
 .mobile-bar {
   display: none;
 }
-.workspace-header {
+/* Overview's page-hero: title + supporting sentence + (optional) actions.
+ * Sizing for the hero h1/p itself comes from base-ui.css's unlayered
+ * `.ws-overview .page-hero h1/p` rule, which wins over any app h1 rule. */
+.page-hero {
   display: flex;
   min-width: 0;
-  align-items: end;
+  align-items: start;
   justify-content: space-between;
   gap: 24px;
-  padding: 24px 28px 18px;
-  border-bottom: 1px solid var(--line);
 }
-.workspace-header > div {
+.page-hero > div {
   min-width: 0;
 }
-.workspace-tools {
-  display: flex;
-  min-width: min(430px, 44vw);
-  align-items: center;
-  justify-content: flex-end;
-  gap: 10px;
+.page-hero p {
+  max-width: 720px;
+  color: var(--muted);
+  font-size: var(--text-base);
+  line-height: 1.5;
 }
 .goal-open {
-  min-height: 38px;
+  display: inline-flex;
+  min-height: 36px;
   flex: 0 0 auto;
-  padding: 8px 12px;
+  align-items: center;
+  gap: 4px;
+  padding: 0 12px;
   border: 1px solid var(--accent-strong);
   border-radius: var(--radius-sm);
   background: var(--accent-strong);
   color: var(--accent-contrast);
+  font-size: var(--text-base);
   cursor: pointer;
 }
 .goal-open[hidden] {
   display: none;
 }
-h1,
 h2,
 p {
   margin: 0;
-}
-h1 {
-  margin-top: 4px;
-  font-size: var(--text-2xl);
-  line-height: 1.2;
 }
 h2 {
   font-size: var(--text-md);
   line-height: 1.25;
 }
-.workspace-header p {
-  max-width: 720px;
-  margin-top: 6px;
-  color: var(--muted);
-  font-size: var(--text-base);
-  line-height: 1.5;
-}
 .search input {
-  width: min(280px, 28vw);
-  height: 36px;
+  width: min(240px, 28vw);
+  height: 34px;
   padding: 0 11px;
   border: 1px solid var(--line-strong);
   border-radius: var(--radius-sm);
   background: var(--surface);
   color: var(--ink);
 }
-.metrics {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  border-bottom: 1px solid var(--line);
-}
-.metric {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 12px 18px;
-  border-right: 1px solid var(--line);
-}
-.metric:last-child {
-  border-right: 0;
-}
-.metric span {
-  color: var(--muted);
-  font-size: var(--text-xs);
-}
-.metric strong {
-  font-size: var(--text-xl);
-}
-.content-split {
-  display: grid;
-  grid-template-columns: minmax(320px, 38%) minmax(0, 1fr);
-  min-width: 0;
-  min-height: 0;
-}
-.list-panel,
-.detail-panel {
-  min-width: 0;
-  min-height: 0;
-  overflow: auto;
-}
-.list-panel {
-  border-right: 1px solid var(--line);
-}
-.panel-heading {
-  position: sticky;
-  top: 0;
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 15px 18px;
-  border-bottom: 1px solid var(--line);
-  background: var(--surface-blur);
-  backdrop-filter: blur(10px);
-}
-.panel-heading h2 {
-  margin-top: 3px;
-}
+/* Action-status segmented control lives in the record view's `.ws-actions`. */
 .action-filters {
   display: flex;
+  flex: 0 0 auto;
   gap: 6px;
-  padding: 9px 12px;
-  overflow-x: auto;
-  border-bottom: 1px solid var(--line);
-  background: var(--surface);
 }
 .action-filters[hidden] {
   display: none;
@@ -535,18 +466,6 @@ h2 {
   color: var(--accent-text);
   font-weight: 700;
 }
-.count {
-  min-width: 26px;
-  padding: 3px 7px;
-  border-radius: var(--radius-md);
-  background: var(--surface-soft);
-  color: var(--muted);
-  font-size: var(--text-xs);
-  text-align: center;
-}
-.record-list {
-  display: grid;
-}
 .load-more {
   min-height: 36px;
   margin: 14px auto;
@@ -557,40 +476,11 @@ h2 {
   color: var(--ink);
   font-weight: 650;
 }
-.record-row {
-  display: grid;
-  min-width: 0;
-  gap: 4px;
-  padding: 13px 18px;
-  border: 0;
-  border-bottom: 1px solid var(--line);
-  background: var(--surface);
-  text-align: left;
-  cursor: pointer;
-}
-.record-row:hover {
-  background: var(--surface-soft);
-}
-.record-row.selected {
-  box-shadow: inset 3px 0 var(--accent);
-  background: var(--accent-soft);
-}
-.record-row strong {
-  overflow: hidden;
-  font-size: var(--text-base);
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.record-row span {
-  overflow: hidden;
-  color: var(--muted);
-  font-size: var(--text-xs);
-  text-overflow: ellipsis;
-  white-space: nowrap;
+#recordListWrap .ws-table td strong {
+  font-weight: 600;
 }
 .state-message,
-.empty-list,
-.detail-empty {
+.empty-list {
   padding: 36px 18px;
   color: var(--muted);
   font-size: var(--text-base);
@@ -618,15 +508,15 @@ h2 {
 .state-message.error {
   color: var(--danger);
 }
-.detail-panel {
-  padding: 26px 30px;
-  background: var(--surface-soft);
-}
-.detail-panel article {
+/* `.ws-detail` (base-ui.css) already supplies the surface, padding and
+ * scroll behaviour for every detail mode; only the record content itself
+ * is this app's own. */
+#detailContent {
   max-width: 720px;
+  padding-top: 20px;
 }
-.detail-panel h2 {
-  margin: 5px 0 24px;
+#detailContent h2 {
+  margin: 0 0 20px;
   font-size: var(--text-xl);
 }
 .detail-fields {
@@ -651,8 +541,9 @@ h2 {
   font-weight: 550;
 }
 .detail-actions {
+  /* Clears `.ws-detail-bar`'s own sticky header (min-height 48px) above it. */
   position: sticky;
-  top: 0;
+  top: 48px;
   display: grid;
   gap: 12px;
   margin-top: 20px;
@@ -714,9 +605,6 @@ h2 {
 .decision-buttons button:disabled {
   cursor: wait;
   opacity: 0.55;
-}
-.back-button {
-  display: none;
 }
 .sidebar-scrim {
   display: none;
@@ -1019,7 +907,6 @@ h2 {
     display: none;
   }
   .main {
-    grid-template-rows: auto auto auto auto auto minmax(0, 1fr);
     height: 100dvh;
   }
   .mobile-bar {
@@ -1038,27 +925,22 @@ h2 {
     text-overflow: ellipsis;
     white-space: nowrap;
   }
-  .workspace-header {
+  .page-hero {
     flex-direction: column;
     align-items: stretch;
     gap: 12px;
-    padding: 16px 14px;
   }
-  .workspace-tools {
+  .page-hero p {
+    font-size: var(--text-sm);
+  }
+  .ws-actions {
     width: 100%;
-    min-width: 0;
     flex-wrap: wrap;
     justify-content: stretch;
   }
-  .workspace-tools .search {
+  .ws-actions .search {
     min-width: 0;
     flex: 1 1 180px;
-  }
-  .workspace-header h1 {
-    font-size: var(--text-xl);
-  }
-  .workspace-header p {
-    font-size: var(--text-sm);
   }
   .search {
     width: 100%;
@@ -1067,57 +949,9 @@ h2 {
   .search input {
     width: 100%;
   }
-  .metrics {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-  .metric {
-    display: grid;
-    gap: 4px;
-    padding: 9px 10px;
-  }
-  .metric span {
-    font-size: var(--text-xs);
-  }
-  .metric strong {
-    font-size: var(--text-lg);
-  }
-  .content-split {
-    grid-template-columns: 1fr;
-    grid-template-rows: minmax(0, 1fr);
-    overflow: hidden;
-  }
-  .list-panel {
-    height: 100%;
-    border-right: 0;
-  }
-  .detail-panel {
-    display: none;
-    height: 100%;
-    padding: 0 14px 24px;
-  }
-  .detail-actions {
-    top: 43px;
-  }
-  body.mobile-detail-open .list-panel {
-    display: none;
-  }
-  body.mobile-detail-open .detail-panel {
-    display: block;
-  }
-  .back-button {
-    position: sticky;
-    top: 0;
-    z-index: 3;
-    display: block;
-    width: calc(100% + 28px);
-    margin: 0 -14px 18px;
-    padding: 12px 14px;
-    border: 0;
-    border-bottom: 1px solid var(--line);
-    background: var(--surface-blur);
-    color: var(--accent-text);
-    text-align: left;
-  }
+  /* `.ws-list` / `.ws-detail` full-width-on-phone, per-mode-becomes-a-page
+   * behaviour is already handled by base-ui.css's phone media query via the
+   * `ws-detail-open` / `ws-detail-page` / `ws-layout-split` body classes. */
   .modal-backdrop {
     padding: 0;
   }

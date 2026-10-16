@@ -4,11 +4,24 @@ import { closeConnectGate, passConnectGate, renderSetupRequired } from "./js/con
 import { computeMetrics } from "./js/financial-model.js?v=0.1.0";
 import { getProvider } from "./js/providers/index.js?v=0.1.0";
 
+// Where each Base opens a record. signals/actions/drafts are all a daily
+// review queue worked top to bottom — one item approved/changed/blocked,
+// then the next — so all three are `split`: the queue stays beside the
+// record (busa-crm's followups is the same shape). `sources` has no
+// per-record detail at all (no decision panel, nothing to open), so it is
+// not a RECORD_VIEW and renders as a plain full-bleed table.
+// A `/record` path always opens the full page; `?peek=` drives the split
+// selection. Declared once, in config.js `ui.detail_modes`.
+export const DETAIL_MODES = appConfig.ui.detail_modes;
+const RECORD_VIEWS = Object.keys(DETAIL_MODES);
+const KNOWN_VIEWS = [...RECORD_VIEWS, "sources", "settings"];
+const VIEW_KINDS = { signals: "signal", actions: "action", drafts: "draft" };
+
 const state = {
   batch: null,
   bootstrap: null,
   route: parseRoute(),
-  query: "",
+  sourcesQuery: "",
   lang: normalizeLang(
     new URLSearchParams(location.search).get("lang") ||
       localStorage.getItem("kelly-financial-services-intel-language") ||
@@ -16,34 +29,49 @@ const state = {
   ),
   demo: new URLSearchParams(location.search).get("demo") || "",
   saving: false,
+  feedback: null,
   pageError: "",
   pageCursors: {},
   currentPage: {},
   pageLoading: {},
   totals: {},
+  edits: {},
 };
 
 const SIDEBAR_COLLAPSED_STORAGE_KEY = "kelly-financial-services-intel.sidebarCollapsed";
-const KIND_VIEWS = { signal: "signals", action: "actions", draft: "drafts" };
-const VIEW_KINDS = { signals: "signal", actions: "action", drafts: "draft" };
 
+const byId = (id) => document.getElementById(id);
 const els = {
-  title: document.querySelector("#page-title"),
-  subtitle: document.querySelector("#page-subtitle"),
-  content: document.querySelector("#content"),
-  search: document.querySelector("#search"),
-  refresh: document.querySelector("#refresh"),
-  mobileRefresh: document.querySelector("#mobileRefresh"),
-  sidebarToggle: document.querySelector("#sidebarToggle"),
-  mobileSidebarToggle: document.querySelector("#mobileSidebarToggle"),
-  sidebarScrim: document.querySelector("#sidebarScrim"),
-  mobileViewTitle: document.querySelector("#mobileViewTitle"),
-  mobileViewMeta: document.querySelector("#mobileViewMeta"),
-  syncStatus: document.querySelector("#sync-status"),
-  needsReviewCount: document.querySelector("#count-needs-review"),
-  approvedCount: document.querySelector("#count-approved"),
-  blockedCount: document.querySelector("#count-blocked"),
-  language: document.querySelector("#language"),
+  loadState: byId("loadState"),
+  overviewPage: byId("overviewPage"),
+  viewPage: byId("viewPage"),
+  sourcesPage: byId("sourcesPage"),
+  settingsPage: byId("settingsPage"),
+  settingsBody: byId("settingsBody"),
+  viewTitle: byId("viewTitle"),
+  viewCount: byId("viewCount"),
+  listPanel: byId("listPanel"),
+  detailPanel: byId("detailPanel"),
+  detailBody: byId("detailBody"),
+  detailBack: byId("detailBack"),
+  detailExpand: byId("detailExpand"),
+  search: byId("search"),
+  sourcesTitle: byId("sourcesTitle"),
+  sourcesCount: byId("sourcesCount"),
+  sourcesBody: byId("sourcesBody"),
+  sourcesSearch: byId("sourcesSearch"),
+  refresh: byId("refresh"),
+  mobileRefresh: byId("mobileRefresh"),
+  sidebarToggle: byId("sidebarToggle"),
+  mobileSidebarToggle: byId("mobileSidebarToggle"),
+  sidebarScrim: byId("sidebarScrim"),
+  mobileViewTitle: byId("mobileViewTitle"),
+  mobileViewMeta: byId("mobileViewMeta"),
+  syncStatus: byId("sync-status"),
+  needsReviewCount: byId("count-needs-review"),
+  approvedCount: byId("count-approved"),
+  blockedCount: byId("count-blocked"),
+  language: byId("language"),
 };
 
 function isMobileLayout() {
@@ -107,16 +135,90 @@ function enumLabel(value, group = "status") {
   return messages[activeLang()]?.enum?.[group]?.[key] || messages.en.enum?.[group]?.[key] || key.replaceAll("_", " ");
 }
 
+// ── Routing ────────────────────────────────────────────────────────────────
+// `#/<view>[/<record>][?q=…&peek=…]`. Search and the peeked record live in
+// the URL so refresh, shared links and Back restore the same list context.
 function parseRoute() {
-  const parts = (location.hash || "#/overview").replace(/^#\/?/, "").split("/").filter(Boolean);
-  return { view: parts[0] || "overview", id: parts[1] ? decodeURIComponent(parts[1]) : "" };
+  const raw = (location.hash || "#/overview").replace(/^#\/?/, "");
+  const [path, query = ""] = raw.split("?");
+  const parts = path.split("/").filter(Boolean);
+  const params = new URLSearchParams(query);
+  let view = parts[0] || "overview";
+  let id = "";
+  try {
+    id = parts[1] ? decodeURIComponent(parts[1]) : "";
+  } catch {
+    id = "";
+  }
+  if (!KNOWN_VIEWS.includes(view)) view = "overview";
+  const mode = DETAIL_MODES[view];
+  const peek = mode && !id ? params.get("peek") || "" : "";
+  return {
+    view,
+    id,
+    peek,
+    selectedId: mode ? id || peek : "",
+    // A `/record` path is always a full page; a split selection reached via
+    // `?peek=` keeps the queue on screen beside it.
+    presentation: !mode ? null : id ? "page" : mode,
+    query: params.get("q") || "",
+  };
 }
 
+const routeQuery = (extra = {}, route = state.route) => {
+  const params = new URLSearchParams();
+  if (route.query) params.set("q", route.query);
+  for (const [key, value] of Object.entries(extra)) if (value) params.set(key, value);
+  const text = params.toString();
+  return text ? `?${text}` : "";
+};
+
+const listUrl = (route = state.route) => `#/${route.view}${routeQuery({}, route)}`;
+// The full page: the record in the path. Always a page, whatever the view's mode.
+const detailUrl = (id, view = state.route.view) => {
+  const route = view === state.route.view ? state.route : { view, query: "" };
+  return `#/${view}/${encodeURIComponent(id)}${routeQuery({}, route)}`;
+};
+// What a row opens: `?peek=` drives the split selection.
+const recordUrl = (id, view = state.route.view) => {
+  const route = view === state.route.view ? state.route : { view, query: "" };
+  return `#/${view}${routeQuery({ peek: id }, route)}`;
+};
+
+let previousRouteWasList = false;
+
 function setRoute() {
+  const previous = state.route;
   state.route = parseRoute();
+  // Mark a detail entry opened from its list so Back/Close/Escape step back
+  // to that exact list entry instead of pushing a new one.
+  if (state.route.selectedId && previousRouteWasList && previous.view === state.route.view) {
+    history.replaceState({ fromList: true }, "");
+  }
+  previousRouteWasList = RECORD_VIEWS.includes(state.route.view) && !state.route.selectedId;
+  state.pageError = "";
+  state.feedback = null;
+  if (els.search) els.search.value = state.route.query;
+  setMobileSidebarOpen(false);
   render();
 }
 
+// Replace the current entry without a hashchange: search keystrokes should
+// not each become a Back step.
+function replaceRoute(url) {
+  history.replaceState(history.state, "", url);
+  const previousWasList = previousRouteWasList;
+  state.route = parseRoute();
+  previousRouteWasList = previousWasList;
+  render();
+}
+
+function closeDetail() {
+  if (history.state?.fromList) history.back();
+  else location.hash = listUrl();
+}
+
+// ── Data ───────────────────────────────────────────────────────────────────
 async function loadState() {
   const provider = await getProvider();
   const data = await provider.getState();
@@ -144,35 +246,43 @@ function pageCount(key) {
   return total == null ? null : Math.max(1, Math.ceil(total / pageSize(key)));
 }
 
-function recordTotal(key, loaded) {
-  if (state.totals[key] != null) return state.totals[key];
-  return `${loaded}${state.pageCursors[key]?.[1] ? "+" : ""}`;
+// True while a Base holds only part of its rows — more pages exist, or the
+// user is on a later page. Anything summed from loaded rows must say so.
+function isPartial(key) {
+  const cursors = state.pageCursors[key];
+  if (!cursors) return false;
+  const current = state.currentPage[key] || 1;
+  return current > 1 || Boolean(cursors[current]);
 }
 
+function recordTotal(key, loaded) {
+  if (state.totals[key] != null) return String(state.totals[key]);
+  return `${loaded}${isPartial(key) ? "+" : ""}`;
+}
+
+// Replaces the displayed page for `key` with a NEIGHBOURING page: exactly one
+// request per click, using a cursor already learned from a prior page. Never
+// jumps ahead by looping through intermediate pages — that would read every
+// page between here and the target to fake a "jump to page N" (there is no
+// records.listPage/view-backed total for these Bases, only a forward keyset
+// cursor), so this is Prev/Next only.
 async function goToPage(key, targetPage) {
-  if (state.pageLoading[key] || !state.pageCursors[key]) return;
-  const totalPages = pageCount(key);
-  const page = totalPages == null ? Math.max(1, targetPage) : Math.min(Math.max(1, targetPage), totalPages);
-  if (page === state.currentPage[key]) return;
+  if (state.pageLoading[key]) return;
+  const cursors = state.pageCursors[key];
+  if (!cursors) return;
+  const current = state.currentPage[key] || 1;
+  if (Math.abs(targetPage - current) !== 1 || targetPage < 1) return;
+  if (targetPage > current && !cursors[current]) return; // no next page
   state.pageLoading[key] = true;
   state.pageError = "";
   render();
   try {
     const provider = await getProvider();
-    let result;
-    for (let next = state.pageCursors[key].length; next <= page; next += 1) {
-      const cursor = state.pageCursors[key][next - 1];
-      if (next > 1 && !cursor) return;
-      result = await provider.fetchPage(key, cursor);
-      state.pageCursors[key][next] = result.nextCursor;
-    }
-    if (!result || state.pageCursors[key].length > page + 1) {
-      result = await provider.fetchPage(key, state.pageCursors[key][page - 1]);
-      state.pageCursors[key][page] = result.nextCursor;
-    }
+    const result = await provider.fetchPage(key, cursors[targetPage - 1]);
     state.batch[key] = result.rows;
     state.batch.metrics = computeMetrics(state.batch);
-    state.currentPage[key] = page;
+    cursors[targetPage] = result.nextCursor;
+    state.currentPage[key] = targetPage;
   } catch (error) {
     state.pageError = error instanceof Error ? error.message : String(error);
   } finally {
@@ -182,35 +292,22 @@ async function goToPage(key, targetPage) {
 }
 
 function pagerControl(key) {
-  if (!state.pageCursors[key]) return "";
+  const cursors = state.pageCursors[key];
+  if (!cursors) return "";
   const total = pageCount(key);
   const current = state.currentPage[key] || 1;
+  const hasNext = Boolean(cursors[current]);
+  if (current === 1 && !hasNext) return "";
   const loading = Boolean(state.pageLoading[key]);
-  const hasNext = total == null ? Boolean(state.pageCursors[key][current]) : current < total;
-  if ((total === 1 || total == null) && current === 1 && !hasNext) return "";
-  const pages =
-    total == null
-      ? []
-      : total <= 7
-        ? Array.from({ length: total }, (_, index) => index + 1)
-        : [...new Set([1, total, current - 1, current, current + 1].filter((page) => page >= 1 && page <= total))].sort(
-            (a, b) => a - b,
-          );
-  const items = [];
-  let previous = 0;
-  for (const page of pages) {
-    if (previous && page - previous > 1) items.push('<span class="pager-ellipsis">…</span>');
-    items.push(
-      `<button type="button" class="pager-page ${page === current ? "active" : ""}" data-goto-page="${key}:${page}" ${loading || page === current ? "disabled" : ""}>${page}</button>`,
-    );
-    previous = page;
-  }
-  return `<nav class="pager" aria-label="${t("pagination")}">
-    <button type="button" class="pager-nav" data-goto-page="${key}:${current - 1}" ${loading || current <= 1 ? "disabled" : ""}>${t("prevPage")}</button>
-    ${items.join("")}
-    <button type="button" class="pager-nav" data-goto-page="${key}:${current + 1}" ${loading || !hasNext ? "disabled" : ""}>${t("nextPage")}</button>
-    ${total == null ? "" : `<span class="pager-summary">${t("pageOf").replace("{current}", current).replace("{total}", total)}</span>`}
-  </nav>`;
+  return `
+    <div class="pager">
+      <button type="button" class="button" data-goto-page="${key}:${current - 1}" ${loading || current <= 1 ? "disabled" : ""}>${t("prevPage")}</button>
+      <span class="pager-summary">${t("pageOf")
+        .replace("{current}", current)
+        .replace("{total}", String(Math.max(total || 1, current)))}</span>
+      <button type="button" class="button" data-goto-page="${key}:${current + 1}" ${loading || !hasNext ? "disabled" : ""}>${t("nextPage")}</button>
+    </div>
+  `;
 }
 
 function applyDemoRoute() {
@@ -239,14 +336,14 @@ function applyI18n() {
   for (const option of els.language.options) {
     option.textContent = languageLabels[option.value] || option.textContent;
   }
-  els.search.placeholder = t("search");
-  els.refresh.textContent = t("refresh");
+  if (els.search) els.search.placeholder = t("search");
+  if (els.sourcesSearch) els.sourcesSearch.placeholder = t("search");
+  if (els.refresh) els.refresh.textContent = t("refresh");
   if (els.mobileRefresh) els.mobileRefresh.title = t("refresh");
-}
-
-function allItems() {
-  const b = state.batch || {};
-  return [...(b.signals || []), ...(b.actions || []), ...(b.drafts || [])];
+  byId("overviewTitle").textContent = t("overview");
+  byId("sourcesTitle").textContent = t("sources");
+  byId("settingsTitle").textContent = t("settings");
+  if (els.detailExpand) els.detailExpand.textContent = t("openFullPage");
 }
 
 function itemsForView(view) {
@@ -268,9 +365,7 @@ function isConnected() {
 function renderShell() {
   applyI18n();
   const metrics = state.batch?.metrics || {};
-  els.syncStatus.textContent = state.batch?.generated_at
-    ? `${t("generated")} ${new Date(state.batch.generated_at).toLocaleString()}`
-    : t("empty");
+  els.syncStatus.textContent = !state.batch ? t("loading") : state.bootstrap?.demo ? t("demoData") : t("liveData");
   if (els.needsReviewCount) els.needsReviewCount.textContent = metrics.needs_review ?? 0;
   if (els.approvedCount) els.approvedCount.textContent = metrics.approved ?? 0;
   if (els.blockedCount) els.blockedCount.textContent = metrics.blocked ?? 0;
@@ -315,84 +410,199 @@ function itemSummary(item) {
   return item.summary || item.effective_body || item.body || "";
 }
 
-function itemRow(view, item) {
-  const active = state.route.view === view && state.route.id === item.id ? "active" : "";
-  return `
-    <a class="item-row ${active}" href="#/${view}/${encodeURIComponent(item.id)}">
-      <span class="item-row-ref">#${item.ref}</span>
-      <span class="item-row-main">
-        <strong>${escapeHtml(itemLabel(item))}</strong>
-        <span>${escapeHtml(itemSummary(item))}</span>
-      </span>
-      ${statusBadge(item.status)}
-    </a>
-  `;
+function matches(values, query) {
+  return values.filter(Boolean).some((value) => String(value).toLowerCase().includes(query));
 }
 
-/* ---------- Overview ---------- */
+// ── Overview ───────────────────────────────────────────────────────────────
+// Three numbers the nav/attention block does not already show (that block
+// shows the across-kind needs_review/approved/blocked totals) — the
+// per-Base totals, each marked partial when only a page of the Base is
+// loaded and the real total (records.count) is not yet known.
+function metricsBand() {
+  const b = state.batch || {};
+  return [
+    [t("signals"), recordTotal("signals", (b.signals || []).length)],
+    [t("actions"), recordTotal("actions", (b.actions || []).length)],
+    [t("drafts"), recordTotal("drafts", (b.drafts || []).length)],
+  ]
+    .map(([label, value]) => `<div><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`)
+    .join("");
+}
 
 function renderOverview() {
-  els.title.textContent = t("overview");
-  els.subtitle.textContent = state.batch?.generated_at
-    ? `${t("generated")} ${new Date(state.batch.generated_at).toLocaleString()}`
-    : t("empty");
+  const b = state.batch || {};
+  const generated = b.generated_at ? new Date(b.generated_at).toLocaleString() : "";
+  byId("overviewSummary").textContent = [b.buyer, generated ? `${t("generated")} ${generated}` : ""]
+    .filter(Boolean)
+    .join(" · ");
+  byId("overviewMetrics").innerHTML = metricsBand();
   if (!isConnected()) {
-    els.content.innerHTML = `<div class="empty">${t("setupNeeded")}</div>`;
+    byId("overviewBody").innerHTML = `<div class="empty-state"><strong>${t("setupNeeded")}</strong></div>`;
     return;
   }
-  const b = state.batch;
-  const topSignals = (b.signals || []).slice(0, 4);
-  const readyActions = (b.actions || []).filter((item) => item.status === "approved").slice(0, 4);
-  const actionsToShow = readyActions.length ? readyActions : (b.actions || []).slice(0, 4);
-  els.content.innerHTML = `
+  const topSignals = (b.signals || []).slice(0, 5);
+  const readyActions = (b.actions || []).filter((item) => item.status === "approved").slice(0, 5);
+  const actionsToShow = readyActions.length ? readyActions : (b.actions || []).slice(0, 5);
+  byId("overviewBody").innerHTML = `
     ${demoBanner()}
-    <div class="metrics">
-      <a class="metric" href="#/signals"><span>${t("signals")}</span><strong>${recordTotal("signals", b.signals.length)}</strong></a>
-      <a class="metric" href="#/actions"><span>${t("actions")}</span><strong>${recordTotal("actions", b.actions.length)}</strong></a>
-      <a class="metric" href="#/drafts"><span>${t("drafts")}</span><strong>${recordTotal("drafts", b.drafts.length)}</strong></a>
-      <div class="metric"><span>${t("buyer")}</span><strong class="muted">${escapeHtml(b.buyer || "")}</strong></div>
-    </div>
     <section class="overview-grid">
-      <div class="overview-panel">
+      <div class="card overview-panel">
         <h2>${t("topSignals")}</h2>
-        <div class="item-list">${topSignals.map((item) => itemRow("signals", item)).join("") || `<div class="empty">${t("empty")}</div>`}</div>
+        ${
+          topSignals
+            .map(
+              (item) => `
+          <a class="due-row" href="${recordUrl(item.id, "signals")}">
+            <span><strong>${escapeHtml(itemLabel(item))}</strong><small>${escapeHtml(itemSummary(item))}</small></span>
+            <span class="due-meta">${statusBadge(item.status)}</span>
+          </a>
+        `,
+            )
+            .join("") || `<div class="empty-inline">${t("empty")}</div>`
+        }
       </div>
-      <div class="overview-panel">
+      <div class="card overview-panel">
         <h2>${t("readyActions")}</h2>
-        <div class="item-list">${actionsToShow.map((item) => itemRow("actions", item)).join("") || `<div class="empty">${t("empty")}</div>`}</div>
+        ${
+          actionsToShow
+            .map(
+              (item) => `
+          <a class="due-row" href="${recordUrl(item.id, "actions")}">
+            <span><strong>${escapeHtml(itemLabel(item))}</strong><small>${escapeHtml(itemSummary(item))}</small></span>
+            <span class="due-meta">${statusBadge(item.status)}</span>
+          </a>
+        `,
+            )
+            .join("") || `<div class="empty-inline">${t("empty")}</div>`
+        }
       </div>
     </section>
   `;
 }
 
-/* ---------- Signals / Actions / Drafts list ---------- */
+// ── Record views: Signals / Actions / Drafts ────────────────────────────────
+const tableHead = (columns) =>
+  `<thead><tr>${columns.map(([label, className = ""]) => `<th${className ? ` class="${className}"` : ""}>${escapeHtml(label)}</th>`).join("")}</tr></thead>`;
 
-function filteredItems(view) {
-  const query = state.query.trim().toLowerCase();
-  const items = itemsForView(view);
-  if (!query) return items;
-  return items.filter((item) =>
-    [itemLabel(item), itemSummary(item), item.status]
-      .filter(Boolean)
-      .some((value) => String(value).toLowerCase().includes(query)),
-  );
-}
+const rowOpen = (id) =>
+  `<tr data-id="${escapeHtml(id)}"${id === state.route.selectedId ? ' class="ws-selected"' : ""}>`;
 
-function renderList(view) {
-  els.title.textContent = viewLabel(view);
-  const items = filteredItems(view);
-  const needs = items.filter((item) => item.status === "needs_review").length;
-  els.subtitle.textContent = `${items.length} ${viewLabel(view).toLowerCase()} · ${needs} ${t("needsReview")}`;
-  els.content.innerHTML = `
-    ${demoBanner()}
-    ${state.pageError ? `<div class="warnings"><div class="warning"><strong>${escapeHtml(state.pageError)}</strong></div></div>` : ""}
-    <div class="item-list">${items.map((item) => itemRow(view, item)).join("")}</div>
-    ${items.length ? "" : `<div class="empty">${t("empty")}</div>`}
-    ${pagerControl(view)}
+const cell = (html, title = "", className = "") =>
+  `<td${className ? ` class="${className}"` : ""}${title ? ` title="${escapeHtml(title)}"` : ""}>${html}</td>`;
+
+// Exactly two columns (title + status) on every kind's table — the review
+// queue is worked in the narrow `split` pane (see DETAIL_MODES), and
+// base-ui.css hides a third+ column there by default; a secondary fact
+// (confidence, priority/owner, channel) rides inline under the title
+// instead of a column that would only ever render on a full page.
+function signalsTable(items) {
+  return `
+    <table class="ws-table fin-table signals-table">
+      ${tableHead([[t("title")], [t("status")]])}
+      <tbody>
+        ${items
+          .map(
+            (item) => `${rowOpen(item.id)}
+              ${cell(
+                `<span class="strong">${escapeHtml(itemLabel(item))}</span><small>${escapeHtml(itemSummary(item))} · ${Math.round((item.confidence || 0) * 100)}% ${escapeHtml(t("confidence")).toLowerCase()}</small>`,
+                itemSummary(item),
+              )}
+              ${cell(statusBadge(item.status))}
+            </tr>`,
+          )
+          .join("")}
+      </tbody>
+    </table>
   `;
 }
 
-/* ---------- Item detail + decision panel ---------- */
+function actionsTable(items) {
+  return `
+    <table class="ws-table fin-table actions-table">
+      ${tableHead([[t("title")], [t("status")]])}
+      <tbody>
+        ${items
+          .map(
+            (item) => `${rowOpen(item.id)}
+              ${cell(
+                `<span class="strong">${escapeHtml(itemLabel(item))}</span><small>${escapeHtml(enumLabel(item.priority, "priority") || item.priority)} · ${escapeHtml(item.owner || "")}</small>`,
+                itemSummary(item),
+              )}
+              ${cell(statusBadge(item.status))}
+            </tr>`,
+          )
+          .join("")}
+      </tbody>
+    </table>
+  `;
+}
+
+function draftsTable(items) {
+  return `
+    <table class="ws-table fin-table drafts-table">
+      ${tableHead([[t("title")], [t("status")]])}
+      <tbody>
+        ${items
+          .map(
+            (item) => `${rowOpen(item.id)}
+              ${cell(
+                `<span class="strong">${escapeHtml(itemLabel(item))}</span><small>${escapeHtml(item.channel || "")}</small>`,
+                itemSummary(item),
+              )}
+              ${cell(statusBadge(item.status))}
+            </tr>`,
+          )
+          .join("")}
+      </tbody>
+    </table>
+  `;
+}
+
+function filteredItems(view) {
+  const query = state.route.query.trim().toLowerCase();
+  const items = itemsForView(view);
+  if (!query) return items;
+  return items.filter((item) => matches([itemLabel(item), itemSummary(item), item.status], query));
+}
+
+function renderRecordView() {
+  const { view } = state.route;
+  els.viewTitle.textContent = viewLabel(view);
+  const items = filteredItems(view);
+  els.viewCount.textContent = `${items.length}${isPartial(view) ? "+" : ""}`;
+  const table =
+    view === "signals" ? signalsTable(items) : view === "actions" ? actionsTable(items) : draftsTable(items);
+  const empty = `<div class="empty-state"><strong>${escapeHtml(state.route.query ? t("noMatches") : t("empty"))}</strong></div>`;
+  els.listPanel.innerHTML = `
+    ${state.pageError ? `<div class="warnings"><div class="warning"><strong>${escapeHtml(state.pageError)}</strong></div></div>` : ""}
+    ${items.length ? table : empty}
+    ${pagerControl(view)}
+  `;
+  renderDetail();
+}
+
+function renderDetail() {
+  const { view, selectedId, presentation } = state.route;
+  const phone = isMobileLayout();
+  els.detailBack.textContent = presentation === "page" || phone ? t("backToList") : t("close");
+  els.detailExpand.hidden = !selectedId || presentation === "page";
+  if (selectedId) els.detailExpand.href = detailUrl(selectedId, view);
+  els.detailPanel.querySelector(".ws-detail-bar").hidden = !selectedId;
+
+  if (!selectedId) {
+    els.detailBody.innerHTML = `<div class="empty-state"><strong>${t("selectItem")}</strong></div>`;
+    return;
+  }
+  const item = findItem(view, selectedId);
+  if (!item) {
+    els.detailBody.innerHTML = `<div class="empty-state"><strong>${t("recordMissing")}</strong></div>`;
+    return;
+  }
+  const kind = VIEW_KINDS[view];
+  els.detailBody.innerHTML = itemDetail(view, kind, item);
+  bindDecisionForm(view, kind, item);
+}
 
 function signalDetailFields(item) {
   return `
@@ -404,29 +614,47 @@ function signalDetailFields(item) {
   `;
 }
 
+// A relation field (linked signal/action id) arrives as a bare business id —
+// resolved to its own record's label when loaded, "not loaded" otherwise.
+// Never the raw id.
 function actionDetailFields(item) {
+  const linkedSignals = (item.linked_signal_ids || []).map((id) => {
+    const signal = findItem("signals", id);
+    return signal
+      ? `<a href="${recordUrl(signal.id, "signals")}">${escapeHtml(itemLabel(signal))}</a>`
+      : `<span class="muted">${t("notLoaded")}</span>`;
+  });
   return `
     <div class="field"><span>${t("priority")}</span><p>${escapeHtml(enumLabel(item.priority, "priority") || item.priority)}</p></div>
     <div class="field"><span>${t("owner")}</span><p>${escapeHtml(item.owner)}</p></div>
     ${item.reason ? `<div class="field"><span>${t("reason")}</span><p>${escapeHtml(item.reason)}</p></div>` : ""}
-    ${(item.linked_signal_ids || []).length ? `<div class="field"><span>${t("linkedSignals")}</span><p>${item.linked_signal_ids.map((id) => escapeHtml(id)).join(", ")}</p></div>` : ""}
+    ${linkedSignals.length ? `<div class="field"><span>${t("linkedSignals")}</span><p>${linkedSignals.join(", ")}</p></div>` : ""}
     ${item.next_step ? `<div class="field"><span>${t("nextStep")}</span><p>${escapeHtml(item.next_step)}</p></div>` : ""}
   `;
 }
 
 function draftDetailFields(item) {
+  const linkedAction = item.linked_action_id ? findItem("actions", item.linked_action_id) : null;
   return `
     <div class="field"><span>${t("channel")}</span><p>${escapeHtml(item.channel)}</p></div>
-    ${item.linked_action_id ? `<div class="field"><span>${t("linkedAction")}</span><p>${escapeHtml(item.linked_action_id)}</p></div>` : ""}
+    ${
+      item.linked_action_id
+        ? `<div class="field"><span>${t("linkedAction")}</span><p>${
+            linkedAction
+              ? `<a href="${recordUrl(linkedAction.id, "actions")}">${escapeHtml(itemLabel(linkedAction))}</a>`
+              : `<span class="muted">${t("notLoaded")}</span>`
+          }</p></div>`
+        : ""
+    }
     <div class="field"><span>${t("summary")}</span><p>${escapeHtml(item.effective_body)}</p></div>
-    <label class="field"><span>${t("editedDraft")}</span><textarea data-edited-body>${escapeHtml(item.edited_body || item.body || "")}</textarea></label>
+    <label class="field"><span>${t("editedDraft")}</span><textarea data-edited-body rows="7">${escapeHtml(item.edited_body || item.body || "")}</textarea></label>
   `;
 }
 
 function decisionActions(kind) {
   const disabled = state.saving ? "disabled" : "";
   const buttons = [
-    `<button type="button" class="primary" data-action="approve" ${disabled}>${t("approve")}</button>`,
+    `<button type="button" class="approve" data-action="approve" ${disabled}>${t("approve")}</button>`,
     `<button type="button" data-action="request_changes" ${disabled}>${t("requestChanges")}</button>`,
     `<button type="button" class="danger" data-action="block" ${disabled}>${t("block")}</button>`,
   ];
@@ -434,55 +662,50 @@ function decisionActions(kind) {
   return buttons.join("");
 }
 
-function renderDetail(view) {
-  const kind = VIEW_KINDS[view];
-  const item = findItem(view, state.route.id);
-  if (!item) {
-    renderList(view);
-    return;
-  }
-  els.title.textContent = itemLabel(item);
-  els.subtitle.textContent = `#${item.ref} · ${enumLabel(item.status)}`;
+// One detail markup for every kind, same shape the split queue (and the
+// `/record` full page, and a reloaded `?peek=`) all render identically.
+function itemDetail(view, kind, item) {
   const fields =
     kind === "signal"
       ? signalDetailFields(item)
       : kind === "action"
         ? actionDetailFields(item)
         : draftDetailFields(item);
-  els.content.innerHTML = `
-    ${demoBanner()}
-    <section class="item-detail">
-      <div class="item-list">${itemsForView(view)
-        .map((entry) => itemRow(view, entry))
-        .join("")}</div>
-      <div class="item-panel">
-        <a class="back-link" href="#/${view}">← ${t("back")}</a>
-        <div class="item-panel-head">
-          ${statusBadge(item.status)}
-          ${riskBadges(item.risk)}
-        </div>
-        <h2>${escapeHtml(itemLabel(item))}</h2>
-        ${item.summary ? `<p>${escapeHtml(item.summary)}</p>` : ""}
-        ${fields}
-        <label class="field"><span>${t("reviewNote")}</span><textarea data-review-note>${escapeHtml(item.decision?.comment || "")}</textarea></label>
-        <div class="actions-bar" data-decision-actions>${decisionActions(kind)}</div>
-        <div class="decision-feedback" data-decision-feedback></div>
-      </div>
-    </section>
+  return `
+    <article class="item-review" data-item="${escapeHtml(item.id)}">
+      <header class="queue-head">
+        <span class="queue-ref">#${item.ref}</span>
+        ${statusBadge(item.status)}
+        ${riskBadges(item.risk)}
+      </header>
+      <h2 class="queue-subject">${escapeHtml(itemLabel(item))}</h2>
+      ${item.summary ? `<p class="muted">${escapeHtml(item.summary)}</p>` : ""}
+      ${fields}
+      <label class="field"><span>${t("reviewNote")}</span><textarea data-review-note rows="2">${escapeHtml(item.decision?.comment || "")}</textarea></label>
+      <div class="queue-actions" data-decision-actions>${decisionActions(kind)}</div>
+      <div class="decision-feedback${state.feedback && state.feedback.id === item.id ? ` ${state.feedback.type}` : ""}" data-decision-feedback>${
+        state.feedback && state.feedback.id === item.id ? escapeHtml(state.feedback.text) : ""
+      }</div>
+    </article>
   `;
-  bindDecisionForm(view, kind, item);
 }
 
+// The feedback message lives in state, not a DOM mutation applied after the
+// fact: `render()` in the `finally` block below always rebuilds
+// `detailBody` from `itemDetail()` (loadState()'s own render() does too),
+// so writing the result straight onto a `[data-decision-feedback]` node gets
+// silently wiped by that very next render — itemDetail() has to be able to
+// read it back.
 function bindDecisionForm(view, kind, item) {
-  const panel = els.content.querySelector("[data-decision-actions]");
+  const panel = els.detailBody.querySelector("[data-decision-actions]");
   if (!panel) return;
   panel.querySelectorAll("[data-action]").forEach((button) => {
     button.addEventListener("click", async () => {
       const action = button.dataset.action;
-      const note = els.content.querySelector("[data-review-note]")?.value || "";
-      const editedBody = els.content.querySelector("[data-edited-body]")?.value || "";
-      const feedback = els.content.querySelector("[data-decision-feedback]");
+      const note = els.detailBody.querySelector("[data-review-note]")?.value || "";
+      const editedBody = els.detailBody.querySelector("[data-edited-body]")?.value || "";
       state.saving = true;
+      state.feedback = null;
       render();
       try {
         const provider = await getProvider();
@@ -495,68 +718,64 @@ function bindDecisionForm(view, kind, item) {
         });
         if (!result.ok) throw new Error(result.error || t("decisionError"));
         await loadState();
-        location.hash = `#/${view}/${encodeURIComponent(item.id)}`;
-        const again = els.content.querySelector("[data-decision-feedback]");
-        if (again) {
-          again.textContent = t("decisionSaved");
-          again.className = "decision-feedback positive";
-        }
+        state.feedback = { id: item.id, type: "positive", text: t("decisionSaved") };
       } catch (error) {
-        state.saving = false;
-        render();
-        const again = els.content.querySelector("[data-decision-feedback]");
-        if (again) {
-          again.textContent = error instanceof Error ? error.message : String(error);
-          again.className = "decision-feedback negative";
-        } else if (feedback) {
-          feedback.textContent = error instanceof Error ? error.message : String(error);
-          feedback.className = "decision-feedback negative";
-        }
+        state.feedback = {
+          id: item.id,
+          type: "negative",
+          text: error instanceof Error ? error.message : String(error),
+        };
       } finally {
         state.saving = false;
+        render();
       }
     });
   });
 }
 
-/* ---------- Sources ---------- */
-
-function renderSources() {
-  els.title.textContent = t("sources");
+// ── Sources (flat reference list, no detail) ────────────────────────────────
+function filteredSources() {
+  const query = state.sourcesQuery.trim().toLowerCase();
   const sources = state.batch?.sources || [];
-  els.subtitle.textContent = `${sources.length} ${t("sources").toLowerCase()}`;
-  els.content.innerHTML = `
-    ${demoBanner()}
-    <div class="source-list">
-      ${
-        sources
+  if (!query) return sources;
+  return sources.filter((item) => matches([item.label, item.coverage, item.status, item.freshness], query));
+}
+
+function sourcesTable(items) {
+  return `
+    <table class="ws-table fin-table sources-table">
+      ${tableHead([[t("title")], [t("status")], [t("freshness")], [t("coverage")]])}
+      <tbody>
+        ${items
           .map(
-            (source) => `
-        <div class="source-row">
-          <div class="source-row-head">
-            <strong>${escapeHtml(source.label)}</strong>
-            ${statusBadge(source.status)}
-          </div>
-          <p class="muted">${escapeHtml(source.coverage || "")}</p>
-          <span class="muted">${t("freshness")}: ${escapeHtml(source.freshness || "")}</span>
-        </div>
-      `,
+            (item) => `
+          <tr>
+            ${cell(`<span class="strong">${escapeHtml(item.label)}</span>`, item.label)}
+            ${cell(statusBadge(item.status))}
+            ${cell(escapeHtml(item.freshness || ""))}
+            ${cell(escapeHtml(item.coverage || ""), item.coverage)}
+          </tr>
+        `,
           )
-          .join("") || `<div class="empty">${t("empty")}</div>`
-      }
-    </div>
+          .join("")}
+      </tbody>
+    </table>
   `;
 }
 
-/* ---------- Settings ---------- */
+function renderSources() {
+  const items = filteredSources();
+  els.sourcesCount.textContent = String(items.length);
+  const empty = `<div class="empty-state"><strong>${escapeHtml(state.sourcesQuery ? t("noMatches") : t("empty"))}</strong></div>`;
+  els.sourcesBody.innerHTML = items.length ? sourcesTable(items) : empty;
+}
 
+// ── Help & Settings ────────────────────────────────────────────────────────
 function renderSettings() {
-  els.title.textContent = t("settings");
-  els.subtitle.textContent = state.batch?.vertical || "";
   const b = state.batch || {};
-  els.content.innerHTML = `
-    <div class="settings-grid">
-      <section class="item-panel">
+  els.settingsBody.innerHTML = `
+    <div class="settings">
+      <section class="card">
         <h2>${t("configuration")}</h2>
         <dl>
           <dt>${t("dataProvider")}</dt><dd>${escapeHtml(state.bootstrap?.data_provider || "busabase")}</dd>
@@ -570,12 +789,29 @@ function renderSettings() {
   `;
 }
 
+// ── Render dispatch ──────────────────────────────────────────────────────────
 function render() {
   renderShell();
-  const { view, id } = state.route;
-  if ((view === "signals" || view === "actions" || view === "drafts") && id) renderDetail(view);
-  else if (view === "signals" || view === "actions" || view === "drafts") renderList(view);
-  else if (view === "sources") renderSources();
+  const { view, selectedId, presentation } = state.route;
+  const ready = Boolean(state.batch);
+  const onRecordView = ready && RECORD_VIEWS.includes(view);
+  const onSourcesView = ready && view === "sources";
+  const body = document.body.classList;
+  body.toggle("ws-detail-open", onRecordView && Boolean(selectedId));
+  body.toggle("ws-detail-page", onRecordView && presentation === "page" && Boolean(selectedId));
+  body.toggle("ws-layout-split", onRecordView && presentation !== "page");
+  body.toggle(
+    "ws-searching",
+    (onRecordView || onSourcesView) && Boolean(onSourcesView ? state.sourcesQuery : state.route.query),
+  );
+  els.loadState.hidden = ready;
+  els.overviewPage.hidden = !ready || view !== "overview";
+  els.viewPage.hidden = !onRecordView;
+  els.sourcesPage.hidden = !onSourcesView;
+  els.settingsPage.hidden = !ready || view !== "settings";
+  if (!ready) return;
+  if (onRecordView) renderRecordView();
+  else if (onSourcesView) renderSources();
   else if (view === "settings") renderSettings();
   else renderOverview();
 }
@@ -594,23 +830,51 @@ function escapeHtml(value) {
   );
 }
 
-els.content.addEventListener("click", (event) => {
-  const button = event.target.closest("[data-goto-page]");
-  if (!button) return;
-  const [key, page] = button.dataset.gotoPage.split(":");
-  goToPage(key, Number(page));
+// ── Events ─────────────────────────────────────────────────────────────────
+els.listPanel.addEventListener("click", (event) => {
+  const pager = event.target.closest("[data-goto-page]");
+  if (pager) {
+    const [key, page] = pager.dataset.gotoPage.split(":");
+    goToPage(key, Number(page));
+    return;
+  }
+  if (event.target.closest("a, button")) return;
+  const row = event.target.closest("tr[data-id]");
+  if (!row) return;
+  const url = recordUrl(row.dataset.id);
+  // Switching records while the split selection is open replaces the entry,
+  // so Close still steps back to the list the selection was opened from.
+  if (state.route.peek) {
+    history.replaceState(history.state, "", url);
+    setRoute();
+  } else {
+    location.hash = url;
+  }
 });
-
+els.detailBack.addEventListener("click", closeDetail);
+document.addEventListener("keydown", (event) => {
+  if (event.key !== "Escape") return;
+  if (event.target.closest?.("textarea, input")) {
+    event.target.blur();
+    return;
+  }
+  if (state.route.selectedId && state.route.presentation && state.route.presentation !== "page") closeDetail();
+});
 window.addEventListener("hashchange", setRoute);
 window.addEventListener("resize", syncResponsiveShell);
 els.sidebarToggle?.addEventListener("click", toggleSidebar);
 els.mobileSidebarToggle?.addEventListener("click", () => setMobileSidebarOpen(true));
 els.sidebarScrim?.addEventListener("click", () => setMobileSidebarOpen(false));
 els.search.addEventListener("input", () => {
-  state.query = els.search.value;
+  replaceRoute(
+    `#/${state.route.view}${routeQuery({ peek: state.route.peek }, { ...state.route, query: els.search.value })}`,
+  );
+});
+els.sourcesSearch?.addEventListener("input", () => {
+  state.sourcesQuery = els.sourcesSearch.value;
   render();
 });
-els.refresh.addEventListener("click", () => loadState());
+els.refresh?.addEventListener("click", () => loadState());
 els.mobileRefresh?.addEventListener("click", () => loadState());
 els.language.value = state.lang;
 els.language.addEventListener("change", () => {
@@ -629,9 +893,13 @@ async function boot() {
       renderSetupRequired(error, boot);
       return;
     }
-    els.content.innerHTML = `<div class="empty">${escapeHtml(error.message)}</div>`;
+    els.loadState.hidden = false;
+    els.loadState.classList.add("error");
+    els.loadState.textContent = error instanceof Error ? error.message : String(error);
   }
 }
 
+if (els.search) els.search.value = state.route.query;
+previousRouteWasList = RECORD_VIEWS.includes(state.route.view) && !state.route.selectedId;
 syncResponsiveShell();
 boot();

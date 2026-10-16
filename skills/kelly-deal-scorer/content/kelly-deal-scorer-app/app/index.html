@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="./vendor/busabase-airapp-gate.css">
     <link rel="stylesheet" href="./accent-theme.css" />
   </head>
-  <body>
+  <body class="ws-has-mobile-bar">
     <div id="app" class="app-shell">
       <aside class="sidebar" id="appSidebar">
         <div class="brand">
@@ -23,9 +23,6 @@
             <div id="sync-status" class="brand-subtitle">Loading</div>
           </div>
           <button id="sidebarToggle" class="sidebar-toggle" type="button" aria-controls="appSidebar" aria-expanded="true" title="Toggle sidebar" aria-label="Toggle sidebar"><span class="sidebar-toggle-icon" aria-hidden="true"></span></button>
-        </div>
-        <div class="search sidebar-search">
-          <input id="search" type="search" placeholder="Search" aria-label="Search">
         </div>
         <section class="human-work" aria-labelledby="humanWorkTitle">
           <div class="human-work-eyebrow" data-i18n="attention">Deal queue</div>
@@ -78,16 +75,55 @@
           </div>
           <button id="mobileRefresh" class="mobile-refresh-button" type="button" title="Refresh" aria-label="Refresh">↻</button>
         </div>
-        <header class="topbar">
-          <div>
-            <h1 id="page-title">Overview</h1>
-            <p id="page-subtitle" class="muted"></p>
+
+        <!-- Overview: the only page with a hero and a ≤3-number metrics band. -->
+        <section id="overviewPage" class="ws-overview" hidden>
+          <header class="page-hero">
+            <div>
+              <h1 data-i18n="overview">Overview</h1>
+              <p id="overviewSubtitle" class="muted"></p>
+            </div>
+            <div class="page-actions">
+              <button id="refresh" type="button" title="Refresh" aria-label="Refresh" data-i18n="refresh">Refresh</button>
+            </div>
+          </header>
+          <div id="overviewMetrics" class="ws-metrics" aria-label="Queue summary"></div>
+          <div id="overviewBody"></div>
+        </section>
+
+        <!-- Candidates: one ws-toolbar row over a full-bleed ws-table, split
+             detail (a queue worked top to bottom — decide, then the next). -->
+        <section id="candidatesPage" class="ws-view" hidden>
+          <header class="ws-toolbar">
+            <div class="ws-title">
+              <h1 data-i18n="candidatesTitle">Candidates</h1>
+              <span id="candidatesCount" class="ws-count">0</span>
+            </div>
+            <div class="ws-actions">
+              <input id="search" type="search" placeholder="Search" aria-label="Search" data-i18n-placeholder="search">
+              <button id="candidatesRefresh" class="icon-only" type="button" title="Refresh" aria-label="Refresh">↻</button>
+            </div>
+          </header>
+          <div class="ws-workspace">
+            <div id="candidatesList" class="ws-list"></div>
+            <aside id="candidatesDetail" class="ws-detail" aria-live="polite">
+              <div class="ws-detail-bar">
+                <button id="detailBack" class="back-link" type="button" data-i18n="back">Back</button>
+                <a id="detailExpand" class="back-link" hidden data-i18n="openFullPage">Open full page</a>
+              </div>
+              <div id="candidatesDetailBody"></div>
+            </aside>
           </div>
-          <div class="topbar-actions">
-            <button id="refresh" type="button" title="Refresh" aria-label="Refresh">Refresh</button>
-          </div>
-        </header>
-        <section id="content" class="content"></section>
+        </section>
+
+        <!-- Help & Settings: a plain page, no hero, no toolbar. -->
+        <section id="settingsPage" hidden>
+          <header class="page-hero-simple">
+            <h1 data-i18n="settings">Help &amp; Settings</h1>
+            <p id="settingsSubtitle" class="muted"></p>
+          </header>
+          <div id="settingsContent"></div>
+        </section>
       </main>
     </div>
     <div id="sidebarScrim" class="sidebar-scrim" hidden></div>

@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="./vendor/busabase-airapp-gate.css">
     <link rel="stylesheet" href="./accent-theme.css" />
   </head>
-  <body>
+  <body class="ws-has-mobile-bar">
     <div id="app" class="app-shell">
       <aside class="sidebar" id="appSidebar">
         <div class="brand">
@@ -21,9 +21,6 @@
             <div id="sync-status" class="brand-subtitle">Loading</div>
           </div>
           <button id="sidebarToggle" class="sidebar-toggle" type="button" aria-controls="appSidebar" aria-expanded="true" title="Toggle sidebar" aria-label="Toggle sidebar"><span class="sidebar-toggle-icon" aria-hidden="true"></span></button>
-        </div>
-        <div class="search sidebar-search">
-          <input id="search" type="search" placeholder="Search" aria-label="Search">
         </div>
         <section class="human-work" aria-labelledby="humanWorkTitle">
           <div class="human-work-eyebrow" data-i18n="attention">Analytics</div>
@@ -73,16 +70,61 @@
           </div>
           <button id="mobileRefresh" class="mobile-refresh-button" type="button" title="Refresh" aria-label="Refresh">↻</button>
         </div>
-        <header class="topbar">
-          <div>
-            <h1 id="page-title">Overview</h1>
-            <p id="page-subtitle" class="muted"></p>
+        <div id="loadState" class="load-state" role="status">Loading</div>
+        <!-- Overview is the only page with a hero and a metrics band. -->
+        <section id="overviewPage" class="ws-overview" hidden>
+          <header class="page-hero">
+            <div>
+              <h1 id="overviewTitle">Overview</h1>
+              <p id="overviewSummary" class="muted"></p>
+            </div>
+            <div class="page-actions">
+              <button id="refresh" class="button" type="button" title="Refresh">Refresh</button>
+            </div>
+          </header>
+          <div id="overviewMetrics" class="ws-metrics" aria-label="Funnel summary"></div>
+          <div id="overviewBody"></div>
+        </section>
+        <!-- Record view: one toolbar row over a full-bleed table. The only
+             Base with its own browsable list is Segments. -->
+        <section id="segmentsPage" class="ws-view" hidden>
+          <header class="ws-toolbar">
+            <div class="ws-title">
+              <h1 id="segmentsViewTitle" title="">Segments</h1>
+              <span id="segmentsCount" class="ws-count"></span>
+            </div>
+            <div class="ws-actions">
+              <label class="search toolbar-search">
+                <span class="sr-only" data-i18n="search">Search</span>
+                <input id="search" type="search" autocomplete="off" placeholder="Search">
+              </label>
+            </div>
+          </header>
+          <div class="ws-workspace">
+            <div id="segmentsList" class="ws-list"></div>
+            <aside id="segmentsDetail" class="ws-detail" aria-live="polite">
+              <div class="ws-detail-bar">
+                <button id="detailBack" class="button" type="button">Back</button>
+                <a id="detailExpand" class="button" hidden>Open full page</a>
+              </div>
+              <div id="segmentsDetailBody"></div>
+            </aside>
           </div>
-          <div class="topbar-actions">
-            <button id="refresh" type="button" title="Refresh" aria-label="Refresh">Refresh</button>
-          </div>
-        </header>
-        <section id="content" class="content"></section>
+        </section>
+        <!-- Backtest is a cross-segment report, not a selectable record list:
+             one toolbar row, then a scrollable report body. -->
+        <section id="backtestPage" class="ws-view" hidden>
+          <header class="ws-toolbar">
+            <div class="ws-title"><h1 id="backtestViewTitle">Backtest</h1></div>
+          </header>
+          <div id="backtestBody" class="ws-report-body"></div>
+        </section>
+        <section id="settingsPage" class="ws-view" hidden>
+          <header class="ws-toolbar">
+            <div class="ws-title"><h1 id="settingsTitle">Help & Settings</h1></div>
+          </header>
+          <div id="settingsBody" class="ws-report-body"></div>
+        </section>
       </main>
     </div>
     <div id="sidebarScrim" class="sidebar-scrim" hidden></div>

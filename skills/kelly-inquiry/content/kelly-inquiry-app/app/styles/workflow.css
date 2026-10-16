@@ -10,7 +10,6 @@
 
   .metric,
   .overview-panel,
-  .product-card,
   .settings section,
   .empty,
   .warnings,
@@ -250,43 +249,39 @@
     background: var(--panel);
   }
 
-  table {
+  /* Scoped to .table-wrap (the quote line-items worksheet nested inside a
+   * detail body) — a bare `table`/`th,td` element selector would also hit
+   * the record-view .ws-table lists and fight their layout (see base-ui.css
+   * "Record views" header comment). */
+  .table-wrap table {
     width: 100%;
     min-width: 920px;
     border-collapse: collapse;
   }
 
-  th,
-  td {
+  .table-wrap th,
+  .table-wrap td {
     padding: 11px 12px;
     border-bottom: 1px solid var(--line);
     text-align: left;
     vertical-align: top;
   }
 
-  th {
+  .table-wrap th {
     color: var(--muted);
     font-size: var(--text-sm);
     font-weight: 700;
     background: var(--surface-hover);
   }
 
-  tbody tr:last-child td {
+  .table-wrap tbody tr:last-child td {
     border-bottom: 0;
   }
 
-  tfoot td {
+  .table-wrap tfoot td {
     border-bottom: 0;
     border-top: 1px solid var(--line);
     background: var(--surface-hover);
-  }
-
-  .row-link {
-    cursor: pointer;
-  }
-
-  .row-link:hover td {
-    background: var(--panel-subtle);
   }
 
   .num {
@@ -348,6 +343,21 @@
   .overview-panel {
     padding: 16px;
     min-width: 0;
+  }
+
+  .overview-panel.span-2 {
+    grid-column: 1 / -1;
+  }
+
+  .metric-inline {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-top: 4px;
+  }
+
+  .metric-inline strong {
+    font-size: var(--text-xl);
   }
 
   .funnel-svg {
@@ -473,8 +483,41 @@
     overflow-wrap: anywhere;
   }
 
-  .back-to-list {
-    display: none;
+  /* A compact header for the record's own name/context inside the detail
+   * body — distinct from the removed per-page title/subtitle: this travels
+   * with the record, not the view, so it never duplicates the ws-toolbar. */
+  .detail-head {
+    margin: 0 0 14px;
+  }
+
+  .detail-head h2 {
+    font-size: var(--text-lg);
+  }
+
+  .detail-head p {
+    margin: 4px 0 0;
+  }
+
+  /* Products open in a drawer (narrower than the inquiry/quote full page);
+   * the two-column .detail grid has no room for a 320px side there, so it
+   * stacks instead. */
+  body.ws-detail-drawer #detailBody .detail {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sr-only {
+    position: absolute;
+    overflow: hidden;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    border: 0;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  .toolbar-search {
+    width: 220px;
   }
 
   /* ----- conversation ----- */
@@ -600,12 +643,6 @@
 
   /* ----- approvals ----- */
 
-  .approval-list {
-    display: grid;
-    gap: 12px;
-    max-width: 880px;
-  }
-
   .approval-card {
     display: grid;
     gap: 9px;
@@ -677,51 +714,6 @@
   }
 
   /* ----- products ----- */
-
-  .product-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: 14px;
-  }
-
-  .product-card {
-    display: grid;
-    gap: 9px;
-    padding: 16px;
-    align-content: start;
-  }
-
-  .product-card:hover {
-    border-color: var(--line-strong);
-    background: var(--surface-soft);
-  }
-
-  .row {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-  }
-
-  .between {
-    justify-content: space-between;
-  }
-
-  .product-meta {
-    display: grid;
-    grid-template-columns: 96px minmax(0, 1fr);
-    gap: 6px;
-    margin: 0;
-    font-size: var(--text-sm);
-  }
-
-  .product-meta dt {
-    color: var(--muted);
-  }
-
-  .product-meta dd {
-    margin: 0;
-    overflow-wrap: anywhere;
-  }
 
   .faq-panel {
     margin-top: 2px;
@@ -970,21 +962,6 @@
       gap: 12px;
     }
 
-    .back-to-list {
-      position: sticky;
-      top: -12px;
-      z-index: 3;
-      display: inline-flex;
-      align-items: center;
-      justify-content: flex-start;
-      width: calc(100% + 24px);
-      margin: -12px -12px 10px;
-      border-width: 0 0 1px;
-      border-radius: 0;
-      background: var(--surface-blur);
-      backdrop-filter: blur(12px);
-    }
-
     .bubble {
       max-width: 92%;
     }
@@ -1017,7 +994,7 @@
       gap: 3px;
     }
 
-    table {
+    .table-wrap table {
       min-width: 760px;
     }
 

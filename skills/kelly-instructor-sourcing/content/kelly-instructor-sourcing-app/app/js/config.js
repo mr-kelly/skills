@@ -61,4 +61,13 @@ export const appConfig = {
     setupProcedures: ["nodes.createChangeRequest", "nodes.updateMetadata"],
     writeProcedures: ["bases.createChangeRequest", "records.changeRequest"],
   },
+  ui: {
+    // `candidates` is a queue worked top to bottom — screen one candidate
+    // after the next, score it, decide, move on — so the record stays beside
+    // the list it came from (`split`), never a full page or a drawer.
+    // `criteria` is a single config record, not a browsable list: it has no
+    // detail mode of its own (see ui-and-validation.md "Choose The Detail
+    // Mode" — the table only applies to Bases people browse many rows of).
+    detail_modes: { candidates: "split" },
+  },
 };

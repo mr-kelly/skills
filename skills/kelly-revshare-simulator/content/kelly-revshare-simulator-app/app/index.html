@@ -22,9 +22,6 @@
           </div>
           <button id="sidebarToggle" class="sidebar-toggle" type="button" aria-controls="appSidebar" aria-expanded="true" title="Toggle sidebar" aria-label="Toggle sidebar"><span class="sidebar-toggle-icon" aria-hidden="true"></span></button>
         </div>
-        <div class="search sidebar-search">
-          <input id="search" type="search" placeholder="Search" aria-label="Search">
-        </div>
         <section class="human-work" aria-labelledby="humanWorkTitle">
           <div class="human-work-eyebrow" data-i18n="attention">Underwriting</div>
           <div id="humanWorkTitle" class="human-work-title" data-i18n="humanWorkTitle">Deals needing a decision</div>
@@ -70,21 +67,68 @@
           </div>
           <button id="mobileRefresh" class="mobile-refresh-button" type="button" title="Refresh" aria-label="Refresh">↻</button>
         </div>
-        <header class="topbar">
-          <div>
-            <h1 id="page-title">Overview</h1>
-            <p id="page-subtitle" class="muted"></p>
-          </div>
-          <div class="topbar-actions">
-            <button id="newScenarioBtn" type="button" data-i18n="newScenario">New scenario</button>
-            <button id="refresh" type="button" title="Refresh" aria-label="Refresh">Refresh</button>
-          </div>
-        </header>
-        <section id="content" class="content">
+        <div id="loadState" class="load-state" role="status">
           <div class="skeleton-group" aria-hidden="true">
             <div class="skeleton skeleton-metrics"></div>
             <div class="skeleton skeleton-panel"></div>
           </div>
+        </div>
+        <!-- Overview is the only page with a hero and a metrics band. -->
+        <section id="overviewPage" class="ws-overview" hidden>
+          <header class="page-hero">
+            <div>
+              <h1 data-i18n="overview">Overview</h1>
+              <p id="overviewSummary"></p>
+            </div>
+            <div class="page-actions">
+              <button id="refresh" type="button" title="Refresh" aria-label="Refresh" data-i18n="refresh">Refresh</button>
+            </div>
+          </header>
+          <div id="overviewMetrics" class="ws-metrics" aria-label="Scenario summary"></div>
+          <div id="overviewBody"></div>
+        </section>
+        <!-- Record view: one toolbar row over a full-bleed table. Detail mode
+             is `page`: a scenario is a workplace of its own (chart, risk
+             flags, editable inputs, underwriting decision) that an analyst
+             stays on for minutes, not a fact scanned in passing. -->
+        <section id="scenariosPage" class="ws-view" hidden>
+          <header class="ws-toolbar">
+            <div class="ws-title">
+              <h1 id="scenariosTitle" data-i18n="scenariosTitle">Scenarios</h1>
+              <span id="scenariosCount" class="ws-count"></span>
+            </div>
+            <div class="ws-actions">
+              <div id="scenarioFilters" class="filter-row"></div>
+              <select id="scenarioFilterSelect" class="status-select" aria-label="Filter"></select>
+              <button id="newScenarioBtn" type="button" data-i18n="newScenario">New scenario</button>
+              <label class="search toolbar-search">
+                <span class="sr-only" data-i18n="search">Search</span>
+                <input id="search" type="search" autocomplete="off" placeholder="Search">
+              </label>
+            </div>
+          </header>
+          <div class="ws-workspace">
+            <div id="scenariosList" class="ws-list"></div>
+            <aside id="scenarioDetail" class="ws-detail" aria-live="polite">
+              <div class="ws-detail-bar">
+                <a id="detailBackLink" class="back-link" href="#/scenarios">← <span data-i18n="back">Back</span></a>
+              </div>
+              <div id="scenarioDetailBody"></div>
+            </aside>
+          </div>
+        </section>
+        <section id="comparisonPage" class="ws-view" hidden>
+          <header class="ws-toolbar">
+            <div class="ws-title"><h1 data-i18n="comparisonTitle">Comparison</h1></div>
+            <div class="ws-actions"><span id="comparisonHint" class="muted"></span></div>
+          </header>
+          <div id="comparisonBody" class="content"></div>
+        </section>
+        <section id="settingsPage" class="ws-view" hidden>
+          <header class="ws-toolbar">
+            <div class="ws-title"><h1 data-i18n="settings">Help & Settings</h1></div>
+          </header>
+          <div id="settingsBody" class="content"></div>
         </section>
       </main>
     </div>

@@ -149,21 +149,6 @@
     min-width: 0;
   }
 
-  .topbar {
-    position: sticky;
-    top: 0;
-    z-index: 1;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    min-height: 80px;
-    padding: 18px 24px;
-    border-bottom: 1px solid var(--line);
-    background: var(--surface-blur);
-    backdrop-filter: blur(10px);
-  }
-
   h1,
   h2 {
     margin: 0;
@@ -178,25 +163,6 @@
     font-size: var(--text-lg);
   }
 
-  .topbar-actions {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-  }
-
-  .content {
-    padding: 24px;
-  }
-
-  .metrics {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(150px, 1fr));
-    gap: 12px;
-    margin-bottom: 18px;
-  }
-
-  .metric,
-  .account-card,
   .settings section,
   .detail-side,
   .empty,
@@ -207,35 +173,13 @@
     background: var(--panel);
   }
 
-  .metric {
-    padding: 14px;
-  }
-
-  .metric span {
-    display: block;
-    color: var(--muted);
-    font-size: var(--text-sm);
-  }
-
-  .metric strong {
-    display: block;
-    margin-top: 8px;
-    font-size: var(--text-xl);
-  }
-
-  .table-wrap {
-    overflow: auto;
-    border: 1px solid var(--line);
-    border-radius: var(--radius-sm);
-    background: var(--panel);
-  }
-
-  table {
-    width: 100%;
-    min-width: 980px;
-    border-collapse: collapse;
-  }
-
+  /* `.ws-table` (base-ui.css) owns width/row sizing for every table this app
+   * renders now; a plain `table` rule here must not set `min-width`, because
+   * cascade layers only override a PROPERTY that the unlayered rule also
+   * sets — `.ws-table` never declares `min-width`, so a layered `980px`
+   * here would still win by default and force every ws-table (including the
+   * ~300px split-queue column) to overflow. Kept only for text-align/
+   * vertical-align/padding, which `.ws-table` does set and does override. */
   th,
   td {
     padding: 11px 12px;
@@ -316,22 +260,6 @@
     border: 1px solid color-mix(in srgb, var(--danger) 34%, var(--line));
     background: var(--surface-soft);
     color: var(--bad);
-  }
-
-  .account-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: 14px;
-  }
-
-  .account-card {
-    display: grid;
-    gap: 10px;
-    padding: 16px;
-  }
-
-  .account-card:hover {
-    border-color: var(--accent);
   }
 
   .row {
@@ -568,14 +496,6 @@
       height: auto;
     }
 
-    .topbar {
-      position: static;
-      align-items: stretch;
-      flex-direction: column;
-    }
-
-    .topbar-actions,
-    .metrics,
     .overview-grid,
     .invoice-summary,
     .invoice-detail-panel,
@@ -594,14 +514,12 @@
 
   button,
   .attention,
-  .account-card,
   .invoice-detail-panel,
   .settings-account {
     box-shadow: none;
   }
 
-  button:hover,
-  .account-card:hover {
+  button:hover {
     box-shadow: none;
   }
 
@@ -969,12 +887,20 @@
     background: color-mix(in srgb, var(--surface) 72%, transparent);
   }
 
+  /* flex, not a fixed-track grid: `#overviewPage`/`#viewPage`/`#settingsPage`
+   * are mutually `[hidden]`, so only ONE of them is ever a layout participant
+   * at a time. A `grid-template-rows: auto 1fr` main would auto-place that
+   * lone child into the first (auto, shrink-to-fit) row and leave the `1fr`
+   * row empty — the page collapses to its content height instead of filling
+   * the viewport, and a drawer/split detail positioned against the starved
+   * `.ws-workspace` gets clipped. `.ws-view`/`.ws-overview` (base-ui.css)
+   * already declare `flex: 1 1 auto` for exactly this flex parent. */
   .main {
     min-width: 0;
     min-height: 0;
     height: 100vh;
-    display: grid;
-    grid-template-rows: auto 1fr;
+    display: flex;
+    flex-direction: column;
     overflow: hidden;
   }
 
@@ -984,24 +910,6 @@
 
   .mobile-sidebar-toggle {
     display: none;
-  }
-
-  .topbar {
-    position: static;
-    z-index: 1;
-    min-height: 58px;
-    padding: 10px 18px;
-    border-bottom: 1px solid var(--line);
-    background: var(--surface-blur);
-  }
-
-  .topbar h1 {
-    font-size: var(--text-xl);
-    line-height: 1.2;
-  }
-
-  .topbar-actions {
-    gap: 8px;
   }
 
   button,
@@ -1023,47 +931,17 @@
     background: var(--surface-soft);
   }
 
-  .content {
-    min-height: 0;
-    overflow: auto;
-    padding: 16px 18px 24px;
-  }
-
-  .metrics {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 10px;
-    margin-bottom: 14px;
-  }
-
-  .metric,
-  .account-card,
   .settings section,
   .detail-side,
   .empty,
   .warnings,
   .overview-panel,
-  .table-wrap,
   .invoice-detail-panel > div,
   .audit-panel {
     border-color: var(--line);
     border-radius: var(--radius-sm);
     background: var(--panel);
     box-shadow: none;
-  }
-
-  .metric {
-    padding: 12px;
-  }
-
-  .metric strong {
-    margin-top: 6px;
-    font-size: var(--text-xl);
-  }
-
-  .table-wrap {
-    border-radius: 0;
-    border-left: 0;
-    border-right: 0;
   }
 
   th {
@@ -1073,11 +951,6 @@
   td,
   th {
     border-bottom-color: var(--line);
-  }
-
-  .account-card:hover {
-    border-color: var(--line-strong);
-    background: var(--surface-soft);
   }
 
   .badge,
@@ -1115,7 +988,6 @@
       grid-template-columns: 220px minmax(0, 1fr);
     }
 
-    .metrics,
     .invoice-summary,
     .invoice-detail-panel {
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1202,7 +1074,6 @@
     }
 
     .main {
-      grid-template-rows: auto minmax(0, 1fr);
       height: 100dvh;
     }
 
@@ -1255,15 +1126,6 @@
       padding: 0;
     }
 
-    .topbar {
-      display: none;
-    }
-
-    .content {
-      padding: 12px;
-    }
-
-    .metrics,
     .invoice-summary,
     .invoice-detail-panel,
     .settings-account {
@@ -1273,25 +1135,6 @@
     .overview-grid {
       grid-template-columns: 1fr;
       gap: 12px;
-    }
-
-    .metrics {
-      gap: 8px;
-    }
-
-    .metric {
-      padding: 10px 12px;
-    }
-
-    .table-wrap {
-      max-width: 100%;
-      border-left: 1px solid var(--line);
-      border-right: 1px solid var(--line);
-      border-radius: var(--radius-sm);
-    }
-
-    table {
-      min-width: 760px;
     }
   }
 

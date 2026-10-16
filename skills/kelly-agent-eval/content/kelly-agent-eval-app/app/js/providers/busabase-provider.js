@@ -101,6 +101,7 @@ function normalizePageRows(key, rows) {
 }
 
 async function findRecord(key, idFieldSlug, idValue) {
+  if (!allowedReads.has("records.get")) throw new Error("PROCEDURE_DENIED: records.get");
   const declared = base(key);
   try {
     return await runtimeClient.records.get({ baseId: declared.baseId, fieldSlug: idFieldSlug, valueText: idValue });
@@ -242,6 +243,15 @@ export const busabaseProvider = {
       `Record release decision: ${decision}`,
     );
     return { ok: true };
+  },
+
+  // A case named by the URL (`?peek=` or a `/record` path) but not on the
+  // loaded page — read on its own instead of loading more pages to find it.
+  async getRecord(caseId) {
+    await ensureResources();
+    const row = await findRecord("cases", "case-id", caseId);
+    if (!row) return null;
+    return computeCase(normalizeFields(row.headCommit?.payload || row.headCommit?.fields || row.fields));
   },
 
   async fetchPage(key, cursor) {

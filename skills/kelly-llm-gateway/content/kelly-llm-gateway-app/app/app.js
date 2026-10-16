@@ -1,48 +1,79 @@
 import { appConfig } from "./js/config.js?v=0.1.0";
 import { closeConnectGate, passConnectGate, renderSetupRequired } from "./js/connect-gate.js?v=0.1.0";
 import { buildSnapshot } from "./js/gateway-model.js?v=0.1.0";
+import {
+  renderAnomalies,
+  renderOverview,
+  renderRollouts,
+  renderSettings,
+  renderSpend,
+  submitAnomalyAck,
+  submitRolloutDecision,
+} from "./js/gateway-views.js";
 import { createPagination } from "./js/pagination.js?v=0.1.0";
 import { getProvider } from "./js/providers/index.js?v=0.1.0";
 
-const state = {
+// Where each record view opens a route (see config.js ui.detail_modes for the
+// why). Anomalies are derived from routes rather than their own Base, but
+// they are addressed the same way as a record view.
+export const DETAIL_MODES = appConfig.ui.detail_modes;
+const RECORD_VIEWS = Object.keys(DETAIL_MODES);
+// Views backed by the paginated `routes` Base — selecting a route by id may
+// land on a route not on the currently loaded page.
+const ROUTE_BACKED_VIEWS = ["spend", "rollouts"];
+
+export const state = {
   snapshot: null,
   settings: null,
+  provider: null,
   route: parseRoute(),
-  query: "",
   sort: { key: "cost_today", dir: "desc" },
+  // A route named by the URL (shared link, refresh on a later page) that is
+  // not on the loaded page, read on its own via records.get.
+  extra: new Map(),
   lang: normalizeLang(
     new URLSearchParams(location.search).get("lang") || localStorage.getItem("kelly-llm-gateway-language") || "auto",
   ),
   demo: new URLSearchParams(location.search).get("demo") || "",
   messages: { en: {}, zh: {} },
   busy: false,
+  notice: "",
 };
 
 const SIDEBAR_COLLAPSED_STORAGE_KEY = "kelly-llm-gateway.sidebarCollapsed";
 
-const els = {
-  title: document.querySelector("#page-title"),
-  subtitle: document.querySelector("#page-subtitle"),
-  content: document.querySelector("#content"),
-  search: document.querySelector("#search"),
-  refresh: document.querySelector("#refresh"),
-  mobileRefresh: document.querySelector("#mobileRefresh"),
-  sidebarToggle: document.querySelector("#sidebarToggle"),
-  mobileSidebarToggle: document.querySelector("#mobileSidebarToggle"),
-  sidebarScrim: document.querySelector("#sidebarScrim"),
-  mobileViewTitle: document.querySelector("#mobileViewTitle"),
-  mobileViewMeta: document.querySelector("#mobileViewMeta"),
-  syncStatus: document.querySelector("#sync-status"),
-  ackCount: document.querySelector("#ack-count"),
-  midRolloutCount: document.querySelector("#count-mid-rollout"),
-  readyPromoteCount: document.querySelector("#count-ready-promote"),
-  language: document.querySelector("#language"),
+const byId = (id) => document.getElementById(id);
+export const els = {
+  loadState: byId("loadState"),
+  overviewPage: byId("overviewPage"),
+  viewPage: byId("viewPage"),
+  settingsPage: byId("settingsPage"),
+  viewTitle: byId("viewTitle"),
+  viewCount: byId("viewCount"),
+  listPanel: byId("listPanel"),
+  detailPanel: byId("detailPanel"),
+  detailBody: byId("detailBody"),
+  detailBack: byId("detailBack"),
+  detailExpand: byId("detailExpand"),
+  search: byId("search"),
+  refresh: byId("refresh"),
+  mobileRefresh: byId("mobileRefresh"),
+  sidebarToggle: byId("sidebarToggle"),
+  mobileSidebarToggle: byId("mobileSidebarToggle"),
+  sidebarScrim: byId("sidebarScrim"),
+  mobileViewTitle: byId("mobileViewTitle"),
+  mobileViewMeta: byId("mobileViewMeta"),
+  syncStatus: byId("sync-status"),
+  ackCount: byId("ack-count"),
+  midRolloutCount: byId("count-mid-rollout"),
+  readyPromoteCount: byId("count-ready-promote"),
+  language: byId("language"),
 };
 
 const PAGINATED_KEYS = ["routes"];
 const pagination = createPagination({
   getProvider,
-  pageSizes: Object.fromEntries(appConfig.bases.map((base) => [base.key, base.readLimit])),
+  pageSizes: Object.fromEntries(appConfig.bases.map((entry) => [entry.key, entry.readLimit])),
   applyPage: (key, rows) => {
     state.snapshot = buildSnapshot({
       services: state.snapshot.services,
@@ -54,9 +85,10 @@ const pagination = createPagination({
   render: () => render(),
   label: (key) => t(key),
   onError: (error) => {
-    state.pageError = error instanceof Error ? error.message : String(error);
+    state.notice = error instanceof Error ? error.message : String(error);
   },
 });
+export { pagination };
 
 function isMobileLayout() {
   return window.matchMedia("(max-width: 720px)").matches;
@@ -109,11 +141,11 @@ function normalizeLang(lang) {
     : lang || "auto";
 }
 
-function t(key) {
+export function t(key) {
   return state.messages[activeLang()]?.[key] || state.messages.en[key] || key;
 }
 
-function enumLabel(value, group) {
+export function enumLabel(value, group) {
   if (!value) return "";
   const key = String(value);
   return (
@@ -131,7 +163,7 @@ async function loadMessages() {
   state.messages = { en, zh };
 }
 
-function money(value, currency = state.snapshot?.base_currency || "USD") {
+export function money(value, currency = state.snapshot?.base_currency || "USD") {
   return new Intl.NumberFormat(activeLang() === "zh" ? "zh-Hans" : "en-US", {
     style: "currency",
     currency,
@@ -139,46 +171,150 @@ function money(value, currency = state.snapshot?.base_currency || "USD") {
   }).format(Number(value || 0));
 }
 
-function pct(value) {
-  const n = Number(value || 0);
-  return `${n.toFixed(2)}%`;
-}
-
-function signedPct(value) {
-  const n = Number(value || 0);
-  return `${n > 0 ? "+" : ""}${n.toFixed(1)}%`;
-}
-
-function num(value, digits = 0) {
+export function num(value, digits = 0) {
   return new Intl.NumberFormat(activeLang() === "zh" ? "zh-Hans" : "en-US", {
     maximumFractionDigits: digits,
   }).format(Number(value || 0));
 }
 
-function errorRatePct(rate) {
+export function errorRatePct(rate) {
   return `${(Number(rate || 0) * 100).toFixed(2)}%`;
 }
 
-function parseRoute() {
-  const parts = (location.hash || "#/overview").replace(/^#\/?/, "").split("/").filter(Boolean);
-  return { view: parts[0] || "overview", id: parts[1] ? decodeURIComponent(parts[1]) : "" };
+export function signedPct(value) {
+  const n = Number(value || 0);
+  return `${n > 0 ? "+" : ""}${n.toFixed(1)}%`;
 }
 
+export function trendDayLabel(date) {
+  return new Date(`${date}T00:00:00Z`).toLocaleDateString(activeLang() === "zh" ? "zh-Hans" : "en-US", {
+    month: "numeric",
+    day: "numeric",
+  });
+}
+
+// ── Routing ────────────────────────────────────────────────────────────────
+// `#/<view>[/<record>][?q=…&peek=…]`. Search and the peeked record live in
+// the URL so refresh, shared links and Back restore the same list context.
+function parseRoute() {
+  const raw = (location.hash || "#/overview").replace(/^#\/?/, "");
+  const [path, query = ""] = raw.split("?");
+  const parts = path.split("/").filter(Boolean);
+  const params = new URLSearchParams(query);
+  let view = parts[0] || "overview";
+  let id = "";
+  try {
+    id = parts[1] ? decodeURIComponent(parts[1]) : "";
+  } catch {
+    id = "";
+  }
+  if (!RECORD_VIEWS.includes(view) && view !== "settings") view = "overview";
+  const mode = DETAIL_MODES[view];
+  const peek = mode && mode !== "page" && !id ? params.get("peek") || "" : "";
+  return {
+    view,
+    id,
+    peek,
+    selectedId: mode ? id || peek : "",
+    presentation: !mode ? null : id ? "page" : mode === "page" ? null : mode,
+    query: params.get("q") || "",
+  };
+}
+
+const routeQuery = (extra = {}, route = state.route) => {
+  const params = new URLSearchParams();
+  if (route.query) params.set("q", route.query);
+  for (const [key, value] of Object.entries(extra)) if (value) params.set(key, value);
+  const text = params.toString();
+  return text ? `?${text}` : "";
+};
+
+export const listUrl = (route = state.route) => `#/${route.view}${routeQuery({}, route)}`;
+// The full page: the record in the path. Always a page, whatever the view's mode.
+export const detailUrl = (id, view = state.route.view) => {
+  const route = view === state.route.view ? state.route : { view, query: "" };
+  return `#/${view}/${encodeURIComponent(id)}${routeQuery({}, route)}`;
+};
+// What a row opens: the page for a `page` view, else `?peek=`.
+export const recordUrl = (id, view = state.route.view) => {
+  if (DETAIL_MODES[view] === "page") return detailUrl(id, view);
+  const route = view === state.route.view ? state.route : { view, query: "" };
+  return `#/${view}${routeQuery({ peek: id }, route)}`;
+};
+
+let previousRouteWasList = false;
+let routeSerial = 0;
+
 function setRoute() {
+  const previous = state.route;
   state.route = parseRoute();
+  // Mark a detail entry opened from its list so Back/Close/Escape step back to
+  // that exact list entry instead of pushing a new one.
+  if (state.route.selectedId && previousRouteWasList && previous.view === state.route.view) {
+    history.replaceState({ fromList: true }, "");
+  }
+  previousRouteWasList = RECORD_VIEWS.includes(state.route.view) && !state.route.selectedId;
+  state.notice = "";
+  els.search.value = state.route.query;
+  setMobileSidebarOpen(false);
+  render();
+  ensureSelectedRecord();
+}
+
+// Replace the current entry without a hashchange: search keystrokes should
+// not each become a Back step.
+export function replaceRoute(url) {
+  history.replaceState(history.state, "", url);
+  const previousWasList = previousRouteWasList;
+  state.route = parseRoute();
+  previousRouteWasList = previousWasList;
   render();
 }
 
-async function loadState() {
+export function closeDetail() {
+  if (history.state?.fromList) history.back();
+  else location.hash = listUrl();
+}
+
+// ── Data ───────────────────────────────────────────────────────────────────
+export async function loadState() {
   const provider = await getProvider();
+  state.provider = provider;
   const data = await provider.getState();
   pagination.reset(data.pagination, data.totals);
   closeConnectGate();
   state.snapshot = data.snapshot;
   state.settings = data;
-  applyDemoRoute();
+  state.extra = new Map();
   window.dispatchEvent(new CustomEvent("kelly-llm-gateway:state", { detail: data }));
+  applyDemoRoute();
   render();
+  ensureSelectedRecord();
+}
+
+// A route named by the URL but not on the loaded page is read on its own
+// (records.get by its business id) instead of loading more pages to find it.
+// Anomalies are derived from already-loaded routes, so there is nothing to
+// fetch for that view.
+async function ensureSelectedRecord() {
+  const { view, selectedId } = state.route;
+  if (!state.snapshot || !selectedId || !ROUTE_BACKED_VIEWS.includes(view)) return;
+  if (routeById(selectedId) || state.extra.has(selectedId)) return;
+  const provider = state.provider;
+  if (typeof provider?.getRecord !== "function") {
+    state.extra.set(selectedId, null);
+    render();
+    return;
+  }
+  const serial = ++routeSerial;
+  state.extra.set(selectedId, undefined);
+  try {
+    const row = await provider.getRecord("routes", selectedId);
+    state.extra.set(selectedId, row || null);
+  } catch {
+    state.extra.set(selectedId, null);
+  }
+  if (serial === routeSerial) render();
 }
 
 function applyDemoRoute() {
@@ -209,22 +345,63 @@ function applyI18n() {
   els.search.placeholder = t("search");
   els.refresh.textContent = t("refresh");
   if (els.mobileRefresh) els.mobileRefresh.title = t("refresh");
+  els.detailExpand.textContent = t("openFullPage") || "Open full page";
 }
 
-function hasSnapshot() {
+export function hasSnapshot() {
   return Boolean(state.snapshot);
 }
 
-function openAnomalies() {
-  return (state.snapshot?.anomalies || []).filter((a) => a.status === "open");
+export function routes() {
+  return state.snapshot?.routes || [];
 }
 
-function midRolloutRoutes() {
-  return (state.snapshot?.routes || []).filter((r) => r.status === "canary" && r.canary_pct < 90);
+export function services() {
+  return state.snapshot?.services || [];
 }
 
-function readyToPromoteRoutes() {
-  return (state.snapshot?.routes || []).filter((r) => r.status === "canary" && r.canary_pct >= 90);
+export function models() {
+  return state.snapshot?.models || [];
+}
+
+export function anomalies() {
+  return state.snapshot?.anomalies || [];
+}
+
+export function openAnomalies() {
+  return anomalies().filter((a) => a.status === "open");
+}
+
+export function midRolloutRoutes() {
+  return routes().filter((r) => r.status === "canary" && r.canary_pct < 90);
+}
+
+export function readyToPromoteRoutes() {
+  return routes().filter((r) => r.status === "canary" && r.canary_pct >= 90);
+}
+
+export function serviceName(serviceId) {
+  return services().find((s) => s.service_id === serviceId)?.display_name || serviceId;
+}
+
+export function modelInfo(modelId) {
+  return (
+    models().find((m) => m.model_id === modelId) || {
+      display_name: modelId,
+      provider: "",
+      tier: "external",
+    }
+  );
+}
+
+// Loaded page first, then a route fetched on its own for the URL.
+export function routeById(id) {
+  if (!id) return null;
+  return routes().find((item) => item.route_id === id) || state.extra.get(id) || null;
+}
+
+export function anomalyById(id) {
+  return anomalies().find((item) => item.id === id) || null;
 }
 
 function renderShell() {
@@ -249,7 +426,7 @@ function renderShell() {
   });
 }
 
-function viewLabel(view) {
+export function viewLabel(view) {
   if (view === "spend") return t("spend");
   if (view === "rollouts") return t("rollouts");
   if (view === "anomalies") return t("anomalies");
@@ -257,184 +434,15 @@ function viewLabel(view) {
   return t("overview");
 }
 
-function serviceName(serviceId) {
-  return state.snapshot?.services?.find((s) => s.service_id === serviceId)?.display_name || serviceId;
-}
-
-function modelInfo(modelId) {
-  return (
-    state.snapshot?.models?.find((m) => m.model_id === modelId) || {
-      display_name: modelId,
-      provider: "",
-      tier: "external",
-    }
-  );
-}
-
-function totalsMetricCards() {
-  const totals = state.snapshot?.totals || {};
-  return `
-    <div class="metrics">
-      <div class="metric"><span>${t("costToday")}</span><strong>${money(totals.cost_today)}</strong></div>
-      <div class="metric"><span>${t("callsToday")}</span><strong>${num(totals.calls_today)}</strong></div>
-      <div class="metric"><span>${t("cost7dAvg")}</span><strong>${money(totals.cost_7d_avg)}</strong></div>
-      <div class="metric"><span>${t("errorRateToday")}</span><strong>${errorRatePct(totals.error_rate_today)}</strong></div>
-    </div>
-  `;
-}
-
-function trendDayLabel(date) {
-  return new Date(`${date}T00:00:00Z`).toLocaleDateString(activeLang() === "zh" ? "zh-Hans" : "en-US", {
-    month: "numeric",
-    day: "numeric",
-  });
-}
-
-function smoothPath(points) {
-  if (points.length < 2) return "";
-  let d = `M ${points[0].x},${points[0].y}`;
-  for (let i = 1; i < points.length; i += 1) {
-    const prev = points[i - 1];
-    const cur = points[i];
-    const mx = (prev.x + cur.x) / 2;
-    const my = (prev.y + cur.y) / 2;
-    d += ` Q ${prev.x},${prev.y} ${mx},${my}`;
-  }
-  const last = points[points.length - 1];
-  d += ` L ${last.x},${last.y}`;
-  return d;
-}
-
-function spendTrendPanel() {
-  const trend = state.snapshot?.spend_trend || [];
-  if (!trend.length) return "";
-  const W = 960;
-  const H = 180;
-  const padTop = 14;
-  const padBottom = 8;
-  const max = Math.max(...trend.map((p) => p.cost), 1);
-  const points = trend.map((point, i) => {
-    const x = trend.length > 1 ? (i / (trend.length - 1)) * W : 0;
-    const y = padTop + (1 - point.cost / max) * (H - padTop - padBottom);
-    return { x, y, point };
-  });
-  const linePath = smoothPath(points);
-  const areaPath = `${linePath} L ${points[points.length - 1].x},${H} L ${points[0].x},${H} Z`;
-  const gridLines = [0, 0.5, 1]
-    .map((frac) => {
-      const y = padTop + frac * (H - padTop - padBottom);
-      return `<line class="trend-grid-line" x1="0" y1="${y}" x2="${W}" y2="${y}" />`;
-    })
-    .join("");
-  const axisLabels = [
-    { frac: 0, value: max },
-    { frac: 1, value: 0 },
-  ]
-    .map(
-      ({ frac, value }) =>
-        `<text class="trend-axis-label" x="4" y="${padTop + frac * (H - padTop - padBottom) - 4}">${escapeHtml(money(value))}</text>`,
-    )
-    .join("");
-  const dots = points
-    .map(
-      ({ x, y, point }) =>
-        `<circle class="trend-dot" cx="${x}" cy="${y}" r="3"><title>${escapeHtml(trendDayLabel(point.date))}: ${escapeHtml(money(point.cost))}</title></circle>`,
-    )
-    .join("");
-  const xLabels = trend
-    .map((point) => `<span class="trend-x-label">${escapeHtml(trendDayLabel(point.date))}</span>`)
-    .join("");
-  return `
-    <div class="overview-panel wide">
-      <h2>${t("spendTrend")}</h2>
-      <div class="trend-chart">
-        <svg class="trend-chart-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
-          <defs>
-            <linearGradient id="trendFillGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" style="stop-color:var(--accent);stop-opacity:0.22" />
-              <stop offset="100%" style="stop-color:var(--accent);stop-opacity:0" />
-            </linearGradient>
-          </defs>
-          ${gridLines}
-          <path class="trend-area" d="${areaPath}" />
-          <path class="trend-line" d="${linePath}" />
-          ${dots}
-          ${axisLabels}
-        </svg>
-        <div class="trend-x-labels">${xLabels}</div>
-      </div>
-    </div>
-  `;
-}
-
-function statusBadgeClass(status) {
+export function statusBadgeClass(status) {
   if (status === "canary") return "sev-watch";
   if (status === "rollback") return "sev-high";
   if (status === "hold") return "sev-info";
   return "";
 }
 
-function rolloutSummaryPanel() {
-  const routes = (state.snapshot?.routes || []).filter((r) => r.status !== "stable").slice(0, 6);
-  if (!routes.length) return "";
-  const rows = routes
-    .map(
-      (route) => `
-      <a class="mover-row" href="#/rollouts">
-        <span><strong>${escapeHtml(serviceName(route.service_id))}</strong><small>${escapeHtml(modelInfo(route.model_id).display_name)}</small></span>
-        <span class="badge ${statusBadgeClass(route.status)}">${escapeHtml(enumLabel(route.status, "status"))}</span>
-        <span class="num">${route.canary_pct}%</span>
-      </a>
-    `,
-    )
-    .join("");
-  return `
-    <div class="overview-panel">
-      <h2>${t("rolloutBoard")}</h2>
-      ${rows}
-    </div>
-  `;
-}
-
-function anomalyPreviewPanel() {
-  const anomalies = openAnomalies().slice(0, 6);
-  return `
-    <div class="overview-panel">
-      <h2>${t("anomalyList")}</h2>
-      ${anomalies.length ? anomalies.map((a) => anomalyRowMarkup(a, { compact: true })).join("") : `<div class="empty">${t("anomalyEmpty")}</div>`}
-    </div>
-  `;
-}
-
-function renderOverview() {
-  els.title.textContent = t("overview");
-  els.subtitle.textContent = state.snapshot?.generated_at
-    ? `${t("generated")} ${new Date(state.snapshot.generated_at).toLocaleString()}`
-    : t("empty");
-  els.content.innerHTML = `
-    ${totalsMetricCards()}
-    ${warnings()}
-    ${spendTrendPanel()}
-    <section class="overview-grid">
-      ${rolloutSummaryPanel()}
-      ${anomalyPreviewPanel()}
-    </section>
-  `;
-}
-
-function filteredRoutes() {
-  const query = state.query.trim().toLowerCase();
-  return (state.snapshot?.routes || []).filter((route) => {
-    if (!query) return true;
-    const model = modelInfo(route.model_id);
-    return [serviceName(route.service_id), model.display_name, model.provider, route.status]
-      .filter(Boolean)
-      .some((value) => String(value).toLowerCase().includes(query));
-  });
-}
-
-function sortedRoutes(list) {
-  const { key, dir } = state.sort;
+export function sortedRoutes(list, sort = state.sort) {
+  const { key, dir } = sort;
   const factor = dir === "asc" ? 1 : -1;
   return [...list].sort((a, b) => {
     const av = a[key];
@@ -444,215 +452,7 @@ function sortedRoutes(list) {
   });
 }
 
-function sortHeader(key, label, cls = "") {
-  const active = state.sort.key === key;
-  const arrow = active ? (state.sort.dir === "asc" ? " ▲" : " ▼") : "";
-  return `<th class="sortable ${cls} ${active ? "active" : ""}" data-sort="${key}">${escapeHtml(label)}${arrow}</th>`;
-}
-
-function spendTable(routes) {
-  if (!routes.length) return `<div class="empty">${t("empty")}</div>`;
-  const rows = sortedRoutes(routes);
-  const groupByService = state.sort.key === "service_id";
-  let lastService = null;
-  const bodyRows = rows
-    .map((route, index) => {
-      const model = modelInfo(route.model_id);
-      const isGroupStart = groupByService && route.service_id !== lastService;
-      lastService = route.service_id;
-      return `
-            <tr class="${isGroupStart && index > 0 ? "group-start" : ""}">
-              <td><span class="strong">${escapeHtml(serviceName(route.service_id))}</span></td>
-              <td>
-                <span class="model-name">${escapeHtml(model.display_name)}</span>
-                <div class="model-provider">${escapeHtml(model.provider)} · <span class="badge">${escapeHtml(enumLabel(model.tier, "tier"))}</span></div>
-              </td>
-              <td class="num">${num(route.calls_today)}</td>
-              <td class="num">${money(route.cost_today)}</td>
-              <td class="num">${errorRatePct(route.error_rate_today)}</td>
-              <td class="num">${route.canary_pct}%</td>
-              <td><span class="badge ${statusBadgeClass(route.status)}">${escapeHtml(enumLabel(route.status, "status"))}</span></td>
-            </tr>
-          `;
-    })
-    .join("");
-  return `
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            ${sortHeader("service_id", t("service"))}
-            ${sortHeader("model_id", t("model"))}
-            ${sortHeader("calls_today", t("calls"), "num")}
-            ${sortHeader("cost_today", t("cost"), "num")}
-            ${sortHeader("error_rate_today", t("errorRate"), "num")}
-            ${sortHeader("canary_pct", t("canaryPct"), "num")}
-            ${sortHeader("status", t("status"))}
-          </tr>
-        </thead>
-        <tbody>
-          ${bodyRows}
-        </tbody>
-      </table>
-    </div>
-  `;
-}
-
-function renderSpend() {
-  els.title.textContent = t("spend");
-  const routes = filteredRoutes();
-  els.subtitle.textContent = `${pagination.total("routes", routes.length)} ${t("service").toLowerCase()} × ${t("model").toLowerCase()}`;
-  els.content.innerHTML = `
-    ${totalsMetricCards()}
-    ${warnings()}
-    <h2 class="section-heading">${t("spendByServiceModel")}</h2>
-    ${spendTable(routes)}
-  `;
-}
-
-function rolloutActionButtons(route) {
-  const disabled = state.busy ? "disabled" : "";
-  return `
-    <div class="rollout-actions">
-      <button type="button" data-action="promote" data-route-id="${escapeHtml(route.route_id)}" ${disabled}>${t("promote")}</button>
-      <button type="button" data-action="hold" data-route-id="${escapeHtml(route.route_id)}" ${disabled}>${t("hold")}</button>
-      <button type="button" data-action="rollback" data-route-id="${escapeHtml(route.route_id)}" ${disabled}>${t("rollback")}</button>
-    </div>
-  `;
-}
-
-function rolloutCard(route) {
-  const model = modelInfo(route.model_id);
-  return `
-    <div class="account-card rollout-card" data-status="${escapeHtml(route.status)}">
-      <div class="row between">
-        <strong>${escapeHtml(serviceName(route.service_id))}</strong>
-        <span class="badge ${statusBadgeClass(route.status)}">${escapeHtml(enumLabel(route.status, "status"))}</span>
-      </div>
-      <div class="muted">${escapeHtml(model.display_name)} · ${escapeHtml(enumLabel(model.tier, "tier"))}</div>
-      <div class="rollout-progress"><div class="rollout-progress-fill" style="width:${route.canary_pct}%"></div></div>
-      <div class="rollout-progress-label"><span>${route.canary_pct}% ${t("canaryPct").toLowerCase()}</span><span>100%</span></div>
-      <div class="row stats">
-        <span>${t("callsToday")} ${num(route.calls_today)}</span>
-        <span>${t("costToday")} ${money(route.cost_today)}</span>
-        <span>${t("errorRate")} ${errorRatePct(route.error_rate_today)}</span>
-      </div>
-      <div class="row stats">
-        <span>${t("rollbackReady")}: ${route.rollback_ready ? t("ready") : t("notReady")}</span>
-      </div>
-      ${route.note ? `<div class="muted rollout-note">${escapeHtml(t("note"))}: ${escapeHtml(route.note)}</div>` : ""}
-      <textarea class="decision-note" data-route-id="${escapeHtml(route.route_id)}" placeholder="${escapeHtml(t("decisionNote"))}" rows="2"></textarea>
-      ${rolloutActionButtons(route)}
-    </div>
-  `;
-}
-
-function renderRollouts() {
-  els.title.textContent = t("rollouts");
-  const routes = state.snapshot?.routes || [];
-  const canaryRoutes = routes.filter((r) => r.status !== "stable");
-  const stableRoutes = routes.filter((r) => r.status === "stable");
-  els.subtitle.textContent = `${canaryRoutes.length} ${t("rollouts").toLowerCase()}`;
-  els.content.innerHTML = `
-    ${warnings()}
-    <h2 class="section-heading">${t("rolloutBoard")}</h2>
-    <div class="account-grid">
-      ${canaryRoutes.length ? canaryRoutes.map(rolloutCard).join("") : `<div class="empty">${t("empty")}</div>`}
-    </div>
-    ${
-      stableRoutes.length
-        ? `<h2 class="section-heading">${enumLabel("stable", "status")}</h2>${spendTable(stableRoutes)}`
-        : ""
-    }
-  `;
-}
-
-function anomalyLabel(anomaly) {
-  const template =
-    state.messages[activeLang()]?.anomalyTemplate?.[anomaly.kind] ||
-    state.messages.en.anomalyTemplate?.[anomaly.kind] ||
-    "";
-  const isRate = anomaly.kind === "error_spike";
-  const fmt = (value) => (isRate ? errorRatePct(value) : money(value));
-  return template
-    .replace("{actual}", fmt(anomaly.actual))
-    .replace("{baseline}", fmt(anomaly.baseline))
-    .replace("{delta}", signedPct(anomaly.delta_pct));
-}
-
-function anomalyRowMarkup(anomaly, { compact = false } = {}) {
-  const route = (state.snapshot?.routes || []).find((r) => r.route_id === anomaly.route_id);
-  const label = route
-    ? `${serviceName(route.service_id)} · ${modelInfo(route.model_id).display_name}`
-    : anomaly.route_id;
-  const severity = ["watch", "high"].includes(anomaly.severity) ? anomaly.severity : "watch";
-  const acknowledged = anomaly.status === "acknowledged";
-  return `
-    <div class="insight-row anomaly-row" data-severity="${severity}">
-      <span class="badge sev-${severity}">${escapeHtml(enumLabel(anomaly.kind, "kind"))}</span>
-      <span class="insight-text">
-        <strong>${escapeHtml(label)}</strong><br>
-        ${escapeHtml(anomalyLabel(anomaly))}
-        ${
-          compact
-            ? ""
-            : acknowledged
-              ? `<div class="muted">${escapeHtml(t("acknowledged"))}${anomaly.ack_note ? `: ${escapeHtml(anomaly.ack_note)}` : ""}</div>`
-              : `<div class="anomaly-ack">
-                  <textarea class="ack-note" data-anomaly-id="${escapeHtml(anomaly.id)}" placeholder="${escapeHtml(t("ackNote"))}" rows="1"></textarea>
-                  <button type="button" data-ack-anomaly="${escapeHtml(anomaly.id)}" ${state.busy ? "disabled" : ""}>${escapeHtml(t("acknowledge"))}</button>
-                </div>`
-        }
-      </span>
-    </div>
-  `;
-}
-
-function renderAnomalies() {
-  els.title.textContent = t("anomalies");
-  const anomalies = state.snapshot?.anomalies || [];
-  els.subtitle.textContent = `${openAnomalies().length} ${t("open").toLowerCase()}`;
-  els.content.innerHTML = `
-    ${warnings()}
-    <div class="overview-panel wide">
-      <h2>${t("anomalyList")}</h2>
-      <div class="insight-list">
-        ${anomalies.length ? anomalies.map((a) => anomalyRowMarkup(a)).join("") : `<div class="empty">${t("anomalyEmpty")}</div>`}
-      </div>
-    </div>
-  `;
-}
-
-function renderSettings() {
-  els.title.textContent = t("settings");
-  els.subtitle.textContent = t("localFilesOnly");
-  const summary = state.settings?.config_summary || {};
-  const gateway = summary.gateway || {};
-  els.content.innerHTML = `
-    <div class="settings">
-      <div class="empty boundary-note">${escapeHtml(t("boundary"))}</div>
-      <section>
-        <h2>${t("configuration")}</h2>
-        <dl>
-          <dt>${t("dataProvider")}</dt><dd>${escapeHtml(state.settings?.data_provider || "busabase")}</dd>
-          <dt>${t("configPath")}</dt><dd>${escapeHtml(summary.config_path || "")}</dd>
-          <dt>${t("baseCurrency")}</dt><dd>${escapeHtml(summary.base_currency || "USD")}</dd>
-          <dt>${t("onboarding")}</dt><dd>${state.settings?.onboarding?.completed ? t("completed") : t("incomplete")}</dd>
-        </dl>
-      </section>
-      <section>
-        <h2>${t("gateway")}</h2>
-        <dl>
-          <dt>${t("region")}</dt><dd>${escapeHtml(gateway.region || "")}</dd>
-          <dt>${t("baseUrl")}</dt><dd>${escapeHtml(gateway.base_url || "")}</dd>
-          <dt>${t("apiKeyEnv")}</dt><dd>${escapeHtml(gateway.api_key_env || "")}</dd>
-        </dl>
-      </section>
-    </div>
-  `;
-}
-
-function warnings() {
+export function warnings() {
   const items = state.snapshot?.warnings || [];
   if (!items.length) return "";
   return `<div class="warnings">${items
@@ -667,72 +467,35 @@ function warnings() {
     .join("")}</div>`;
 }
 
-function renderPagedList(renderList, key) {
-  renderList();
-  els.content.insertAdjacentHTML("beforeend", `${pagination.control(key)}`);
+export function noticeBanner() {
+  if (!state.notice) return "";
+  return `<div class="notice-banner">${escapeHtml(state.notice)}</div>`;
 }
 
-function render() {
+export function render() {
   renderShell();
-  if (state.route.view === "spend") renderPagedList(renderSpend, "routes");
-  else if (state.route.view === "rollouts") renderPagedList(renderRollouts, "routes");
-  else if (state.route.view === "anomalies") renderPagedList(renderAnomalies, "routes");
-  else if (state.route.view === "settings") renderSettings();
+  const { view, selectedId, presentation } = state.route;
+  const ready = Boolean(state.snapshot);
+  const onRecordView = ready && RECORD_VIEWS.includes(view);
+  const body = document.body.classList;
+  body.toggle("ws-detail-open", onRecordView && Boolean(selectedId));
+  body.toggle("ws-detail-page", onRecordView && presentation === "page" && Boolean(selectedId));
+  body.toggle("ws-detail-drawer", onRecordView && presentation === "drawer");
+  body.toggle("ws-layout-split", onRecordView && DETAIL_MODES[view] === "split" && presentation !== "page");
+  body.toggle("ws-searching", onRecordView && Boolean(state.route.query));
+  els.loadState.hidden = ready;
+  els.overviewPage.hidden = !ready || view !== "overview";
+  els.viewPage.hidden = !onRecordView;
+  els.settingsPage.hidden = !ready || view !== "settings";
+  if (!ready) return;
+  if (view === "spend") renderSpend();
+  else if (view === "rollouts") renderRollouts();
+  else if (view === "anomalies") renderAnomalies();
+  else if (view === "settings") renderSettings();
   else renderOverview();
 }
 
-// Direct rollout write: goes straight through the active provider (Busabase
-// or demo), the same way kelly-lead-funnel's kanban stage moves work — there
-// is no separate approval step, since this is a direct-manipulation control
-// panel. Demo mode never writes anywhere; it only reflects the decision in
-// the in-memory snapshot already rendered.
-async function submitRolloutDecision(routeId, action) {
-  if (state.demo) {
-    const route = state.snapshot.routes.find((r) => r.route_id === routeId);
-    if (route) {
-      if (action === "promote") Object.assign(route, { status: "stable", canary_pct: 100, rollback_ready: false });
-      else if (action === "rollback") Object.assign(route, { status: "rollback", rollback_ready: false });
-      else if (action === "hold") Object.assign(route, { status: "hold" });
-    }
-    render();
-    return;
-  }
-  const noteEl = document.querySelector(`.decision-note[data-route-id="${CSS.escape(routeId)}"]`);
-  state.busy = true;
-  render();
-  try {
-    const provider = await getProvider();
-    await provider.decideRollout(routeId, action, noteEl?.value || "");
-    await loadState();
-  } catch (error) {
-    els.content.insertAdjacentHTML("afterbegin", `<div class="empty">${escapeHtml(error.message)}</div>`);
-  } finally {
-    state.busy = false;
-  }
-}
-
-async function submitAnomalyAck(anomalyId) {
-  if (state.demo) {
-    const anomaly = state.snapshot.anomalies.find((a) => a.id === anomalyId);
-    if (anomaly) Object.assign(anomaly, { status: "acknowledged", acknowledged_at: new Date().toISOString() });
-    render();
-    return;
-  }
-  const noteEl = document.querySelector(`.ack-note[data-anomaly-id="${CSS.escape(anomalyId)}"]`);
-  state.busy = true;
-  render();
-  try {
-    const provider = await getProvider();
-    await provider.ackAnomaly(anomalyId, noteEl?.value || "");
-    await loadState();
-  } catch (error) {
-    els.content.insertAdjacentHTML("afterbegin", `<div class="empty">${escapeHtml(error.message)}</div>`);
-  } finally {
-    state.busy = false;
-  }
-}
-
-function escapeHtml(value) {
+export function escapeHtml(value) {
   return String(value ?? "").replace(
     /[&<>"']/g,
     (char) =>
@@ -746,18 +509,10 @@ function escapeHtml(value) {
   );
 }
 
-pagination.bind(els.content);
-
-window.addEventListener("hashchange", setRoute);
-window.addEventListener("resize", syncResponsiveShell);
-els.sidebarToggle?.addEventListener("click", toggleSidebar);
-els.mobileSidebarToggle?.addEventListener("click", () => setMobileSidebarOpen(true));
-els.sidebarScrim?.addEventListener("click", () => setMobileSidebarOpen(false));
-els.search.addEventListener("input", () => {
-  state.query = els.search.value;
-  render();
-});
-els.content.addEventListener("click", (event) => {
+// ── Events ─────────────────────────────────────────────────────────────────
+pagination.bind(els.listPanel);
+els.listPanel.addEventListener("click", (event) => {
+  if (event.target.closest("[data-goto-page]")) return;
   const header = event.target.closest("[data-sort]");
   if (header) {
     const key = header.dataset.sort;
@@ -769,15 +524,46 @@ els.content.addEventListener("click", (event) => {
     render();
     return;
   }
+  if (event.target.closest("a, button")) return;
+  const row = event.target.closest("tr[data-id]");
+  if (!row) return;
+  const url = recordUrl(row.dataset.id);
+  // Switching records while a drawer/split is open replaces the entry, so
+  // Close still steps back to the list the drawer was opened from.
+  if (state.route.peek) {
+    history.replaceState(history.state, "", url);
+    setRoute();
+  } else {
+    location.hash = url;
+  }
+});
+els.detailBody.addEventListener("click", (event) => {
   const actionButton = event.target.closest("[data-action][data-route-id]");
   if (actionButton) {
     submitRolloutDecision(actionButton.dataset.routeId, actionButton.dataset.action);
     return;
   }
   const ackButton = event.target.closest("[data-ack-anomaly]");
-  if (ackButton) {
-    submitAnomalyAck(ackButton.dataset.ackAnomaly);
+  if (ackButton) submitAnomalyAck(ackButton.dataset.ackAnomaly);
+});
+els.detailBack.addEventListener("click", closeDetail);
+document.addEventListener("keydown", (event) => {
+  if (event.key !== "Escape") return;
+  if (event.target.closest?.("textarea, input")) {
+    event.target.blur();
+    return;
   }
+  if (state.route.selectedId && state.route.presentation && state.route.presentation !== "page") closeDetail();
+});
+window.addEventListener("hashchange", setRoute);
+window.addEventListener("resize", syncResponsiveShell);
+els.sidebarToggle?.addEventListener("click", toggleSidebar);
+els.mobileSidebarToggle?.addEventListener("click", () => setMobileSidebarOpen(true));
+els.sidebarScrim?.addEventListener("click", () => setMobileSidebarOpen(false));
+els.search.addEventListener("input", () => {
+  replaceRoute(
+    `#/${state.route.view}${routeQuery({ peek: state.route.peek }, { ...state.route, query: els.search.value })}`,
+  );
 });
 els.refresh.addEventListener("click", () => loadState());
 els.mobileRefresh?.addEventListener("click", () => loadState());
@@ -787,8 +573,6 @@ els.language.addEventListener("change", () => {
   localStorage.setItem("kelly-llm-gateway-language", state.lang);
   render();
 });
-
-syncResponsiveShell();
 
 async function boot() {
   const ready = await passConnectGate({ onReady: boot });
@@ -801,8 +585,13 @@ async function boot() {
       renderSetupRequired(error, boot);
       return;
     }
-    els.content.innerHTML = `<div class="empty">${escapeHtml(error.message)}</div>`;
+    els.loadState.hidden = false;
+    els.loadState.classList.add("error");
+    els.loadState.textContent = error instanceof Error ? error.message : String(error);
   }
 }
 
+els.search.value = state.route.query;
+previousRouteWasList = RECORD_VIEWS.includes(state.route.view) && !state.route.selectedId;
+syncResponsiveShell();
 boot();

@@ -22,19 +22,13 @@
           </div>
           <button id="sidebarToggle" class="sidebar-toggle" type="button" aria-controls="appSidebar" aria-expanded="true" title="Toggle sidebar" aria-label="Toggle sidebar"><span class="sidebar-toggle-icon" aria-hidden="true"></span></button>
         </div>
-        <div class="search sidebar-search">
-          <input id="search" type="search" placeholder="Search" aria-label="Search">
-        </div>
         <section class="human-work" aria-labelledby="humanWorkTitle">
           <div class="human-work-eyebrow" data-i18n="attention">Regressions</div>
           <div id="humanWorkTitle" class="human-work-title" data-i18n="humanWorkTitle">Regressions at a glance</div>
-          <a class="human-work-primary" href="#/regressions" data-route="regressions">
+          <a class="human-work-primary" href="#/regressions?status=needs_review" data-route="regressions" title="Open the regression review queue">
             <span>
-              <strong id="regression-figure">0</strong>
-              <span>
-                <span id="pending-review-line" class="human-work-figure">—</span>
-                <span data-i18n="needDecision">need a decision</span>
-              </span>
+              <strong id="pending-review-figure">0</strong>
+              <span data-i18n="needDecision">need a decision</span>
             </span>
           </a>
           <div class="human-work-secondary">
@@ -73,16 +67,54 @@
           </div>
           <button id="mobileRefresh" class="mobile-refresh-button" type="button" title="Refresh" aria-label="Refresh">↻</button>
         </div>
-        <header class="topbar">
-          <div>
-            <h1 id="page-title">Overview</h1>
-            <p id="page-subtitle" class="muted"></p>
+        <div id="loadState" class="load-state" role="status">Loading</div>
+        <div id="lockBanner" class="warnings" hidden></div>
+        <!-- Overview is the only page with a hero and a metrics band. -->
+        <section id="overviewPage" class="ws-overview" hidden>
+          <header class="page-hero">
+            <div>
+              <h1 id="overviewTitle" data-i18n="overview">Overview</h1>
+              <p id="overviewSummary" class="muted"></p>
+            </div>
+            <div class="page-actions">
+              <button id="refresh" class="button" type="button" title="Refresh" aria-label="Refresh" data-i18n="refresh">Refresh</button>
+            </div>
+          </header>
+          <div id="overviewMetrics" class="ws-metrics" aria-label="Eval run summary"></div>
+          <div id="overviewBody"></div>
+        </section>
+        <!-- Record views: one toolbar row over a full-bleed table. -->
+        <section id="viewPage" class="ws-view" hidden>
+          <header class="ws-toolbar">
+            <div class="ws-title">
+              <h1 id="viewTitle"></h1>
+              <span id="viewCount" class="ws-count"></span>
+            </div>
+            <div class="ws-actions">
+              <div id="viewFilters" hidden></div>
+              <label class="search toolbar-search">
+                <span class="sr-only" data-i18n="search">Search</span>
+                <input id="search" type="search" autocomplete="off" placeholder="Search">
+              </label>
+            </div>
+          </header>
+          <div id="workspace" class="ws-workspace">
+            <div id="listPanel" class="ws-list"></div>
+            <aside id="detailPanel" class="ws-detail" aria-live="polite">
+              <div class="ws-detail-bar">
+                <button id="detailBack" class="button" type="button" data-i18n="backToList">Back to list</button>
+                <a id="detailExpand" class="button" hidden data-i18n="openFullPage">Open full page</a>
+              </div>
+              <div id="detailBody"></div>
+            </aside>
           </div>
-          <div class="topbar-actions">
-            <button id="refresh" type="button" title="Refresh" aria-label="Refresh">Refresh</button>
-          </div>
-        </header>
-        <section id="content" class="content"></section>
+        </section>
+        <section id="settingsPage" class="ws-view" hidden>
+          <header class="ws-toolbar">
+            <div class="ws-title"><h1 id="settingsTitle" data-i18n="settings">Help & Settings</h1></div>
+          </header>
+          <div id="settingsContent" class="settings-scroll"></div>
+        </section>
       </main>
     </div>
     <div id="sidebarScrim" class="sidebar-scrim" hidden></div>

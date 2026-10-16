@@ -8,6 +8,7 @@ import {
   baseRouteFields,
   buildConfigSummary,
   buildSnapshot,
+  deriveRouteMetrics,
   normalizeModelRow,
   normalizeRouteRow,
   normalizeServiceRow,
@@ -224,6 +225,21 @@ export const busabaseProvider = {
     await ensureResources();
     const page = await readPage(key, cursor);
     return { ...page, rows: key === "routes" ? page.rows.map(normalizeRouteRow) : page.rows };
+  },
+
+  // One route named by the URL (a shared link, or a route on a later page
+  // than the one currently loaded) that is not on the loaded page: a single
+  // records.get by its business id, never a scan for it. Derives the same
+  // today/baseline metrics the loaded page already carries so the Spend/
+  // Rollouts detail panel can render it identically either way.
+  async getRecord(key, businessId) {
+    if (key !== "routes" || !allowedReads.has("records.get")) return null;
+    await ensureResources();
+    const record = await findRecord("routes", "route-id", businessId);
+    if (!record) return null;
+    return deriveRouteMetrics(
+      normalizeRouteRow(normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields)),
+    );
   },
 
   async provisionResources() {

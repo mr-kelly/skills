@@ -6,6 +6,12 @@ export const appConfig = {
   readOnly: false,
   spaceId: "",
   schemaVersion: 1,
+  // Segments is the only Base with its own browsable list; the review
+  // (trusted / needs recalibration) is worked one segment after the next, so
+  // the list stays beside the record — the same shape as a review inbox.
+  // Sessions never gets its own top-level list route (only a slice inside a
+  // segment's detail), so it is intentionally absent here.
+  ui: { detail_modes: { segments: "split" } },
   folder: {
     name: "Kelly Behavior Predict",
     description:

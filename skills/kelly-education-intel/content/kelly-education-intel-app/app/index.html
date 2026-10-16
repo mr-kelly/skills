@@ -22,9 +22,6 @@
           </div>
           <button id="sidebarToggle" class="sidebar-toggle" type="button" aria-controls="appSidebar" aria-expanded="true" title="Toggle sidebar" aria-label="Toggle sidebar"><span class="sidebar-toggle-icon" aria-hidden="true"></span></button>
         </div>
-        <div class="search sidebar-search">
-          <input id="search" type="search" placeholder="Search" aria-label="Search">
-        </div>
         <section class="human-work" aria-labelledby="humanWorkTitle">
           <div class="human-work-eyebrow" data-i18n="attention">Today's batch</div>
           <div id="humanWorkTitle" class="human-work-title" data-i18n="humanWorkTitle">What needs your attention</div>
@@ -72,16 +69,65 @@
           </div>
           <button id="mobileRefresh" class="mobile-refresh-button" type="button" title="Refresh" aria-label="Refresh">↻</button>
         </div>
-        <header class="topbar">
-          <div>
-            <h1 id="page-title">Overview</h1>
-            <p id="page-subtitle" class="muted"></p>
+        <div id="loadState" class="load-state" role="status">Loading</div>
+        <!-- Overview is the only page with the hero and a ≤3-number metrics band. -->
+        <section id="overviewPage" class="ws-overview" hidden>
+          <header class="page-hero">
+            <div>
+              <h1 id="overviewTitle">Overview</h1>
+              <p id="overviewSummary" class="muted"></p>
+            </div>
+            <div class="topbar-actions">
+              <button id="refresh" type="button" title="Refresh" aria-label="Refresh">Refresh</button>
+            </div>
+          </header>
+          <div id="overviewMetrics" class="ws-metrics" aria-label="Today's batch summary"></div>
+          <div id="overviewBody"></div>
+        </section>
+        <!-- Signals/Actions/Drafts: one toolbar row over a full-bleed table. -->
+        <section id="recordPage" class="ws-view" hidden>
+          <header class="ws-toolbar">
+            <div class="ws-title">
+              <h1 id="viewTitle"></h1>
+              <span id="viewCount" class="ws-count"></span>
+            </div>
+            <div class="ws-actions">
+              <label class="search toolbar-search">
+                <span class="sr-only" data-i18n="search">Search</span>
+                <input id="search" type="search" autocomplete="off" placeholder="Search">
+              </label>
+              <button id="viewRefresh" type="button" title="Refresh" aria-label="Refresh">Refresh</button>
+            </div>
+          </header>
+          <div class="ws-workspace">
+            <div id="listPanel" class="ws-list"></div>
+            <aside id="detailPanel" class="ws-detail" aria-live="polite">
+              <div class="ws-detail-bar" hidden>
+                <button id="detailBack" type="button">Close</button>
+                <a id="detailExpand" type="button" hidden>Open full page</a>
+              </div>
+              <div id="detailBody"></div>
+            </aside>
           </div>
-          <div class="topbar-actions">
-            <button id="refresh" type="button" title="Refresh" aria-label="Refresh">Refresh</button>
+        </section>
+        <!-- Sources: a read-only configuration table, no per-row decision. -->
+        <section id="sourcesPage" class="ws-view" hidden>
+          <header class="ws-toolbar">
+            <div class="ws-title">
+              <h1 id="sourcesTitle" data-i18n="sources">Sources</h1>
+              <span id="sourcesCount" class="ws-count"></span>
+            </div>
+          </header>
+          <div class="ws-workspace">
+            <div id="sourcesList" class="ws-list"></div>
           </div>
-        </header>
-        <section id="content" class="content"></section>
+        </section>
+        <section id="settingsPage" class="ws-view" hidden>
+          <header class="ws-toolbar">
+            <div class="ws-title"><h1 id="settingsTitle" data-i18n="settings">Help &amp; Settings</h1></div>
+          </header>
+          <div id="settingsContent" class="settings-scroll"></div>
+        </section>
       </main>
     </div>
     <div id="sidebarScrim" class="sidebar-scrim" hidden></div>

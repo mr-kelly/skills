@@ -129,16 +129,21 @@ requested.
 
 Required app views (hash routes):
 
-- `#/vehicles`: portfolio summary (ready / blocked / in-progress vehicles)
-  plus the vehicle grid; `?filter=needs_review|changes_requested|blocked|ready`
-  narrows the grid.
-- `#/vehicles/<vehicle_id>`: checklist grouped by role, with per-vehicle
-  metrics.
+- `#/overview` (default route): portfolio-level hero and a 3-number metrics
+  band (vehicles tracked, in progress, items flagged), plus a readiness
+  breakdown and a "needs attention" queue across every vehicle.
+- `#/vehicles`: one row per financing vehicle in a full-bleed table;
+  `?filter=needs_review|changes_requested|blocked|ready` narrows it.
+- `#/vehicles/<vehicle_id>`: the vehicle opens as a full page (its own
+  workplace, not a drawer/peek) with the checklist grouped by role and
+  per-vehicle metrics.
 - `#/vehicles/<vehicle_id>/<item_id>`: item detail + decision panel (verified /
-  needs source / flag inconsistent) with a reviewer note. Decisions write
-  directly onto the item record through `busabase-sdk`.
-- `#/flagged`: every item currently flagged, across all vehicles, with the
-  reconciliation detail that triggered the flag.
+  needs source / flag inconsistent) with a reviewer note, shown inside the
+  vehicle page. Decisions write directly onto the item record through
+  `busabase-sdk`.
+- `#/flagged`: a full-bleed table of every item currently flagged, across all
+  vehicles; a row has no detail panel of its own — it opens straight into the
+  owning vehicle's item (`#/vehicles/<vehicle_id>/<item_id>`).
 - `#/settings`: sanitized setup summary — data provider, reviewer name,
   onboarding state.
 

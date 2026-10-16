@@ -184,6 +184,13 @@ function mountThemePicker() {
   const settingsContent = document.querySelector("#settingsContent");
   if (settingsContent) mountInto(settingsContent);
 
+  // The ws- layout spec's settings page (busabase-app-creator) always uses
+  // this id for its content container — add it directly instead of relying
+  // on the #content fallback below, which only exists in the old single-
+  // container shell this spec replaces.
+  const settingsBody = document.querySelector("#settingsBody");
+  if (settingsBody) mountInto(settingsBody, "prepend");
+
   document
     .querySelectorAll('[data-settings-panel="general"], .settings-panel[data-settings-panel="general"]')
     .forEach((panel) => {

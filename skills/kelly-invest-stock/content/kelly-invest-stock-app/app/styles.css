@@ -359,9 +359,16 @@ input:focus-visible {
   left: 18px;
 }
 
+/* `.main` is a flex column, not a grid: it hosts either the overview
+ * (`.ws-overview`, flex:1 1 auto, grid-template-rows: auto auto) or a record
+ * view (`mobile-topbar` auto + `.workspace-head.ws-toolbar` flex:0 0 auto +
+ * `.ws-workspace` flex:1 1 auto, both set by base-ui.css). A fixed-track grid
+ * can't host both shapes without one of them collapsing to its content
+ * height instead of filling the remaining viewport — that was the previous
+ * bug (see changelog). */
 .main {
-  display: grid;
-  grid-template-rows: auto auto minmax(0, 1fr);
+  display: flex;
+  flex-direction: column;
   min-width: 0;
   min-height: 0;
   background: var(--canvas);
@@ -371,13 +378,10 @@ input:focus-visible {
   display: none;
 }
 
+/* Sizing now comes from base-ui's `.ws-toolbar` (min-height: 56px, padding:
+ * 10px 20px, flex: 0 0 auto) — this class only adds the app's own surface
+ * and hairline, so the toolbar stays compact instead of the old 86px band. */
 .workspace-head {
-  display: flex;
-  min-height: 86px;
-  align-items: center;
-  justify-content: space-between;
-  gap: 24px;
-  padding: 16px 26px;
   background: var(--surface);
   border-bottom: 1px solid var(--line);
 }
@@ -434,19 +438,21 @@ input:focus-visible {
   cursor: pointer;
 }
 
+/* Overview-only navigation into L1/L2/L3 (see renderFunnel in app.js) — styled
+ * as a card, not a toolbar-attached band, since it now lives inside
+ * `.ws-overview`'s own vertical stack instead of sitting under a toolbar. */
 .workflow-band {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  min-height: 70px;
-  background: var(--surface-soft);
-  border-bottom: 1px solid var(--line);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  overflow: hidden;
 }
 
 .funnel {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   min-width: 0;
-  padding: 10px 0 10px 26px;
+  padding: 10px 12px;
 }
 
 .funnel-step {
@@ -498,27 +504,6 @@ input:focus-visible {
   font-style: normal;
 }
 
-.workflow-pulse {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 0 26px 0 18px;
-  color: var(--accent);
-  border-left: 1px solid var(--line);
-  font-size: var(--text-xs);
-  white-space: nowrap;
-}
-
-.workflow-pulse span {
-  display: grid;
-  gap: 2px;
-}
-
-.workflow-pulse strong {
-  color: var(--accent);
-  font-size: var(--text-sm);
-}
-
 .stage-badge {
   display: inline-grid;
   min-width: 32px;
@@ -547,40 +532,6 @@ input:focus-visible {
   border: 1px solid color-mix(in srgb, var(--positive) 34%, var(--line));
 }
 
-.summary-strip {
-  display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-  min-height: 70px;
-  padding: 0 26px;
-  background: var(--surface-soft);
-  border-bottom: 1px solid var(--line);
-}
-
-.summary-strip > div {
-  display: grid;
-  align-content: center;
-  gap: 3px;
-  padding: 8px 18px;
-  border-right: 1px solid var(--line);
-}
-
-.summary-strip > div:first-child {
-  padding-left: 0;
-}
-
-.summary-strip > div:last-child {
-  border-right: 0;
-}
-
-.summary-strip span {
-  color: var(--muted);
-  font-size: var(--text-xs);
-}
-
-.summary-strip strong {
-  font-size: var(--text-md);
-}
-
 .sr-only {
   position: absolute;
   width: 1px;
@@ -591,43 +542,6 @@ input:focus-visible {
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
-}
-
-.strategy-overview {
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
-  min-width: 0;
-  min-height: 0;
-  margin: 16px 18px 18px;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
-  overflow: hidden;
-}
-
-.strategy-overview-head {
-  display: flex;
-  min-height: 54px;
-  align-items: center;
-  justify-content: space-between;
-  gap: 18px;
-  padding: 9px 15px;
-  background: var(--surface-hover);
-  border-bottom: 1px solid var(--line);
-}
-
-.strategy-overview-head > div {
-  display: grid;
-  gap: 3px;
-}
-
-.strategy-overview-head strong {
-  font-size: var(--text-sm);
-}
-
-.strategy-overview-head span {
-  color: var(--muted);
-  font-size: var(--text-xs);
 }
 
 .strategy-table-wrap {
@@ -694,25 +608,14 @@ input:focus-visible {
   outline-offset: -2px;
 }
 
-.strategy-table .rank-col {
+/* `.strategy-col` is the table's literal first column now (the rank number
+ * moved inline as `.rank-tag`, see below) — it's both the sticky identity
+ * column and the one base-ui's mobile rule widens to 62% via `:first-child`. */
+.strategy-table .strategy-col {
   position: sticky;
   left: 0;
   z-index: 2;
-  width: 38px;
-  color: var(--muted);
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  text-align: center;
-}
-
-.strategy-table th.rank-col {
-  z-index: 5;
-}
-
-.strategy-table .strategy-col {
-  position: sticky;
-  left: 38px;
-  z-index: 2;
-  width: 145px;
+  width: 180px;
   box-shadow: 1px 0 0 var(--shadow-tint-deep);
 }
 
@@ -720,12 +623,19 @@ input:focus-visible {
   z-index: 5;
 }
 
+.rank-tag {
+  margin-right: 6px;
+  color: var(--muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-weight: 500;
+}
+
 .strategy-table .thesis-col {
   width: 250px;
 }
 
-.strategy-table th:nth-child(4),
-.strategy-table td:nth-child(4) {
+.strategy-table th:nth-child(3),
+.strategy-table td:nth-child(3) {
   width: 80px;
 }
 
@@ -1156,14 +1066,6 @@ input:focus-visible {
 
 .strategy-table-row.account-issue td {
   box-shadow: inset 0 2px 0 var(--shadow-tint-deep);
-}
-
-.main.strategy-detail-mode {
-  grid-template-rows: auto minmax(0, 1fr);
-}
-
-.workspace-content {
-  display: contents;
 }
 
 .strategy-detail-view {
@@ -1632,16 +1534,9 @@ input:focus-visible {
   overflow: hidden;
 }
 
-.list-panel,
 .detail-panel {
   min-width: 0;
   min-height: 0;
-}
-
-.list-panel {
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
-  border-right: 1px solid var(--line);
 }
 
 .list-head {
@@ -2968,15 +2863,12 @@ code {
     margin: 12px;
   }
 
-  .strategy-overview,
   .strategy-detail-view,
   .regression-view {
     margin: 12px;
   }
 
-  .workspace-head,
-  .funnel,
-  .summary-strip {
+  .funnel {
     padding-left: 18px;
     padding-right: 18px;
   }
@@ -3035,15 +2927,16 @@ code {
   }
 
   .main {
-    grid-template-rows: 52px auto auto minmax(0, 1fr);
     height: 100dvh;
   }
 
   .mobile-topbar {
     display: grid;
+    flex: 0 0 auto;
     grid-template-columns: 34px minmax(0, 1fr) 42px;
     align-items: center;
     gap: 10px;
+    min-height: 52px;
     padding: 0 12px;
     background: var(--surface);
     border-bottom: 1px solid var(--line);
@@ -3081,15 +2974,6 @@ code {
     font-size: var(--text-xs);
   }
 
-  .workspace-head {
-    min-height: 67px;
-    padding: 11px 14px;
-  }
-
-  .workspace-head h1 {
-    font-size: var(--text-lg);
-  }
-
   .workspace-status > span:not(.status-dot):not(.read-only) {
     display: none;
   }
@@ -3107,14 +2991,6 @@ code {
   .funnel {
     min-height: 64px;
     padding: 6px 8px;
-  }
-
-  .workflow-band {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .workflow-pulse {
-    display: none;
   }
 
   .funnel-step {
@@ -3141,74 +3017,26 @@ code {
     font-size: var(--text-xs);
   }
 
-  .summary-strip {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    min-height: 76px;
-    padding: 0 12px;
-  }
-
   .ledger-integrity-band {
     display: grid;
     gap: 2px;
     padding: 7px 12px;
-    font-size: var(--text-xs);
-  }
-
-  .summary-strip > div {
-    min-width: 0;
-    padding: 7px 10px;
-    border-bottom: 1px solid var(--line);
-  }
-
-  .summary-strip > div:nth-child(2) {
-    border-right: 0;
-  }
-
-  .summary-strip > div:nth-child(2n) {
-    border-right: 0;
-  }
-
-  .summary-strip > div:first-child,
-  .summary-strip > div:nth-child(3),
-  .summary-strip > div:nth-child(5) {
-    padding-left: 0;
-  }
-
-  .summary-strip > div:nth-child(n + 5) {
-    border-bottom: 0;
-  }
-
-  .summary-strip strong {
-    overflow: hidden;
-    font-size: var(--text-sm);
-    text-overflow: ellipsis;
-  }
-
-  .strategy-overview {
-    margin: 0;
-    border-right: 0;
-    border-bottom: 0;
-    border-left: 0;
-    border-radius: 0;
-  }
-
-  .strategy-overview-head {
-    min-height: 48px;
-    padding: 8px 13px;
-  }
-
-  .strategy-overview-head > span {
-    display: none;
-  }
-
-  .strategy-table {
-    min-width: 1010px;
   }
 
   .strategy-table th,
   .strategy-table td {
     padding-top: 9px;
     padding-bottom: 9px;
+  }
+
+  /* Let base-ui's own `:first-child { width: var(--ws-first-col) }` (62% at
+   * this width) size the name column instead of the desktop 180px fixed
+   * width, and drop the sticky offset — only one column is visible once
+   * `.ws-table`'s own `nth-child(n + 3)` rule hides the rest. */
+  .strategy-table .strategy-col {
+    position: static;
+    width: auto;
+    box-shadow: none;
   }
 
   .regression-view {
@@ -3345,11 +3173,6 @@ code {
     border-radius: 0;
   }
 
-  .list-panel {
-    height: 100%;
-    border-right: 0;
-  }
-
   .detail-panel {
     display: none;
     position: absolute;
@@ -3358,22 +3181,8 @@ code {
     height: 100%;
   }
 
-  .mobile-detail-open .list-panel {
-    display: none;
-  }
-
   .mobile-detail-open .detail-panel {
     display: block;
-  }
-
-  .mobile-detail-open .main {
-    grid-template-rows: 52px minmax(0, 1fr);
-  }
-
-  .mobile-detail-open .workspace-head,
-  .mobile-detail-open .workflow-band,
-  .mobile-detail-open .summary-strip {
-    display: none;
   }
 
   .list-head {

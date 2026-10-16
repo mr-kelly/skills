@@ -25,9 +25,6 @@
             <span class="sidebar-toggle-icon" aria-hidden="true"></span>
           </button>
         </div>
-        <div class="search sidebar-search">
-          <input id="search" type="search" placeholder="Search" aria-label="Search">
-        </div>
         <section class="human-work" aria-labelledby="humanWorkTitle">
           <div class="human-work-eyebrow" data-i18n="attention">Need attention</div>
           <div id="humanWorkTitle" class="human-work-title" data-i18n="humanWorkTitle">What needs your attention</div>
@@ -77,16 +74,105 @@
           </div>
           <button id="mobileRefresh" class="mobile-refresh-button" type="button" title="Refresh" aria-label="Refresh">↻</button>
         </div>
-        <header class="topbar">
-          <div>
-            <h1 id="page-title">Overview</h1>
-            <p id="page-subtitle" class="muted"></p>
+        <div id="loadState" class="load-state" role="status">Loading</div>
+
+        <!-- Overview: the only page with a hero and a metrics band. -->
+        <section id="overviewPage" class="ws-overview" hidden>
+          <header class="page-hero">
+            <div>
+              <h1 id="overviewTitle">Overview</h1>
+              <p id="overviewSummary"></p>
+            </div>
+            <div class="page-actions">
+              <button id="refresh" class="button" type="button" title="Refresh">Refresh</button>
+            </div>
+          </header>
+          <div id="overviewMetrics" class="ws-metrics" aria-label="Product summary"></div>
+          <div id="overviewBody"></div>
+        </section>
+
+        <!-- Products: one toolbar row over a full-bleed table; detail mode
+             "page" (ui.detail_modes in config.js) -- a product record
+             replaces the list at `#/products/<id>`. -->
+        <section id="productsPage" class="ws-view" hidden>
+          <header class="ws-toolbar">
+            <div class="ws-title">
+              <h1 id="productsTitle" data-i18n="products">Products</h1>
+              <span id="productsCount" class="ws-count"></span>
+            </div>
+            <div class="ws-actions">
+              <label class="search toolbar-search">
+                <span class="sr-only" data-i18n="search">Search</span>
+                <input id="productsSearch" type="search" autocomplete="off" placeholder="Search">
+              </label>
+            </div>
+          </header>
+          <div class="ws-workspace">
+            <div id="productsList" class="ws-list"></div>
+            <aside id="productsDetail" class="ws-detail" aria-live="polite">
+              <div class="ws-detail-bar">
+                <button id="productsDetailBack" class="button" type="button" data-i18n="backToList">Back to list</button>
+                <a id="productsDetailExpand" class="button" hidden data-i18n="openFullPage">Open full page</a>
+              </div>
+              <div id="productsDetailBody"></div>
+            </aside>
           </div>
-          <div class="topbar-actions">
-            <button id="refresh" type="button" title="Refresh" aria-label="Refresh">Refresh</button>
+        </section>
+
+        <!-- Inventory: a rollup table only -- every row links to the owning
+             product's page instead of having a detail of its own. -->
+        <section id="inventoryPage" class="ws-view" hidden>
+          <header class="ws-toolbar">
+            <div class="ws-title">
+              <h1 id="inventoryTitle" data-i18n="inventory">Inventory</h1>
+              <span id="inventoryCount" class="ws-count"></span>
+            </div>
+          </header>
+          <div class="ws-workspace">
+            <div id="inventoryList" class="ws-list"></div>
           </div>
-        </header>
-        <section id="content" class="content"></section>
+        </section>
+
+        <!-- Channels: same shape as Inventory. -->
+        <section id="channelsPage" class="ws-view" hidden>
+          <header class="ws-toolbar">
+            <div class="ws-title">
+              <h1 id="channelsTitle" data-i18n="channels">Channels</h1>
+              <span id="channelsCount" class="ws-count"></span>
+            </div>
+          </header>
+          <div class="ws-workspace">
+            <div id="channelsList" class="ws-list"></div>
+          </div>
+        </section>
+
+        <!-- Review: detail mode "split" -- the queue stays beside the record
+             being decided on (`?peek=<id>`). -->
+        <section id="reviewPage" class="ws-view" hidden>
+          <header class="ws-toolbar">
+            <div class="ws-title">
+              <h1 id="reviewTitle" data-i18n="reviewQueue">Review queue</h1>
+              <span id="reviewViewCount" class="ws-count"></span>
+            </div>
+          </header>
+          <div class="ws-workspace">
+            <div id="reviewList" class="ws-list"></div>
+            <aside id="reviewDetail" class="ws-detail" aria-live="polite">
+              <div class="ws-detail-bar">
+                <button id="reviewDetailBack" class="button" type="button" data-i18n="close">Close</button>
+                <a id="reviewDetailExpand" class="button" hidden data-i18n="openFullPage">Open full page</a>
+              </div>
+              <div id="reviewDetailBody"></div>
+            </aside>
+          </div>
+        </section>
+
+        <section id="settingsPage" class="ws-view" hidden>
+          <header class="ws-toolbar">
+            <div class="ws-title"><h1 id="settingsTitle" data-i18n="settings">Help & Settings</h1></div>
+          </header>
+          <div id="settingsBody" class="settings-scroll"></div>
+        </section>
       </main>
     </div>
     <div id="sidebarScrim" class="sidebar-scrim" hidden></div>

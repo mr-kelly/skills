@@ -12,6 +12,14 @@ export const appConfig = {
     slug: "kelly-beauty-intel",
   },
   airApp: { name: "Kelly Beauty Intel", slug: "kelly-beauty-intel-app", resourceKey: "kelly-beauty-intel-app" },
+  // Mode per Base, by what the operator does with the record:
+  //   signals/actions/drafts → split: this is one reviewable batch worked
+  //                            top to bottom, record after record, so the
+  //                            queue stays beside the open record.
+  //   sources                → drawer: a source is a fact the operator scans
+  //                            (freshness/coverage), reads, and returns to.
+  // Both carry "Open full page" to a `/record` path (see app.js DETAIL_MODES).
+  ui: { detail_modes: { signals: "split", actions: "split", drafts: "split", sources: "drawer" } },
   bases: [
     {
       key: "signals",
@@ -107,7 +115,11 @@ export const appConfig = {
     },
   ],
   permissions: {
-    readProcedures: ["nodes.list", "nodes.get", "bases.get", "records.list", "records.count"],
+    // records.get is declared because busabase-provider.js's findRecord() (used
+    // by both a write's read-before-write and a peek deep link falling outside
+    // the loaded page) calls it — undeclared here, the server would deny a
+    // procedure the client was actually calling. Pre-existing gap, fixed here.
+    readProcedures: ["nodes.list", "nodes.get", "bases.get", "records.list", "records.count", "records.get"],
     setupProcedures: ["nodes.createChangeRequest", "nodes.updateMetadata"],
     writeProcedures: ["records.changeRequest", "bases.createChangeRequest"],
   },

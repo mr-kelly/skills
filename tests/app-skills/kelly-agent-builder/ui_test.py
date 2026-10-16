@@ -41,21 +41,25 @@ def test_demo_ui(browser, base_url: str) -> None:
     errors = attach_error_capture(page)
     page.goto(f"{base_url}/?demo=1#/catalog")
     page.wait_for_load_state("networkidle")
-    assert page.locator("#page-title").inner_text() == "Agent Catalog"
+    assert page.locator("#viewTitle").inner_text() == "Agent Catalog"
     assert page.locator("table tbody tr").count() == 8
     assert_no_horizontal_overflow(page)
 
+    # Detail mode is "page" (js/config.js `ui.detail_modes`): opening a record
+    # replaces the list under the same "catalog" view/base — `#/catalog/:id`,
+    # not a separate "agent" view.
     page.locator("table tbody tr a").first.click()
     page.wait_for_timeout(150)
-    assert "/agent/" in page.url
+    assert "#/catalog/" in page.url
     assert page.locator("#agentForm").is_visible()
-    page.locator(".back-link").click()
+    assert page.locator("body.ws-detail-page.ws-detail-open").count() == 1
+    page.locator("#detailBack").click()
     page.wait_for_timeout(150)
     assert page.url.endswith("#/catalog")
 
     page.goto(f"{base_url}/?demo=1#/settings")
     page.wait_for_load_state("networkidle")
-    assert page.locator("#page-title").inner_text() != ""
+    assert page.locator("#settingsTitle").inner_text() != ""
     assert not errors, errors
     desktop.close()
 
@@ -167,7 +171,7 @@ def test_busabase_provisioning(browser) -> None:
                         )
                     page.reload()
                     page.wait_for_load_state("networkidle")
-                    assert page.locator("#page-title").inner_text() == "Agent Catalog"
+                    assert page.locator("#viewTitle").inner_text() == "Agent Catalog"
                     assert page.locator("[data-provision]").count() == 0
                     assert not errors, errors
                     context.close()

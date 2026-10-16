@@ -3,15 +3,8 @@
   --bg: #f7f8fa;
   --panel: #ffffff;
   --panel-subtle: #fafbfc;
-  --ink: #171a1f;
   --text: #171a1f;
-  --muted: #6b7280;
   --muted-soft: #9aa3af;
-  --line: #e5e7eb;
-  --line-strong: #d8dde6;
-  --warn: #9a6700;
-  --bad: #b33434;
-  --good: #1f7a4d;
   --shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
 }
 
@@ -39,6 +32,23 @@ a {
   text-decoration: none;
 }
 
+.muted {
+  color: var(--muted);
+  font-size: var(--text-sm);
+}
+
+h1,
+h2 {
+  margin: 0;
+  letter-spacing: 0;
+}
+
+h2 {
+  font-size: var(--text-md);
+  font-weight: 680;
+}
+
+/* Shell */
 .app-shell {
   display: grid;
   grid-template-columns: 260px minmax(0, 1fr);
@@ -139,7 +149,7 @@ body.sidebar-collapsed .app-shell {
 
 .sidebar-toggle:focus-visible,
 .mobile-sidebar-toggle:focus-visible {
-  box-shadow: 0 0 0 3px var(--accent-focus);
+  box-shadow: 0 0 0 3px var(--accent-line);
 }
 
 .sidebar-toggle-icon {
@@ -184,6 +194,7 @@ body.sidebar-collapsed .sidebar-footer {
   display: none;
 }
 
+/* Search (sidebar) */
 .search {
   position: relative;
 }
@@ -222,7 +233,6 @@ body.sidebar-collapsed .sidebar-footer {
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
   background: color-mix(in srgb, var(--surface) 72%, transparent);
-  box-shadow: inset 0 1px 0 var(--shadow-tint);
   font: inherit;
 }
 
@@ -230,9 +240,10 @@ body.sidebar-collapsed .sidebar-footer {
   border-color: var(--line-strong);
   outline: none;
   background: var(--surface);
-  box-shadow: 0 0 0 3px var(--accent-focus);
+  box-shadow: 0 0 0 3px var(--accent-line);
 }
 
+/* Human attention */
 .human-work {
   display: grid;
   gap: 8px;
@@ -321,6 +332,7 @@ body.sidebar-collapsed .sidebar-footer {
   background: var(--line);
 }
 
+/* Sidebar nav */
 .filters {
   display: grid;
   gap: 4px;
@@ -364,66 +376,13 @@ body.sidebar-collapsed .sidebar-footer {
   background: color-mix(in srgb, var(--surface) 72%, transparent);
 }
 
-.main {
-  min-width: 0;
-  min-height: 0;
-  height: 100vh;
-  display: grid;
-  grid-template-rows: auto 1fr;
-  overflow: hidden;
-}
-
-.mobile-topbar {
-  display: none;
-}
-
-.mobile-sidebar-toggle {
-  display: none;
-}
-
-.topbar {
-  position: static;
-  z-index: 1;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  min-height: 58px;
-  padding: 10px 18px;
-  border-bottom: 1px solid var(--line);
-  background: var(--surface-blur);
-}
-
-h1,
-h2 {
-  margin: 0;
-  letter-spacing: 0;
-}
-
-.topbar h1 {
-  font-size: var(--text-xl);
-  font-weight: 700;
-  line-height: 1.25;
-  letter-spacing: -0.01em;
-}
-
-h2 {
-  font-size: var(--text-md);
-  font-weight: 680;
-  letter-spacing: -0.005em;
-}
-
-.topbar-actions {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
+/* Controls — native controls only: `.button`/`.card`/`.empty-state` come
+ * from base-ui.css, and an unlayered element rule here would beat those
+ * layered classes outright. */
 select,
 input,
-button,
-textarea {
-  min-height: 36px;
+textarea,
+button:not(.button) {
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
   background: var(--surface);
@@ -434,122 +393,160 @@ textarea {
 
 select,
 input {
+  min-height: 36px;
   padding: 0 10px;
 }
 
 textarea {
+  width: 100%;
   padding: 8px 10px;
   min-height: 72px;
   resize: vertical;
 }
 
-button {
+textarea:focus,
+select:focus {
+  border-color: var(--line-strong);
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-line);
+}
+
+button:not(.button) {
   min-height: 34px;
   padding: 0 14px;
-  border: 1px solid var(--line);
   background: var(--panel);
-  color: var(--text);
   cursor: pointer;
 }
 
-button:hover {
+button:not(.button):hover {
   border-color: var(--line-strong);
   background: var(--surface-soft);
 }
 
-.content {
+button:disabled,
+textarea:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  background: var(--panel-subtle);
+}
+
+/* Main area */
+.main {
+  min-width: 0;
   min-height: 0;
-  overflow: auto;
-  padding: 16px 18px 24px;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
-.muted {
+.load-state {
+  padding: 24px;
+  color: var(--muted);
+}
+
+.load-state.error {
+  color: var(--danger);
+}
+
+.load-state[hidden] {
+  display: none;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.mobile-topbar {
+  display: none;
+}
+
+.mobile-sidebar-toggle {
+  display: none;
+}
+
+/* Toolbar search */
+.toolbar-search {
+  flex: 0 1 240px;
+  min-width: 160px;
+}
+
+/* Overview metrics band: base-ui lays out the cells; label/value are ours. */
+.ws-metrics span {
+  overflow: hidden;
   color: var(--muted);
   font-size: var(--text-sm);
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.metrics {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px;
-  margin-bottom: 14px;
-}
-
-.metric {
-  border: 1px solid var(--line);
-  border-radius: var(--radius-md);
-  background: var(--panel);
-  padding: 13px 14px;
-  box-shadow: var(--shadow);
-}
-
-.metric span {
-  display: block;
-  color: var(--muted);
-  font-size: var(--text-sm);
-  font-weight: 560;
-  letter-spacing: 0.01em;
-  text-transform: uppercase;
-}
-
-.metric strong {
-  display: block;
-  margin-top: 7px;
+.ws-metrics strong {
   font-size: var(--text-xl);
-  font-weight: 700;
-  letter-spacing: -0.01em;
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
-.metric strong.ready {
-  color: var(--good);
+/* `hidden` must win over base-ui classes that set display (.button, the
+ * detail bar); the UA [hidden] rule alone loses to any class. */
+[hidden] {
+  display: none !important;
 }
 
-.metric strong.blocked {
-  color: var(--bad);
+/* Record tables: the first column names the record; status is the only
+ * other column kept visible in the narrow split pane (see DETAIL_MODES in
+ * app.js — base-ui.css hides a 3rd+ column there by default). */
+.fin-table th:first-child {
+  width: 78%;
 }
 
-.metric strong.pending {
-  color: var(--warn);
+/* base-ui's own split-mode override (`body.ws-layout-split .ws-table
+ * th:first-child { width: 65% }`) left the status column too narrow for the
+ * longest label ("changes requested") — its pill clipped mid-text behind
+ * the cell's ellipsis. Give status more of the split pane's narrower width. */
+body.ws-layout-split .fin-table th:first-child {
+  width: 48%;
 }
 
-.table-wrap {
-  overflow: auto;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-md);
-  background: var(--panel);
-  box-shadow: var(--shadow);
-}
-
-table {
-  width: 100%;
-  min-width: 720px;
-  border-collapse: collapse;
-}
-
-th,
-td {
-  padding: 11px 12px;
-  border-bottom: 1px solid var(--line);
-  text-align: left;
-  vertical-align: top;
-}
-
-tbody tr:last-child td {
-  border-bottom: none;
-}
-
-tbody tr:hover td {
-  background: var(--surface-hover);
-}
-
-th {
+.fin-table td small {
+  display: block;
+  margin-top: 2px;
+  overflow: hidden;
   color: var(--muted);
   font-size: var(--text-sm);
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-  background: var(--surface-hover);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sources-table th:nth-child(1) {
+  width: 22%;
+}
+.sources-table th:nth-child(2) {
+  width: 12%;
+}
+.sources-table th:nth-child(3) {
+  width: 14%;
+}
+.sources-table th:nth-child(4) {
+  width: auto;
+}
+
+.pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 14px 0 18px;
+}
+
+.pager-summary {
+  color: var(--muted);
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
 }
 
 .strong {
@@ -561,6 +558,7 @@ th {
   font-variant-numeric: tabular-nums;
 }
 
+/* Badges */
 .badge {
   display: inline-block;
   padding: 3px 8px;
@@ -573,87 +571,238 @@ th {
   white-space: nowrap;
 }
 
-.badge.done {
-  background: color-mix(in srgb, var(--positive) 18%, var(--surface));
-  color: var(--positive);
-  border-color: color-mix(in srgb, var(--positive) 34%, var(--line));
-}
-
-.badge.needs_review {
-  background: var(--accent-soft);
-  color: var(--ink-soft);
-}
-
-.badge.changes_requested {
-  background: color-mix(in srgb, var(--warning) 18%, var(--surface));
-  color: var(--warning);
-  border-color: color-mix(in srgb, var(--warning) 34%, var(--line));
-}
-
-.badge.blocked {
-  background: color-mix(in srgb, var(--danger) 18%, var(--surface));
-  color: var(--danger);
-  border-color: color-mix(in srgb, var(--danger) 34%, var(--line));
-}
-
-.badge.ready {
-  background: color-mix(in srgb, var(--positive) 18%, var(--surface));
-  color: var(--positive);
-  border-color: color-mix(in srgb, var(--positive) 34%, var(--line));
-}
-
-.badge.in_progress {
-  background: var(--accent-soft);
-  color: var(--ink-soft);
-}
-
-.badge.approved {
-  background: color-mix(in srgb, var(--positive) 18%, var(--surface));
-  color: var(--positive);
-  border-color: color-mix(in srgb, var(--positive) 34%, var(--line));
-}
-
+.badge.done,
+.badge.ready,
+.badge.approved,
 .badge.configured {
   background: color-mix(in srgb, var(--positive) 18%, var(--surface));
   color: var(--positive);
   border-color: color-mix(in srgb, var(--positive) 34%, var(--line));
 }
 
-.badge.needs_config {
-  background: color-mix(in srgb, var(--warning) 18%, var(--surface));
-  color: var(--warning);
-  border-color: color-mix(in srgb, var(--warning) 34%, var(--line));
+.badge.needs_review,
+.badge.in_progress {
+  background: var(--accent-soft);
+  color: var(--ink-soft);
 }
 
-.badge.high {
-  background: color-mix(in srgb, var(--danger) 18%, var(--surface));
-  color: var(--danger);
-  border-color: color-mix(in srgb, var(--danger) 34%, var(--line));
-}
-
+.badge.changes_requested,
+.badge.needs_config,
 .badge.medium {
   background: color-mix(in srgb, var(--warning) 18%, var(--surface));
   color: var(--warning);
   border-color: color-mix(in srgb, var(--warning) 34%, var(--line));
 }
 
-.empty {
-  border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
-  background: var(--panel);
+.badge.blocked,
+.badge.high {
+  background: color-mix(in srgb, var(--danger) 18%, var(--surface));
+  color: var(--danger);
+  border-color: color-mix(in srgb, var(--danger) 34%, var(--line));
+}
+
+/* Overview */
+.overview-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 14px;
+}
+
+.overview-panel {
+  min-width: 0;
   padding: 16px;
+}
+
+.overview-panel h2 {
+  margin: 0 0 4px;
+}
+
+.due-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.due-row:last-child {
+  border-bottom: 0;
+}
+
+.due-row:hover strong {
+  color: var(--accent);
+}
+
+.due-row small {
+  display: block;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.due-meta {
+  display: grid;
+  gap: 4px;
+  justify-items: end;
+}
+
+.empty-inline {
+  padding: 8px 0;
   color: var(--muted);
 }
 
-.back-link {
-  display: inline-block;
-  margin-bottom: 12px;
+/* Detail — one markup for the split pane, a drawer, and the full page. */
+.item-review {
+  display: grid;
+  gap: 10px;
+  max-width: 820px;
+}
+
+.queue-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.queue-ref {
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.queue-subject {
+  font-size: var(--text-xl);
+  margin: 0;
+}
+
+.field {
+  display: grid;
+  gap: 4px;
+}
+
+.field > span {
+  color: var(--muted);
+  font-size: var(--text-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.field p {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.field textarea {
+  width: 100%;
+  resize: vertical;
+}
+
+.queue-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.queue-actions button {
+  font-weight: 640;
+}
+
+.queue-actions button.approve {
+  border-color: color-mix(in srgb, var(--positive) 34%, var(--line));
+  background: color-mix(in srgb, var(--positive) 18%, var(--surface));
+  color: var(--positive);
+}
+
+.queue-actions button.approve:hover {
+  background: var(--surface-soft);
+}
+
+.queue-actions button.danger {
+  border-color: color-mix(in srgb, var(--danger) 34%, var(--line));
+  background: color-mix(in srgb, var(--danger) 18%, var(--surface));
+  color: var(--danger);
+}
+
+.queue-actions button.danger:hover {
+  background: var(--surface-soft);
+}
+
+.decision-feedback {
+  font-size: var(--text-sm);
+}
+
+.decision-feedback.positive {
+  color: var(--positive);
+}
+
+.decision-feedback.negative {
+  color: var(--danger);
+}
+
+/* Banners */
+.warnings {
+  margin-bottom: 14px;
+}
+
+.warnings .info {
+  display: grid;
+  gap: 2px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--panel);
+  padding: 10px 14px;
   color: var(--muted);
   font-size: var(--text-base);
 }
 
-.back-link:hover {
+.warnings .info strong {
   color: var(--text);
+}
+
+.warnings .warning {
+  border: 1px solid color-mix(in srgb, var(--warning) 34%, var(--line));
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--warning) 18%, var(--surface));
+  color: var(--warning);
+  padding: 10px 14px;
+}
+
+/* Settings */
+.settings-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  padding: 0 24px 32px;
+}
+
+.settings {
+  display: grid;
+  gap: 14px;
+  max-width: 900px;
+  padding-top: 18px;
+}
+
+.settings section {
+  padding: 16px;
+}
+
+.settings dl {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 6px 14px;
+  margin: 14px 0 0;
+}
+
+.settings dt {
+  color: var(--muted);
+}
+
+.settings dd {
+  margin: 0;
+  overflow-wrap: anywhere;
 }
 
 .sidebar-scrim,
@@ -661,13 +810,14 @@ th {
   display: none;
 }
 
+/* Responsive */
 @media (max-width: 980px) {
   .app-shell {
     grid-template-columns: 220px minmax(0, 1fr);
   }
 
-  .metrics {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .overview-grid {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -700,7 +850,7 @@ th {
 
   body.sidebar-open .sidebar {
     transform: translateX(0);
-    box-shadow: 20px 0 40px var(--shadow-tint-deep);
+    box-shadow: 20px 0 40px rgba(16, 24, 40, 0.18);
   }
 
   .sidebar-scrim {
@@ -747,7 +897,6 @@ th {
   }
 
   .main {
-    grid-template-rows: auto minmax(0, 1fr);
     height: 100dvh;
   }
 
@@ -800,311 +949,49 @@ th {
     padding: 0;
   }
 
-  .topbar {
+  /* The mobile top bar already names the view; the toolbar keeps the count. */
+  .ws-title h1,
+  #detailExpand {
     display: none;
   }
 
-  .content {
-    padding: 12px;
+  .ws-toolbar,
+  .ws-actions {
+    flex-wrap: nowrap;
   }
 
-  .metrics {
-    grid-template-columns: 1fr;
-    gap: 8px;
+  .ws-actions {
+    flex: 1 1 auto;
+    min-width: 0;
   }
 
-  .metric {
+  .toolbar-search {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .ws-metrics > * {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
     padding: 10px 12px;
   }
 
-  .table-wrap {
-    max-width: 100%;
-    border-left: 1px solid var(--line);
-    border-right: 1px solid var(--line);
-    border-radius: var(--radius-sm);
+  .ws-metrics strong {
+    font-size: var(--text-lg);
   }
 
-  table {
-    min-width: 560px;
-  }
-
-  .item-detail {
+  .overview-grid {
     grid-template-columns: 1fr;
+    gap: 12px;
   }
 
-  .actions-bar {
-    flex-wrap: wrap;
+  .settings-scroll {
+    padding: 0 14px 24px;
   }
-}
 
-/* Kelly Financial Services Intel — domain components */
-
-.warnings {
-  margin-bottom: 14px;
-}
-
-.warnings .info {
-  display: grid;
-  gap: 2px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
-  background: var(--panel);
-  padding: 10px 14px;
-  color: var(--muted);
-  font-size: var(--text-base);
-}
-
-.warnings .info strong {
-  color: var(--text);
-}
-
-.overview-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 14px;
-  margin-top: 16px;
-}
-
-.overview-panel {
-  display: grid;
-  gap: 8px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-md);
-  background: var(--panel);
-  padding: 14px;
-  box-shadow: var(--shadow);
-}
-
-.overview-panel h2 {
-  font-size: var(--text-base);
-  color: var(--muted);
-  margin-bottom: 4px;
-}
-
-.item-detail {
-  display: grid;
-  grid-template-columns: minmax(240px, 320px) 1fr;
-  gap: 16px;
-  align-items: start;
-}
-
-.item-list {
-  display: grid;
-  gap: 8px;
-}
-
-.item-row {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  gap: 10px;
-  align-items: center;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-md);
-  background: var(--panel);
-  padding: 10px 12px;
-  text-decoration: none;
-  color: inherit;
-  transition: border-color 0.12s ease, background 0.12s ease;
-}
-
-.item-row:hover {
-  border-color: var(--line-strong);
-  background: var(--surface-soft);
-}
-
-.item-row.active {
-  border-color: var(--accent);
-}
-
-.item-row-ref {
-  color: var(--muted);
-  font-size: var(--text-xs);
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-}
-
-.item-row-main {
-  display: grid;
-  gap: 2px;
-  min-width: 0;
-}
-
-.item-row-main strong {
-  font-size: var(--text-md);
-  font-weight: 650;
-}
-
-.item-row-main span {
-  color: var(--muted);
-  font-size: var(--text-sm);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.item-panel {
-  display: grid;
-  gap: 14px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-md);
-  background: var(--panel);
-  padding: 18px;
-  box-shadow: var(--shadow);
-}
-
-.item-panel-head {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.item-panel h2 {
-  font-size: var(--text-lg);
-  margin: 0;
-}
-
-.field {
-  display: grid;
-  gap: 4px;
-}
-
-.field span {
-  color: var(--muted);
-  font-size: var(--text-sm);
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-}
-
-.field p {
-  margin: 0;
-}
-
-.field textarea {
-  width: 100%;
-  min-height: 90px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
-  padding: 8px 10px;
-  font: inherit;
-  resize: vertical;
-}
-
-.actions-bar {
-  display: flex;
-  gap: 8px;
-}
-
-.actions-bar button {
-  border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
-  background: var(--panel);
-  padding: 8px 14px;
-  font-weight: 640;
-  cursor: pointer;
-}
-
-.actions-bar button:hover {
-  border-color: var(--line-strong);
-}
-
-.actions-bar button.primary {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: var(--accent-contrast);
-}
-
-.actions-bar button.danger {
-  background: color-mix(in srgb, var(--danger) 18%, var(--surface));
-  border-color: color-mix(in srgb, var(--danger) 34%, var(--line));
-  color: var(--danger);
-}
-
-.actions-bar button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.decision-feedback {
-  font-size: var(--text-sm);
-}
-
-.decision-feedback.positive {
-  color: var(--positive);
-}
-
-.decision-feedback.negative {
-  color: var(--danger);
-}
-
-.source-list {
-  display: grid;
-  gap: 10px;
-}
-
-.source-row {
-  display: grid;
-  gap: 6px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-md);
-  background: var(--panel);
-  padding: 14px;
-  box-shadow: var(--shadow);
-}
-
-.source-row-head {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  justify-content: space-between;
-}
-
-.settings-grid {
-  display: grid;
-  gap: 16px;
-}
-
-.settings-grid dl {
-  display: grid;
-  grid-template-columns: max-content 1fr;
-  gap: 6px 14px;
-  margin: 0;
-}
-
-.settings-grid dt {
-  color: var(--muted);
-}
-
-.settings-grid dd {
-  margin: 0;
-}
-
-.pager {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 16px;
-}
-
-.pager button {
-  min-height: 34px;
-}
-
-.pager-page {
-  min-width: 34px;
-  padding-inline: 8px;
-}
-
-.pager-page.active {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: white;
-}
-
-.pager-ellipsis,
-.pager-summary {
-  color: var(--muted);
-  font-size: var(--text-sm);
+  .queue-actions button {
+    flex: 1 1 auto;
+    min-height: 40px;
+  }
 }

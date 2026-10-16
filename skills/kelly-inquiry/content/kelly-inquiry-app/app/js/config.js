@@ -13,6 +13,17 @@ export const appConfig = {
     slug: "kelly-inquiry",
   },
   airApp: { name: "Kelly Inquiry", slug: "kelly-inquiry-app", resourceKey: "kelly-inquiry-app" },
+  // Where a record opens, per view. Chosen by what people do with the record:
+  //   inquiries → page:   a conversation, composer, customer profile and
+  //                       linked quotes/products — a workspace you stay in.
+  //   quotes    → page:   an editable line-item worksheet needs the width.
+  //   approvals → split:  a review queue worked top to bottom, one draft
+  //                       after the next, so the queue stays beside it.
+  //   products  → drawer: a knowledge-base fact you scan many of and return
+  //                       to the list for — a quick glance, not a workspace.
+  // A `/record` path always opens the full page; `?peek=` drives drawer/split.
+  // On a phone every mode becomes a page (base-ui.css handles that).
+  ui: { detail_modes: { inquiries: "page", quotes: "page", approvals: "split", products: "drawer" } },
   bases: [
     {
       key: "accounts",
