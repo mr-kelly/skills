@@ -24,6 +24,7 @@ import {
 } from "../content/kelly-email-app/lib/common.ts";
 import { createProvider } from "../content/kelly-email-app/lib/data-provider/index.ts";
 import type { Config, Mailbox, ReviewItem } from "../content/kelly-email-app/lib/types.ts";
+import { enforceRecipientScopedReview } from "./lib/support-intake.ts";
 
 interface BatchArgs {
   reviewQuota: number;
@@ -200,7 +201,8 @@ async function fetchMailbox(
 
           const classification = classify(sender, subject, body, attachments, config);
           const reviewBrief = reviewRecommendationFor(classification, sender, subject, body, attachments, config);
-          if (classification.status === "needs_review") needsReview += 1;
+          const effectiveClassification = enforceRecipientScopedReview(classification, recipient);
+          if (effectiveClassification.status === "needs_review") needsReview += 1;
           const itemId = stableItemId(mailbox.mailbox_id || "", String(uid), messageId, subject);
           const rulePrefilter = {
             category: classification.category,
@@ -223,10 +225,10 @@ async function fetchMailbox(
             cc,
             date: parsed.date ? parsed.date.toISOString() : message.internalDate?.toISOString?.() || "",
             subject,
-            category: classification.category,
-            risk: classification.risk,
-            status: classification.status,
-            proposed_action: classification.proposed_action,
+            category: effectiveClassification.category,
+            risk: effectiveClassification.risk,
+            status: effectiveClassification.status,
+            proposed_action: effectiveClassification.proposed_action,
             classification_method: "rule_prefilter",
             classification_pipeline_version: CLASSIFICATION_PIPELINE_VERSION,
             rule_prefilter: rulePrefilter,
@@ -236,7 +238,7 @@ async function fetchMailbox(
               evidence: "Waiting for kelly-email agent semantic review.",
               changed: false,
             },
-            reason: classification.reason,
+            reason: effectiveClassification.reason,
             review_brief: reviewBrief,
             suggested_reply: reviewBrief.suggested_reply || "",
             summary: summaryFrom(subject, body),

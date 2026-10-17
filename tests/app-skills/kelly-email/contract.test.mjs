@@ -31,11 +31,37 @@ test("has the canonical app project and deterministic commands", async () => {
 });
 
 test("mail collection can scope secret checks and IMAP search before downloading bodies", async () => {
-  const source = await readFile(join(skillRoot, "scripts", "generate_review_batch.ts"), "utf8");
+  const [source, supportIntake] = await Promise.all([
+    readFile(join(skillRoot, "scripts", "generate_review_batch.ts"), "utf8"),
+    readFile(join(skillRoot, "scripts", "lib", "support-intake.ts"), "utf8"),
+  ]);
   assert.match(source, /--mailbox/);
   assert.match(source, /--recipient/);
   assert.match(source, /header:\s*\{\s*to:\s*recipient\s*\}/);
   assert.match(source, /selectedConfig = \{ \.\.\.config, mailboxes \}/);
+  assert.match(source, /enforceRecipientScopedReview/);
+  assert.match(supportIntake, /Recipient-scoped support intake requires semantic review before cleanup/);
+});
+
+test("ships a support SMTP connector that is dry-run by default", async () => {
+  const [cli, connector] = await Promise.all([
+    readFile(join(skillRoot, "scripts", "send_support_reply.ts"), "utf8"),
+    readFile(join(skillRoot, "scripts", "lib", "smtp-connector.ts"), "utf8"),
+  ]);
+  assert.match(cli, /readStdin/);
+  assert.match(cli, /dryRun: !args\.has\("--apply"\)/);
+  assert.match(connector, /deterministicMessageId/);
+  assert.match(connector, /inReplyTo/);
+  assert.match(connector, /resolveEndpointSecret/);
+  assert.match(connector, /process\.env\[ref\]/);
+});
+
+test("trusted email scripts use process credentials without exposing them to AirApp requests", async () => {
+  const source = await readFile(join(appRoot, "lib", "data-provider", "busabase-client.ts"), "utf8");
+  assert.match(source, /!airAppRequest && process\.env\.BUSABASE_API_KEY/);
+  assert.match(source, /airAppRequest \? \{ headers: runtimeHeaders \} : \{\}/);
+  assert.match(source, /multiple populated Kelly Email/);
+  assert.match(source, /chooseOwnedResourceCandidate/);
 });
 
 // kelly-email is laid out as a busabase TEMPLATE, so the invariant this file

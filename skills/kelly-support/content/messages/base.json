@@ -58,6 +58,22 @@
       "required": false,
       "position": 6,
       "options": {}
+    },
+    {
+      "slug": "provider-message-id",
+      "name": "Provider message ID",
+      "type": "text",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "provider-references",
+      "name": "Provider references",
+      "type": "longtext",
+      "required": false,
+      "position": 8,
+      "options": {}
     }
   ],
   "views": []

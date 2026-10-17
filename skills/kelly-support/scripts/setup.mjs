@@ -122,7 +122,7 @@ console.log(`Folder ${appConfig.folder.name}（${appConfig.folder.slug}）${curr
 describe(current);
 
 let dataReady = current.folder && !current.missing.length && !current.repairs.length;
-let currentSettingsRecord = dataReady ? await findSettingsRecord(current) : null;
+let currentSettingsRecord = await findSettingsRecord(current);
 let settingsReady = supportSettingsComplete(currentSettingsRecord?.headCommit?.payload);
 console.log(
   `  ${"Support policy".padEnd(28)} ${settingsReady ? "已配置" : currentSettingsRecord ? "存在，待操作员确认" : "缺失（将提交安全默认值供审核）"}`,

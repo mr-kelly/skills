@@ -2,7 +2,7 @@
   "format": "busabase-package@1",
   "name": "kelly-support",
   "description": "Customer-support desk: tickets, knowledge base, and the support-qa quality gate",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "license": "MIT",
   "tags": [
     "sales-crm",
@@ -14,7 +14,7 @@
   ],
   "template": {
     "category": "sales-crm",
-    "schemaVersion": 2,
+    "schemaVersion": 3,
     "airapp": "kelly-support-app",
     "tags": [
       "sales-crm",
