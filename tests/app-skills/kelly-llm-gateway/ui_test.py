@@ -170,7 +170,11 @@ def test_busabase_provisioning(browser) -> None:
                         # absence of the setup gate is what signals lazy
                         # provisioning succeeded.
                         page.wait_for_selector("[data-provision]", state="detached", timeout=15_000)
-                        page.locator("#viewCount").get_by_text("0", exact=True).wait_for(timeout=15_000)
+                        # The toolbar count is display:none on desktop until a search
+                        # narrows it, so wait on its text, not its visibility.
+                        page.wait_for_function(
+                            "document.getElementById('viewCount')?.textContent === '0'", timeout=15_000
+                        )
                     except Exception:
                         nodes = read_json(f"{busabase_url}/api/v1/nodes?depth=2")
                         change_requests = read_json(f"{busabase_url}/api/v1/change-requests")
