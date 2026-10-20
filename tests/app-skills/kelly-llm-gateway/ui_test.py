@@ -6,7 +6,7 @@ import tempfile
 import urllib.request
 from pathlib import Path
 
-from playwright.sync_api import Page, sync_playwright
+from playwright.sync_api import Page, expect, sync_playwright
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(REPO_ROOT / "tests" / "app-skills" / "harness"))
@@ -170,7 +170,7 @@ def test_busabase_provisioning(browser) -> None:
                         # absence of the setup gate is what signals lazy
                         # provisioning succeeded.
                         page.wait_for_selector("[data-provision]", state="detached", timeout=15_000)
-                        page.locator("#viewCount").get_by_text("0", exact=True).wait_for(timeout=15_000)
+                        expect(page.locator("#viewCount")).to_have_text("0", timeout=15_000)
                     except Exception:
                         nodes = read_json(f"{busabase_url}/api/v1/nodes?depth=2")
                         change_requests = read_json(f"{busabase_url}/api/v1/change-requests")
