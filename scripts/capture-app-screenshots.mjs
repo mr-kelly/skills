@@ -95,8 +95,13 @@ const ROUTE_OVERRIDES = {
     detail: "/invoices/inv-render-20260625",
   },
   "kelly-invest-stock": {
-    overview: "/strategies",
-    detail: "/strategies/buffett/portfolio",
+    // `overview` now matches the real Overview page (hero + metrics band),
+    // not the strategies list — that moved under its own nav item. `detail`
+    // was pointing at a strategy id ("buffett") that doesn't exist (real ids
+    // are prefixed, e.g. "strategy-buffett"), so it silently fell back to
+    // rendering the list instead of a detail view; fixed to a real id.
+    overview: "/overview",
+    detail: "/strategies/strategy-buffett/portfolio",
     regression: "/regression",
   },
   "kelly-jobhunt": {

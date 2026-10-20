@@ -119,8 +119,19 @@ export const appConfig = {
       ],
     },
   ],
+  // Chosen by what people do with a row, same reasoning as busa-crm's:
+  //   signals/actions/drafts → split: each is a review queue worked top to
+  //                            bottom, one item after the next, so the queue
+  //                            stays beside the record being decided.
+  //   sources                → drawer: a short fact people scan many of,
+  //                            read the full coverage text, then return.
+  ui: { detail_modes: { signals: "split", actions: "split", drafts: "split", sources: "drawer" } },
   permissions: {
-    readProcedures: ["nodes.list", "nodes.get", "bases.get", "records.list", "records.count"],
+    // records.get is used both by writes (re-reading the current record
+    // before a ChangeRequest) and by a direct `#/<view>/<id>` / `?peek=`
+    // link to a record that is not on the loaded page — it must be declared
+    // here, not only inferred from the write path.
+    readProcedures: ["nodes.list", "nodes.get", "bases.get", "records.list", "records.count", "records.get"],
     setupProcedures: ["nodes.createChangeRequest", "nodes.updateMetadata"],
     writeProcedures: ["records.changeRequest", "bases.createChangeRequest"],
   },

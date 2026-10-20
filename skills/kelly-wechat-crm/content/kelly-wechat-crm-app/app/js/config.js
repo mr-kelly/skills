@@ -1210,5 +1210,27 @@ export const appConfig = {
     primaryBase: "goals",
     navigationOrder: ["goals", "people", "relationship-snapshots", "actions", "worklog", "settings"],
     summary: "先确定目标，再从本机通讯录选择值得持续关注的人。",
+    // Chosen by what people do with the record, same rule as busa-crm:
+    //   goals                  → page:   a goal is a workplace of its own — it
+    //                                     owns a target person, a deadline and
+    //                                     constraints, and stays relevant for
+    //                                     the life of the relationship.
+    //   people                 → drawer: a contact is a fact you scan many of,
+    //                                     read, and return to the list.
+    //   relationship-snapshots → drawer: an Agent-written analysis you read
+    //                                     once, then go back to the list.
+    //   actions                → split:  the review queue is worked top to
+    //                                     bottom, one suggestion after the
+    //                                     next, so the queue stays beside it.
+    //   worklog                → drawer: a log entry you scan, read, return.
+    //   settings                → drawer: one system-status record.
+    detail_modes: {
+      goals: "page",
+      people: "drawer",
+      "relationship-snapshots": "drawer",
+      actions: "split",
+      worklog: "drawer",
+      settings: "drawer",
+    },
   },
 };

@@ -6,6 +6,18 @@ export const appConfig = {
   readOnly: false,
   spaceId: "",
   schemaVersion: 1,
+  // Where a record opens, per view -- chosen by what the seller does with it:
+  //   products → page:  a product is a workplace (gallery, pricing, inventory,
+  //                      content readiness, compliance, channel matrix, linked
+  //                      review items) -- you stay a while, so it gets its own
+  //                      full page (`#/products/<id>`), matching the retired
+  //                      app's existing product detail page.
+  //   review   → split:  the approval queue is worked top to bottom, one
+  //                      decision after the next, so the queue stays beside
+  //                      the record (`?peek=<id>`).
+  // channels/inventory are rollups with no record of their own -- every row
+  // already links out to the owning product's page instead.
+  ui: { detail_modes: { products: "page", review: "split" } },
   folder: {
     name: "Kelly Products",
     description:
@@ -134,7 +146,11 @@ export const appConfig = {
     },
   ],
   permissions: {
-    readProcedures: ["nodes.list", "nodes.get", "bases.get", "records.list", "records.count"],
+    // records.get backs the product/review detail peek (a record opened by
+    // URL that is not on the currently loaded page) -- declared here so the
+    // host grants it, matching the records.get call already made by
+    // decideReview()/getRecord() in busabase-provider.js.
+    readProcedures: ["nodes.list", "nodes.get", "bases.get", "records.list", "records.count", "records.get"],
     setupProcedures: ["nodes.createChangeRequest", "nodes.updateMetadata"],
     // The browser only ever decides on a review item (records.changeRequest);
     // it never creates a product/channel/inventory row (those enter through

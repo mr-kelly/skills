@@ -55,28 +55,33 @@ def test_demo_ui(browser, base_url: str) -> None:
 
     page.goto(f"{base_url}/?demo=signals&lang=en#/signals")
     page.wait_for_load_state("networkidle")
-    assert page.locator(".item-list .item-row").count() == 3
+    assert page.locator("#listPanel .ws-table tbody tr").count() == 3
 
     page.goto(f"{base_url}/?demo=actions&lang=en#/actions")
     page.wait_for_load_state("networkidle")
-    assert page.locator(".item-list .item-row").count() == 3
+    assert page.locator("#listPanel .ws-table tbody tr").count() == 3
 
     page.goto(f"{base_url}/?demo=drafts&lang=en#/drafts")
     page.wait_for_load_state("networkidle")
-    assert page.locator(".item-list .item-row").count() == 3
+    assert page.locator("#listPanel .ws-table tbody tr").count() == 3
 
     page.goto(f"{base_url}/?demo=overview&lang=en#/sources")
     page.wait_for_load_state("networkidle")
-    assert page.locator(".source-row").count() == 3
+    assert page.locator("#sourcesList .ws-table tbody tr").count() == 3
 
+    # `/signals/signal-1` always opens the full page (a `/record` path is a
+    # page in every detail mode, including this view's `split`), so the list
+    # is hidden and the title lives on the detail article, not a shared
+    # `#page-title` node.
     page.goto(f"{base_url}/?demo=detail&lang=en#/signals/signal-1")
     page.wait_for_load_state("networkidle")
-    assert "A local event nearby changes expected customer flow" in page.locator("#page-title").inner_text()
+    assert page.locator("body.ws-detail-page").count() == 1
+    assert "A local event nearby changes expected customer flow" in page.locator("#detailBody .detail-head h2").inner_text()
     assert page.locator("[data-decision-actions] button[data-action='approve']").is_visible()
 
     page.goto(f"{base_url}/?demo=overview&lang=en#/settings")
     page.wait_for_load_state("networkidle")
-    assert page.locator("#page-title").inner_text() == "Help & Settings"
+    assert page.locator("#settingsTitle").inner_text() == "Help & Settings"
 
     assert not errors, errors
     desktop.close()

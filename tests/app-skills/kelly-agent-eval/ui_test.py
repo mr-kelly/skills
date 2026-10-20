@@ -48,32 +48,35 @@ def test_demo_ui(browser, base_url: str) -> None:
     # release decision recorded yet.
     page.goto(f"{base_url}/?demo=1&lang=en#/overview")
     page.wait_for_load_state("networkidle")
-    assert page.locator("#regression-figure").inner_text() == "11"
-    assert page.locator("#pending-review-line").inner_text() == "11"
+    # The old sidebar had two numbers for the same thing (#regression-figure,
+    # the total regression count including already-decided ones, mislabeled
+    # "need a decision"; #pending-review-line, the real pending count) — the
+    # layout migration collapsed them into one honest #pending-review-figure.
+    assert page.locator("#pending-review-figure").inner_text() == "11"
     assert page.locator("#count-blocking").inner_text() == "0"
     assert page.locator("#count-release").inner_text() == "—"
     assert_no_horizontal_overflow(page)
 
     page.goto(f"{base_url}/?demo=1&lang=en#/regressions")
     page.wait_for_load_state("networkidle")
-    assert page.locator(".case-row").count() == 11
-    assert "11" in page.locator("#page-subtitle").inner_text()
+    assert page.locator(".ws-table tbody tr").count() == 11
+    assert page.locator("#viewCount").inner_text() == "11"
 
     page.goto(f"{base_url}/?demo=1&lang=en#/cases")
     page.wait_for_load_state("networkidle")
-    assert page.locator(".case-row").count() == 18
-    assert "18" in page.locator("#page-subtitle").inner_text()
+    assert page.locator(".ws-table tbody tr").count() == 18
+    assert page.locator("#viewCount").inner_text() == "18"
 
     page.goto(f"{base_url}/?demo=1&lang=en#/cases/support-ticket-triage")
     page.wait_for_load_state("networkidle")
-    assert "Support ticket triage priority" in page.locator("#page-title").inner_text()
+    assert "Support ticket triage priority" in page.locator("#detailBody h2").first.inner_text()
     assert page.locator(".rubric-bars").count() == 1
     assert page.locator("#markBlockingBtn").count() == 1
     assert page.locator("#markAcceptableBtn").count() == 1
 
     page.goto(f"{base_url}/?demo=1&lang=zh#/overview")
     page.wait_for_load_state("networkidle")
-    assert page.locator("#regression-figure").inner_text() == "11"
+    assert page.locator("#pending-review-figure").inner_text() == "11"
 
     assert not errors, errors
     desktop.close()
@@ -263,7 +266,7 @@ def test_busabase_provisioning(browser) -> None:
                     page.goto(f"{app_url}/#/cases/fixture-case")
                     page.wait_for_load_state("networkidle")
                     assert page.locator("[data-provision]").count() == 0
-                    assert "Fixture regression case" in page.locator("#page-title").inner_text()
+                    assert "Fixture regression case" in page.locator("#detailBody h2").first.inner_text()
                     page.locator("#decisionNote").fill("Blocking: fixture regression is not acceptable.")
                     page.locator("#markBlockingBtn").click()
                     page.wait_for_timeout(500)

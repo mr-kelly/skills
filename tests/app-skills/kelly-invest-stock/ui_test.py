@@ -364,7 +364,12 @@ def test_busabase_provisioning(browser) -> None:
                     errors = attach_error_capture(page)
                     page.goto(f"{app_url}/#/strategies")
                     page.wait_for_load_state("networkidle")
-                    assert page.get_by_role("heading", name="策略", exact=True).is_visible()
+                    # 390px viewport: the record-view layout spec hides the toolbar's <h1>
+                    # and shows the view name in the phone top bar instead (a plain div, not
+                    # an accessible heading — the h1 title stays for desktop/tablet). Check
+                    # the element that's actually visible here, same convention every other
+                    # migrated app's mobile top bar uses.
+                    assert page.locator("[data-mobile-view-title]").inner_text() == "策略"
                     assert page.locator("[data-provision]").count() == 0
                     assert page.locator("[data-select-id]", has_text="测试策略").is_visible()
                     page.locator("[data-select-id]", has_text="测试策略").click()

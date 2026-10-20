@@ -119,8 +119,16 @@ export const appConfig = {
     },
   ],
   permissions: {
-    readProcedures: ["nodes.list", "nodes.get", "bases.get", "records.list", "records.count"],
+    readProcedures: ["nodes.list", "nodes.get", "bases.get", "records.list", "records.get", "records.count"],
     setupProcedures: ["nodes.createChangeRequest", "nodes.updateMetadata"],
     writeProcedures: ["records.changeRequest", "bases.createChangeRequest"],
   },
+  // Detail mode per Base, chosen by what people do with the record
+  // (busabase-app-creator references/ui-and-validation.md "Choose The Detail
+  // Mode"): signals/actions/drafts are all the SAME shape — a review queue
+  // worked top to bottom, one item after the next — so all three get
+  // `split`, the same reason busa-crm's follow-up queue does. `sources` is a
+  // handful of facts (freshness/coverage) scanned one at a time and returned
+  // from, which is a `drawer`.
+  ui: { detail_modes: { signals: "split", actions: "split", drafts: "split", sources: "drawer" } },
 };

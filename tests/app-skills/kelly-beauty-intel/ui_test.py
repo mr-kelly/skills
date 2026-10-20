@@ -36,24 +36,35 @@ def attach_error_capture(page: Page) -> list[str]:
 
 
 def test_demo_ui(browser, base_url: str) -> None:
+    # UI layout follows busabase-app-creator's shared record-view spec
+    # (base-ui.css `.ws-*` classes): signals/actions/drafts open in "split"
+    # (a reviewable queue worked top to bottom beside its own record), and
+    # sources opens in "drawer" (a scanned, read-and-return reference fact).
+    # See app/js/config.js `ui.detail_modes`.
     desktop = browser.new_context(viewport={"width": 1280, "height": 820})
     page = desktop.new_page()
     errors = attach_error_capture(page)
     page.goto(f"{base_url}/?demo=1#/signals")
     page.wait_for_load_state("networkidle")
-    assert page.locator("h1").inner_text() == "signals"
-    assert page.locator(".item-row").count() == 3
+    assert page.locator(".ws-title h1").inner_text() == "Signals"
+    assert page.locator(".ws-table tbody tr").count() == 3
     assert_no_horizontal_overflow(page)
 
-    page.locator(".item-row").first.click()
+    page.locator(".ws-table tbody tr").first.click()
     page.wait_for_timeout(150)
-    assert "/signals/" in page.url
-    assert page.locator(".detail").is_visible()
+    # split mode addresses a selection with ?peek=, not a /record path — the
+    # path form is reserved for "Open full page".
+    assert "peek=" in page.url
+    assert page.locator("body.ws-layout-split.ws-detail-open").count() == 1
+    assert page.locator(".ws-detail").is_visible()
     assert page.locator("[data-action='approve']").is_visible()
 
     page.goto(f"{base_url}/?demo=1#/sources")
     page.wait_for_load_state("networkidle")
-    assert page.locator(".source-row").count() == 3
+    assert page.locator(".ws-table tbody tr").count() == 3
+    page.locator(".ws-table tbody tr").first.click()
+    page.wait_for_timeout(150)
+    assert page.locator("body.ws-detail-drawer.ws-detail-open").count() == 1
     assert not errors, errors
     desktop.close()
 
@@ -71,9 +82,11 @@ def test_demo_ui(browser, base_url: str) -> None:
         page.locator("#sidebarScrim").click(position={"x": width - 5, "y": 5})
         assert page.locator("body.sidebar-open").count() == 0
 
-        page.locator(".item-row").first.click()
+        page.locator(".ws-table tbody tr").first.click()
         page.wait_for_timeout(150)
-        assert page.locator(".detail").is_visible()
+        # Every detail mode becomes a full page on a phone.
+        assert page.locator(".ws-detail").is_visible()
+        assert page.locator(".ws-list").is_hidden()
         assert_no_horizontal_overflow(page)
         assert not errors, errors
         mobile.close()
@@ -151,7 +164,11 @@ def test_busabase_provisioning(browser) -> None:
                     assert page.get_by_role("heading", name="Initialize the Busabase workspace").is_visible()
                     page.locator("[data-provision]").click()
                     try:
-                        page.get_by_text("0 items").wait_for(timeout=10_000)
+                        # The record view's empty state once provisioning lands
+                        # fresh Bases with no records yet (nav/toolbar no longer
+                        # spell out "N items" — base-ui.css's ws-count carries the
+                        # number instead).
+                        page.get_by_text("No items.").wait_for(timeout=10_000)
                     except Exception:
                         nodes = read_json(f"{busabase_url}/api/v1/nodes?depth=2")
                         change_requests = read_json(f"{busabase_url}/api/v1/change-requests")
@@ -207,7 +224,7 @@ def test_busabase_provisioning(browser) -> None:
                     assert page.get_by_text("Integration Fixture Signal").first.is_visible()
                     assert_no_horizontal_overflow(page)
 
-                    page.locator(".item-row", has_text="Integration Fixture Signal").click()
+                    page.locator(".ws-table tbody tr", has_text="Integration Fixture Signal").click()
                     page.wait_for_timeout(150)
                     page.locator("[data-action='approve']").click()
                     page.wait_for_timeout(500)

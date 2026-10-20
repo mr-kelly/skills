@@ -55,4 +55,13 @@ export const appConfig = {
     setupProcedures: ["nodes.createChangeRequest", "nodes.updateMetadata"],
     writeProcedures: ["records.changeRequest", "bases.createChangeRequest"],
   },
+  ui: {
+    // `candidates` is a queue worked top to bottom (approve / send back /
+    // reject, then the next candidate), so its record view opens beside the
+    // list rather than a drawer or a second full page. See app.js's
+    // VIEW_MODES comment for the full rationale.
+    detail_modes: {
+      candidates: "split",
+    },
+  },
 };

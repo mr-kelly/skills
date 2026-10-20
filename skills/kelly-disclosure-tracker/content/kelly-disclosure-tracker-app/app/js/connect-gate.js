@@ -22,7 +22,7 @@ const isDemo = () => new URLSearchParams(window.location.search).has("demo");
 
 const gate = createAirAppConnectGate({
   appName: "Cross-Entity Disclosure Tracker",
-  demoHref: "?demo=1#/vehicles",
+  demoHref: "?demo=1#/overview",
   shouldGate: () => !isDemo() && shouldUseLocalGateway(),
   onProvision: async () => (await getProvider()).provisionResources(),
 });

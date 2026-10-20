@@ -5,6 +5,13 @@ import { createPagination } from "./js/pagination.js?v=0.1.0";
 import { getProvider } from "./js/providers/index.js?v=0.1.0";
 import { buildBatch, buildScenario } from "./js/simulator-model.js?v=0.1.0";
 
+// Declared once, per Base. `scenarios` is the only record Base this app has;
+// its detail always opens `page`: a scenario is a workplace of its own
+// (chart, risk flags, editable inputs, the underwriting decision) that an
+// analyst stays on for minutes, not a fact scanned in passing and returned
+// from -- so there is no drawer/split peek, only `#/scenarios/<id>`.
+const DETAIL_MODES = appConfig.ui?.detail_modes || { scenarios: "page" };
+
 const state = {
   batch: null,
   settings: null,
@@ -23,9 +30,23 @@ const state = {
 const SIDEBAR_COLLAPSED_STORAGE_KEY = "kelly-revshare-simulator.sidebarCollapsed";
 
 const els = {
-  title: document.querySelector("#page-title"),
-  subtitle: document.querySelector("#page-subtitle"),
-  content: document.querySelector("#content"),
+  loadState: document.querySelector("#loadState"),
+  overviewPage: document.querySelector("#overviewPage"),
+  overviewSummary: document.querySelector("#overviewSummary"),
+  overviewMetrics: document.querySelector("#overviewMetrics"),
+  overviewBody: document.querySelector("#overviewBody"),
+  scenariosPage: document.querySelector("#scenariosPage"),
+  scenariosTitle: document.querySelector("#scenariosTitle"),
+  scenariosCount: document.querySelector("#scenariosCount"),
+  scenarioFilters: document.querySelector("#scenarioFilters"),
+  scenarioFilterSelect: document.querySelector("#scenarioFilterSelect"),
+  scenariosList: document.querySelector("#scenariosList"),
+  scenarioDetailBody: document.querySelector("#scenarioDetailBody"),
+  comparisonPage: document.querySelector("#comparisonPage"),
+  comparisonHint: document.querySelector("#comparisonHint"),
+  comparisonBody: document.querySelector("#comparisonBody"),
+  settingsPage: document.querySelector("#settingsPage"),
+  settingsBody: document.querySelector("#settingsBody"),
   search: document.querySelector("#search"),
   refresh: document.querySelector("#refresh"),
   mobileRefresh: document.querySelector("#mobileRefresh"),
@@ -42,7 +63,6 @@ const els = {
   newScenarioBtn: document.querySelector("#newScenarioBtn"),
 };
 
-const PAGINATED_KEYS = ["scenarios"];
 const pagination = createPagination({
   getProvider,
   pageSizes: Object.fromEntries(appConfig.bases.map((base) => [base.key, base.readLimit])),
@@ -183,9 +203,9 @@ function applyI18n() {
     option.textContent = languageLabels[option.value] || option.textContent;
   }
   els.search.placeholder = t("search");
-  els.refresh.textContent = t("refresh");
   if (els.mobileRefresh) els.mobileRefresh.title = t("refresh");
   if (els.newScenarioBtn) els.newScenarioBtn.textContent = t("newScenario");
+  if (els.scenariosTitle) els.scenariosTitle.title = t("scenariosHint");
 }
 
 function scenarios() {
@@ -262,77 +282,101 @@ function escapeHtml(value) {
 }
 
 // ---- Overview ----
+// The only page with the hero and the metrics band. At most three numbers,
+// and none of them repeats what the sidebar's attention block already shows
+// (needs-decision / decided / rejected counts) or the record view's own
+// count badge.
 
 function renderOverview() {
-  els.title.textContent = t("overview");
   const list = scenarios();
-  els.subtitle.textContent = `${pagination.total("scenarios", list.length)} ${t("scenarios")}`;
+  const generated = state.batch?.generated_at ? new Date(state.batch.generated_at).toLocaleString() : "";
+  els.overviewSummary.textContent = [
+    `${pagination.total("scenarios", list.length)} ${t("scenarios")}`,
+    generated ? `${t("generated")} ${generated}` : "",
+  ]
+    .filter(Boolean)
+    .join(" · ");
   if (!list.length) {
-    els.content.innerHTML = `<div class="empty">${t("empty")}</div>`;
+    els.overviewMetrics.innerHTML = "";
+    els.overviewBody.innerHTML = `<div class="empty">${t("empty")}</div>`;
     return;
   }
   const avgCost = list.reduce((sum, s) => sum + Number(s.result.effective_annual_cost_pct || 0), 0) / list.length;
   const flagged = list.filter((s) => s.result.risk_flags.length > 0).length;
-  const capReached = list.filter((s) => s.result.months_to_cap !== null).length;
-  els.content.innerHTML = `
-    <div class="metrics">
-      <div class="metric"><span>${t("scenarios")}</span><strong>${list.length}</strong></div>
-      <div class="metric"><span>${t("effectiveAnnualCost")}</span><strong>${pct(avgCost)}</strong></div>
-      <div class="metric"><span>${t("riskFlags")}</span><strong class="${flagged ? "negative" : ""}">${flagged}</strong></div>
-      <div class="metric"><span>${t("monthsToCap")}</span><strong>${capReached}/${list.length}</strong></div>
-    </div>
+  els.overviewMetrics.innerHTML = [
+    [t("scenarios"), String(list.length)],
+    [t("effectiveAnnualCost"), pct(avgCost)],
+    [t("riskFlags"), String(flagged)],
+  ]
+    .map(([label, value]) => `<div><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`)
+    .join("");
+  const due = filteredScenarios("undecided").slice(0, 5);
+  els.overviewBody.innerHTML = `
     <div class="overview-panel wide">
       <h2>${t("humanWorkTitle")}</h2>
-      ${scenarioTable(filteredScenarios("undecided"))}
+      ${
+        due.length
+          ? due
+              .map(
+                (s) => `
+        <a class="due-row" href="#/scenarios/${encodeURIComponent(s.id)}">
+          <span><strong>${escapeHtml(s.name)}</strong><small>${escapeHtml(s.input.business_type)}</small></span>
+          <span class="due-meta">
+            <strong>${s.result.cash_flow_payout_multiple != null ? `${num(s.result.cash_flow_payout_multiple)}x` : "—"}</strong>
+            <small>${s.result.effective_annual_cost_pct != null ? pct(s.result.effective_annual_cost_pct) : "—"}</small>
+          </span>
+        </a>
+      `,
+              )
+              .join("")
+          : `<div class="empty-inline">${t("empty")}</div>`
+      }
     </div>
   `;
 }
 
-// ---- Scenarios list ----
+// ---- Scenarios: record view (one toolbar row over a full-bleed table) ----
 
 function scenarioTable(list) {
   if (!list.length) return `<div class="empty">${t("empty")}</div>`;
   return `
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>${t("name")}</th>
-            <th>${t("businessType")}</th>
-            <th class="num">${t("principal")}</th>
-            <th class="num">${t("cashFlowPayoutMultiple")}</th>
-            <th class="num">${t("effectiveAnnualCost")}</th>
-            <th>${t("riskFlags")}</th>
-            <th>${t("decision")}</th>
+    <table class="ws-table">
+      <thead>
+        <tr>
+          <th>${t("name")}</th>
+          <th>${t("businessType")}</th>
+          <th class="ws-col-num">${t("principal")}</th>
+          <th class="ws-col-num">${t("cashFlowPayoutMultiple")}</th>
+          <th class="ws-col-num">${t("effectiveAnnualCost")}</th>
+          <th>${t("riskFlags")}</th>
+          <th>${t("decision")}</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${list
+          .map(
+            (s) => `
+          <tr data-id="${escapeHtml(s.id)}">
+            <td><span class="strong">${escapeHtml(s.name)}</span></td>
+            <td>${escapeHtml(s.input.business_type)}</td>
+            <td class="ws-col-num">${money(s.input.principal)}</td>
+            <td class="ws-col-num">${s.result.cash_flow_payout_multiple != null ? `${num(s.result.cash_flow_payout_multiple)}x` : "—"}</td>
+            <td class="ws-col-num">${s.result.effective_annual_cost_pct != null ? pct(s.result.effective_annual_cost_pct) : "—"}</td>
+            <td>${s.result.risk_flags.length ? `<span class="badge sev-high">${s.result.risk_flags.length}</span>` : `<span class="badge sev-info">${t("noRiskFlags")}</span>`}</td>
+            <td><span class="badge ${decisionBadgeClass(s.decision.action)}">${decisionLabel(s.decision.action)}</span></td>
           </tr>
-        </thead>
-        <tbody>
-          ${list
-            .map(
-              (s) => `
-            <tr>
-              <td><a href="#/scenarios/${encodeURIComponent(s.id)}"><span class="strong">${escapeHtml(s.name)}</span></a></td>
-              <td>${escapeHtml(s.input.business_type)}</td>
-              <td class="num">${money(s.input.principal)}</td>
-              <td class="num">${s.result.cash_flow_payout_multiple != null ? `${num(s.result.cash_flow_payout_multiple)}x` : "—"}</td>
-              <td class="num">${s.result.effective_annual_cost_pct != null ? pct(s.result.effective_annual_cost_pct) : "—"}</td>
-              <td>${s.result.risk_flags.length ? `<span class="badge sev-high">${s.result.risk_flags.length}</span>` : `<span class="badge sev-info">${t("noRiskFlags")}</span>`}</td>
-              <td><span class="badge ${decisionBadgeClass(s.decision.action)}">${decisionLabel(s.decision.action)}</span></td>
-            </tr>
-          `,
-            )
-            .join("")}
-        </tbody>
-      </table>
-    </div>
+        `,
+          )
+          .join("")}
+      </tbody>
+    </table>
   `;
 }
 
-function renderScenarios() {
-  els.title.textContent = t("scenariosTitle");
+function renderScenariosList() {
   const filter = state.route.params.get("filter") || "all";
   const list = filteredScenarios(filter);
-  els.subtitle.textContent = `${list.length} ${t("scenarios")}`;
+  els.scenariosCount.textContent = String(list.length);
   const filters = ["all", "undecided", "approved", "needs_revision", "rejected"];
   const filterLabel = {
     all: t("all"),
@@ -341,17 +385,20 @@ function renderScenarios() {
     needs_revision: t("needsRevision"),
     rejected: t("rejected"),
   };
-  els.content.innerHTML = `
-    <div class="filter-row">
-      ${filters
-        .map(
-          (f) =>
-            `<a href="#/scenarios?filter=${f}" class="filter-chip ${f === filter ? "active" : ""}">${filterLabel[f]}</a>`,
-        )
-        .join("")}
-    </div>
-    ${scenarioTable(list)}
-  `;
+  els.scenarioFilters.innerHTML = filters
+    .map(
+      (f) =>
+        `<a href="#/scenarios?filter=${f}" class="filter-chip ${f === filter ? "active" : ""}">${filterLabel[f]}</a>`,
+    )
+    .join("");
+  // Chips wrap into several rows at phone widths (base-ui's `.ws-toolbar`
+  // only wraps, it does not scroll); a native select covers the same filter
+  // in one row there, same pattern as the status filter in busa-crm/
+  // busa-lead-funnel's toolbars.
+  els.scenarioFilterSelect.innerHTML = filters
+    .map((f) => `<option value="${f}" ${f === filter ? "selected" : ""}>${filterLabel[f]}</option>`)
+    .join("");
+  els.scenariosList.innerHTML = `${scenarioTable(list)}${pagination.control("scenarios")}`;
 }
 
 // ---- Scenario form (new / edit) ----
@@ -404,9 +451,8 @@ function readScenarioForm(form) {
 }
 
 function renderNewScenario() {
-  els.title.textContent = t("newScenario");
-  els.subtitle.textContent = "";
-  els.content.innerHTML = `
+  els.scenarioDetailBody.innerHTML = `
+    <header><h2>${t("newScenario")}</h2></header>
     <div class="overview-panel">
       ${scenarioFormHtml()}
     </div>
@@ -419,7 +465,8 @@ function renderNewScenario() {
   });
 }
 
-// ---- Scenario detail ----
+// ---- Scenario detail (full page: chart, metrics, risk flags, decision,
+// editable inputs, delete) ----
 
 function smoothPath(pts) {
   if (pts.length < 2) return "";
@@ -537,17 +584,18 @@ function decisionPanel(scenario) {
 function renderScenarioDetail() {
   const scenario = scenarios().find((s) => s.id === state.route.id);
   if (!scenario) {
-    renderScenarios();
+    location.hash = "#/scenarios";
     return;
   }
-  els.title.textContent = scenario.name;
-  els.subtitle.textContent = scenario.input.business_type;
   const r = scenario.result;
   const disabled = state.busy ? "disabled" : "";
-  els.content.innerHTML = `
-    <section class="detail">
+  els.scenarioDetailBody.innerHTML = `
+    <header>
+      <h2>${escapeHtml(scenario.name)}</h2>
+      <p class="muted">${escapeHtml(scenario.input.business_type)}</p>
+    </header>
+    <div class="detail">
       <div class="detail-main">
-        <a class="back-link" href="#/scenarios">← ${t("back")}</a>
         <div class="metrics">
           <div class="metric"><span>${t("totalRepayment")}</span><strong>${money(r.total_repayment)}</strong></div>
           <div class="metric"><span>${t("cashFlowPayoutMultiple")}</span><strong>${r.cash_flow_payout_multiple != null ? `${num(r.cash_flow_payout_multiple)}x` : "—"}</strong></div>
@@ -571,7 +619,7 @@ function renderScenarioDetail() {
           <button type="button" id="deleteScenarioBtn" class="danger" ${disabled}>${t("delete")}</button>
         </div>
       </aside>
-    </section>
+    </div>
   `;
 
   document.querySelector("#decisionForm")?.addEventListener("submit", async (event) => {
@@ -595,11 +643,10 @@ function renderScenarioDetail() {
 // ---- Comparison ----
 
 function renderComparison() {
-  els.title.textContent = t("comparisonTitle");
+  els.comparisonHint.textContent = t("compareHint");
   const list = scenarios();
-  els.subtitle.textContent = t("compareHint");
   if (!list.length) {
-    els.content.innerHTML = `<div class="empty">${t("empty")}</div>`;
+    els.comparisonBody.innerHTML = `<div class="empty">${t("empty")}</div>`;
     return;
   }
   const selected = list.filter((s) => state.compareIds.has(s.id));
@@ -623,7 +670,7 @@ function renderComparison() {
     { key: "riskFlags", get: (s) => (s.result.risk_flags.length ? s.result.risk_flags.length : t("noRiskFlags")) },
     { key: "decision", get: (s) => decisionLabel(s.decision.action) },
   ];
-  els.content.innerHTML = `
+  els.comparisonBody.innerHTML = `
     <div class="overview-panel wide">
       <h2>${t("scenariosTitle")}</h2>
       <div class="compare-picker">
@@ -669,11 +716,10 @@ function renderComparison() {
 // ---- Settings ----
 
 function renderSettings() {
-  els.title.textContent = t("settings");
-  els.subtitle.textContent = t("localFilesOnly");
   const summary = state.settings?.config_summary || {};
   const policy = summary.underwriting_policy || {};
-  els.content.innerHTML = `
+  els.settingsBody.innerHTML = `
+    <p class="muted">${t("localFilesOnly")}</p>
     <div class="settings">
       <section>
         <h2>${t("configuration")}</h2>
@@ -696,18 +742,33 @@ function renderSettings() {
   `;
 }
 
-function renderPagedList(renderList, key) {
-  renderList();
-  els.content.insertAdjacentHTML("beforeend", `${pagination.control(key)}`);
-}
-
 function render() {
   renderShell();
-  if (state.route.view === "scenarios" && state.route.id === "new") renderNewScenario();
-  else if (state.route.view === "scenarios" && state.route.id) renderScenarioDetail();
-  else if (state.route.view === "scenarios") renderPagedList(renderScenarios, "scenarios");
-  else if (state.route.view === "comparison") renderComparison();
-  else if (state.route.view === "settings") renderSettings();
+  const ready = Boolean(state.batch);
+  const { view, id } = state.route;
+  const onScenarios = ready && view === "scenarios";
+  // Only `page` is declared for `scenarios`, so a selection always shows as
+  // ws-detail-page (the record replaces the list); drawer/split never apply.
+  const detailOpen = onScenarios && Boolean(id);
+  const body = document.body.classList;
+  body.toggle("ws-detail-open", detailOpen);
+  body.toggle(
+    "ws-detail-page",
+    detailOpen && DETAIL_MODES.scenarios !== "split" && DETAIL_MODES.scenarios !== "drawer",
+  );
+  body.toggle("ws-searching", onScenarios && !id && Boolean(state.query.trim()));
+  els.loadState.hidden = ready;
+  els.overviewPage.hidden = !ready || view !== "overview";
+  els.scenariosPage.hidden = !onScenarios;
+  els.comparisonPage.hidden = !ready || view !== "comparison";
+  els.settingsPage.hidden = !ready || view !== "settings";
+  if (!ready) return;
+  if (onScenarios) {
+    if (id === "new") renderNewScenario();
+    else if (id) renderScenarioDetail();
+    else renderScenariosList();
+  } else if (view === "comparison") renderComparison();
+  else if (view === "settings") renderSettings();
   else renderOverview();
 }
 
@@ -734,7 +795,7 @@ async function submitCreateScenario(name, input) {
     await loadState();
     return scenario;
   } catch (error) {
-    els.content.insertAdjacentHTML("afterbegin", `<div class="empty">${escapeHtml(error.message)}</div>`);
+    els.scenarioDetailBody.insertAdjacentHTML("afterbegin", `<div class="empty">${escapeHtml(error.message)}</div>`);
     return null;
   } finally {
     state.busy = false;
@@ -761,7 +822,7 @@ async function submitUpdateScenario(id, name, input) {
     await provider.updateScenario(id, name, input);
     await loadState();
   } catch (error) {
-    els.content.insertAdjacentHTML("afterbegin", `<div class="empty">${escapeHtml(error.message)}</div>`);
+    els.scenarioDetailBody.insertAdjacentHTML("afterbegin", `<div class="empty">${escapeHtml(error.message)}</div>`);
   } finally {
     state.busy = false;
   }
@@ -783,7 +844,7 @@ async function submitDecision(id, action, note) {
     await provider.saveDecision(id, action, note);
     await loadState();
   } catch (error) {
-    els.content.insertAdjacentHTML("afterbegin", `<div class="empty">${escapeHtml(error.message)}</div>`);
+    els.scenarioDetailBody.insertAdjacentHTML("afterbegin", `<div class="empty">${escapeHtml(error.message)}</div>`);
   } finally {
     state.busy = false;
   }
@@ -804,19 +865,28 @@ async function submitDeleteScenario(id) {
     location.hash = "#/scenarios";
     await loadState();
   } catch (error) {
-    els.content.insertAdjacentHTML("afterbegin", `<div class="empty">${escapeHtml(error.message)}</div>`);
+    els.scenarioDetailBody.insertAdjacentHTML("afterbegin", `<div class="empty">${escapeHtml(error.message)}</div>`);
   } finally {
     state.busy = false;
   }
 }
 
-pagination.bind(els.content);
+pagination.bind(document.body);
+
+els.scenariosList.addEventListener("click", (event) => {
+  const row = event.target.closest("tr[data-id]");
+  if (!row) return;
+  location.hash = `#/scenarios/${encodeURIComponent(row.dataset.id)}`;
+});
 
 window.addEventListener("hashchange", setRoute);
 window.addEventListener("resize", syncResponsiveShell);
 els.sidebarToggle?.addEventListener("click", toggleSidebar);
 els.mobileSidebarToggle?.addEventListener("click", () => setMobileSidebarOpen(true));
 els.sidebarScrim?.addEventListener("click", () => setMobileSidebarOpen(false));
+els.scenarioFilterSelect?.addEventListener("change", () => {
+  location.hash = `#/scenarios?filter=${els.scenarioFilterSelect.value}`;
+});
 els.search.addEventListener("input", () => {
   state.query = els.search.value;
   render();
@@ -845,7 +915,7 @@ async function boot() {
       renderSetupRequired(error, boot);
       return;
     }
-    els.content.innerHTML = `<div class="empty">${escapeHtml(error.message)}</div>`;
+    els.loadState.innerHTML = `<div class="empty">${escapeHtml(error.message)}</div>`;
   }
 }
 

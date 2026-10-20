@@ -18,17 +18,27 @@ import { shouldUseLocalGateway } from "./runtime.js";
 
 const root = document.querySelector("#app");
 
+// Declared once, in config.js `ui.detail_modes`. Only `candidates` is a
+// browsable Base; `criteria` is a single config record with no list, so it
+// has no entry (see config.js for why) and is never a RECORD_VIEW.
+const DETAIL_MODES = appConfig.ui.detail_modes;
+
+// Record views show no eyebrow (ui-and-validation.md "Two Kinds Of Page" —
+// the app name is already in the sidebar), so `label`/`noun` is all a view
+// needs here.
 const viewMeta = {
-  criteria: { label: "筛选标准", noun: "", eyebrow: "CRITERIA", list: false },
-  all: { label: "全部候选人", noun: "位候选人", eyebrow: "CANDIDATES", list: true },
-  qualified: { label: "已合格", noun: "位已合格", eyebrow: "QUALIFIED", list: true },
-  connected: { label: "已建联", noun: "位已建联", eyebrow: "CONNECTED", list: true },
+  overview: { label: "总览" },
+  criteria: { label: "筛选标准" },
+  all: { label: "全部候选人", noun: "位候选人", list: true },
+  qualified: { label: "已合格", noun: "位已合格", list: true },
+  connected: { label: "已建联", noun: "位已建联", list: true },
 };
+const RECORD_VIEWS = Object.keys(viewMeta).filter((key) => viewMeta[key].list);
 
 let currentState;
 let desk;
-let contentRoute = { view: "all", id: null };
-let lastContentHash = "#/all";
+let contentRoute = { view: "overview", id: null, peek: null };
+let lastContentHash = "#/overview";
 let sidebarCollapsed = false;
 let helpTab = "commands";
 let authStatus = null;
@@ -46,21 +56,35 @@ const escapeHtml = (value) =>
 
 const today = () => new Date().toISOString().slice(0, 10);
 
+// `#/<view>[/<id>]` is always a full page; `#/<view>?peek=<id>` is the split
+// selection. Refresh and shared links restore the same state either way.
 const parseHash = () => {
-  const parts = window.location.hash.replace(/^#\/?/, "").split("/").filter(Boolean);
+  const raw = window.location.hash.replace(/^#\/?/, "");
+  const [path, query = ""] = raw.split("?");
+  const parts = path.split("/").filter(Boolean);
   if (parts[0] === "settings") {
     return {
       view: "settings",
       tab: ["commands", "guide", "resources", "connection"].includes(parts[1]) ? parts[1] : "commands",
     };
   }
-  return {
-    view: viewMeta[parts[0]] ? parts[0] : "all",
-    id: parts[1] ? decodeURIComponent(parts[1]) : null,
-  };
+  const view = viewMeta[parts[0]] ? parts[0] : "overview";
+  const params = new URLSearchParams(query);
+  let id = null;
+  try {
+    id = parts[1] ? decodeURIComponent(parts[1]) : null;
+  } catch {
+    id = null;
+  }
+  const peek = !id && params.get("peek") ? decodeURIComponent(params.get("peek")) : null;
+  return { view, id, peek };
 };
 
-const routeHash = ({ view, id }) => `#/${view}${id ? `/${encodeURIComponent(id)}` : ""}`;
+const routeHash = ({ view, id, peek }) => {
+  if (id) return `#/${view}/${encodeURIComponent(id)}`;
+  if (peek) return `#/${view}?peek=${encodeURIComponent(peek)}`;
+  return `#/${view}`;
+};
 
 const navigate = (route, { replace = false } = {}) => {
   const next = routeHash(route);
@@ -75,10 +99,6 @@ const setMobileSidebarOpen = (open) => {
   document.body.classList.toggle("sidebar-open", Boolean(open));
   const scrim = document.querySelector("#sidebarScrim");
   if (scrim) scrim.hidden = !open;
-};
-
-const setMobileDetailOpen = (open) => {
-  document.body.classList.toggle("mobile-detail-open", Boolean(open));
 };
 
 const showToast = (message) => {
@@ -129,37 +149,47 @@ const pickAttentionCandidate = () => {
   return desk.candidates.find((candidate) => candidate.status === "qualified" && candidate.wechatAddedAt) || null;
 };
 
-const renderCandidateRow = (candidate, active) => {
-  const trailing =
-    candidate.status === "connected"
-      ? `已建联 ${escapeHtml(candidate.loggedAt || candidate.wechatAddedAt || "--")}`
-      : candidate.status === "qualified"
-        ? candidate.wechatAddedAt
-          ? `微信已加 ${escapeHtml(candidate.wechatAddedAt)} · 待标记已建联`
-          : "已合格 · 待人工加微信"
-        : candidate.status === "not-qualified"
-          ? `不合格 ${escapeHtml(candidate.loggedAt || "--")}`
-          : candidate.hasAllScores
-            ? "评分已完整 · 待下结论"
-            : "待补齐评分";
-  return `<button class="work-row candidate-row ${active ? "active" : ""}" type="button" data-select-id="${escapeHtml(candidate.id)}">
-    <span class="row-marker" aria-hidden="true"></span>
-    <span class="row-rank">${escapeHtml(candidate.ref)}</span>
-    <span class="row-main">
-      <span class="row-kicker">${escapeHtml(candidate.searchContext || "来源未记录")} · ${statusLabel(candidate.status)}</span>
-      <span class="row-title"><strong>${escapeHtml(candidate.name)}</strong></span>
-      <span class="row-subtitle">${escapeHtml(candidate.platformHeadline || "无平台简介")}</span>
-      <span class="row-subtitle">${trailing}</span>
-    </span>
-    <span class="row-score score-${scoreBucket(candidate.overallScore)}"><strong>${candidate.overallScore}</strong><span>综合分</span></span>
-  </button>`;
-};
+const trailingFor = (candidate) =>
+  candidate.status === "connected"
+    ? `已建联 ${candidate.loggedAt || candidate.wechatAddedAt || "--"}`
+    : candidate.status === "qualified"
+      ? candidate.wechatAddedAt
+        ? `微信已加 ${candidate.wechatAddedAt} · 待标记已建联`
+        : "已合格 · 待人工加微信"
+      : candidate.status === "not-qualified"
+        ? `不合格 ${candidate.loggedAt || "--"}`
+        : candidate.hasAllScores
+          ? "评分已完整 · 待下结论"
+          : "待补齐评分";
 
-const renderRows = (items, selectedId) => {
+const CANDIDATE_COLUMNS = [
+  ["候选人"],
+  ["综合评分", "ws-col-num"],
+  ["状态", "ws-split-keep ws-col-narrow"],
+  ["来源"],
+  ["进展", "ws-col-wide"],
+];
+
+const renderCandidateRow = (candidate, selectedId) =>
+  `<tr data-id="${escapeHtml(candidate.id)}"${candidate.id === selectedId ? ' class="ws-selected"' : ""}>
+    <td title="${escapeHtml(candidate.name)}"><strong>${escapeHtml(candidate.name)}</strong></td>
+    <td class="ws-col-num"><span class="score-chip score-${scoreBucket(candidate.overallScore)}">${candidate.overallScore}</span></td>
+    <td class="ws-split-keep" title="${escapeHtml(statusLabel(candidate.status))}"><span class="status-dot-chip status-${candidate.status}"></span></td>
+    <td title="${escapeHtml(candidate.searchContext || "")}">${escapeHtml(candidate.searchContext || "来源未记录")}</td>
+    <td class="ws-col-wide" title="${escapeHtml(trailingFor(candidate))}">${escapeHtml(trailingFor(candidate))}</td>
+  </tr>`;
+
+const renderTable = (items, selectedId) =>
+  `<table class="ws-table">
+    <thead><tr>${CANDIDATE_COLUMNS.map(([label, className = ""]) => `<th${className ? ` class="${className}"` : ""}>${escapeHtml(label)}</th>`).join("")}</tr></thead>
+    <tbody>${items.map((item) => renderCandidateRow(item, selectedId)).join("")}</tbody>
+  </table>`;
+
+const renderList = (items, selectedId) => {
   if (!items.length) {
     return `<div class="empty-state"><p>这里还没有候选讲师。</p><p class="empty-hint">在筛选标准就绪后，把在平台上找到的候选人一个个录入并打分。</p>${commandChip("/kelly-instructor-sourcing review")}</div>`;
   }
-  return items.map((item) => renderCandidateRow(item, item.id === selectedId)).join("");
+  return renderTable(items, selectedId);
 };
 
 const renderTextField = (attribute, key, label, value, hint = "") =>
@@ -169,9 +199,7 @@ const renderCandidateDetail = (candidate) => {
   const draft = scoreDraftOf(candidate);
   const overallPreview = computeOverallScore(draft.endorsementScore, draft.expertiseScore, draft.teachingScore);
   const step = nextStep(candidate);
-  return `<div class="detail-scroll">
-    <button class="back-to-list" type="button" data-back-to-list>&larr; 返回${viewMeta[contentRoute.view].label}</button>
-    <div class="detail-heading">
+  return `<div class="detail-heading">
       <div><p class="eyebrow">${escapeHtml(candidate.ref)} · ${escapeHtml(candidate.searchContext || "来源未记录")}</p><h2>${escapeHtml(candidate.name)}</h2></div>
       ${statusPill(candidate)}
     </div>
@@ -218,34 +246,58 @@ const renderCandidateDetail = (candidate) => {
       step
         ? `<div class="detail-hint"><p class="detail-note">${escapeHtml(step.detail)}</p>${step.command ? commandChip(step.command) : ""}</div>`
         : ""
-    }
-  </div>`;
+    }`;
 };
 
-const renderCriteria = () => {
+const renderCriteriaPage = () => {
   const criteria = desk.criteria;
-  return `<div class="profile-pane"><div class="detail-scroll">
-    <div class="detail-heading"><div><p class="eyebrow">CRITERIA</p><h2>筛选标准与评分尺</h2></div>${criteria.ready ? '<span class="status-pill status-connected">可以开始筛选</span>' : `<span class="status-pill status-screening">缺 ${criteria.missing.length} 项</span>`}</div>
-    <p class="detail-note">只要先说清楚要找什么样的人。评分标准可以随时调整，调整不会覆盖已经打出的分数。</p>
-    <div class="detail-hint">${commandChip("/kelly-instructor-sourcing criteria", "整理搜索关键词、筛选假设和三项评分标准")}</div>
-    ${criteria.ready ? "" : `<div class="setup-notice">还缺：${escapeHtml(criteria.missing.join("、"))}</div>`}
-    <section class="detail-section compose">
-      ${renderTextField("data-criteria", "roleKeywords", "搜索关键词", criteria.roleKeywords, "必填")}
-      ${renderTextField("data-criteria", "experienceFilter", "经验筛选假设", criteria.experienceFilter)}
-      ${renderTextField("data-criteria", "activityFilter", "活跃度筛选假设", criteria.activityFilter)}
-      <label class="field"><span>背景背书标准<small>什么样的背景/背书算合格</small></span><textarea data-criteria="endorsementRubric" rows="4">${escapeHtml(criteria.endorsementRubric)}</textarea></label>
-      <label class="field"><span>专业深广度标准<small>深度和广度分别看什么</small></span><textarea data-criteria="expertiseRubric" rows="4">${escapeHtml(criteria.expertiseRubric)}</textarea></label>
-      <label class="field"><span>授课服务能力标准<small>课程结构、案例、学员反馈</small></span><textarea data-criteria="teachingRubric" rows="4">${escapeHtml(criteria.teachingRubric)}</textarea></label>
-      <label class="field"><span>合格分数线<small>综合分达到多少可标记为合格，必填</small></span><input type="number" min="0" max="100" data-criteria="qualifyThreshold" value="${escapeHtml(criteria.qualifyThreshold ?? "")}" /></label>
-    </section>
-    <div class="detail-actions">
-      <button class="primary-button" type="button" data-save-criteria>保存标准</button>
-      <button class="ghost-button" type="button" data-view="all">去看候选人</button>
+  return `<section class="ws-view">
+    <header class="ws-toolbar">
+      <div class="ws-title"><h1>${viewMeta.criteria.label}</h1></div>
+      <div class="ws-actions">${criteria.ready ? '<span class="badge positive">可以开始筛选</span>' : `<span class="badge warning">缺 ${criteria.missing.length} 项</span>`}</div>
+    </header>
+    <div class="criteria-scroll">
+      <p class="detail-note">只要先说清楚要找什么样的人。评分标准可以随时调整，调整不会覆盖已经打出的分数。</p>
+      <div class="detail-hint">${commandChip("/kelly-instructor-sourcing criteria", "整理搜索关键词、筛选假设和三项评分标准")}</div>
+      ${criteria.ready ? "" : `<div class="setup-notice">还缺：${escapeHtml(criteria.missing.join("、"))}</div>`}
+      <section class="detail-section compose">
+        ${renderTextField("data-criteria", "roleKeywords", "搜索关键词", criteria.roleKeywords, "必填")}
+        ${renderTextField("data-criteria", "experienceFilter", "经验筛选假设", criteria.experienceFilter)}
+        ${renderTextField("data-criteria", "activityFilter", "活跃度筛选假设", criteria.activityFilter)}
+        <label class="field"><span>背景背书标准<small>什么样的背景/背书算合格</small></span><textarea data-criteria="endorsementRubric" rows="4">${escapeHtml(criteria.endorsementRubric)}</textarea></label>
+        <label class="field"><span>专业深广度标准<small>深度和广度分别看什么</small></span><textarea data-criteria="expertiseRubric" rows="4">${escapeHtml(criteria.expertiseRubric)}</textarea></label>
+        <label class="field"><span>授课服务能力标准<small>课程结构、案例、学员反馈</small></span><textarea data-criteria="teachingRubric" rows="4">${escapeHtml(criteria.teachingRubric)}</textarea></label>
+        <label class="field"><span>合格分数线<small>综合分达到多少可标记为合格，必填</small></span><input type="number" min="0" max="100" data-criteria="qualifyThreshold" value="${escapeHtml(criteria.qualifyThreshold ?? "")}" /></label>
+      </section>
+      <div class="detail-actions">
+        <button class="primary-button" type="button" data-save-criteria>保存标准</button>
+        <button class="ghost-button" type="button" data-view="all">去看候选人</button>
+      </div>
     </div>
-  </div></div>`;
+  </section>`;
 };
 
-const renderPipeline = () => {
+const commandChip = (command, note = "") =>
+  `<button class="command-chip" type="button" data-copy-command="${escapeHtml(command)}" title="点一下复制">
+    <code>${escapeHtml(command)}</code>${note ? `<small>${escapeHtml(note)}</small>` : ""}
+  </button>`;
+
+// Three numbers nowhere else on screen: the nav already shows all/qualified/
+// connected counts, and the sidebar's attention block already shows
+// screening + ready-to-decide + connected. These three need a computation
+// (a status with no nav item, a gap between two statuses, a ratio) to know.
+const overviewMetrics = () => {
+  const decided = desk.counts.qualified + desk.counts.connected + desk.counts["not-qualified"];
+  const passed = desk.counts.qualified + desk.counts.connected;
+  const passRate = decided ? `${Math.round((passed / decided) * 100)}%` : "—";
+  return [
+    ["不合格", String(desk.counts["not-qualified"])],
+    ["待记录微信添加", String(desk.attention.awaitingWechatRecord)],
+    ["合格通过率", passRate],
+  ];
+};
+
+const renderPipelineSteps = () => {
   const steps = [
     [
       "criteria",
@@ -256,32 +308,27 @@ const renderPipeline = () => {
     ["all", "找候选人", `${desk.counts.all} 位已入库`, desk.counts.all > 0],
     ["connected", "建联", `${desk.counts.connected} 位已建联`, desk.counts.connected > 0],
   ];
-  return `<section class="workflow-band"><div class="pipeline" aria-label="讲师寻访流程">
+  return `<div class="pipeline" aria-label="讲师寻访流程">
     ${steps
       .map(
         ([view, label, meta, done], index) =>
-          `<button class="pipeline-step ${contentRoute.view === view ? "active" : ""} ${done ? "done" : ""}" type="button" data-view="${view}"><i aria-hidden="true">${index + 1}</i><span><strong>${label}</strong><small>${escapeHtml(meta)}</small></span>${index < 2 ? '<b aria-hidden="true">›</b>' : ""}</button>`,
+          `<button class="pipeline-step ${done ? "done" : ""}" type="button" data-view="${view}"><i aria-hidden="true">${index + 1}</i><span><strong>${label}</strong><small>${escapeHtml(meta)}</small></span>${index < 2 ? '<b aria-hidden="true">›</b>' : ""}</button>`,
       )
       .join("")}
-  </div></section>`;
+  </div>`;
 };
 
-const commandChip = (command, note = "") =>
-  `<button class="command-chip" type="button" data-copy-command="${escapeHtml(command)}" title="点一下复制">
-    <code>${escapeHtml(command)}</code>${note ? `<small>${escapeHtml(note)}</small>` : ""}
-  </button>`;
-
-const renderNextStepBand = () => {
+const renderNextStepCard = () => {
   if (!desk.criteria.ready) {
-    return `<section class="next-step" aria-label="下一步"><div class="next-step-title">先定筛选标准</div><div class="next-step-detail">还缺 ${escapeHtml(desk.criteria.missing.join("、"))}。</div>${commandChip("/kelly-instructor-sourcing criteria")}</section>`;
+    return `<p class="detail-note">还缺 ${escapeHtml(desk.criteria.missing.join("、"))}。</p>${commandChip("/kelly-instructor-sourcing criteria")}`;
   }
   if (!desk.counts.all) {
-    return `<section class="next-step" aria-label="下一步"><div class="next-step-title">开始找候选人</div><div class="next-step-detail">标准已就绪，去平台上搜索候选人，逐个录入并打分。</div>${commandChip("/kelly-instructor-sourcing review")}</section>`;
+    return `<p class="detail-note">标准已就绪，去平台上搜索候选人，逐个录入并打分。</p>${commandChip("/kelly-instructor-sourcing review")}`;
   }
   const candidate = pickAttentionCandidate();
   const step = candidate ? nextStep(candidate) : null;
-  if (!step) return "";
-  return `<section class="next-step" aria-label="下一步"><div class="next-step-title">${escapeHtml(step.title)}</div><div class="next-step-detail">${escapeHtml(step.detail)}</div>${step.command ? commandChip(step.command) : ""}</section>`;
+  if (!step) return `<p class="detail-note">目前没有需要你处理的候选人。</p>`;
+  return `<p class="detail-note">${escapeHtml(step.detail)}</p>${step.command ? commandChip(step.command) : ""}`;
 };
 
 const renderMobileNextStep = () => {
@@ -292,6 +339,36 @@ const renderMobileNextStep = () => {
   return `<div class="mobile-next-step"><span>${escapeHtml(step.title)}</span>${commandChip(step.command)}</div>`;
 };
 
+const renderOverviewPage = () => {
+  const metrics = overviewMetrics();
+  const summary = [
+    `${desk.counts.all} 位候选人`,
+    desk.criteria.ready ? "筛选标准已就绪" : `筛选标准缺 ${desk.criteria.missing.length} 项`,
+    currentState.provider.asOf || "Busabase 当前数据",
+  ]
+    .filter(Boolean)
+    .join(" · ");
+  return `<section class="ws-overview">
+    <header class="page-hero">
+      <div><h1>候选讲师工作台</h1><p>${escapeHtml(summary)}</p></div>
+      <div class="page-actions"><button class="button" type="button" data-refresh>刷新</button></div>
+    </header>
+    <div class="ws-metrics" aria-label="讲师寻访指标">${metrics
+      .map(([label, value]) => `<div><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`)
+      .join("")}</div>
+    <section class="overview-grid">
+      <div class="card overview-panel">
+        <h2>推进阶段</h2>
+        ${renderPipelineSteps()}
+      </div>
+      <div class="card overview-panel">
+        <h2>下一步</h2>
+        ${renderNextStepCard()}
+      </div>
+    </section>
+  </section>`;
+};
+
 const renderSidebar = () => {
   const attention = desk.attention;
   const primary = attention.criteriaReady
@@ -300,12 +377,11 @@ const renderSidebar = () => {
   return `<aside class="sidebar ${sidebarCollapsed ? "collapsed" : ""}" id="appSidebar">
     <div class="brand"><div class="brand-icon" aria-hidden="true">IS</div><div class="brand-copy"><div class="brand-title">Kelly 讲师寻访</div><div class="brand-subtitle">候选讲师工作台</div></div><button class="sidebar-toggle" type="button" data-sidebar-toggle aria-controls="appSidebar" aria-expanded="${!sidebarCollapsed}" aria-label="切换侧栏" title="切换侧栏"><span class="sidebar-toggle-icon" aria-hidden="true"></span></button></div>
     <section class="human-work" aria-labelledby="humanWorkTitle"><div class="human-work-eyebrow">需要你</div><div id="humanWorkTitle" class="human-work-title">今天的筛选</div>${primary}<div class="human-work-secondary"><button type="button" data-view="all" title="三项评分已完整，等待下结论"><strong>${attention.readyToDecide}</strong><span>待下结论</span></button><button type="button" data-view="connected" title="已完成建联"><strong>${desk.counts.connected}</strong><span>已建联</span></button></div></section>
-    ${renderNextStepBand()}
     <div class="sidebar-separator"></div>
     <nav class="filters" aria-label="工作流导航">${Object.entries(viewMeta)
       .map(
         ([key, meta]) =>
-          `<button class="${contentRoute.view === key ? "active" : ""}" type="button" data-view="${key}" title="打开${meta.label}"><span>${meta.label}</span><span>${key === "criteria" ? (desk.criteria.ready ? "✓" : "!") : desk.counts[key]}</span></button>`,
+          `<button class="${contentRoute.view === key ? "active" : ""}" type="button" data-view="${key}" title="打开${meta.label}"><span>${meta.label}</span><span>${key === "overview" ? "" : key === "criteria" ? (desk.criteria.ready ? "✓" : "!") : desk.counts[key]}</span></button>`,
       )
       .join("")}</nav>
     <div class="help-box"><div class="virtual-only"><span></span>微信添加只在应用外发生</div><button class="help-button" type="button" data-open-help>帮助与设置</button></div>
@@ -346,22 +422,64 @@ const renderHelp =
   </div>
 </section></div>`;
 
-const renderApp = () => {
-  const meta = viewMeta[contentRoute.view];
-  const items = meta.list ? itemsForView(contentRoute.view) : [];
-  const selected = meta.list ? items.find((item) => item.id === contentRoute.id) || items[0] || null : null;
+const renderRecordPage = () => {
+  const view = contentRoute.view;
+  const meta = viewMeta[view];
+  const items = itemsForView(view);
+  const routeSelectedId = contentRoute.id || contentRoute.peek || null;
+  const isPage = Boolean(contentRoute.id);
+  // `candidates` is declared `split` in config.js `ui.detail_modes`: only
+  // mode this desk implements. On a phone, nothing is selected until the
+  // operator taps a row; on desktop a `split` queue always previews the
+  // first row so the detail pane is never empty — only the explicit id/peek
+  // drives ws-detail-open.
+  const isSplit = DETAIL_MODES.candidates === "split";
+  const selected = items.find((item) => item.id === routeSelectedId) || (isPage || !isSplit ? null : items[0] || null);
   const statusChip =
     currentState.provider.name === "demo"
       ? '<span class="snapshot-badge">DEMO</span>'
       : '<span class="status-dot"></span>';
-  const content = meta.list
-    ? `<section class="content"><div class="list-panel"><div class="list-head"><div><strong>${meta.label}</strong><span>${items.length} ${meta.noun}</span></div><span>按状态 · 综合评分排序</span></div><div class="work-list">${renderRows(items, selected?.id)}</div></div><aside class="detail-panel">${selected ? renderCandidateDetail(selected) : '<div class="empty-detail">从左侧选择一位候选人</div>'}</aside></section>`
-    : `<section class="content content-single">${renderCriteria()}</section>`;
+  return `<section class="ws-view">
+    <header class="ws-toolbar">
+      <div class="ws-title"><h1>${meta.label}</h1><span class="ws-count">${items.length}</span></div>
+      <div class="ws-actions">${statusChip}${currentState.provider.pendingReview ? '<span class="read-only">写入待审</span>' : ""}<button class="button" type="button" data-refresh>刷新</button></div>
+    </header>
+    <div class="ws-workspace">
+      <div class="ws-list">${renderList(items, selected?.id)}</div>
+      <aside class="ws-detail" aria-live="polite">
+        <div class="ws-detail-bar" ${routeSelectedId ? "" : "hidden"}>
+          <button class="button" type="button" data-back-to-list>${isPage ? "返回列表" : "关闭"}</button>
+          ${!isPage && routeSelectedId ? `<a class="button" href="#/${view}/${encodeURIComponent(routeSelectedId)}">在整页打开</a>` : ""}
+        </div>
+        ${selected ? renderCandidateDetail(selected) : `<div class="ws-detail-empty">从左侧选择一位候选人</div>`}
+      </aside>
+    </div>
+  </section>`;
+};
+
+const renderApp = () => {
+  const { view } = contentRoute;
+  const onRecordView = RECORD_VIEWS.includes(view);
+  const routeSelectedId = contentRoute.id || contentRoute.peek || null;
+  const isPage = Boolean(contentRoute.id);
+  const body = document.body.classList;
+  body.toggle("ws-detail-open", onRecordView && Boolean(routeSelectedId));
+  body.toggle("ws-detail-page", onRecordView && isPage && Boolean(routeSelectedId));
+  body.toggle("ws-layout-split", onRecordView && !isPage);
+  const items = onRecordView ? itemsForView(view) : [];
+  const mobileMeta =
+    view === "overview"
+      ? `${desk.counts.all} 位候选人`
+      : onRecordView
+        ? `${items.length} ${viewMeta[view].noun}`
+        : desk.criteria.ready
+          ? "已就绪"
+          : `缺 ${desk.criteria.missing.length} 项`;
+  const content =
+    view === "overview" ? renderOverviewPage() : view === "criteria" ? renderCriteriaPage() : renderRecordPage();
   root.innerHTML = `<div class="app-shell ${sidebarCollapsed ? "sidebar-is-collapsed" : ""}">${renderSidebar()}<main class="main">
-    <div class="mobile-topbar"><button class="mobile-sidebar-toggle" type="button" data-mobile-sidebar aria-controls="appSidebar" aria-label="打开侧栏"><span class="sidebar-toggle-icon" aria-hidden="true"></span></button><div class="mobile-topbar-copy"><div class="mobile-view-title">${meta.label}</div><div class="mobile-view-meta">${meta.list ? `${items.length} ${meta.noun}` : desk.criteria.ready ? "已就绪" : `缺 ${desk.criteria.missing.length} 项`}</div></div><button class="mobile-help-button" type="button" data-open-help aria-label="帮助与设置">帮助</button></div>
-    ${renderMobileNextStep()}
-    <header class="workspace-head"><div><p class="eyebrow">${meta.eyebrow}</p><h1>${meta.label}</h1></div><div class="workspace-status">${statusChip}<span>${escapeHtml(currentState.provider.asOf || "Busabase 当前数据")}</span>${currentState.provider.pendingReview ? '<span class="read-only">写入待审</span>' : ""}<button type="button" data-refresh>刷新</button></div></header>
-    ${renderPipeline()}
+    <div class="mobile-topbar"><button class="mobile-sidebar-toggle" type="button" data-mobile-sidebar aria-controls="appSidebar" aria-label="打开侧栏"><span class="sidebar-toggle-icon" aria-hidden="true"></span></button><div class="mobile-topbar-copy"><div class="mobile-view-title">${viewMeta[view].label}</div><div class="mobile-view-meta">${mobileMeta}</div></div><button class="mobile-help-button" type="button" data-open-help aria-label="帮助与设置">帮助</button></div>
+    ${view === "overview" ? "" : renderMobileNextStep()}
     ${content}
   </main></div><div id="sidebarScrim" class="sidebar-scrim" hidden></div>${parseHash().view === "settings" ? renderHelp() : ""}<div class="toast" role="status" aria-live="polite" hidden></div>`;
   bindEvents();
@@ -398,7 +516,8 @@ const writeNotice = (result) => {
 
 const selectedCandidate = () => {
   const items = itemsForView(contentRoute.view);
-  return items.find((item) => item.id === contentRoute.id) || items[0] || null;
+  const routeSelectedId = contentRoute.id || contentRoute.peek || null;
+  return items.find((item) => item.id === routeSelectedId) || (contentRoute.id ? null : items[0] || null);
 };
 
 const captureScoreDraft = (candidate) => {
@@ -570,20 +689,22 @@ const completeOnboarding = async (event) => {
   showToast(writeNotice(result) || "筛选标准已保存。");
 };
 
+const closeDetail = () => {
+  navigate({ view: contentRoute.view, id: null, peek: null }, { replace: true });
+};
+
 const bindEvents = () => {
   root.querySelectorAll("[data-view]").forEach((button) =>
     button.addEventListener("click", () => {
       setMobileSidebarOpen(false);
-      setMobileDetailOpen(false);
-      navigate({ view: button.dataset.view, id: null });
+      navigate({ view: button.dataset.view, id: null, peek: null });
     }),
   );
-  root.querySelectorAll("[data-select-id]").forEach((button) =>
-    button.addEventListener("click", () => {
-      if (isMobileLayout()) setMobileDetailOpen(true);
-      navigate({ view: contentRoute.view, id: button.dataset.selectId });
-    }),
-  );
+  root.querySelector(".ws-list")?.addEventListener("click", (event) => {
+    const row = event.target.closest("tr[data-id]");
+    if (!row) return;
+    navigate({ view: contentRoute.view, id: null, peek: row.dataset.id });
+  });
   root.querySelector("[data-sidebar-toggle]")?.addEventListener("click", () => {
     if (isMobileLayout()) setMobileSidebarOpen(false);
     else {
@@ -593,10 +714,7 @@ const bindEvents = () => {
   });
   root.querySelector("[data-mobile-sidebar]")?.addEventListener("click", () => setMobileSidebarOpen(true));
   root.querySelector("#sidebarScrim")?.addEventListener("click", () => setMobileSidebarOpen(false));
-  root.querySelector("[data-back-to-list]")?.addEventListener("click", () => {
-    setMobileDetailOpen(false);
-    navigate({ view: contentRoute.view, id: null }, { replace: true });
-  });
+  root.querySelector("[data-back-to-list]")?.addEventListener("click", closeDetail);
   root.querySelectorAll("[data-open-help]").forEach((button) =>
     button.addEventListener("click", () => {
       lastContentHash = routeHash(contentRoute);
@@ -614,10 +732,12 @@ const bindEvents = () => {
       window.location.hash = `#/settings/${button.dataset.helpTab}`;
     }),
   );
-  root.querySelector("[data-refresh]")?.addEventListener("click", async () => {
-    if (currentState.provider.name === "demo") showToast("演示数据为固定快照。");
-    else await load({ keepRoute: true });
-  });
+  root.querySelectorAll("[data-refresh]").forEach((button) =>
+    button.addEventListener("click", async () => {
+      if (currentState.provider.name === "demo") showToast("演示数据为固定快照。");
+      else await load({ keepRoute: true });
+    }),
+  );
   root.querySelector("[data-copy-command]")?.addEventListener("click", async (event) => {
     const command = event.currentTarget.dataset.copyCommand;
     try {
@@ -653,7 +773,6 @@ const applyRoute = () => {
   else {
     contentRoute = route;
     lastContentHash = routeHash(route);
-    if (isMobileLayout()) setMobileDetailOpen(Boolean(route.id));
   }
   if (currentState) renderApp();
 };
@@ -683,7 +802,7 @@ const load = async ({ keepRoute = false } = {}) => {
     }
     currentState = await provider.getState();
     desk = createInstructorSourcingDesk(currentState.records);
-    if (!window.location.hash) window.history.replaceState(null, "", "#/all");
+    if (!window.location.hash) window.history.replaceState(null, "", "#/overview");
     applyRoute();
   } catch (error) {
     if (String(error?.message || error).startsWith("SETUP_")) console.info("Busabase workspace setup is not complete");
@@ -694,14 +813,18 @@ const load = async ({ keepRoute = false } = {}) => {
 
 window.addEventListener("hashchange", applyRoute);
 window.addEventListener("resize", () => {
-  if (!isMobileLayout()) {
-    setMobileSidebarOpen(false);
-    setMobileDetailOpen(false);
-  }
+  if (!isMobileLayout()) setMobileSidebarOpen(false);
 });
 document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape" && parseHash().view === "settings") window.location.hash = lastContentHash;
-  if (event.key === "Escape") setMobileSidebarOpen(false);
+  if (event.key === "Escape" && parseHash().view === "settings") {
+    window.location.hash = lastContentHash;
+    return;
+  }
+  if (event.key === "Escape") {
+    setMobileSidebarOpen(false);
+    const routeSelectedId = contentRoute.id || contentRoute.peek || null;
+    if (routeSelectedId && !contentRoute.id) closeDetail();
+  }
 });
 // Keep the queue fresh without ever clobbering a score the operator is typing.
 window.setInterval(() => {

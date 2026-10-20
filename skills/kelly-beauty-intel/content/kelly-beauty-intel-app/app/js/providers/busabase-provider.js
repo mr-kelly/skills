@@ -1,7 +1,7 @@
 import { inspectProvisionedResources, provisionDeclaredResources } from "../../vendor/busabase-airapp.js";
 import { createRuntimeClient } from "../busabase-client.js";
 import { appConfig } from "../config.js?v=0.1.0";
-import { buildBatch, statusForAction } from "../intel-model.js?v=0.1.0";
+import { NORMALIZE_ROW_BY_KEY, buildBatch, statusForAction } from "../intel-model.js?v=0.1.0";
 
 const allowedReads = new Set(appConfig.permissions.readProcedures);
 const allowedSetup = new Set(appConfig.permissions.setupProcedures);
@@ -13,6 +13,15 @@ const KIND_TO_BASE = {
   signal: { baseKey: "signals", idFieldSlug: "signal-id", idKey: "signal_id" },
   action: { baseKey: "actions", idFieldSlug: "action-id", idKey: "action_id" },
   draft: { baseKey: "drafts", idFieldSlug: "draft-id", idKey: "draft_id" },
+};
+
+// Base key -> its own id field slug, for a peek deep link to a record the
+// loaded page did not include (records.get, not a second records.list scan).
+const BASE_ID_FIELD = {
+  signals: "signal-id",
+  actions: "action-id",
+  drafts: "draft-id",
+  sources: "source-id",
 };
 
 // Only a standalone run may merge its own writes; a deployed AirApp is inside
@@ -219,6 +228,20 @@ export const busabaseProvider = {
   async fetchPage(key, cursor) {
     await ensureResources();
     return readPage(key, cursor);
+  },
+
+  // A `?peek=<id>` / `/<id>` deep link whose record is not on the loaded
+  // page (shared link, or a later page the operator never opened with Load
+  // more). One records.get by id field, not a second records.list scan.
+  async fetchRecord(key, id) {
+    const idFieldSlug = BASE_ID_FIELD[key];
+    if (!idFieldSlug) return null;
+    await ensureResources();
+    const record = await findRecord(key, idFieldSlug, id);
+    if (!record) return null;
+    const normalized = normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields);
+    const toRow = NORMALIZE_ROW_BY_KEY[key];
+    return toRow ? { ...toRow(normalized), kind: key.slice(0, -1) } : null;
   },
 
   async applyDecision(kind, id, payload = {}) {

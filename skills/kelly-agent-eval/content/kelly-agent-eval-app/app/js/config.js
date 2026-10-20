@@ -13,6 +13,11 @@ export const appConfig = {
     slug: "kelly-agent-eval",
   },
   airApp: { name: "Kelly Agent Eval", slug: "kelly-agent-eval-app", resourceKey: "kelly-agent-eval-app" },
+  // Where each view opens a record (see DETAIL_MODES in app.js for the why).
+  // Both views read the same `cases` Base, so the choice is about the task,
+  // not the data: the review queue is worked one draft after the next, the
+  // full suite is browsed and dived into.
+  ui: { detail_modes: { regressions: "split", cases: "page" } },
   bases: [
     {
       key: "cases",
@@ -56,7 +61,7 @@ export const appConfig = {
     },
   ],
   permissions: {
-    readProcedures: ["nodes.list", "nodes.get", "bases.get", "records.list", "records.count"],
+    readProcedures: ["nodes.list", "nodes.get", "bases.get", "records.list", "records.count", "records.get"],
     setupProcedures: ["nodes.createChangeRequest", "nodes.updateMetadata"],
     writeProcedures: ["records.changeRequest", "bases.createChangeRequest"],
   },

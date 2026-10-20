@@ -164,6 +164,14 @@ export const demoProvider = {
     return { ok: true, decision: { id, kind, action, comment, decided_at: now } };
   },
 
+  // Demo data is small enough to already hold every record in memory — no
+  // separate fetch, just the same lookup a loaded page would do.
+  async getRecord(key, id) {
+    const batch = demoBatch();
+    const list = { signals: batch.signals, actions: batch.actions, drafts: batch.drafts }[key] || [];
+    return list.find((entry) => entry.id === id) || null;
+  },
+
   async provisionResources() {
     throw new Error("Demo mode is read-only.");
   },

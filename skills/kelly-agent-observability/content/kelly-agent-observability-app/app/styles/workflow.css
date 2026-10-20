@@ -163,17 +163,55 @@
     color: var(--muted);
   }
 
+  /* ---- Two Kinds Of Page shell: toolbar search, settings scroll, detail head ---- */
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+  }
+
+  .toolbar-search {
+    max-width: 260px;
+  }
+
+  .settings-scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
+    padding: 16px 20px 28px;
+  }
+
+  .detail-head {
+    margin-bottom: 16px;
+  }
+
+  .detail-head h2 {
+    margin: 0;
+    font-size: var(--text-xl);
+  }
+
+  .detail-head p {
+    margin: 4px 0 0;
+  }
+
+  .load-state {
+    padding: 24px;
+    color: var(--muted);
+  }
+
+  .load-state.error {
+    color: var(--danger);
+  }
+
   /* ---- Premium refinement pass: typography, table, trace timeline ---- */
 
-  .topbar h1,
   h1 {
     font-weight: 700;
     letter-spacing: -0.01em;
-  }
-
-  #page-subtitle {
-    margin-top: 2px;
-    font-size: var(--text-base);
   }
 
   h2 {
@@ -193,40 +231,42 @@
     letter-spacing: -0.01em;
   }
 
-  /* Agent health table refinement */
-  .table-wrap table {
+  /* Nested secondary table for detail-page content (e.g. an agent's recent
+   * traces) — never a top-level record view, which uses `.ws-table` from
+   * base-ui.css instead. Scoped by class, so it never fights `.ws-table`. */
+  .mini-table {
+    width: 100%;
+    border-collapse: collapse;
     font-variant-numeric: tabular-nums;
   }
 
-  .table-wrap th {
-    padding: 10px 12px;
+  .mini-table th,
+  .mini-table td {
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--line);
+    text-align: left;
+  }
+
+  .mini-table th {
+    color: var(--muted);
     font-size: var(--text-xs);
     font-weight: 700;
     letter-spacing: 0.04em;
     text-transform: uppercase;
   }
 
-  .table-wrap tbody tr {
-    transition: background-color 0.12s ease;
-  }
-
-  .table-wrap tbody tr:hover {
-    background: var(--surface-hover);
-  }
-
-  .table-wrap td {
+  .mini-table td {
     font-size: var(--text-base);
   }
 
-  .table-wrap td.num {
+  .mini-table td.num {
     font-variant-numeric: tabular-nums;
     font-feature-settings: "tnum" 1;
+    text-align: right;
   }
 
-  .agent-id {
-    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    font-size: var(--text-xs);
-    letter-spacing: 0;
+  .mini-table tbody tr:hover {
+    background: var(--surface-hover);
   }
 
   .badge {

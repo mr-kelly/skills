@@ -31,6 +31,8 @@ import { isStandaloneLocalRuntime } from "../runtime.js";
 
 export { isStandaloneLocalRuntime };
 
+const ID_FIELD_SLUG = { signals: "signal-id", actions: "action-id", drafts: "draft-id" };
+
 const normalizeFields = (fields) =>
   Object.fromEntries(Object.entries(fields || {}).map(([slug, value]) => [slug.replaceAll("-", "_"), value]));
 const toBusabaseFields = (fields) =>
@@ -202,6 +204,24 @@ export const busabaseProvider = {
     const page = await readPage(key, cursor);
     const normalize = { signals: normalizeSignal, actions: normalizeAction, drafts: normalizeDraft }[key];
     return { ...page, rows: normalize ? page.rows.map(normalize) : page.rows };
+  },
+
+  // A record named by the URL (`/<view>/<id>` or `?peek=<id>`) that is not on
+  // the loaded page is read on its own by its business id, instead of paging
+  // through records.list to find it.
+  async getRecord(view, id) {
+    if (!allowedReads.has("records.get")) return null;
+    await ensureResources();
+    const idFieldSlug = ID_FIELD_SLUG[view];
+    const normalize = { signals: normalizeSignal, actions: normalizeAction, drafts: normalizeDraft }[view];
+    if (!idFieldSlug || !normalize) return null;
+    const record = await findRecord(view, idFieldSlug, id);
+    if (!record) return null;
+    return normalize({
+      ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields),
+      __recordId: record.id,
+      __headCommitId: record.headCommitId || record.headCommit?.id,
+    });
   },
 
   // Human verdict on a signal/action/draft (approve/request_changes/block,

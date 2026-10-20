@@ -364,13 +364,31 @@ body.sidebar-collapsed .sidebar-footer {
   background: color-mix(in srgb, var(--surface) 72%, transparent);
 }
 
+/* Desktop: a flex column so whichever single page is visible (overview /
+ * record view / settings — the other two are [hidden]) stretches to fill
+ * the remaining height via its own `flex: 1 1 auto` (base-ui.css's
+ * `.ws-view`/`.ws-overview`). A CSS grid here would place that lone visible
+ * child into the first "auto" row instead of the "1fr" row, since every
+ * [hidden] sibling (including .mobile-topbar) is excluded from grid
+ * placement entirely — the page would size to its own content and leave the
+ * bottom of the viewport blank. Only the phone layout below needs a real
+ * two-row grid, because .mobile-topbar is actually visible there. */
 .main {
   min-width: 0;
   min-height: 0;
   height: 100vh;
-  display: grid;
-  grid-template-rows: auto 1fr;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
+}
+
+.load-state {
+  padding: 24px;
+  color: var(--muted);
+}
+
+.load-state.error {
+  color: var(--danger);
 }
 
 .mobile-topbar {
@@ -381,42 +399,16 @@ body.sidebar-collapsed .sidebar-footer {
   display: none;
 }
 
-.topbar {
-  position: static;
-  z-index: 1;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  min-height: 58px;
-  padding: 10px 18px;
-  border-bottom: 1px solid var(--line);
-  background: var(--surface-blur);
-}
-
 h1,
 h2 {
   margin: 0;
   letter-spacing: 0;
 }
 
-.topbar h1 {
-  font-size: var(--text-xl);
-  font-weight: 700;
-  line-height: 1.25;
-  letter-spacing: -0.01em;
-}
-
 h2 {
   font-size: var(--text-md);
   font-weight: 680;
   letter-spacing: -0.005em;
-}
-
-.topbar-actions {
-  display: flex;
-  gap: 8px;
-  align-items: center;
 }
 
 select,
@@ -457,99 +449,28 @@ button:hover {
   background: var(--surface-soft);
 }
 
-.content {
-  min-height: 0;
-  overflow: auto;
-  padding: 16px 18px 24px;
-}
-
 .muted {
   color: var(--muted);
   font-size: var(--text-sm);
 }
 
-.metrics {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px;
-  margin-bottom: 14px;
+/* Visually hidden but still reachable by assistive tech — the toolbar search
+ * label. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 }
 
-.metric {
-  border: 1px solid var(--line);
-  border-radius: var(--radius-md);
-  background: var(--panel);
-  padding: 13px 14px;
-  box-shadow: var(--shadow);
+.toolbar-search {
+  position: relative;
 }
 
-.metric span {
-  display: block;
-  color: var(--muted);
-  font-size: var(--text-sm);
-  font-weight: 560;
-  letter-spacing: 0.01em;
-  text-transform: uppercase;
-}
-
-.metric strong {
-  display: block;
-  margin-top: 7px;
-  font-size: var(--text-xl);
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  font-variant-numeric: tabular-nums;
-}
-
-.metric strong.ready {
-  color: var(--good);
-}
-
-.metric strong.blocked {
-  color: var(--bad);
-}
-
-.metric strong.pending {
-  color: var(--warn);
-}
-
-.table-wrap {
-  overflow: auto;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-md);
-  background: var(--panel);
-  box-shadow: var(--shadow);
-}
-
-table {
-  width: 100%;
-  min-width: 720px;
-  border-collapse: collapse;
-}
-
-th,
-td {
-  padding: 11px 12px;
-  border-bottom: 1px solid var(--line);
-  text-align: left;
-  vertical-align: top;
-}
-
-tbody tr:last-child td {
-  border-bottom: none;
-}
-
-tbody tr:hover td {
-  background: var(--surface-hover);
-}
-
-th {
-  color: var(--muted);
-  font-size: var(--text-sm);
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-  background: var(--surface-hover);
+.toolbar-search input {
+  width: 220px;
 }
 
 .strong {
@@ -637,25 +558,6 @@ th {
   border-color: color-mix(in srgb, var(--warning) 34%, var(--line));
 }
 
-.empty {
-  border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
-  background: var(--panel);
-  padding: 16px;
-  color: var(--muted);
-}
-
-.back-link {
-  display: inline-block;
-  margin-bottom: 12px;
-  color: var(--muted);
-  font-size: var(--text-base);
-}
-
-.back-link:hover {
-  color: var(--text);
-}
-
 .sidebar-scrim,
 .sidebar-scrim[hidden] {
   display: none;
@@ -664,10 +566,6 @@ th {
 @media (max-width: 980px) {
   .app-shell {
     grid-template-columns: 220px minmax(0, 1fr);
-  }
-
-  .metrics {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -800,38 +698,6 @@ th {
     padding: 0;
   }
 
-  .topbar {
-    display: none;
-  }
-
-  .content {
-    padding: 12px;
-  }
-
-  .metrics {
-    grid-template-columns: 1fr;
-    gap: 8px;
-  }
-
-  .metric {
-    padding: 10px 12px;
-  }
-
-  .table-wrap {
-    max-width: 100%;
-    border-left: 1px solid var(--line);
-    border-right: 1px solid var(--line);
-    border-radius: var(--radius-sm);
-  }
-
-  table {
-    min-width: 560px;
-  }
-
-  .item-detail {
-    grid-template-columns: 1fr;
-  }
-
   .actions-bar {
     flex-wrap: wrap;
   }
@@ -867,6 +733,8 @@ th {
 
 .overview-panel {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
   gap: 8px;
   border: 1px solid var(--line);
   border-radius: var(--radius-md);
@@ -881,75 +749,80 @@ th {
   margin-bottom: 4px;
 }
 
-.item-detail {
-  display: grid;
-  grid-template-columns: minmax(240px, 320px) 1fr;
-  gap: 16px;
-  align-items: start;
-}
-
-.item-list {
-  display: grid;
-  gap: 8px;
-}
-
-.item-row {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  gap: 10px;
+/* Overview's "top signals" / "ready actions" rows — a record opened straight
+ * from the summary page, same shape as the record-view table's identity
+ * cell. */
+.due-row {
+  display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: 10px;
   border: 1px solid var(--line);
   border-radius: var(--radius-md);
   background: var(--panel);
   padding: 10px 12px;
   text-decoration: none;
   color: inherit;
-  transition: border-color 0.12s ease, background 0.12s ease;
+  transition: border-color var(--ease), background var(--ease);
 }
 
-.item-row:hover {
+.due-row:hover {
   border-color: var(--line-strong);
   background: var(--surface-soft);
 }
 
-.item-row.active {
-  border-color: var(--accent);
-}
-
-.item-row-ref {
-  color: var(--muted);
-  font-size: var(--text-xs);
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-}
-
-.item-row-main {
-  display: grid;
-  gap: 2px;
+.due-row > span:first-child {
+  display: block;
   min-width: 0;
 }
 
-.item-row-main strong {
-  font-size: var(--text-md);
-  font-weight: 650;
+.due-row > span:first-child strong {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
 }
 
-.item-row-main span {
+.due-row small {
+  display: block;
+  overflow: hidden;
   color: var(--muted);
   font-size: var(--text-sm);
-  overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.item-panel {
-  display: grid;
-  gap: 14px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-md);
-  background: var(--panel);
-  padding: 18px;
-  box-shadow: var(--shadow);
+.due-row .badge {
+  flex: 0 0 auto;
+}
+
+.empty-inline {
+  padding: 16px;
+  color: var(--muted);
+  font-size: var(--text-base);
+}
+
+.notice-banner {
+  margin-bottom: 8px;
+  color: var(--muted);
+  font-size: var(--text-sm);
+}
+
+.notice-banner.positive {
+  color: var(--positive);
+}
+
+.notice-banner.negative {
+  color: var(--danger);
+}
+
+.detail-head {
+  margin-bottom: 4px;
+}
+
+.detail-head h2 {
+  margin: 4px 0 0;
+  font-size: var(--text-lg);
 }
 
 .item-panel-head {
@@ -957,11 +830,6 @@ th {
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
-}
-
-.item-panel h2 {
-  font-size: var(--text-lg);
-  margin: 0;
 }
 
 .field {
@@ -1025,57 +893,23 @@ th {
   cursor: not-allowed;
 }
 
-.decision-feedback {
-  font-size: var(--text-sm);
-}
-
-.decision-feedback.positive {
-  color: var(--positive);
-}
-
-.decision-feedback.negative {
-  color: var(--danger);
-}
-
-.source-list {
-  display: grid;
-  gap: 10px;
-}
-
-.source-row {
-  display: grid;
-  gap: 6px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-md);
-  background: var(--panel);
-  padding: 14px;
-  box-shadow: var(--shadow);
-}
-
-.source-row-head {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  justify-content: space-between;
-}
-
-.settings-grid {
+.settings {
   display: grid;
   gap: 16px;
 }
 
-.settings-grid dl {
+.settings dl {
   display: grid;
   grid-template-columns: max-content 1fr;
   gap: 6px 14px;
   margin: 0;
 }
 
-.settings-grid dt {
+.settings dt {
   color: var(--muted);
 }
 
-.settings-grid dd {
+.settings dd {
   margin: 0;
 }
 
@@ -1084,26 +918,10 @@ th {
   align-items: center;
   justify-content: center;
   flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 16px;
+  gap: 10px;
+  padding: 14px 20px;
 }
 
-.pager button {
-  min-height: 34px;
-}
-
-.pager-page {
-  min-width: 34px;
-  padding-inline: 8px;
-}
-
-.pager-page.active {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: white;
-}
-
-.pager-ellipsis,
 .pager-summary {
   color: var(--muted);
   font-size: var(--text-sm);

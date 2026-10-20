@@ -3,6 +3,15 @@ import { appConfig } from "./js/config.js?v=0.1.0";
 import { closeConnectGate, passConnectGate, renderSetupRequired } from "./js/connect-gate.js?v=0.1.0";
 import { getProvider } from "./js/providers/index.js?v=0.1.0";
 
+// Detail mode, declared once (see `appConfig.ui.detail_modes`): `candidates`
+// is the only Base, and it is a queue worked top to bottom — approve, send
+// back or reject, then the next candidate — so its detail opens beside the
+// list (`split`), never a drawer or a second full-page implementation.
+// `?peek=<id>` drives the split selection; `/<id>` is always a full page
+// ("Open full page"), whatever the declared mode. On a phone every mode
+// becomes a page (base-ui.css).
+const VIEW_MODES = appConfig.ui.detail_modes;
+
 const state = {
   pageCursors: {},
   currentPage: {},
@@ -22,11 +31,23 @@ const state = {
 const SIDEBAR_COLLAPSED_STORAGE_KEY = "kelly-deal-scorer.sidebarCollapsed";
 
 const els = {
-  title: document.querySelector("#page-title"),
-  subtitle: document.querySelector("#page-subtitle"),
-  content: document.querySelector("#content"),
+  overviewPage: document.querySelector("#overviewPage"),
+  overviewSubtitle: document.querySelector("#overviewSubtitle"),
+  overviewMetrics: document.querySelector("#overviewMetrics"),
+  overviewBody: document.querySelector("#overviewBody"),
+  candidatesPage: document.querySelector("#candidatesPage"),
+  candidatesCount: document.querySelector("#candidatesCount"),
+  candidatesList: document.querySelector("#candidatesList"),
+  candidatesDetail: document.querySelector("#candidatesDetail"),
+  candidatesDetailBody: document.querySelector("#candidatesDetailBody"),
+  detailBack: document.querySelector("#detailBack"),
+  detailExpand: document.querySelector("#detailExpand"),
+  settingsPage: document.querySelector("#settingsPage"),
+  settingsSubtitle: document.querySelector("#settingsSubtitle"),
+  settingsContent: document.querySelector("#settingsContent"),
   search: document.querySelector("#search"),
   refresh: document.querySelector("#refresh"),
+  candidatesRefresh: document.querySelector("#candidatesRefresh"),
   mobileRefresh: document.querySelector("#mobileRefresh"),
   sidebarToggle: document.querySelector("#sidebarToggle"),
   mobileSidebarToggle: document.querySelector("#mobileSidebarToggle"),
@@ -140,16 +161,45 @@ function scoreTier(score) {
   return "low";
 }
 
+// `#/overview` (default) · `#/candidates[/<id>][?status=…&peek=…]` ·
+// `#/settings`. Search lives in JS state only (as before); the status filter
+// and the peeked candidate live in the URL so refresh, shared links and Back
+// restore the same list context.
 function parseRoute() {
   const raw = (location.hash || "#/overview").slice(1);
   const [pathPart, queryPart] = raw.split("?");
   const parts = pathPart.replace(/^\//, "").split("/").filter(Boolean);
   const params = new URLSearchParams(queryPart || "");
+  const view = parts[0] || "overview";
+  const id = parts[1] ? decodeURIComponent(parts[1]) : "";
   return {
-    view: parts[0] || "overview",
-    id: parts[1] ? decodeURIComponent(parts[1]) : "",
+    view,
+    id,
     statusFilter: params.get("status") || "",
+    peek: !id && params.get("peek") ? decodeURIComponent(params.get("peek")) : "",
   };
+}
+
+function candidatesQuery(extra = {}) {
+  const params = new URLSearchParams();
+  if (state.route.statusFilter) params.set("status", state.route.statusFilter);
+  for (const [key, value] of Object.entries(extra)) {
+    if (value) params.set(key, value);
+  }
+  const text = params.toString();
+  return text ? `?${text}` : "";
+}
+
+function openDetail(id) {
+  location.hash = `#/candidates${candidatesQuery({ peek: id })}`;
+}
+
+function openFullPage(id) {
+  location.hash = `#/candidates/${encodeURIComponent(id)}${candidatesQuery()}`;
+}
+
+function closeDetail() {
+  location.hash = `#/candidates${candidatesQuery()}`;
 }
 
 function setRoute() {
@@ -180,18 +230,26 @@ function applyI18n() {
   document.querySelectorAll("[data-i18n]").forEach((node) => {
     node.textContent = t(node.dataset.i18n);
   });
+  document.querySelectorAll("[data-i18n-placeholder]").forEach((node) => {
+    node.placeholder = t(node.dataset.i18nPlaceholder);
+  });
   const languageLabels =
     activeLang() === "zh" ? { auto: "自动", en: "English", zh: "中文" } : { auto: "Auto", en: "English", zh: "中文" };
   for (const option of els.language.options) {
     option.textContent = languageLabels[option.value] || option.textContent;
   }
-  els.search.placeholder = t("search");
-  els.refresh.textContent = t("refresh");
+  if (els.candidatesRefresh) els.candidatesRefresh.title = t("refresh");
   if (els.mobileRefresh) els.mobileRefresh.title = t("refresh");
 }
 
 function isConnected() {
   return Boolean(state.batch?.items?.length);
+}
+
+function viewLabel(view) {
+  if (view === "candidates") return t("candidatesTitle");
+  if (view === "settings") return t("settings");
+  return t("overview");
 }
 
 function renderShell() {
@@ -221,10 +279,18 @@ function renderShell() {
   });
 }
 
-function viewLabel(view) {
-  if (view === "candidates") return t("candidatesTitle");
-  if (view === "settings") return t("settings");
-  return t("overview");
+// Body state for the shared `base-ui.css` record-view layout. `candidates`
+// is declared `split`, so the mode class is set for the whole view even with
+// nothing selected; `ws-detail-open` only tracks whether a record is shown.
+function updateBodyModeClasses() {
+  const onCandidates = state.route.view === "candidates";
+  const selectedId = state.route.id || state.route.peek;
+  const body = document.body.classList;
+  body.toggle("ws-detail-open", onCandidates && Boolean(selectedId));
+  body.toggle("ws-detail-page", onCandidates && Boolean(state.route.id));
+  body.toggle("ws-detail-drawer", false);
+  body.toggle("ws-layout-split", onCandidates && VIEW_MODES.candidates === "split");
+  body.toggle("ws-searching", onCandidates && Boolean(state.query.trim()));
 }
 
 function distributionPanel() {
@@ -256,18 +322,6 @@ function distributionPanel() {
   `;
 }
 
-function metricCards() {
-  const metrics = state.batch?.metrics || {};
-  return `
-    <div class="metrics">
-      <div class="metric"><span>${t("filterNeedsReview")}</span><strong>${metrics.needs_review || 0}</strong></div>
-      <div class="metric"><span>${t("filterApproved")}</span><strong>${metrics.approved || 0}</strong></div>
-      <div class="metric"><span>${t("filterDone")}</span><strong>${metrics.done || 0}</strong></div>
-      <div class="metric"><span>${t("filterBlocked")}</span><strong>${metrics.blocked || 0}</strong></div>
-    </div>
-  `;
-}
-
 function filteredItems(statusFilter = "") {
   const query = state.query.trim().toLowerCase();
   return (state.batch?.items || []).filter((item) => {
@@ -279,21 +333,6 @@ function filteredItems(statusFilter = "") {
   });
 }
 
-function candidateRow(item) {
-  const tier = scoreTier(item.score.composite_score);
-  return `
-    <a class="candidate-row" href="#/candidates/${encodeURIComponent(item.id)}">
-      <span>
-        <strong>${escapeHtml(item.business_name)}</strong>
-        <small>${escapeHtml(categoryLabel(item.category))} · ${escapeHtml(item.city)}</small>
-      </span>
-      <span class="num">${money(item.requested_principal)}</span>
-      <span class="badge">${escapeHtml(statusLabel(item.status))}</span>
-      <span class="score-pill tier-${tier}">${num(item.score.composite_score)}</span>
-    </a>
-  `;
-}
-
 function emptyState(message) {
   return `
     <div class="empty">
@@ -303,40 +342,63 @@ function emptyState(message) {
   `;
 }
 
-function renderOverview() {
-  els.title.textContent = t("overview");
-  els.subtitle.textContent = state.batch?.generated_at
+// ── Overview: hero + at most three numbers, none of them already visible in
+// the sidebar's attention block (needs-review/high-confidence/blocked live
+// there already) — plus the aggregate score-distribution chart. No per-row
+// candidate list here; that is what the Candidates view is for. ───────────
+function renderOverviewPage() {
+  const connected = isConnected();
+  els.overviewSubtitle.textContent = state.batch?.generated_at
     ? `${t("generated")} ${new Date(state.batch.generated_at).toLocaleString()}`
     : t("empty");
-  if (!isConnected()) {
-    els.content.innerHTML = emptyState(t("needsConnection"));
-    return;
-  }
-  const items = [...(state.batch.items || [])].sort((a, b) => b.score.composite_score - a.score.composite_score);
-  els.content.innerHTML = `
-    ${metricCards()}
-    ${distributionPanel()}
-    <div class="overview-panel wide">
-      <h2>${t("candidatesTitle")}</h2>
-      <div>${items.map(candidateRow).join("")}</div>
-    </div>
+  const metrics = state.batch?.metrics || {};
+  const distribution = state.batch?.distribution || {};
+  els.overviewMetrics.innerHTML = `
+    <div><span>${t("filterApproved")}</span><strong>${metrics.approved || 0}</strong></div>
+    <div><span>${t("filterDone")}</span><strong>${metrics.done || 0}</strong></div>
+    <div><span>${t("averageScore")}</span><strong>${num(distribution.average_score)}</strong></div>
   `;
+  els.overviewBody.innerHTML = connected ? distributionPanel() : emptyState(t("needsConnection"));
 }
 
-function renderCandidates() {
-  els.title.textContent = t("candidatesTitle");
-  const statusFilter = state.route.statusFilter;
-  const items = filteredItems(statusFilter);
-  els.subtitle.textContent = `${recordCountLabel("candidates", items.length, Boolean(state.query || state.route.statusFilter))} ${t("candidates")}`;
-  if (!isConnected()) {
-    els.content.innerHTML = `${emptyState(t("needsConnection"))}
-    ${pagerControl("candidates")}`;
-    return;
-  }
-  const sorted = [...items].sort((a, b) => b.score.composite_score - a.score.composite_score);
-  els.content.innerHTML = sorted.length
-    ? `<div class="overview-panel wide"><div>${sorted.map(candidateRow).join("")}</div></div>`
-    : emptyState(t("empty"));
+function candidateDetailMarkup(item) {
+  const tier = scoreTier(item.score.composite_score);
+  return `
+    <section class="detail">
+      <div class="detail-main">
+        <div class="metrics">
+          <div class="metric"><span>${t("compositeScore")}</span><strong class="score-pill tier-${tier}">${num(item.score.composite_score)}</strong></div>
+          <div class="metric"><span>${t("requestedPrincipal")}</span><strong>${money(item.requested_principal)}</strong></div>
+          <div class="metric"><span>${t("status")}</span><strong>${escapeHtml(statusLabel(item.status))}</strong></div>
+          <div class="metric"><span>${t("redFlags")}</span><strong>${item.red_flags.length}</strong></div>
+        </div>
+        <div class="overview-panel wide">
+          <h2>${t("revenueHistory")}</h2>
+          ${revenueChart(item.monthly_revenue)}
+        </div>
+        <div class="overview-panel wide">
+          <h2>${t("scoreBreakdown")}</h2>
+          ${factorTable(item.score.factors)}
+          <div class="revshare-panel">
+            <span>${t("suggestedShareRate")}</span>
+            <strong>${num(item.score.suggested_share_rate.min_pct)}% – ${num(item.score.suggested_share_rate.max_pct)}%</strong>
+          </div>
+        </div>
+        ${decisionPanel(item)}
+      </div>
+      <aside class="detail-side">
+        <h2>${t("candidateDetail")}</h2>
+        <dl>
+          <dt>${t("business")}</dt><dd>${escapeHtml(item.business_name)}</dd>
+          <dt>${t("category")}</dt><dd>${escapeHtml(categoryLabel(item.category))}</dd>
+          <dt>${t("city")}</dt><dd>${escapeHtml(item.city)}</dd>
+          <dt>${t("requestedPrincipal")}</dt><dd>${money(item.requested_principal)}</dd>
+        </dl>
+        <h2>${t("redFlags")}</h2>
+        <div>${redFlagsPanel(item.red_flags)}</div>
+      </aside>
+    </section>
+  `;
 }
 
 function revenueChart(revenue) {
@@ -415,62 +477,75 @@ function decisionPanel(item) {
   `;
 }
 
-function renderCandidateDetail() {
-  const item = (state.batch?.items || []).find((candidate) => candidate.id === state.route.id);
-  if (!item) {
-    renderCandidates();
-    return;
-  }
-  els.title.textContent = item.business_name;
-  els.subtitle.textContent = `${categoryLabel(item.category)} · ${item.city}`;
+function candidateRow(item, selectedId) {
   const tier = scoreTier(item.score.composite_score);
-  els.content.innerHTML = `
-    <section class="detail">
-      <div class="detail-main">
-        <a class="back-link" href="#/candidates">← ${t("back")}</a>
-        <div class="metrics">
-          <div class="metric"><span>${t("compositeScore")}</span><strong class="score-pill tier-${tier}">${num(item.score.composite_score)}</strong></div>
-          <div class="metric"><span>${t("requestedPrincipal")}</span><strong>${money(item.requested_principal)}</strong></div>
-          <div class="metric"><span>${t("status")}</span><strong>${escapeHtml(statusLabel(item.status))}</strong></div>
-          <div class="metric"><span>${t("redFlags")}</span><strong>${item.red_flags.length}</strong></div>
-        </div>
-        <div class="overview-panel wide">
-          <h2>${t("revenueHistory")}</h2>
-          ${revenueChart(item.monthly_revenue)}
-        </div>
-        <div class="overview-panel wide">
-          <h2>${t("scoreBreakdown")}</h2>
-          ${factorTable(item.score.factors)}
-          <div class="revshare-panel">
-            <span>${t("suggestedShareRate")}</span>
-            <strong>${num(item.score.suggested_share_rate.min_pct)}% – ${num(item.score.suggested_share_rate.max_pct)}%</strong>
-          </div>
-        </div>
-        ${decisionPanel(item)}
-      </div>
-      <aside class="detail-side">
-        <h2>${t("candidateDetail")}</h2>
-        <dl>
-          <dt>${t("business")}</dt><dd>${escapeHtml(item.business_name)}</dd>
-          <dt>${t("category")}</dt><dd>${escapeHtml(categoryLabel(item.category))}</dd>
-          <dt>${t("city")}</dt><dd>${escapeHtml(item.city)}</dd>
-          <dt>${t("requestedPrincipal")}</dt><dd>${money(item.requested_principal)}</dd>
-        </dl>
-        <h2>${t("redFlags")}</h2>
-        <div>${redFlagsPanel(item.red_flags)}</div>
-      </aside>
-    </section>
+  const selected = item.id === selectedId ? " ws-selected" : "";
+  return `
+    <tr data-id="${escapeHtml(item.id)}" class="${selected}">
+      <td>${escapeHtml(item.business_name)}</td>
+      <td class="ws-col-num"><span class="score-pill tier-${tier}">${num(item.score.composite_score)}</span></td>
+      <td>${escapeHtml(categoryLabel(item.category))}</td>
+      <td>${escapeHtml(item.city)}</td>
+      <td class="ws-col-num">${money(item.requested_principal)}</td>
+      <td class="ws-split-keep"><span class="badge">${escapeHtml(statusLabel(item.status))}</span></td>
+    </tr>
   `;
 }
 
-function renderSettings() {
-  els.title.textContent = t("settings");
-  els.subtitle.textContent = t("localFilesOnly");
+function candidatesTable(items, selectedId) {
+  return `
+    <table class="ws-table">
+      <thead>
+        <tr>
+          <th>${escapeHtml(t("business"))}</th>
+          <th class="ws-col-num">${escapeHtml(t("scoreColumn"))}</th>
+          <th>${escapeHtml(t("category"))}</th>
+          <th>${escapeHtml(t("city"))}</th>
+          <th class="ws-col-num">${escapeHtml(t("requestedPrincipal"))}</th>
+          <th class="ws-split-keep">${escapeHtml(t("status"))}</th>
+        </tr>
+      </thead>
+      <tbody>${items.map((item) => candidateRow(item, selectedId)).join("")}</tbody>
+    </table>
+  `;
+}
+
+function renderCandidatesPage() {
+  const statusFilter = state.route.statusFilter;
+  const items = filteredItems(statusFilter);
+  const narrowed = Boolean(state.query.trim());
+  els.candidatesCount.textContent = recordCountLabel("candidates", items.length, narrowed);
+  const selectedId = state.route.id || state.route.peek;
+
+  if (!isConnected()) {
+    els.candidatesList.innerHTML = `${emptyState(t("needsConnection"))}${pagerControl("candidates")}`;
+  } else {
+    const sorted = [...items].sort((a, b) => b.score.composite_score - a.score.composite_score);
+    els.candidatesList.innerHTML = sorted.length
+      ? `${candidatesTable(sorted, selectedId)}${pagerControl("candidates")}`
+      : `${emptyState(t("empty"))}${pagerControl("candidates")}`;
+  }
+
+  const selected = selectedId ? (state.batch?.items || []).find((candidate) => candidate.id === selectedId) : null;
+  els.candidatesDetailBody.innerHTML = selected
+    ? candidateDetailMarkup(selected)
+    : `<div class="ws-detail-empty">${escapeHtml(t("selectCandidate"))}</div>`;
+
+  // "Open full page" is only meaningful from a drawer/split peek, never when
+  // already on the `/<id>` full page.
+  if (els.detailExpand) {
+    els.detailExpand.hidden = !selected || Boolean(state.route.id);
+    if (selected) els.detailExpand.dataset.id = selected.id;
+  }
+}
+
+function renderSettingsPage() {
+  els.settingsSubtitle.textContent = t("localFilesOnly");
   const summary = state.settings?.config_summary || {};
   const rubric = summary.rubric || {};
   const weights = rubric.weights || {};
   const thresholds = rubric.decision_thresholds || {};
-  els.content.innerHTML = `
+  els.settingsContent.innerHTML = `
     <div class="settings">
       <section>
         <h2>${t("configuration")}</h2>
@@ -510,7 +585,10 @@ async function submitDecision(id, action, comment) {
     await provider.submitReview({ id, action, comment });
     await loadState();
   } catch (error) {
-    els.content.insertAdjacentHTML("afterbegin", `<div class="warnings"><div>${escapeHtml(error.message)}</div></div>`);
+    els.candidatesDetailBody.insertAdjacentHTML(
+      "afterbegin",
+      `<div class="warnings"><div>${escapeHtml(error.message)}</div></div>`,
+    );
   } finally {
     state.saving = false;
   }
@@ -518,10 +596,15 @@ async function submitDecision(id, action, comment) {
 
 function render() {
   renderShell();
-  if (state.route.view === "candidates" && state.route.id) renderCandidateDetail();
-  else if (state.route.view === "candidates") renderCandidates();
-  else if (state.route.view === "settings") renderSettings();
-  else renderOverview();
+  updateBodyModeClasses();
+  const isCandidates = state.route.view === "candidates";
+  const isSettings = state.route.view === "settings";
+  els.overviewPage.hidden = isCandidates || isSettings;
+  els.candidatesPage.hidden = !isCandidates;
+  els.settingsPage.hidden = !isSettings;
+  if (state.route.view === "candidates") renderCandidatesPage();
+  else if (state.route.view === "settings") renderSettingsPage();
+  else renderOverviewPage();
 }
 
 function escapeHtml(value) {
@@ -540,6 +623,14 @@ function escapeHtml(value) {
 
 window.addEventListener("hashchange", setRoute);
 window.addEventListener("resize", syncResponsiveShell);
+window.addEventListener("keydown", (event) => {
+  if (event.key !== "Escape") return;
+  // Escape closes a drawer/split selection; a full `/<id>` page is a real
+  // navigation, not an overlay, so Escape leaves it alone.
+  if (document.body.classList.contains("ws-detail-open") && !document.body.classList.contains("ws-detail-page")) {
+    closeDetail();
+  }
+});
 els.sidebarToggle?.addEventListener("click", toggleSidebar);
 els.mobileSidebarToggle?.addEventListener("click", () => setMobileSidebarOpen(true));
 els.sidebarScrim?.addEventListener("click", () => setMobileSidebarOpen(false));
@@ -547,7 +638,17 @@ els.search.addEventListener("input", () => {
   state.query = els.search.value;
   render();
 });
-els.content.addEventListener("click", (event) => {
+els.candidatesList.addEventListener("click", (event) => {
+  const row = event.target.closest("tr[data-id]");
+  if (!row) return;
+  openDetail(row.dataset.id);
+});
+els.detailBack?.addEventListener("click", closeDetail);
+els.detailExpand?.addEventListener("click", (event) => {
+  event.preventDefault();
+  if (els.detailExpand.dataset.id) openFullPage(els.detailExpand.dataset.id);
+});
+els.candidatesDetailBody.addEventListener("click", (event) => {
   const button = event.target.closest("[data-decision-action]");
   if (!button) return;
   const panel = button.closest("[data-decision-panel]");
@@ -556,6 +657,7 @@ els.content.addEventListener("click", (event) => {
   if (id && !state.saving) submitDecision(id, button.dataset.decisionAction, note);
 });
 els.refresh.addEventListener("click", () => loadState().catch((error) => alert(error.message)));
+els.candidatesRefresh?.addEventListener("click", () => loadState().catch((error) => alert(error.message)));
 els.mobileRefresh?.addEventListener("click", () => loadState().catch((error) => alert(error.message)));
 els.language.value = state.lang;
 els.language.addEventListener("change", () => {
@@ -578,7 +680,8 @@ async function boot() {
       renderSetupRequired(error, boot);
       return;
     }
-    els.content.innerHTML = emptyState(error.message);
+    els.candidatesList.innerHTML = emptyState(error.message);
+    els.overviewBody.innerHTML = emptyState(error.message);
   }
 }
 
@@ -683,7 +786,7 @@ export function pagerControl(key) {
   </nav>`;
 }
 
-document.querySelector("#content")?.addEventListener("click", (event) => {
+els.candidatesList.addEventListener("click", (event) => {
   const button = event.target.closest("[data-goto-page]");
   if (!button) return;
   const [key, page] = button.dataset.gotoPage.split(":");

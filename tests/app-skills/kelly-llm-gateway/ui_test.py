@@ -46,24 +46,28 @@ def test_demo_ui(browser, base_url: str) -> None:
     # stable, 4 canary), and 2 deterministic open anomalies (one cost spike,
     # one error spike) — confirmed with a throwaway node probe of
     # demo-provider.js before writing these assertions.
-    assert page.locator(".metric").count() == 4
+    assert page.locator("#overviewMetrics > div").count() == 3
     assert page.locator(".mover-row").count() == 4
     assert page.locator(".anomaly-row").count() == 2
     assert_no_horizontal_overflow(page)
 
     page.goto(f"{base_url}/?demo=1#/spend")
     page.wait_for_load_state("networkidle")
-    assert page.locator(".table-wrap tbody tr").count() == 8
+    assert page.locator(".ws-table tbody tr").count() == 8
 
     page.goto(f"{base_url}/?demo=1#/rollouts")
     page.wait_for_load_state("networkidle")
-    assert page.locator(".rollout-card").count() == 4
-    assert "4 rollouts" in page.locator("#page-subtitle").inner_text()
+    assert page.locator(".ws-table tbody tr").count() == 4
+    assert page.locator("#viewCount").inner_text() == "4"
 
     page.goto(f"{base_url}/?demo=1#/anomalies")
     page.wait_for_load_state("networkidle")
-    assert page.locator(".anomaly-row").count() == 2
-    assert page.locator("[data-ack-anomaly]").count() == 2
+    assert page.locator(".ws-table tbody tr").count() == 2
+    # Acknowledge now lives in the drawer detail (opened per anomaly), not
+    # inline on every row — open the first one and confirm it's there.
+    page.locator(".ws-table tbody tr").first.click()
+    page.locator("[data-ack-anomaly]").wait_for(timeout=5_000)
+    assert page.locator("[data-ack-anomaly]").count() == 1
 
     page.goto(f"{base_url}/?demo=1#/settings")
     page.wait_for_load_state("networkidle")
@@ -166,7 +170,11 @@ def test_busabase_provisioning(browser) -> None:
                         # absence of the setup gate is what signals lazy
                         # provisioning succeeded.
                         page.wait_for_selector("[data-provision]", state="detached", timeout=15_000)
-                        page.locator("#page-subtitle").get_by_text("0 rollouts").wait_for(timeout=15_000)
+                        # The toolbar count is display:none on desktop until a search
+                        # narrows it, so wait on its text, not its visibility.
+                        page.wait_for_function(
+                            "document.getElementById('viewCount')?.textContent === '0'", timeout=15_000
+                        )
                     except Exception:
                         nodes = read_json(f"{busabase_url}/api/v1/nodes?depth=2")
                         change_requests = read_json(f"{busabase_url}/api/v1/change-requests")
@@ -178,7 +186,7 @@ def test_busabase_provisioning(browser) -> None:
                             f"App logs: {''.join(app_logs[-100:])}\n"
                             f"Busabase logs: {''.join(busabase_logs[-100:])}"
                         )
-                    assert page.locator(".rollout-card").count() == 0
+                    assert page.locator(".ws-table tbody tr").count() == 0
                     # The provision button being detached only means the gate closed;
                     # createAirAppConnectGate()'s onProvision handler calls onRetry() without
                     # awaiting it, so the app's own background data load (already in flight)
@@ -242,8 +250,8 @@ def test_busabase_provisioning(browser) -> None:
                     page.goto(f"{app_url}/#/rollouts")
                     page.wait_for_load_state("networkidle")
                     assert page.locator("[data-provision]").count() == 0
-                    card = page.locator(".rollout-card")
-                    assert card.count() == 1
+                    assert page.locator(".ws-table tbody tr").count() == 1
+                    page.locator(".ws-table tbody tr[data-id='route-fixture']").click()
                     page.locator("[data-action='hold'][data-route-id='route-fixture']").click()
                     page.wait_for_timeout(500)
                     assert_no_horizontal_overflow(page)

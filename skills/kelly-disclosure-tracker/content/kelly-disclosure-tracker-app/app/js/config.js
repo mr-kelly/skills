@@ -6,6 +6,13 @@ export const appConfig = {
   readOnly: false,
   spaceId: "",
   schemaVersion: 1,
+  // Where the vehicles view opens a record: a vehicle is a workplace — its
+  // disclosure checklist, cross-entity reconciliation flags, and the
+  // reviewer's decision panel — you stay a while, so it opens as a full page,
+  // never a drawer/split peek. `flagged` has no detail mode: its rows
+  // navigate straight to the owning vehicle's item instead of opening an
+  // inline record.
+  ui: { detail_modes: { vehicles: "page" } },
   folder: {
     name: "Kelly Disclosure Tracker",
     description:
@@ -84,7 +91,11 @@ export const appConfig = {
     },
   ],
   permissions: {
-    readProcedures: ["nodes.list", "nodes.get", "bases.get", "records.list", "records.count"],
+    // records.get is declared here even though it is only ever called from the
+    // write path (findRecord(), used by both submitReview()'s upsert and any
+    // future record peek): an undeclared read procedure that the runtime
+    // calls anyway is exactly the silent-deny bug this list exists to avoid.
+    readProcedures: ["nodes.list", "nodes.get", "bases.get", "records.list", "records.count", "records.get"],
     setupProcedures: ["nodes.createChangeRequest", "nodes.updateMetadata"],
     writeProcedures: ["records.changeRequest", "bases.createChangeRequest"],
   },

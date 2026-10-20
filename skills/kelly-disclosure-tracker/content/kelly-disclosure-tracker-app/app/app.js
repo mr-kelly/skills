@@ -3,13 +3,26 @@ import { appConfig } from "./js/config.js?v=0.1.0";
 import { closeConnectGate, passConnectGate, renderSetupRequired } from "./js/connect-gate.js?v=0.1.0";
 import { getProvider } from "./js/providers/index.js?v=0.1.0";
 
-const state = {
+// Where the vehicles view opens a record. A vehicle is a workplace — its
+// role-grouped checklist, cross-entity reconciliation flags, and the
+// reviewer's decision panel — you stay a while, so it always opens as a full
+// page (`#/vehicles/<id>`), never a drawer/split peek. `flagged` is a plain
+// table with no detail mode of its own: a row's reconciliation mismatch
+// belongs to a vehicle, so clicking it navigates straight into that
+// vehicle's item instead of opening an inline record for "flagged" itself.
+// Declared once, in config.js `ui.detail_modes`.
+export const DETAIL_MODES = appConfig.ui.detail_modes;
+const RECORD_VIEWS = Object.keys(DETAIL_MODES);
+
+export const state = {
+  batch: null,
+  settings: null,
+  provider: null,
+  loaded: false,
   pageCursors: {},
   currentPage: {},
   pageLoading: {},
   totals: {},
-  batch: null,
-  settings: null,
   route: parseRoute(),
   query: "",
   lang: normalizeLang(
@@ -21,27 +34,38 @@ const state = {
   noteDraft: "",
   pendingAction: "",
   overrideAck: false,
+  notice: "",
 };
 
 const SIDEBAR_COLLAPSED_STORAGE_KEY = "kelly-disclosure-tracker.sidebarCollapsed";
 
+const byId = (id) => document.getElementById(id);
 const els = {
-  title: document.querySelector("#page-title"),
-  subtitle: document.querySelector("#page-subtitle"),
-  content: document.querySelector("#content"),
-  search: document.querySelector("#search"),
-  refresh: document.querySelector("#refresh"),
-  mobileRefresh: document.querySelector("#mobileRefresh"),
-  sidebarToggle: document.querySelector("#sidebarToggle"),
-  mobileSidebarToggle: document.querySelector("#mobileSidebarToggle"),
-  sidebarScrim: document.querySelector("#sidebarScrim"),
-  mobileViewTitle: document.querySelector("#mobileViewTitle"),
-  mobileViewMeta: document.querySelector("#mobileViewMeta"),
-  syncStatus: document.querySelector("#sync-status"),
-  countNeedsReview: document.querySelector("#count-needs-review"),
-  countBlocked: document.querySelector("#count-blocked"),
-  countReady: document.querySelector("#count-ready"),
-  language: document.querySelector("#language"),
+  loadState: byId("loadState"),
+  overviewPage: byId("overviewPage"),
+  viewPage: byId("viewPage"),
+  settingsPage: byId("settingsPage"),
+  viewTitle: byId("viewTitle"),
+  viewCount: byId("viewCount"),
+  listPanel: byId("listPanel"),
+  detailPanel: byId("detailPanel"),
+  detailBody: byId("detailBody"),
+  detailBack: byId("detailBack"),
+  detailExpand: byId("detailExpand"),
+  search: byId("search"),
+  refresh: byId("refresh"),
+  mobileRefresh: byId("mobileRefresh"),
+  sidebarToggle: byId("sidebarToggle"),
+  mobileSidebarToggle: byId("mobileSidebarToggle"),
+  sidebarScrim: byId("sidebarScrim"),
+  mobileViewTitle: byId("mobileViewTitle"),
+  mobileViewMeta: byId("mobileViewMeta"),
+  syncStatus: byId("sync-status"),
+  countNeedsReview: byId("count-needs-review"),
+  countBlocked: byId("count-blocked"),
+  countReady: byId("count-ready"),
+  language: byId("language"),
+  settingsTitle: byId("settingsTitle"),
 };
 
 function isMobileLayout() {
@@ -101,29 +125,70 @@ function tGroup(group, key) {
   return messages[activeLang()]?.[group]?.[key] || messages.en[group]?.[key] || key;
 }
 
+// ── Routing ────────────────────────────────────────────────────────────────
+// `#/<view>[/<vehicleId>[/<itemId>]][?filter=…]`. `filter` narrows the
+// vehicle grid (SKILL.md's documented contract); the free-text search stays
+// transient app state, not the URL, matching this app's original behaviour.
 function parseRoute() {
-  const raw = (location.hash || "#/vehicles").slice(1).replace(/^\/?/, "");
-  const [pathPart, queryPart] = raw.split("?");
-  const parts = pathPart.split("/").filter(Boolean);
-  const params = new URLSearchParams(queryPart || "");
+  const raw = (location.hash || "#/overview").replace(/^#\/?/, "");
+  const [path, query = ""] = raw.split("?");
+  const parts = path.split("/").filter(Boolean);
+  const params = new URLSearchParams(query);
+  let view = parts[0] || "overview";
+  if (!RECORD_VIEWS.includes(view) && view !== "flagged" && view !== "settings") view = "overview";
+  let id = "";
+  try {
+    id = parts[1] ? decodeURIComponent(parts[1]) : "";
+  } catch {
+    id = "";
+  }
+  let itemId = "";
+  try {
+    itemId = parts[2] ? decodeURIComponent(parts[2]) : "";
+  } catch {
+    itemId = "";
+  }
+  const mode = DETAIL_MODES[view];
   return {
-    view: parts[0] || "vehicles",
-    id: parts[1] ? decodeURIComponent(parts[1]) : "",
-    itemId: parts[2] ? decodeURIComponent(parts[2]) : "",
+    view,
+    id,
+    itemId,
+    selectedId: mode ? id : "",
+    presentation: mode && id ? "page" : null,
     filter: params.get("filter") || "",
   };
 }
 
+let previousRouteWasList = false;
+
 function setRoute() {
+  const previous = state.route;
   state.route = parseRoute();
+  if (state.route.selectedId && previousRouteWasList && previous.view === state.route.view) {
+    history.replaceState({ fromList: true }, "");
+  }
+  previousRouteWasList = RECORD_VIEWS.includes(state.route.view) && !state.route.selectedId;
   state.noteDraft = "";
   state.pendingAction = "";
   state.overrideAck = false;
+  state.notice = "";
+  setMobileSidebarOpen(false);
   render();
 }
 
+export const listUrl = (filter = state.route.filter) => `#/vehicles${filter ? `?filter=${filter}` : ""}`;
+export const detailUrl = (vehicleId, itemId = "") =>
+  `#/vehicles/${encodeURIComponent(vehicleId)}${itemId ? `/${encodeURIComponent(itemId)}` : ""}`;
+
+function closeDetail() {
+  if (history.state?.fromList) history.back();
+  else location.hash = listUrl();
+}
+
+// ── Data ───────────────────────────────────────────────────────────────────
 async function loadState() {
   const provider = await getProvider();
+  state.provider = provider;
   const data = await provider.getState();
   state.pageCursors = {};
   state.currentPage = {};
@@ -136,6 +201,7 @@ async function loadState() {
   closeConnectGate();
   state.batch = data.batch;
   state.settings = data;
+  state.loaded = true;
   window.dispatchEvent(new CustomEvent("kelly-disclosure-tracker:state", { detail: data }));
   render();
 }
@@ -153,59 +219,23 @@ function applyI18n() {
   });
   const languageLabels =
     activeLang() === "zh-CN"
-      ? { auto: "自动", en: "English", zh: "中文" }
-      : { auto: "Auto", en: "English", zh: "中文" };
+      ? { auto: "自动", en: "English", "zh-CN": "中文" }
+      : { auto: "Auto", en: "English", "zh-CN": "中文" };
   for (const option of els.language.options) {
     option.textContent = languageLabels[option.value] || option.textContent;
   }
   els.search.placeholder = t("search");
   els.refresh.textContent = t("refresh");
+  els.refresh.title = t("refresh");
   if (els.mobileRefresh) els.mobileRefresh.title = t("refresh");
+  els.detailExpand.textContent = t("openFullPage");
 }
 
 function isReady() {
   return Boolean(state.batch?.vehicles?.length);
 }
 
-function renderShell() {
-  applyI18n();
-  const batch = state.batch;
-  const metrics = batch?.metrics || {};
-  els.syncStatus.textContent = isReady()
-    ? batch?.generated_at
-      ? `${t("generated")} ${new Date(batch.generated_at).toLocaleString()}`
-      : t("localFilesOnly")
-    : t("empty");
-  if (els.countNeedsReview) els.countNeedsReview.textContent = metrics.items_needs_review ?? 0;
-  if (els.countBlocked) els.countBlocked.textContent = metrics.items_blocked ?? 0;
-  if (els.countReady) els.countReady.textContent = metrics.vehicles_ready ?? 0;
-  if (els.mobileViewTitle) els.mobileViewTitle.textContent = viewLabel(state.route.view);
-  if (els.mobileViewMeta) {
-    els.mobileViewMeta.textContent = isReady()
-      ? `${metrics.vehicles_ready ?? 0} ${t("readyCount").toLowerCase()} · ${metrics.items_needs_review ?? 0} ${t(
-          "needsReview",
-        ).toLowerCase()}`
-      : t("empty");
-  }
-  document.querySelectorAll("[data-route]").forEach((link) => {
-    const route = link.dataset.route;
-    const active =
-      (route === "vehicles" && state.route.view === "vehicles" && !state.route.filter) ||
-      (route === state.route.filter && state.route.view === "vehicles") ||
-      (route === "settings" && state.route.view === "settings") ||
-      (route === "flagged" && state.route.view === "flagged");
-    link.classList.toggle("active", Boolean(active));
-  });
-}
-
-function viewLabel(view) {
-  if (view === "vehicles") return t("vehiclesTitle");
-  if (view === "flagged") return t("flaggedTitle");
-  if (view === "settings") return t("settings");
-  return t("vehiclesTitle");
-}
-
-function escapeHtml(value) {
+export function escapeHtml(value) {
   return String(value ?? "").replace(
     /[&<>"']/g,
     (char) =>
@@ -219,26 +249,149 @@ function escapeHtml(value) {
   );
 }
 
-function portfolioMetricCards() {
-  const metrics = state.batch?.metrics || {};
-  return `
-    <div class="metrics">
-      <div class="metric"><span>${t("readyCount")}</span><strong class="ready">${metrics.vehicles_ready ?? 0}</strong></div>
-      <div class="metric"><span>${t("blockedCount")}</span><strong class="blocked">${metrics.vehicles_blocked ?? 0}</strong></div>
-      <div class="metric"><span>${t("inProgressCount")}</span><strong class="pending">${metrics.vehicles_in_progress ?? 0}</strong></div>
-      <div class="metric"><span>${t("itemsBlocked")}</span><strong class="blocked">${metrics.items_blocked ?? 0}</strong></div>
-    </div>
-  `;
-}
+const emptyState = (title) => `<div class="empty-state"><strong>${escapeHtml(title)}</strong></div>`;
 
 function statusBadge(status) {
-  return `<span class="badge ${escapeHtml(status)}">${escapeHtml(tGroup("status_label", status))}</span>`;
+  const variant = { done: "positive", changes_requested: "warning", blocked: "danger" }[status] || "";
+  return `<span class="badge ${variant}">${escapeHtml(tGroup("status_label", status))}</span>`;
 }
 
 function readinessBadge(readiness) {
-  return `<span class="badge ${escapeHtml(readiness)}">${escapeHtml(tGroup("readiness_label", readiness))}</span>`;
+  const variant = { ready: "positive", blocked: "danger", in_progress: "active" }[readiness] || "";
+  return `<span class="badge ${variant}">${escapeHtml(tGroup("readiness_label", readiness))}</span>`;
 }
 
+function viewLabel(view) {
+  if (view === "vehicles") return t("vehiclesTitle");
+  if (view === "flagged") return t("flaggedTitle");
+  if (view === "settings") return t("settings");
+  return t("overview");
+}
+
+function renderShell() {
+  applyI18n();
+  const batch = state.batch;
+  const metrics = batch?.metrics || {};
+  els.syncStatus.textContent = !state.loaded
+    ? t("empty")
+    : isReady()
+      ? batch?.generated_at
+        ? `${t("generated")} ${new Date(batch.generated_at).toLocaleString()}`
+        : t("localFilesOnly")
+      : t("empty");
+  if (els.countNeedsReview) els.countNeedsReview.textContent = metrics.items_needs_review ?? 0;
+  if (els.countBlocked) els.countBlocked.textContent = metrics.vehicles_blocked ?? 0;
+  if (els.countReady) els.countReady.textContent = metrics.vehicles_ready ?? 0;
+  if (els.mobileViewTitle) els.mobileViewTitle.textContent = viewLabel(state.route.view);
+  if (els.mobileViewMeta) {
+    els.mobileViewMeta.textContent = isReady()
+      ? `${metrics.vehicles_ready ?? 0} ${t("readyCount").toLowerCase()} · ${metrics.items_needs_review ?? 0} ${t(
+          "needsReview",
+        ).toLowerCase()}`
+      : t("empty");
+  }
+  document.querySelectorAll("[data-route]").forEach((link) => {
+    const route = link.dataset.route;
+    const active =
+      (route === "overview" && state.route.view === "overview") ||
+      (route === "vehicles" && state.route.view === "vehicles" && !state.route.filter) ||
+      (route === state.route.filter && state.route.view === "vehicles") ||
+      (route === "settings" && state.route.view === "settings") ||
+      (route === "flagged" && state.route.view === "flagged");
+    link.classList.toggle("active", Boolean(active));
+  });
+}
+
+// ── Overview ───────────────────────────────────────────────────────────────
+// Three numbers the sidebar's "needs a decision" block does not already show
+// (that block covers items_needs_review / vehicles_blocked / vehicles_ready).
+function metricsBand() {
+  const metrics = state.batch?.metrics || {};
+  const total = state.batch?.vehicles?.length ?? 0;
+  return [
+    [t("vehiclesTracked"), String(total)],
+    [t("inProgressCount"), String(metrics.vehicles_in_progress ?? 0)],
+    [t("itemsBlocked"), String(metrics.items_blocked ?? 0)],
+  ]
+    .map(([label, value]) => `<div><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`)
+    .join("");
+}
+
+function readinessRows() {
+  const vehicles = state.batch?.vehicles || [];
+  const total = vehicles.length || 1;
+  return ["ready", "in_progress", "blocked"]
+    .map((key) => {
+      const count = vehicles.filter((v) => v.readiness === key).length;
+      const pct = Math.round((count / total) * 100);
+      return `
+        <div class="stage-row">
+          <span class="stage-row-head">${readinessBadge(key)}<small>${count}</small></span>
+          <span class="stage-bar"><span style="width:${pct}%"></span></span>
+          <span class="num">${pct}%</span>
+        </div>
+      `;
+    })
+    .join("");
+}
+
+function vehicleName(vehicleId) {
+  return state.batch?.vehicles?.find((v) => v.vehicle_id === vehicleId)?.name || vehicleId;
+}
+
+function needsAttentionRows() {
+  const priority = { blocked: 0, changes_requested: 1, needs_review: 2 };
+  const items = (state.batch?.items || [])
+    .filter((item) => item.status !== "done")
+    .sort((a, b) => (priority[a.status] ?? 9) - (priority[b.status] ?? 9))
+    .slice(0, 6);
+  if (!items.length) return `<div class="empty-inline">${t("noItemsNeedAttention")}</div>`;
+  return items
+    .map(
+      (item) => `
+      <a class="due-row" href="${detailUrl(item.vehicle_id, item.id)}">
+        <span><strong>${escapeHtml(vehicleName(item.vehicle_id))}</strong><small>${escapeHtml(item.title)}</small></span>
+        <span class="due-meta">${statusBadge(item.status)}</span>
+      </a>
+    `,
+    )
+    .join("");
+}
+
+function renderOverview() {
+  const vehicles = state.batch?.vehicles || [];
+  const batch = state.batch;
+  document.getElementById("overviewSummary").textContent = isReady()
+    ? [
+        `${vehicles.length} ${t("vehicles")}`,
+        batch?.generated_at
+          ? `${t("generated")} ${new Date(batch.generated_at).toLocaleString()}`
+          : t("localFilesOnly"),
+      ]
+        .filter(Boolean)
+        .join(" · ")
+    : t("empty");
+  document.getElementById("overviewMetrics").innerHTML = isReady() ? metricsBand() : "";
+  const body = document.getElementById("overviewBody");
+  if (!isReady()) {
+    body.innerHTML = emptyState(t("empty"));
+    return;
+  }
+  body.innerHTML = `
+    <section class="overview-grid">
+      <div class="card overview-panel">
+        <h2>${t("readinessByVehicle")}</h2>
+        ${readinessRows()}
+      </div>
+      <div class="card overview-panel">
+        <h2>${t("needsAttention")}</h2>
+        ${needsAttentionRows()}
+      </div>
+    </section>
+  `;
+}
+
+// ── Vehicles (record view, detail mode: page) ───────────────────────────────
 function filteredVehicles() {
   const query = state.query.trim().toLowerCase();
   const filter = state.route.filter;
@@ -259,43 +412,107 @@ function filteredVehicles() {
   });
 }
 
-function renderVehicles() {
-  els.title.textContent = t("vehiclesTitle");
-  const vehicles = filteredVehicles();
-  els.subtitle.textContent = `${recordCountLabel("vehicles", vehicles.length, Boolean(state.query || state.route.filter))} ${t("vehicles")}`;
-  if (!isReady()) {
-    els.content.innerHTML = `<div class="empty">${t("empty")}</div>`;
-    return;
-  }
-  els.content.innerHTML = `
-    ${portfolioMetricCards()}
-    <div class="vehicle-grid">
-      ${vehicles
-        .map((vehicle) => {
-          const total = vehicle.metrics.total || 1;
-          const donePct = Math.round((vehicle.metrics.done / total) * 100);
-          return `
-        <a class="vehicle-card" href="#/vehicles/${encodeURIComponent(vehicle.vehicle_id)}">
-          <div class="row"><strong>${escapeHtml(vehicle.name)}</strong>${readinessBadge(vehicle.readiness)}</div>
-          <div class="muted">${escapeHtml(vehicle.origination_entity)} · ${escapeHtml(vehicle.fund_manager_entity)} · ${escapeHtml(vehicle.listing_venue)}</div>
-          <div class="vehicle-progress-wrap">
-            <div class="vehicle-progress ${vehicle.metrics.blocked ? "has-blocked" : ""}"><span style="width:${donePct}%"></span></div>
-            <div class="vehicle-progress-label">
-              <span>${vehicle.metrics.done}/${vehicle.metrics.total} ${t("itemsDone").toLowerCase()}${
-                vehicle.metrics.blocked ? ` · ${vehicle.metrics.blocked} ${t("flagged").toLowerCase()}` : ""
-              }</span>
-              <span>${donePct}%</span>
-            </div>
-          </div>
-        </a>
-      `;
-        })
-        .join("")}
-    </div>
-    ${pagerControl("vehicles")}
+function vehiclesTable(items) {
+  return `
+    <table class="ws-table">
+      <thead>
+        <tr>
+          <th>${t("vehicleCol")}</th>
+          <th class="ws-col-type">${t("typeCol")}</th>
+          <th>${t("originationEntity")}</th>
+          <th>${t("fundManagerEntity")}</th>
+          <th>${t("listingVenue")}</th>
+          <th class="ws-col-progress ws-col-num">${t("progressCol")}</th>
+          <th class="ws-col-readiness">${t("readinessCol")}</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${items
+          .map((vehicle) => {
+            const total = vehicle.metrics.total || 1;
+            const pct = Math.round((vehicle.metrics.done / total) * 100);
+            return `
+            <tr data-id="${escapeHtml(vehicle.vehicle_id)}"${vehicle.vehicle_id === state.route.selectedId ? ' class="ws-selected"' : ""}>
+              <td><span class="strong">${escapeHtml(vehicle.name)}</span></td>
+              <td>${escapeHtml(String(vehicle.vehicle_type || "").toUpperCase())}</td>
+              <td title="${escapeHtml(vehicle.origination_entity)}">${escapeHtml(vehicle.origination_entity)}</td>
+              <td title="${escapeHtml(vehicle.fund_manager_entity)}">${escapeHtml(vehicle.fund_manager_entity)}</td>
+              <td title="${escapeHtml(vehicle.listing_venue)}">${escapeHtml(vehicle.listing_venue)}</td>
+              <td class="ws-col-num">${pct}%</td>
+              <td>${readinessBadge(vehicle.readiness)}</td>
+            </tr>`;
+          })
+          .join("")}
+      </tbody>
+    </table>
   `;
 }
 
+function renderVehiclesView() {
+  els.viewTitle.textContent = t("vehiclesTitle");
+  els.viewTitle.title = t("vehiclesHint");
+  const items = filteredVehicles();
+  els.viewCount.textContent = String(items.length);
+  const table = items.length
+    ? vehiclesTable(items)
+    : emptyState(state.query || state.route.filter ? t("noMatches") : t("empty"));
+  els.listPanel.innerHTML = `${table}${items.length ? pagerControl("vehicles") : ""}`;
+  renderVehicleDetailPane();
+}
+
+// ── Flagged (plain table, no detail mode — rows open the owning vehicle) ───
+function filteredFlagged() {
+  const query = state.query.trim().toLowerCase();
+  return (state.batch?.items || [])
+    .filter((item) => item.status === "blocked")
+    .filter((item) => {
+      if (!query) return true;
+      const haystack = [vehicleName(item.vehicle_id), item.title, item.reason].filter(Boolean).join(" ").toLowerCase();
+      return haystack.includes(query);
+    });
+}
+
+function flaggedTable(items) {
+  return `
+    <table class="ws-table">
+      <thead>
+        <tr>
+          <th>${t("vehicleCol")}</th>
+          <th class="ws-col-wide">${t("itemCol")}</th>
+          <th class="ws-col-wide">${t("reason")}</th>
+          <th class="ws-col-narrow">${t("status")}</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${items
+          .map(
+            (item) => `
+            <tr data-href="${detailUrl(item.vehicle_id, item.id)}">
+              <td><span class="strong">${escapeHtml(vehicleName(item.vehicle_id))}</span></td>
+              <td title="${escapeHtml(item.title)}">${escapeHtml(item.title)}</td>
+              <td title="${escapeHtml(item.reason)}">${escapeHtml(item.reason)}</td>
+              <td class="ws-col-narrow">${statusBadge(item.status)}</td>
+            </tr>`,
+          )
+          .join("")}
+      </tbody>
+    </table>
+  `;
+}
+
+function renderFlaggedView() {
+  els.viewTitle.textContent = t("flaggedTitle");
+  els.viewTitle.title = t("flaggedHint");
+  const items = filteredFlagged();
+  els.viewCount.textContent = String(items.length);
+  const table = items.length ? flaggedTable(items) : emptyState(state.query ? t("noFlagMatches") : t("noFlags"));
+  els.listPanel.innerHTML = `${table}${items.length ? pagerControl("items") : ""}`;
+  const bar = els.detailPanel.querySelector(".ws-detail-bar");
+  bar.hidden = true;
+  els.detailBody.innerHTML = "";
+}
+
+// ── Vehicle detail (role-grouped checklist + per-item decision panel) ──────
 const ROLE_ORDER = ["origination", "fund_manager", "listing_venue"];
 
 function vehicleItems(vehicleId) {
@@ -317,7 +534,7 @@ function checklistRow(item, selected) {
     `
       : "";
   return `
-    <a class="checklist-row ${selected ? "selected" : ""}" href="#/vehicles/${encodeURIComponent(item.vehicle_id)}/${encodeURIComponent(item.id)}">
+    <a class="checklist-row ${selected ? "selected" : ""}" href="${detailUrl(item.vehicle_id, item.id)}">
       <div class="checklist-main">
         <div class="checklist-title">${escapeHtml(item.title)}</div>
         <div class="checklist-summary">${escapeHtml(item.summary)}</div>
@@ -345,6 +562,7 @@ function itemDetailPanel(item) {
       </label>
     `
     : "";
+  const notice = state.notice ? `<div class="empty-inline">${escapeHtml(state.notice)}</div>` : "";
   return `
     <aside class="item-detail-side">
       <h2>${escapeHtml(item.title)}</h2>
@@ -355,34 +573,43 @@ function itemDetailPanel(item) {
       </dl>
       ${hasMismatch ? `<p class="mismatch-note">${escapeHtml(t("reconciliationHoldNote"))}</p>` : ""}
       <div class="decision-actions">
-        <button type="button" data-action="verified" class="${currentAction === "verified" ? "active" : ""}">${t("verified")}</button>
-        <button type="button" data-action="needs_source" class="${currentAction === "needs_source" ? "active" : ""}">${t("needsSource")}</button>
-        <button type="button" data-action="flagged" class="${currentAction === "flagged" ? "active" : ""}">${t("flagInconsistent")}</button>
+        <button type="button" data-action="verified" class="button ${currentAction === "verified" ? "active" : ""}">${t("verified")}</button>
+        <button type="button" data-action="needs_source" class="button ${currentAction === "needs_source" ? "active" : ""}">${t("needsSource")}</button>
+        <button type="button" data-action="flagged" class="button ${currentAction === "flagged" ? "active" : ""}">${t("flagInconsistent")}</button>
       </div>
       <div class="note-field">
         <label for="reviewNote">${t("reviewNote")}</label>
         <textarea id="reviewNote" data-item-id="${escapeHtml(item.id)}">${escapeHtml(draft)}</textarea>
         ${overrideField}
+        ${notice}
         <div class="save-row">
-          <button type="button" id="saveDecisionButton" data-item-id="${escapeHtml(item.id)}">${t("saveDecision")}</button>
+          <button type="button" id="saveDecisionButton" class="button primary" data-item-id="${escapeHtml(item.id)}">${t("saveDecision")}</button>
         </div>
       </div>
     </aside>
   `;
 }
 
-function renderVehicleDetail() {
-  const vehicle = (state.batch?.vehicles || []).find((v) => v.vehicle_id === state.route.id);
+function renderVehicleDetailPane() {
+  const { selectedId, itemId } = state.route;
+  const bar = els.detailPanel.querySelector(".ws-detail-bar");
+  els.detailBack.textContent = t("backToList");
+  els.detailExpand.hidden = true; // "page" mode never opens anywhere else
+  bar.hidden = !selectedId;
+  if (!selectedId) {
+    els.detailBody.innerHTML = "";
+    return;
+  }
+  const vehicle = (state.batch?.vehicles || []).find((v) => v.vehicle_id === selectedId);
   if (!vehicle) {
-    state.route.view = "vehicles";
-    renderVehicles();
+    // Pre-existing fallback, ported as-is: a stale/bad vehicle id in the URL
+    // silently falls back to the list instead of showing a dead page.
+    state.route = { ...state.route, id: "", itemId: "", selectedId: "", presentation: null };
+    renderVehiclesView();
     return;
   }
   const items = vehicleItems(vehicle.vehicle_id);
-  const selectedItem = state.route.itemId ? items.find((item) => item.id === state.route.itemId) : null;
-  els.title.textContent = vehicle.name;
-  els.subtitle.textContent = `${escapeHtml(vehicle.vehicle_type).toUpperCase()} · ${vehicle.base_currency}`;
-
+  const selectedItem = itemId ? items.find((item) => item.id === itemId) : null;
   const roleSections = ROLE_ORDER.map((role) => {
     const roleItems = items.filter((item) => item.role === role);
     if (!roleItems.length) return "";
@@ -390,20 +617,23 @@ function renderVehicleDetail() {
       <section class="role-section">
         <h2>${escapeHtml(t(role))}<span class="role-section-count">${roleItems.filter((i) => i.status === "done").length}/${roleItems.length}</span></h2>
         <div class="checklist">
-          ${roleItems.map((item) => checklistRow(item, item.id === state.route.itemId)).join("")}
+          ${roleItems.map((item) => checklistRow(item, item.id === itemId)).join("")}
         </div>
       </section>
     `;
   }).join("");
-
-  els.content.innerHTML = `
-    <a class="back-link" href="#/vehicles">← ${t("back")}</a>
-    <div class="metrics">
-      <div class="metric"><span>${t("originationEntity")}</span><strong>${escapeHtml(vehicle.origination_entity)}</strong></div>
-      <div class="metric"><span>${t("fundManagerEntity")}</span><strong>${escapeHtml(vehicle.fund_manager_entity)}</strong></div>
-      <div class="metric"><span>${t("listingVenue")}</span><strong>${escapeHtml(vehicle.listing_venue)}</strong></div>
-      <div class="metric"><span>${t("targetClose")}</span><strong>${escapeHtml(vehicle.target_close_date)}</strong></div>
-    </div>
+  els.detailBody.innerHTML = `
+    <header class="detail-head">
+      <h2>${escapeHtml(vehicle.name)} ${readinessBadge(vehicle.readiness)}</h2>
+      <p class="muted">${[
+        escapeHtml(String(vehicle.vehicle_type || "").toUpperCase()),
+        escapeHtml(vehicle.base_currency),
+        escapeHtml(vehicle.origination_entity),
+        escapeHtml(vehicle.fund_manager_entity),
+        escapeHtml(vehicle.listing_venue),
+        `${escapeHtml(t("targetClose"))}: ${escapeHtml(vehicle.target_close_date)}`,
+      ].join(" · ")}</p>
+    </header>
     <section class="item-detail">
       <div class="item-detail-main">${roleSections}</div>
       ${itemDetailPanel(selectedItem)}
@@ -411,83 +641,80 @@ function renderVehicleDetail() {
   `;
 }
 
-function renderFlagged() {
-  els.title.textContent = t("flaggedTitle");
-  els.subtitle.textContent = t("flaggedSubtitle");
-  const items = (state.batch?.items || []).filter((item) => item.status === "blocked");
-  if (!items.length) {
-    els.content.innerHTML = `<div class="empty">${t("noFlags")}</div>`;
-    return;
-  }
-  const vehicleName = (vehicleId) => state.batch?.vehicles?.find((v) => v.vehicle_id === vehicleId)?.name || vehicleId;
-  els.content.innerHTML = `
-    <div class="flagged-list">
-      ${items
-        .map(
-          (item) => `
-        <a class="flagged-card" href="#/vehicles/${encodeURIComponent(item.vehicle_id)}/${encodeURIComponent(item.id)}">
-          <div class="row between"><strong>${escapeHtml(vehicleName(item.vehicle_id))} — ${escapeHtml(item.title)}</strong>${statusBadge(item.status)}</div>
-          <div class="muted">${escapeHtml(item.reason)}</div>
-          ${
-            item.reconciliation
-              ? `<div class="reconciliation-banner"><dl>
-                  <dt>${escapeHtml(t("originationEntity"))}</dt><dd>${escapeHtml(item.reconciliation.origination_value)}</dd>
-                  <dt>${escapeHtml(t("listingVenue"))}</dt><dd>${escapeHtml(item.reconciliation.listing_value)}</dd>
-                </dl></div>`
-              : ""
-          }
-          ${item.decision?.comment ? `<div class="checklist-note">${escapeHtml(item.decision.comment)}</div>` : ""}
-        </a>
-      `,
-        )
-        .join("")}
-    </div>
-    ${pagerControl("items")}
-  `;
-}
-
+// ── Help & Settings ────────────────────────────────────────────────────────
 function renderSettings() {
-  els.title.textContent = t("settings");
-  els.subtitle.textContent = t("localFilesOnly");
+  if (els.settingsTitle) els.settingsTitle.title = t("localFilesOnly");
   const summary = state.settings?.config_summary || {};
-  els.content.innerHTML = `
-    <div class="item-detail-main" style="max-width:640px">
-      <h2>${t("settingsTitle")}</h2>
-      <dl>
-        <dt>${t("dataProvider")}</dt><dd>${escapeHtml(state.settings?.data_provider || "local")}</dd>
-        <dt>${t("configPath")}</dt><dd>${escapeHtml(summary.config_path || "")}</dd>
-        <dt>${t("reviewerName")}</dt><dd>${escapeHtml(summary.reviewer_name || "")}</dd>
-        <dt>${t("onboarding")}</dt><dd>${state.settings?.onboarding?.completed ? t("completed") : t("incomplete")}</dd>
-      </dl>
+  byId("settingsBody").innerHTML = `
+    <div class="settings">
+      <section class="card">
+        <h2>${t("settingsTitle")}</h2>
+        <dl>
+          <dt>${t("dataProvider")}</dt><dd>${escapeHtml(state.settings?.data_provider || "local")}</dd>
+          <dt>${t("configPath")}</dt><dd>${escapeHtml(summary.config_path || "")}</dd>
+          <dt>${t("reviewerName")}</dt><dd>${escapeHtml(summary.reviewer_name || "")}</dd>
+          <dt>${t("onboarding")}</dt><dd>${state.settings?.onboarding?.completed ? t("completed") : t("incomplete")}</dd>
+        </dl>
+      </section>
     </div>
   `;
 }
 
+// ── Render dispatch ──────────────────────────────────────────────────────────
 function render() {
   renderShell();
-  if (state.route.view === "vehicles" && state.route.id) renderVehicleDetail();
-  else if (state.route.view === "vehicles") renderVehicles();
-  else if (state.route.view === "flagged") renderFlagged();
-  else if (state.route.view === "settings") renderSettings();
-  else renderVehicles();
+  const { view, selectedId, presentation } = state.route;
+  const ready = state.loaded;
+  const onRecordView = ready && RECORD_VIEWS.includes(view);
+  const onTableView = onRecordView || (ready && view === "flagged");
+  const body = document.body.classList;
+  body.toggle("ws-detail-open", onRecordView && Boolean(selectedId));
+  body.toggle("ws-detail-page", onRecordView && presentation === "page" && Boolean(selectedId));
+  body.toggle("ws-searching", onTableView && Boolean(state.query));
+  els.loadState.hidden = ready;
+  els.overviewPage.hidden = !ready || view !== "overview";
+  els.viewPage.hidden = !onTableView;
+  els.settingsPage.hidden = !ready || view !== "settings";
+  if (!ready) return;
+  if (onRecordView) renderVehiclesView();
+  else if (view === "flagged") renderFlaggedView();
+  else if (view === "settings") renderSettings();
+  else renderOverview();
 }
 
-window.addEventListener("hashchange", setRoute);
-window.addEventListener("resize", syncResponsiveShell);
-els.sidebarToggle?.addEventListener("click", toggleSidebar);
-els.mobileSidebarToggle?.addEventListener("click", () => setMobileSidebarOpen(true));
-els.sidebarScrim?.addEventListener("click", () => setMobileSidebarOpen(false));
-els.search.addEventListener("input", () => {
-  state.query = els.search.value;
-  render();
+// ── Events ─────────────────────────────────────────────────────────────────
+els.listPanel.addEventListener("click", (event) => {
+  const pager = event.target.closest("[data-goto-page]");
+  if (pager) {
+    const [key, page] = pager.dataset.gotoPage.split(":");
+    goToPage(key, Number(page));
+    return;
+  }
+  if (event.target.closest("a, button")) return;
+  const hrefRow = event.target.closest("tr[data-href]");
+  if (hrefRow) {
+    location.hash = hrefRow.dataset.href;
+    return;
+  }
+  const row = event.target.closest("tr[data-id]");
+  if (!row) return;
+  location.hash = detailUrl(row.dataset.id);
 });
-els.content.addEventListener("click", async (event) => {
+els.detailBody.addEventListener("click", async (event) => {
   const actionButton = event.target.closest("[data-action]");
   if (actionButton) {
     event.preventDefault();
+    const hadOverrideNeed = Boolean(document.getElementById("overrideAck"));
     state.pendingAction = actionButton.dataset.action;
     document.querySelectorAll(".decision-actions button").forEach((btn) => btn.classList.remove("active"));
     actionButton.classList.add("active");
+    // Only a full re-render can show/hide the reconciliation-override
+    // checkbox (it depends on which action is pending); otherwise toggle the
+    // button classes in place so the note textarea keeps focus and caret.
+    const selectedItem = vehicleItems(state.route.id).find((i) => i.id === state.route.itemId) || null;
+    const needsOverrideNow =
+      Boolean(selectedItem?.reconciliation && !selectedItem.reconciliation.match) && state.pendingAction === "verified";
+    if (hadOverrideNeed !== needsOverrideNow) renderVehicleDetailPane();
     return;
   }
   const saveButton = event.target.closest("#saveDecisionButton");
@@ -499,7 +726,8 @@ els.content.addEventListener("click", async (event) => {
     const item = (state.batch?.items || []).find((i) => i.id === itemId);
     const action = state.pendingAction || item?.decision?.action;
     if (!action) {
-      saveButton.textContent = t("selectItem");
+      state.notice = t("selectItem");
+      renderVehicleDetailPane();
       return;
     }
     const hasMismatch = Boolean(item?.reconciliation && !item.reconciliation.match);
@@ -511,20 +739,41 @@ els.content.addEventListener("click", async (event) => {
       state.pendingAction = "";
       state.noteDraft = "";
       state.overrideAck = false;
+      state.notice = t("saved");
       render();
     } catch (error) {
-      els.content.insertAdjacentHTML("afterbegin", `<div class="empty">${escapeHtml(error.message)}</div>`);
+      state.notice = error instanceof Error ? error.message : String(error);
+      renderVehicleDetailPane();
     } finally {
       saveButton.disabled = false;
     }
     return;
   }
 });
-els.content.addEventListener("input", (event) => {
+els.detailBody.addEventListener("input", (event) => {
   if (event.target.id === "reviewNote") state.noteDraft = event.target.value;
 });
-els.content.addEventListener("change", (event) => {
+els.detailBody.addEventListener("change", (event) => {
   if (event.target.id === "overrideAck") state.overrideAck = event.target.checked;
+});
+els.detailBack.addEventListener("click", closeDetail);
+document.addEventListener("keydown", (event) => {
+  if (event.key !== "Escape") return;
+  if (event.target.closest?.("textarea, input")) {
+    event.target.blur();
+    return;
+  }
+  // "page" mode: Escape has nowhere shallower to go than the list itself.
+  if (state.route.selectedId) closeDetail();
+});
+window.addEventListener("hashchange", setRoute);
+window.addEventListener("resize", syncResponsiveShell);
+els.sidebarToggle?.addEventListener("click", toggleSidebar);
+els.mobileSidebarToggle?.addEventListener("click", () => setMobileSidebarOpen(true));
+els.sidebarScrim?.addEventListener("click", () => setMobileSidebarOpen(false));
+els.search.addEventListener("input", () => {
+  state.query = els.search.value;
+  render();
 });
 els.refresh.addEventListener("click", () => loadState());
 els.mobileRefresh?.addEventListener("click", () => loadState());
@@ -545,12 +794,20 @@ async function boot() {
       renderSetupRequired(error, boot);
       return;
     }
-    els.content.innerHTML = `<div class="empty">${escapeHtml(error.message)}</div>`;
+    els.loadState.hidden = false;
+    els.loadState.classList.add("error");
+    els.loadState.textContent = error instanceof Error ? error.message : String(error);
   }
 }
 
+previousRouteWasList = RECORD_VIEWS.includes(state.route.view) && !state.route.selectedId;
 syncResponsiveShell();
 
+// ── Pagination ─────────────────────────────────────────────────────────────
+// Ported unchanged from the pre-migration app.js: jump-to-any-page controls
+// (not busa-crm's prev/next-only) because this app's pager already supported
+// that and the spec's "no automatic multi-page loop" rule is about not
+// fetching every page at once, not about which pager widget is used.
 const PAGE_BINDINGS = {
   vehicles: { key: "vehicles", path: "batch.vehicles" },
   flagged: { key: "items", path: "batch.items" },
@@ -583,8 +840,7 @@ async function goToPage(key, targetPage) {
   const page = totalPages == null ? Math.max(1, targetPage) : Math.min(Math.max(1, targetPage), totalPages);
   if (page === state.currentPage[key]) return;
   state.pageLoading[key] = true;
-  if (typeof render === "function") render();
-  else route();
+  render();
   try {
     const provider = await getProvider();
     let result;
@@ -602,24 +858,11 @@ async function goToPage(key, targetPage) {
     state.currentPage[key] = page;
   } finally {
     state.pageLoading[key] = false;
-    if (typeof render === "function") render();
-    else route();
+    render();
   }
 }
 
-function pagerMessage(key, fallback) {
-  return typeof t === "function" ? t(key) : fallback;
-}
-
-export function recordCountLabel(key, loadedCount, filtered = false) {
-  if (filtered) return loadedCount;
-  const total = state.totals?.[key];
-  if (total != null) return total;
-  const current = state.currentPage?.[key] || 1;
-  return `${loadedCount}${state.pageCursors?.[key]?.[current] ? "+" : ""}`;
-}
-
-export function pagerControl(key) {
+function pagerControl(key) {
   if (!state.pageCursors[key]) return "";
   const total = pageCount(key);
   const current = state.currentPage[key] || 1;
@@ -643,19 +886,12 @@ export function pagerControl(key) {
     );
     previous = page;
   }
-  return `<nav class="pager" aria-label="${pagerMessage("pagination", "Pagination")}">
-    <button type="button" class="pager-nav" data-goto-page="${key}:${current - 1}" ${loading || current <= 1 ? "disabled" : ""}>${pagerMessage("prevPage", "Prev")}</button>
+  return `<nav class="pager" aria-label="${t("pagination")}">
+    <button type="button" class="pager-nav" data-goto-page="${key}:${current - 1}" ${loading || current <= 1 ? "disabled" : ""}>${t("prevPage")}</button>
     ${items.join("")}
-    <button type="button" class="pager-nav" data-goto-page="${key}:${current + 1}" ${loading || !hasNext ? "disabled" : ""}>${pagerMessage("nextPage", "Next")}</button>
-    ${total == null ? "" : `<span class="pager-summary">${pagerMessage("pageOf", "Page {current} of {total}").replace("{current}", current).replace("{total}", total)}</span>`}
+    <button type="button" class="pager-nav" data-goto-page="${key}:${current + 1}" ${loading || !hasNext ? "disabled" : ""}>${t("nextPage")}</button>
+    ${total == null ? "" : `<span class="pager-summary">${t("pageOf").replace("{current}", current).replace("{total}", total)}</span>`}
   </nav>`;
 }
-
-document.querySelector("#content")?.addEventListener("click", (event) => {
-  const button = event.target.closest("[data-goto-page]");
-  if (!button) return;
-  const [key, page] = button.dataset.gotoPage.split(":");
-  goToPage(key, Number(page));
-});
 
 boot();

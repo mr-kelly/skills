@@ -30,12 +30,6 @@
     text-decoration: none;
   }
 
-  .shell {
-    display: grid;
-    grid-template-columns: 280px minmax(0, 1fr);
-    min-height: 100vh;
-  }
-
   .sidebar {
     position: sticky;
     top: 0;
@@ -75,55 +69,6 @@
     font-size: var(--text-sm);
   }
 
-  .attention {
-    padding: 14px;
-    border: 1px solid var(--line);
-    border-radius: var(--radius-sm);
-    background: var(--panel);
-  }
-
-  .attention-label {
-    color: var(--muted);
-    font-size: var(--text-sm);
-  }
-
-  .attention-primary {
-    margin-top: 6px;
-    font-size: var(--text-lg);
-    font-weight: 760;
-  }
-
-  .attention-secondary {
-    margin-top: 4px;
-    color: var(--muted);
-  }
-
-  .nav {
-    display: grid;
-    gap: 6px;
-    padding-top: 14px;
-    border-top: 1px solid var(--line);
-  }
-
-  .nav a {
-    padding: 10px 12px;
-    border-radius: var(--radius-sm);
-    color: var(--muted);
-  }
-
-  .nav a.active,
-  .nav a:hover {
-    background: var(--accent-weak);
-    color: var(--accent);
-  }
-
-  .sidebar-footer {
-    margin-top: auto;
-    display: grid;
-    gap: 6px;
-    color: var(--muted);
-  }
-
   select,
   input,
   button {
@@ -149,21 +94,6 @@
     min-width: 0;
   }
 
-  .topbar {
-    position: sticky;
-    top: 0;
-    z-index: 1;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    min-height: 80px;
-    padding: 18px 24px;
-    border-bottom: 1px solid var(--line);
-    background: var(--surface-blur);
-    backdrop-filter: blur(10px);
-  }
-
   h1,
   h2 {
     margin: 0;
@@ -178,16 +108,6 @@
     font-size: var(--text-lg);
   }
 
-  .topbar-actions {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-  }
-
-  .content {
-    padding: 24px;
-  }
-
   .metrics {
     display: grid;
     grid-template-columns: repeat(4, minmax(150px, 1fr));
@@ -196,7 +116,6 @@
   }
 
   .metric,
-  .account-card,
   .settings section,
   .detail-side,
   .empty,
@@ -221,34 +140,6 @@
     display: block;
     margin-top: 8px;
     font-size: var(--text-xl);
-  }
-
-  .table-wrap {
-    overflow: auto;
-    border: 1px solid var(--line);
-    border-radius: var(--radius-sm);
-    background: var(--panel);
-  }
-
-  table {
-    width: 100%;
-    min-width: 980px;
-    border-collapse: collapse;
-  }
-
-  th,
-  td {
-    padding: 11px 12px;
-    border-bottom: 1px solid var(--line);
-    text-align: left;
-    vertical-align: top;
-  }
-
-  th {
-    color: var(--muted);
-    font-size: var(--text-sm);
-    font-weight: 700;
-    background: var(--surface-hover);
   }
 
   .strong {
@@ -278,62 +169,6 @@
     font-weight: 700;
   }
 
-  .insight-list {
-    display: grid;
-    gap: 8px;
-    margin-top: 12px;
-  }
-
-  .insight-row {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
-    gap: 10px;
-    align-items: baseline;
-  }
-
-  .insight-text {
-    overflow-wrap: anywhere;
-  }
-
-  .insight-empty {
-    margin-top: 12px;
-    color: var(--muted);
-  }
-
-  .badge.sev-info {
-    border: 1px solid var(--line);
-    background: var(--surface-soft);
-    color: var(--muted);
-  }
-
-  .badge.sev-watch {
-    border: 1px solid color-mix(in srgb, var(--warning) 34%, var(--line));
-    background: var(--blue-soft);
-    color: var(--warn);
-  }
-
-  .badge.sev-high {
-    border: 1px solid color-mix(in srgb, var(--danger) 34%, var(--line));
-    background: var(--surface-soft);
-    color: var(--bad);
-  }
-
-  .account-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: 14px;
-  }
-
-  .account-card {
-    display: grid;
-    gap: 10px;
-    padding: 16px;
-  }
-
-  .account-card:hover {
-    border-color: var(--accent);
-  }
-
   .row {
     display: flex;
     gap: 10px;
@@ -348,11 +183,6 @@
     flex-wrap: wrap;
     color: var(--muted);
     font-size: var(--text-sm);
-  }
-
-  .balance {
-    font-size: var(--text-2xl);
-    font-weight: 760;
   }
 
   .status {
@@ -389,34 +219,8 @@
     padding: 16px;
   }
 
-  .health-row,
-  .movement-row {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto auto;
-    gap: 12px;
-    align-items: center;
-    padding: 12px 0;
-    border-bottom: 1px solid var(--line);
-  }
-
-  .movement-row {
-    grid-template-columns: minmax(0, 1fr) auto;
-  }
-
-  .health-row:last-child,
-  .movement-row:last-child {
-    border-bottom: 0;
-  }
-
-  .health-row small,
-  .movement-row small {
-    display: block;
-    color: var(--muted);
-  }
-
   .detail-side,
   .settings section,
-  .empty,
   .warnings {
     padding: 16px;
   }
@@ -443,14 +247,6 @@
     max-width: 900px;
   }
 
-  .settings-account {
-    display: grid;
-    grid-template-columns: minmax(160px, 1fr) minmax(160px, 1fr) auto;
-    gap: 10px;
-    padding: 10px 0;
-    border-bottom: 1px solid var(--line);
-  }
-
   .warnings {
     display: grid;
     gap: 8px;
@@ -464,101 +260,7 @@
     color: var(--muted);
   }
 
-  .invoice-badge {
-    display: inline-block;
-    padding: 3px 8px;
-    border-radius: 999px;
-    background: var(--surface-soft);
-    color: var(--muted);
-    font-size: var(--text-sm);
-    font-weight: 760;
-    white-space: nowrap;
-  }
-
-  .invoice-badge.matched {
-    background: var(--accent-weak);
-    color: var(--accent);
-  }
-
-  .invoice-badge.amount_mismatch,
-  .invoice-badge.date_mismatch,
-  .invoice-badge.needs_review {
-    background: var(--blue-soft);
-    color: var(--warn);
-  }
-
-  .invoice-badge.missing {
-    background: var(--surface-soft);
-    color: var(--bad);
-  }
-
-  .invoice-summary {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(140px, 1fr));
-    gap: 12px;
-    margin-top: 12px;
-  }
-
-  .invoice-layout {
-    display: grid;
-    gap: 14px;
-  }
-
-  .invoice-detail-panel {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(150px, 1fr));
-    gap: 12px;
-    margin-bottom: 18px;
-  }
-
-  .invoice-detail-panel > div,
-  .audit-panel {
-    border: 1px solid var(--line);
-    border-radius: var(--radius-sm);
-    background: var(--panel);
-    padding: 14px;
-  }
-
-  .invoice-detail-panel strong {
-    display: block;
-    margin-top: 6px;
-    overflow-wrap: anywhere;
-  }
-
-  .audit-panel {
-    display: grid;
-    gap: 10px;
-    margin-bottom: 18px;
-  }
-
-  .audit-row {
-    padding-top: 10px;
-    border-top: 1px solid var(--line);
-  }
-
-  .audit-row:first-of-type {
-    border-top: 0;
-    padding-top: 0;
-  }
-
-  .audit-row span {
-    display: block;
-    margin-top: 2px;
-    color: var(--muted);
-    font-size: var(--text-sm);
-  }
-
-  .audit-row p {
-    margin: 6px 0 0;
-    color: var(--muted);
-  }
-
-  .empty {
-    color: var(--muted);
-  }
-
   @media (max-width: 860px) {
-    .shell,
     .detail {
       grid-template-columns: 1fr;
     }
@@ -568,18 +270,8 @@
       height: auto;
     }
 
-    .topbar {
-      position: static;
-      align-items: stretch;
-      flex-direction: column;
-    }
-
-    .topbar-actions,
     .metrics,
-    .overview-grid,
-    .invoice-summary,
-    .invoice-detail-panel,
-    .settings-account {
+    .overview-grid {
       grid-template-columns: 1fr;
       display: grid;
     }
@@ -592,21 +284,14 @@
     border: 1px solid var(--line);
   }
 
-  button,
-  .attention,
-  .account-card,
-  .invoice-detail-panel,
-  .settings-account {
+  button {
     box-shadow: none;
   }
 
-  button:hover,
-  .account-card:hover {
+  button:hover {
     box-shadow: none;
   }
 
-  .nav a.active,
-  .nav a:hover,
   .tag {
     background: var(--surface-soft);
   }
@@ -782,7 +467,6 @@
   }
 
   body.sidebar-collapsed .brand-copy,
-  body.sidebar-collapsed .sidebar-search,
   body.sidebar-collapsed .human-work,
   body.sidebar-collapsed .sidebar-separator,
   body.sidebar-collapsed .filters,
@@ -973,8 +657,8 @@
     min-width: 0;
     min-height: 0;
     height: 100vh;
-    display: grid;
-    grid-template-rows: auto 1fr;
+    display: flex;
+    flex-direction: column;
     overflow: hidden;
   }
 
@@ -984,24 +668,6 @@
 
   .mobile-sidebar-toggle {
     display: none;
-  }
-
-  .topbar {
-    position: static;
-    z-index: 1;
-    min-height: 58px;
-    padding: 10px 18px;
-    border-bottom: 1px solid var(--line);
-    background: var(--surface-blur);
-  }
-
-  .topbar h1 {
-    font-size: var(--text-xl);
-    line-height: 1.2;
-  }
-
-  .topbar-actions {
-    gap: 8px;
   }
 
   button,
@@ -1023,12 +689,6 @@
     background: var(--surface-soft);
   }
 
-  .content {
-    min-height: 0;
-    overflow: auto;
-    padding: 16px 18px 24px;
-  }
-
   .metrics {
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 10px;
@@ -1036,15 +696,10 @@
   }
 
   .metric,
-  .account-card,
   .settings section,
   .detail-side,
-  .empty,
   .warnings,
-  .overview-panel,
-  .table-wrap,
-  .invoice-detail-panel > div,
-  .audit-panel {
+  .overview-panel {
     border-color: var(--line);
     border-radius: var(--radius-sm);
     background: var(--panel);
@@ -1060,49 +715,11 @@
     font-size: var(--text-xl);
   }
 
-  .table-wrap {
-    border-radius: 0;
-    border-left: 0;
-    border-right: 0;
-  }
-
-  th {
-    background: var(--surface-hover);
-  }
-
-  td,
-  th {
-    border-bottom-color: var(--line);
-  }
-
-  .account-card:hover {
-    border-color: var(--line-strong);
-    background: var(--surface-soft);
-  }
-
   .badge,
-  .invoice-badge,
   .status {
     border: 1px solid var(--line);
     background: var(--surface-hover);
     color: var(--ink-soft);
-  }
-
-  .invoice-badge.matched {
-    background: color-mix(in srgb, var(--positive) 18%, var(--surface));
-    color: var(--positive);
-  }
-
-  .invoice-badge.amount_mismatch,
-  .invoice-badge.date_mismatch,
-  .invoice-badge.needs_review {
-    background: color-mix(in srgb, var(--warning) 18%, var(--surface));
-    color: var(--warning);
-  }
-
-  .invoice-badge.missing {
-    background: color-mix(in srgb, var(--danger) 18%, var(--surface));
-    color: var(--danger);
   }
 
   .sidebar-scrim,
@@ -1115,9 +732,7 @@
       grid-template-columns: 220px minmax(0, 1fr);
     }
 
-    .metrics,
-    .invoice-summary,
-    .invoice-detail-panel {
+    .metrics {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
@@ -1202,7 +817,6 @@
     }
 
     .main {
-      grid-template-rows: auto minmax(0, 1fr);
       height: 100dvh;
     }
 
@@ -1255,19 +869,9 @@
       padding: 0;
     }
 
-    .topbar {
-      display: none;
-    }
-
-    .content {
-      padding: 12px;
-    }
-
-    .metrics,
-    .invoice-summary,
-    .invoice-detail-panel,
-    .settings-account {
+    .metrics {
       grid-template-columns: 1fr;
+      gap: 8px;
     }
 
     .overview-grid {
@@ -1275,42 +879,9 @@
       gap: 12px;
     }
 
-    .metrics {
-      gap: 8px;
-    }
-
     .metric {
       padding: 10px 12px;
     }
-
-    .table-wrap {
-      max-width: 100%;
-      border-left: 1px solid var(--line);
-      border-right: 1px solid var(--line);
-      border-radius: var(--radius-sm);
-    }
-
-    table {
-      min-width: 760px;
-    }
-  }
-
-  /* Kelly Invest (Webull) — portfolio components */
-  .human-work-figure {
-    display: block;
-    font-size: var(--text-md);
-    font-weight: 760;
-    line-height: 1.2;
-  }
-
-  .human-work-primary strong.positive {
-    background: color-mix(in srgb, var(--positive) 18%, var(--surface));
-    color: var(--positive);
-  }
-
-  .human-work-primary strong.negative {
-    background: color-mix(in srgb, var(--danger) 18%, var(--surface));
-    color: var(--danger);
   }
 
   .metric strong small {
@@ -1336,83 +907,6 @@
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   }
 
-  .alloc-body {
-    display: grid;
-    grid-template-columns: 132px minmax(0, 1fr);
-    gap: 16px;
-    align-items: center;
-    margin-top: 12px;
-  }
-
-  .alloc-donut {
-    position: relative;
-    width: 132px;
-    height: 132px;
-    border-radius: 50%;
-  }
-
-  .alloc-donut-hole {
-    position: absolute;
-    inset: 26px;
-    border-radius: 50%;
-    background: var(--panel);
-  }
-
-  .alloc-legend {
-    display: grid;
-    gap: 8px;
-  }
-
-  .alloc-legend-row {
-    display: grid;
-    grid-template-columns: 12px minmax(0, 1fr) auto auto;
-    gap: 8px;
-    align-items: center;
-  }
-
-  .alloc-swatch {
-    width: 12px;
-    height: 12px;
-    border-radius: var(--radius-sm);
-  }
-
-  .alloc-name {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .alloc-weight {
-    color: var(--muted);
-    font-variant-numeric: tabular-nums;
-  }
-
-  .alloc-value {
-    font-size: var(--text-sm);
-    color: var(--muted);
-  }
-
-  .mover-row {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto auto;
-    gap: 12px;
-    align-items: center;
-    padding: 11px 0;
-    border-bottom: 1px solid var(--line);
-  }
-
-  .mover-row:last-child {
-    border-bottom: 0;
-  }
-
-  .mover-row small {
-    display: block;
-    overflow: hidden;
-    color: var(--muted);
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
   th.sortable {
     cursor: pointer;
     user-select: none;
@@ -1424,28 +918,5 @@
 
   th.sortable.active {
     color: var(--text);
-  }
-
-  .back-link {
-    display: inline-block;
-    margin-bottom: 12px;
-    color: var(--muted);
-    font-size: var(--text-base);
-  }
-
-  .back-link:hover {
-    color: var(--text);
-  }
-
-  @media (max-width: 720px) {
-    .alloc-body {
-      grid-template-columns: 1fr;
-      justify-items: center;
-      text-align: left;
-    }
-
-    .alloc-legend {
-      width: 100%;
-    }
   }
 }

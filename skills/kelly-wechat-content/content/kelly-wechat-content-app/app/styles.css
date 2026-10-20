@@ -230,26 +230,17 @@ svg {
 .main {
   min-width: 0;
 }
+/* No padding of its own: `.ws-overview` and `.ws-toolbar` (base-ui) already
+ * carry their own, and the record table must stay full-bleed under the
+ * toolbar. A padded wrapper around them just doubled the gutter and pushed
+ * the first data row past the 120px budget. */
 .workspace {
-  padding: var(--space-xl) 32px 44px;
   max-width: 1580px;
   margin: 0 auto;
 }
 .mobile-topbar,
 .scrim {
   display: none;
-}
-.page-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--space-lg);
-  margin-bottom: var(--space-xl);
-}
-.eyebrow {
-  color: var(--muted);
-  font-size: var(--text-xs);
-  margin-bottom: var(--space-sm);
 }
 h1 {
   margin: 0;
@@ -258,15 +249,11 @@ h1 {
   font-weight: 650;
   overflow-wrap: anywhere;
 }
-.page-header p {
-  margin: var(--space-sm) 0 0;
-  color: var(--muted);
-  font-size: var(--text-sm);
-}
-.header-actions {
-  display: flex;
-  gap: var(--space-sm);
-  padding-top: var(--space-md);
+/* The full-page record detail has no toolbar above it (base-ui's
+ * `.ws-detail-bar` carries the back/native-link row instead), so its own
+ * title needs the bottom margin a `.page-header` used to provide. */
+.detail-heading {
+  margin: 0 0 var(--space-lg);
 }
 .button {
   display: inline-flex;
@@ -288,45 +275,6 @@ h1 {
   color: var(--accent-contrast);
   background: var(--accent);
   border-color: var(--accent);
-}
-.metrics {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  border-block: 1px solid var(--line);
-  padding: var(--space-lg) 0;
-  margin-bottom: var(--space-xl);
-}
-.metrics a {
-  display: grid;
-  gap: var(--space-sm);
-  padding: 0 var(--space-lg);
-  border-right: 1px solid var(--line);
-}
-.metrics a:first-child {
-  padding-left: 0;
-}
-.metrics a:last-child {
-  border: 0;
-}
-.metrics span {
-  font-size: var(--text-xs);
-  color: var(--muted);
-}
-.metrics strong {
-  font-size: var(--heading-size);
-  line-height: 1.2;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-}
-.metrics small {
-  color: var(--muted);
-  font-size: var(--text-xs);
-}
-.accent-number {
-  color: var(--accent);
-}
-.warning-number {
-  color: var(--warning);
 }
 .overview-columns {
   display: grid;
@@ -364,34 +312,37 @@ h2 {
   color: var(--muted);
   font-size: var(--text-xs);
 }
+/* Scoped to `.articles-table` (the Overview/review-queue summary feed), not
+ * a bare element selector — base-ui's `.ws-table` owns the actual Articles
+ * record view and must never pick these up by accident. */
 .table-wrap {
   min-width: 0;
   overflow-x: auto;
   border-block: 1px solid var(--line);
 }
-table {
+.articles-table {
   width: 100%;
   border-collapse: collapse;
   text-align: left;
   font-size: var(--text-xs);
 }
-th {
+.articles-table th {
   font-weight: 500;
   color: var(--muted);
   padding: var(--space-md) var(--space-sm);
   background: var(--canvas);
   white-space: nowrap;
 }
-td {
+.articles-table td {
   padding: var(--space-md) var(--space-sm);
   vertical-align: middle;
   border-top: 1px solid var(--line);
 }
-td:first-child {
+.articles-table td:first-child {
   min-width: 200px;
   max-width: 360px;
 }
-tbody tr:hover {
+.articles-table tbody tr:hover {
   background: var(--canvas);
 }
 .row-title {
@@ -593,24 +544,31 @@ tbody tr:hover {
 .right-column .source-meta {
   font-size: var(--text-xs);
 }
+/* A segmented mode switch, not an underlined tab strip — it now lives
+ * inside the record view's single `.ws-toolbar` row (one toolbar row over
+ * the table, per the layout spec) instead of a second row above it. */
 .view-tabs {
-  display: flex;
-  gap: var(--space-lg);
-  border-bottom: 1px solid var(--line);
-  margin-bottom: var(--space-lg);
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  background: var(--canvas);
 }
 .view-tabs a {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-sm);
+  gap: var(--space-xs);
+  padding: var(--space-xs) var(--space-md);
+  border-radius: var(--radius-xs);
   color: var(--muted);
-  padding: var(--space-md) 0;
-  font-size: var(--text-sm);
-  border-bottom: 2px solid transparent;
+  font-size: var(--text-xs);
+  white-space: nowrap;
 }
 .view-tabs a.active {
-  border-color: var(--accent);
-  color: var(--accent-text);
+  background: var(--bg);
+  color: var(--text);
+  box-shadow: var(--shadow-card);
 }
 .filterbar {
   display: flex;
@@ -646,6 +604,16 @@ tbody tr:hover {
 }
 .filterbar select {
   font-size: var(--text-xs);
+}
+/* The filter bar now lives inside the record view's `.ws-actions` row
+ * instead of a dedicated line above the table, so it loses the spacing
+ * meant for a standalone row and the search box gets a narrower cap —
+ * `.ws-toolbar` already wraps (base-ui), so this never forces a scrollbar. */
+.ws-actions .filterbar {
+  margin-bottom: 0;
+}
+.ws-actions .searchbox {
+  max-width: 220px;
 }
 .list-footer {
   display: flex;
@@ -803,20 +771,6 @@ tbody tr:hover {
 }
 .calendar-agenda {
   display: none;
-}
-.detail-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: var(--space-lg);
-  gap: var(--space-md);
-}
-.back-link {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-sm);
-  font-size: var(--text-xs);
-  color: var(--muted);
 }
 .detail-layout {
   display: grid;
@@ -989,9 +943,6 @@ tbody tr:hover {
   justify-content: center;
 }
 @media (max-width: 1100px) {
-  .workspace {
-    padding-inline: var(--space-lg);
-  }
   .overview-columns {
     grid-template-columns: minmax(0, 1fr) 240px;
     gap: var(--space-lg);
@@ -1072,27 +1023,10 @@ tbody tr:hover {
     flex: 1;
     font-size: var(--text-sm);
   }
-  .workspace {
-    padding: var(--space-lg) var(--space-md) 36px;
-  }
-  .eyebrow {
-    display: none;
-  }
   h1 {
     font-size: var(--text-xl);
   }
-  .page-header {
-    gap: var(--space-sm);
-    margin-bottom: var(--space-lg);
-  }
-  .page-header p {
-    font-size: var(--text-xs);
-    line-height: 1.8;
-  }
-  .header-actions {
-    padding-top: 0;
-  }
-  .header-actions .native-link {
+  .native-link {
     width: 32px;
     padding: 0;
     font-size: 0;
@@ -1101,26 +1035,6 @@ tbody tr:hover {
   .native-link svg {
     width: 15px;
     height: 15px;
-  }
-  .metrics {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--space-lg) 0;
-    padding-block: var(--space-lg);
-  }
-  .metrics a {
-    padding: 0 var(--space-md);
-  }
-  .metrics a:nth-child(3) {
-    padding-left: 0;
-  }
-  .metrics a:nth-child(even) {
-    border: 0;
-  }
-  .metrics strong {
-    font-size: var(--heading-size);
-  }
-  .metrics small {
-    font-size: var(--text-xs);
   }
   .overview-columns {
     grid-template-columns: minmax(0, 1fr);
@@ -1269,14 +1183,6 @@ tbody tr:hover {
   .calendar-agenda h2 {
     margin-bottom: var(--space-md);
   }
-  .detail-top {
-    position: sticky;
-    top: 52px;
-    background: var(--bg);
-    z-index: 9;
-    padding: var(--space-sm) 0;
-    margin: -8px 0 var(--space-md);
-  }
   .detail-layout {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -1302,7 +1208,7 @@ tbody tr:hover {
 input,
 select,
 .row-title,
-td,
+.articles-table td,
 .source-names,
 .source-top strong,
 .source-row p,
@@ -1316,7 +1222,6 @@ td,
 .prose,
 .detail-section p,
 .detail-meta,
-.back-link,
 .searchbox input,
 .filterbar select,
 .view-tabs a {
@@ -1340,13 +1245,9 @@ input,
 select {
   min-height: 36px;
 }
-.metrics,
 .section-heading,
 .detail-meta {
   border-color: var(--rule);
-}
-.metrics {
-  border-block-width: var(--rule-weight);
 }
 .status-review {
   color: var(--danger-text);
@@ -1400,9 +1301,6 @@ select {
   margin-top: var(--space-md);
 }
 @media (max-width: 720px) {
-  .header-actions .native-link {
-    font-size: 0;
-  }
   .calendar-event {
     font-size: 0;
   }

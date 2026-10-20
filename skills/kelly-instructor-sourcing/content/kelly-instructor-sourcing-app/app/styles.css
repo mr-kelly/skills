@@ -302,7 +302,6 @@ input:focus-visible {
 }
 .sidebar.collapsed .brand-copy,
 .sidebar.collapsed .human-work,
-.sidebar.collapsed .next-step,
 .sidebar.collapsed .sidebar-separator,
 .sidebar.collapsed .filters,
 .sidebar.collapsed .help-box {
@@ -314,8 +313,8 @@ input:focus-visible {
   left: 18px;
 }
 .main {
-  display: grid;
-  grid-template-rows: auto auto minmax(0, 1fr);
+  display: flex;
+  flex-direction: column;
   min-width: 0;
   min-height: 0;
   background: var(--canvas);
@@ -323,36 +322,17 @@ input:focus-visible {
 .mobile-topbar {
   display: none;
 }
-.workspace-head {
-  display: flex;
-  min-height: 86px;
-  align-items: center;
-  justify-content: space-between;
-  gap: 24px;
-  padding: 16px 26px;
-  background: var(--surface);
-  border-bottom: 1px solid var(--line);
-}
 .eyebrow {
   margin: 0 0 5px;
   color: var(--accent);
   font-size: var(--text-xs);
   font-weight: 800;
 }
-.workspace-head h1,
 .setup-head h1 {
   margin: 0;
   color: var(--ink);
   font-size: var(--text-xl);
   line-height: 1.2;
-}
-.workspace-status {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  color: var(--muted);
-  font-size: var(--text-xs);
-  white-space: nowrap;
 }
 .read-only {
   padding: 3px 6px;
@@ -370,187 +350,74 @@ input:focus-visible {
   font-size: var(--text-xs);
   font-weight: 800;
 }
-.workspace-status button {
-  min-height: 30px;
-  padding: 0 10px;
-  color: var(--accent);
-  background: var(--surface);
-  border: 1px solid var(--line-strong);
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-}
-.workflow-band {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  min-height: 70px;
+/* The score column of the candidates table. A small badge, not the old
+ * row-card layout — the row is one table line now, so the number gets its
+ * own column instead of a stacked card. */
+.score-chip {
+  display: inline-block;
+  min-width: 30px;
+  padding: 2px 8px;
   background: var(--surface-soft);
-  border-bottom: 1px solid var(--line);
-}
-.content {
-  display: grid;
-  grid-template-columns: minmax(360px, 42%) minmax(420px, 1fr);
-  min-width: 0;
-  min-height: 0;
-  margin: 16px 18px 18px;
-  background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
-  overflow: hidden;
-}
-.list-panel,
-.detail-panel {
-  min-width: 0;
-  min-height: 0;
-}
-.list-panel {
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
-  border-right: 1px solid var(--line);
-}
-.list-head {
-  display: flex;
-  min-height: 55px;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 9px 15px;
-  background: var(--surface-hover);
-  border-bottom: 1px solid var(--line);
-}
-.list-head > div {
-  display: grid;
-  gap: 2px;
-}
-.list-head strong {
-  font-size: var(--text-sm);
-}
-.list-head span {
-  color: var(--muted);
-  font-size: var(--text-xs);
-}
-.work-list {
-  min-height: 0;
-  overflow: auto;
-}
-.work-row {
-  position: relative;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  width: 100%;
-  min-height: 83px;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 15px 12px 18px;
-  text-align: left;
-  background: var(--surface);
-  border: 0;
-  border-bottom: 1px solid var(--line);
-  cursor: pointer;
-}
-.work-row:hover {
-  background: var(--surface-soft);
-}
-.work-row.active {
-  background: var(--surface-soft);
-}
-.row-marker {
-  position: absolute;
-  inset: 0 auto 0 0;
-  width: 3px;
-  background: transparent;
-}
-.work-row.active .row-marker {
-  background: var(--green);
-}
-.row-rank {
-  align-self: start;
-  padding-top: 2px;
-  color: var(--muted);
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: var(--text-xs);
-}
-.row-main {
-  display: grid;
-  min-width: 0;
-  gap: 4px;
-}
-.row-kicker {
-  overflow: hidden;
-  color: var(--accent);
-  font-size: var(--text-xs);
-  font-weight: 700;
-  text-overflow: ellipsis;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-.row-title {
-  display: flex;
-  min-width: 0;
-  align-items: baseline;
-  gap: 7px;
-  overflow: hidden;
-  color: var(--accent);
-  font-size: var(--text-xs);
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.row-title strong {
-  color: var(--ink);
-  font-size: var(--text-base);
-}
-.row-subtitle {
-  overflow: hidden;
-  color: var(--accent);
-  font-size: var(--text-xs);
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.row-score {
-  display: grid;
-  flex: 0 0 auto;
-  gap: 4px;
-  text-align: right;
-}
-.row-score span {
-  color: var(--accent);
-  font-size: var(--text-xs);
-}
-.row-score strong {
   color: var(--positive);
-  font-size: var(--text-lg);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  text-align: center;
 }
-.row-score {
-  min-width: 43px;
-  padding: 7px 8px;
-  background: var(--surface-soft);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
-}
-.row-score.score-mid {
-  background: var(--surface-soft);
+.score-chip.score-mid {
   border-color: color-mix(in srgb, var(--accent) 34%, var(--line));
-}
-.row-score.score-low {
-  background: var(--surface-soft);
-  border-color: var(--line);
-}
-.row-score.score-mid strong {
   color: var(--danger);
 }
-.row-score.score-low strong {
+.score-chip.score-low {
+  border-color: var(--line);
   color: var(--accent);
 }
-.detail-panel {
-  background: var(--surface);
-  overflow: hidden;
+/* The status column of the candidates table. A split queue's list pane is
+ * narrow by design (base-ui.css forces the name column to 65%), so a full
+ * status-pill's label truncated to "待…" / "已…" and became unreadable; a
+ * colour dot with the label as a tooltip fits the remaining width and still
+ * lets a scan down the column tell screening from qualified from connected. */
+.status-dot-chip {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--muted);
 }
-.detail-scroll {
-  height: 100%;
-  padding: 25px 27px 32px;
+.status-dot-chip.status-screening {
+  background: var(--warning);
+}
+.status-dot-chip.status-qualified {
+  background: var(--accent);
+}
+.status-dot-chip.status-connected {
+  background: var(--positive);
+}
+.status-dot-chip.status-not-qualified {
+  background: var(--danger);
+}
+/* Criteria is a single config record, not a list — the toolbar matches
+ * record views, but the body below it is a scrollable form, not a table. */
+.criteria-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-width: 720px;
+  padding: 24px 28px 32px;
   overflow: auto;
 }
-.back-to-list {
-  display: none;
+/* Overview-only panels for the pipeline and the next-step guidance — moved
+ * off every record view's toolbar so a list page stays one toolbar row over
+ * its table (ui-and-validation.md "Two Kinds Of Page"). */
+.overview-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.overview-panel h2 {
+  margin: 0 0 12px;
+  font-size: var(--text-md);
+  font-weight: 700;
 }
 .detail-heading {
   display: flex;
@@ -655,17 +522,13 @@ input:focus-visible {
 .readiness-item.waiting i {
   background: var(--amber);
 }
-.empty-state,
-.empty-detail {
+.empty-state {
   display: grid;
   min-height: 140px;
   place-items: center;
   padding: 20px;
   color: var(--accent);
   font-size: var(--text-xs);
-}
-.empty-detail {
-  height: 100%;
 }
 .positive {
   color: var(--green) !important;
@@ -976,17 +839,6 @@ code {
   .app-shell {
     grid-template-columns: 230px minmax(0, 1fr);
   }
-  .content {
-    grid-template-columns: minmax(310px, 45%) minmax(360px, 1fr);
-    margin: 12px;
-  }
-  .workspace-head {
-    padding-left: 18px;
-    padding-right: 18px;
-  }
-  .detail-scroll {
-    padding: 22px;
-  }
 }
 
 @media (max-width: 720px) {
@@ -1049,7 +901,6 @@ code {
     background: var(--scrim);
   }
   .main {
-    grid-template-rows: 52px auto auto minmax(0, 1fr);
     height: 100dvh;
   }
   .mobile-topbar {
@@ -1088,91 +939,8 @@ code {
     border: 0;
     font-size: var(--text-xs);
   }
-  .workspace-head {
-    min-height: 67px;
-    padding: 11px 14px;
-  }
-  .workspace-head h1 {
-    font-size: var(--text-lg);
-  }
-  .workspace-status > span:not(.status-dot):not(.read-only) {
-    display: none;
-  }
-  .workspace-status {
-    gap: 7px;
-  }
-  .workspace-status button {
-    min-height: 29px;
-    padding: 0 8px;
-    font-size: var(--text-xs);
-  }
-  .workflow-band {
+  .overview-grid {
     grid-template-columns: minmax(0, 1fr);
-  }
-  .content {
-    position: relative;
-    display: block;
-    min-height: 0;
-    margin: 0;
-    border: 0;
-    border-radius: 0;
-  }
-  .list-panel {
-    height: 100%;
-    border-right: 0;
-  }
-  .detail-panel {
-    display: none;
-    position: absolute;
-    inset: 0;
-    z-index: 5;
-    height: 100%;
-  }
-  .mobile-detail-open .list-panel {
-    display: none;
-  }
-  .mobile-detail-open .detail-panel {
-    display: block;
-  }
-  .mobile-detail-open .main {
-    grid-template-rows: 52px minmax(0, 1fr);
-  }
-  .mobile-detail-open .workspace-head,
-  .mobile-detail-open .workflow-band {
-    display: none;
-  }
-  .list-head {
-    min-height: 48px;
-    padding: 8px 13px;
-  }
-  .work-row {
-    min-height: 79px;
-    padding: 11px 13px 11px 16px;
-  }
-  .row-title span {
-    max-width: 42vw;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .detail-scroll {
-    padding: 0 16px 28px;
-    background: var(--surface);
-  }
-  .back-to-list {
-    position: sticky;
-    top: 0;
-    z-index: 4;
-    display: block;
-    width: calc(100% + 32px);
-    min-height: 42px;
-    margin: 0 -16px 18px;
-    padding: 0 16px;
-    color: var(--accent);
-    text-align: left;
-    background: var(--surface-blur);
-    border: 0;
-    border-bottom: 1px solid var(--line);
-    font-size: var(--text-xs);
   }
   .detail-heading h2 {
     font-size: var(--text-lg);
@@ -1233,9 +1001,6 @@ code {
 }
 
 @media (max-width: 360px) {
-  .workspace-head {
-    gap: 8px;
-  }
   .read-only {
     display: none;
   }
@@ -1243,9 +1008,6 @@ code {
 
 /* ---------- Kelly Instructor Sourcing ---------- */
 
-.workflow-band {
-  grid-template-columns: minmax(0, 1fr);
-}
 .pipeline {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1269,10 +1031,6 @@ code {
 }
 .pipeline-step:hover {
   background: var(--surface-soft);
-}
-.pipeline-step.active {
-  background: var(--surface);
-  box-shadow: inset 0 -2px 0 var(--green);
 }
 .pipeline-step i {
   display: grid;
@@ -1585,19 +1343,6 @@ code {
   background: var(--surface-soft);
 }
 
-.content-single {
-  grid-template-columns: minmax(0, 1fr);
-}
-.profile-pane {
-  min-width: 0;
-  min-height: 0;
-  background: var(--surface);
-  overflow: hidden;
-}
-.profile-pane .detail-scroll {
-  max-width: 720px;
-}
-
 @media (max-width: 720px) {
   .pipeline {
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1638,7 +1383,7 @@ code {
   .ghost-button {
     min-height: 42px;
   }
-  .profile-pane .detail-scroll {
+  .criteria-scroll {
     padding-top: 18px;
   }
 }
@@ -1655,46 +1400,6 @@ code {
   }
 }
 
-/* Next step — the command to run back in the conversation. */
-.next-step {
-  margin: 0 12px 10px;
-  padding: 11px 12px;
-  background: var(--ink);
-  border: 1px solid color-mix(in srgb, var(--accent) 70%, black);
-  border-left: 3px solid var(--positive);
-  border-radius: var(--radius-sm);
-}
-.next-step-title {
-  color: var(--accent-contrast);
-  font-size: var(--text-sm);
-  font-weight: 700;
-}
-.next-step-detail {
-  margin-top: 4px;
-  color: var(--accent);
-  font-size: var(--text-xs);
-  line-height: 1.6;
-}
-.next-step-command {
-  display: block;
-  width: 100%;
-  margin-top: 8px;
-  padding: 7px 9px;
-  color: var(--muted);
-  text-align: left;
-  background-color: #131c23;
-  border: 1px solid color-mix(in srgb, var(--accent) 70%, black);
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-}
-.next-step-command:hover {
-  border-color: var(--positive);
-}
-.next-step-command code {
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: var(--text-xs);
-  word-break: break-all;
-}
 .empty-state code {
   padding: 1px 5px;
   color: var(--positive);
@@ -1731,19 +1436,6 @@ code {
   color: var(--positive);
   font-size: var(--text-xs);
   line-height: 1.55;
-}
-/* Inside the dark sidebar the same component needs the inverted palette. */
-.next-step .command-chip {
-  margin-top: 8px;
-  color: var(--muted);
-  background-color: #131c23;
-  border-color: color-mix(in srgb, var(--accent) 70%, black);
-}
-.next-step .command-chip:hover {
-  border-color: var(--positive);
-}
-.next-step .command-chip small {
-  color: var(--positive);
 }
 .detail-hint {
   margin-top: 12px;
@@ -1789,9 +1481,6 @@ code {
   display: none;
 }
 @media (max-width: 720px) {
-  .main {
-    grid-template-rows: 52px auto auto auto minmax(0, 1fr);
-  }
   .mobile-next-step {
     display: grid;
     gap: 6px;
@@ -1807,7 +1496,7 @@ code {
   .mobile-next-step .command-chip {
     background: var(--surface);
   }
-  .mobile-detail-open .mobile-next-step {
+  body.ws-detail-open .mobile-next-step {
     display: none;
   }
 }

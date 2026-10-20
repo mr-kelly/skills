@@ -120,8 +120,26 @@ export const appConfig = {
     },
   ],
   permissions: {
-    readProcedures: ["nodes.list", "nodes.get", "bases.get", "records.list", "records.count"],
+    // records.get is declared here because busabase-provider.js's upsert() ->
+    // findRecord() calls it on every write (to resolve the existing record
+    // before a changeRequest/update) and it is also what a `?peek=` deep link
+    // to a record outside the loaded page would need. Pre-existing bug fixed
+    // during the layout migration: it was missing, so a write on a fresh
+    // install (allowed reads enforced) would have thrown PROCEDURE_DENIED.
+    readProcedures: ["nodes.list", "nodes.get", "bases.get", "records.list", "records.count", "records.get"],
     setupProcedures: ["nodes.createChangeRequest", "nodes.updateMetadata"],
     writeProcedures: ["records.changeRequest", "bases.createChangeRequest"],
+  },
+  // Where a record opens, per Base — chosen by what people do with it:
+  //   signals → split: triage is a queue worked top to bottom — read the
+  //             evidence, decide, move to the next one — so the queue stays
+  //             beside the record.
+  //   actions → split: same decide-and-move-on shape as signals.
+  //   drafts  → page: editing a draft's body wants the full width and focus
+  //             of a page, not a cramped side panel.
+  // A `/record` path always opens the full page; `?peek=` drives split.
+  // On a phone every mode becomes a page (base-ui.css handles that).
+  ui: {
+    detail_modes: { signals: "split", actions: "split", drafts: "page" },
   },
 };

@@ -359,8 +359,8 @@ button.primary:hover {
   min-width: 0;
   min-height: 0;
   height: 100vh;
-  display: grid;
-  grid-template-rows: auto 1fr;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
 }
 
@@ -369,15 +369,62 @@ button.primary:hover {
   display: none;
 }
 
-.topbar {
-  min-height: 58px;
-  padding: 10px 18px;
-  border-bottom: 1px solid var(--line);
-  background: var(--surface-blur);
-  display: flex;
+.load-state {
+  display: grid;
+  place-items: center;
+  flex: 1 1 auto;
+  color: var(--muted);
+  font-size: var(--text-md);
+}
+
+.load-state.error {
+  color: var(--danger);
+}
+
+.button {
+  display: inline-flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 16px;
+  justify-content: center;
+  min-height: 34px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+}
+
+.button:hover {
+  border-color: var(--line-strong);
+  background: var(--surface-soft);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+.toolbar-search {
+  position: relative;
+}
+
+.toolbar-search input {
+  width: 200px;
+  min-height: 34px;
+  padding: 0 11px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+}
+
+.toolbar-search input:focus {
+  border-color: var(--line-strong);
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-focus);
 }
 
 h1,
@@ -397,11 +444,16 @@ h2 {
   color: var(--accent);
 }
 
-.panel h2,
-.detail-side h2 {
+.card h2,
+.card h3 {
   padding-bottom: 10px;
   border-bottom: 1px solid var(--line);
   margin-bottom: 4px;
+}
+
+.card h3 {
+  font-size: var(--text-base);
+  color: var(--ink-soft);
 }
 
 .muted {
@@ -417,59 +469,117 @@ h2 {
   text-transform: uppercase;
 }
 
-.content {
+/* Overview's page-hero: muted eyebrow handled by base-ui's unlayered
+ * `.ws-overview .page-hero h1`/`p`; this only lays out the row and the
+ * trailing actions. */
+.page-hero {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.page-actions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 8px;
+}
+
+/* Backtest and Settings are reports, not record lists: one toolbar row, then
+ * a scrollable body — the full-bleed-table rule does not apply to them. */
+.ws-report-body {
+  flex: 1 1 auto;
   min-height: 0;
-  overflow: auto;
-  padding: 16px 18px 24px;
-}
-
-.metrics {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px;
-  margin-bottom: 14px;
+  align-content: start;
+  gap: 16px;
+  overflow: auto;
+  padding: 20px 24px 32px;
 }
 
-.metric,
-.segment-card,
+/* A band, not a row of cards, for a secondary page's own numbers (a segment's
+ * four backtest stats, Backtest's overall stats) — same shape as the
+ * Overview metrics band but not that band itself, which stays exclusive to
+ * Overview per the layout spec. */
+.band-metrics {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--panel);
+}
+
+.band-metrics > div {
+  display: flex;
+  min-width: 0;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 18px;
+  border-right: 1px solid var(--line);
+}
+
+.band-metrics > div:last-child {
+  border-right: 0;
+}
+
+.band-metrics span {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: var(--text-sm);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.band-metrics strong {
+  font-size: var(--text-xl);
+  font-weight: 650;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.card,
 .settings section,
-.detail-side,
-.empty,
+.empty-state,
 .warnings,
-.panel,
 .table-wrap {
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
   background: var(--panel);
 }
 
-.metric {
-  padding: 12px;
+.card {
+  padding: 16px;
 }
 
-.metric span {
-  display: block;
+.card.overview-wide {
+  grid-column: 1 / -1;
+}
+
+.empty-state {
+  display: grid;
+  gap: 6px;
+  justify-items: center;
+  padding: 48px 20px;
   color: var(--muted);
-  font-size: var(--text-xs);
-  font-weight: 650;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
+  text-align: center;
 }
 
-.metric strong {
-  display: block;
-  margin-top: 7px;
-  font-size: var(--text-xl);
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  font-variant-numeric: tabular-nums;
+.detail-head {
+  margin-bottom: 14px;
+}
+
+.detail-stack {
+  display: grid;
+  gap: 14px;
 }
 
 .table-wrap {
   overflow: auto;
 }
 
-table {
+table:not(.ws-table) {
   width: 100%;
   min-width: 640px;
   border-collapse: collapse;
@@ -584,20 +694,6 @@ tbody tr:last-child td {
   color: var(--accent);
 }
 
-.panel {
-  padding: 16px;
-}
-
-.panel.wide {
-  grid-column: 1 / -1;
-}
-
-.overview-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 18px;
-}
-
 .funnel-list {
   display: grid;
   gap: 6px;
@@ -673,78 +769,7 @@ tbody tr:last-child td {
   font-weight: 500;
 }
 
-.segment-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 14px;
-}
-
-.segment-card {
-  display: grid;
-  gap: 10px;
-  padding: 16px;
-  transition: border-color 0.12s ease, box-shadow 0.12s ease, transform 0.12s ease;
-}
-
-.segment-card:hover {
-  border-color: var(--line-strong);
-  background: var(--surface-soft);
-  box-shadow: 0 4px 14px var(--shadow-tint);
-  transform: translateY(-1px);
-}
-
-.segment-card-title {
-  font-size: var(--text-md);
-  font-weight: 700;
-  letter-spacing: -0.005em;
-}
-
-.segment-card-count {
-  margin-top: -4px;
-}
-
-.segment-card-action {
-  padding-top: 8px;
-  border-top: 1px dashed var(--line);
-}
-
-.segment-card-stats {
-  color: var(--muted);
-  font-size: var(--text-sm);
-}
-
-.segment-card-stats .stat-value {
-  color: var(--text);
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-}
-
-.row {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
-
-.between {
-  justify-content: space-between;
-}
-
-.stats {
-  flex-wrap: wrap;
-  color: var(--muted);
-  font-size: var(--text-sm);
-}
-
-.detail {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 320px;
-  gap: 18px;
-  align-items: start;
-}
-
-.detail-side,
 .settings section,
-.empty,
 .warnings {
   padding: 16px;
 }
@@ -896,10 +921,6 @@ dd {
   max-width: 900px;
 }
 
-.empty {
-  color: var(--muted);
-}
-
 .warnings {
   display: grid;
   gap: 8px;
@@ -911,17 +932,6 @@ dd {
   display: block;
   margin-top: 3px;
   color: var(--muted);
-}
-
-.back-link {
-  display: inline-block;
-  margin-bottom: 12px;
-  color: var(--muted);
-  font-size: var(--text-base);
-}
-
-.back-link:hover {
-  color: var(--text);
 }
 
 .rule-note {
@@ -937,14 +947,6 @@ dd {
 @media (max-width: 980px) {
   .app-shell {
     grid-template-columns: 220px minmax(0, 1fr);
-  }
-
-  .metrics {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .detail {
-    grid-template-columns: 1fr;
   }
 }
 
@@ -987,7 +989,6 @@ dd {
   }
 
   .main {
-    grid-template-rows: auto minmax(0, 1fr);
     height: 100dvh;
   }
 
@@ -1035,25 +1036,33 @@ dd {
     padding: 0;
   }
 
-  .topbar {
-    display: none;
+  .page-hero {
+    flex-wrap: wrap;
   }
 
-  .content {
-    padding: 12px;
+  .ws-report-body {
+    padding: 14px 14px 24px;
   }
 
-  .metrics,
-  .overview-grid {
-    grid-template-columns: 1fr;
-    gap: 8px;
+  .band-metrics {
+    grid-auto-flow: row;
+    grid-auto-columns: unset;
+  }
+
+  .band-metrics > div {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .band-metrics > div:last-child {
+    border-bottom: 0;
   }
 
   .funnel-row {
     grid-template-columns: 96px minmax(0, 1fr) 44px 56px;
   }
 
-  table {
+  table:not(.ws-table) {
     min-width: 560px;
   }
 }

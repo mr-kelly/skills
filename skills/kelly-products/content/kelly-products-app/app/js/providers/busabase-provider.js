@@ -17,6 +17,15 @@ const allowedReads = new Set(appConfig.permissions.readProcedures);
 const allowedSetup = new Set(appConfig.permissions.setupProcedures);
 const allowedWrites = new Set(appConfig.permissions.writeProcedures);
 const BROWSED_KEYS = ["products", "channels", "inventory", "review"];
+// Business id field (Busabase slug, already hyphenated) per peekable view --
+// only products/review ever open a detail (see config.js's ui.detail_modes).
+const ID_FIELD_SLUG = { products: "product-id", review: "item-id" };
+const NORMALIZE_BY_KEY = {
+  products: normalizeProductRow,
+  channels: normalizeChannelRow,
+  inventory: normalizeInventoryRow,
+  review: normalizeReviewRow,
+};
 
 // A deployed AirApp is served through the ambient Busabase session (a Busabase
 // iframe/preview host, or same-origin proxy under /api/airapp-preview/); a
@@ -194,13 +203,24 @@ export const busabaseProvider = {
   async fetchPage(key, cursor) {
     await ensureResources();
     const page = await readPage(key, cursor);
-    const normalize = {
-      products: normalizeProductRow,
-      channels: normalizeChannelRow,
-      inventory: normalizeInventoryRow,
-      review: normalizeReviewRow,
-    }[key];
+    const normalize = NORMALIZE_BY_KEY[key];
     return { ...page, rows: normalize ? page.rows.map(normalize) : page.rows };
+  },
+
+  // A record named by the URL (`/products/<id>` or `?peek=<id>`) that is not
+  // on the currently loaded page -- read on its own by business id
+  // (records.get) instead of loading more pages to find it. Only products
+  // and review ever peek (config.js's ui.detail_modes); null for anything
+  // else so app.js's ensureSelectedRecord() can fall back gracefully.
+  async getRecord(key, id) {
+    const idFieldSlug = ID_FIELD_SLUG[key];
+    const normalize = NORMALIZE_BY_KEY[key];
+    if (!idFieldSlug || !normalize) return null;
+    if (!allowedReads.has("records.get")) return null;
+    await ensureResources();
+    const record = await findRecord(key, idFieldSlug, id);
+    if (!record) return null;
+    return normalize(normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields));
   },
 
   async provisionResources() {
