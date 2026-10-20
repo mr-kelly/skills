@@ -18,7 +18,7 @@ from runtime import free_port, managed_process
 
 APP_ROOT = REPO_ROOT / "skills" / "kelly-mv" / "content" / "kelly-mv-app"
 RESULTS_ROOT = REPO_ROOT / "test-results" / "kelly-mv"
-BUSABASE_VERSION = "0.16.2"
+BUSABASE_VERSION = "0.96.0"
 
 # Demo dataset counts below were read off the live DOM with a throwaway probe
 # before writing these selectors (per the migration recipe's gotcha list),

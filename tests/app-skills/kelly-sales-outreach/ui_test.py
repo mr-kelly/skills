@@ -18,7 +18,7 @@ from runtime import free_port, managed_process
 
 SKILL_ROOT = REPO_ROOT / "skills" / "kelly-sales-outreach"
 APP_ROOT = SKILL_ROOT / "content" / "kelly-sales-outreach-app"
-BUSABASE_VERSION = "0.16.2"
+BUSABASE_VERSION = "0.96.0"
 
 
 def launch_chromium(playwright):

@@ -19,7 +19,7 @@ APP_ROOT = SKILL_ROOT / "content" / "kelly-dog-walk-app"
 PROBE = REPO_ROOT / "tests" / "app-skills" / "kelly-dog-walk" / "busabase_probe.mjs"
 RESULTS_ROOT = REPO_ROOT / "test-results" / "kelly-dog-walk"
 # A Busabase new enough to carry Skill nodes, template install and native calendar/kanban views.
-BUSABASE_VERSION = "0.95.1"
+BUSABASE_VERSION = "0.96.0"
 
 
 def assert_no_horizontal_overflow(page: Page) -> None:

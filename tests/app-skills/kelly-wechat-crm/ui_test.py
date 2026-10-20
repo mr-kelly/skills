@@ -15,7 +15,7 @@ sys.path.insert(0, str(REPO_ROOT / "tests" / "app-skills" / "harness"))
 from runtime import free_port, managed_process
 
 APP_ROOT = REPO_ROOT / "skills" / "kelly-wechat-crm" / "content" / "kelly-wechat-crm-app"
-BUSABASE_VERSION = "0.19.0"
+BUSABASE_VERSION = "0.96.0"
 EXPECTED_RESOURCE_KEYS = [
     "app-root",
     "goals",
