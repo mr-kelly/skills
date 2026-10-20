@@ -15,7 +15,7 @@ from runtime import free_port, managed_process
 
 APP_ROOT = REPO_ROOT / "skills" / "kelly-brand" / "content" / "kelly-brand-app"
 RESULTS_ROOT = REPO_ROOT / "test-results" / "kelly-brand"
-BUSABASE_VERSION = "0.16.2"
+BUSABASE_VERSION = "0.96.0"
 
 # Exact counts computed from app/app/js/providers/demo-provider.js's dataset
 # (14 narrative items: 1 positioning + 3 pillars + 4 stories + 4 proof points

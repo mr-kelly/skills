@@ -16,7 +16,7 @@ from runtime import free_port, managed_process
 SKILL_ROOT = REPO_ROOT / "skills" / "kelly-insure-data"
 APP_ROOT = SKILL_ROOT / "content" / "kelly-insure-data-app"
 RESULTS_ROOT = REPO_ROOT / "test-results" / "kelly-insure-data"
-BUSABASE_VERSION = "0.16.2"
+BUSABASE_VERSION = "0.96.0"
 
 # Kelly Insure Data does not lazily provision its own Busabase resources —
 # unlike every other converted skill, the Drive node and the four Bases are

@@ -15,7 +15,7 @@ from runtime import free_port, managed_process
 
 APP_ROOT = REPO_ROOT / "skills" / "kelly-lead-funnel" / "content" / "kelly-lead-funnel-app"
 RESULTS_ROOT = REPO_ROOT / "test-results" / "kelly-lead-funnel"
-BUSABASE_VERSION = "0.16.2"
+BUSABASE_VERSION = "0.96.0"
 
 
 def assert_no_horizontal_overflow(page: Page) -> None:
