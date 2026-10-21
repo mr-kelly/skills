@@ -175,6 +175,7 @@ export const messages = {
     ledePapers: "A paper is only exported after a parent or teacher approves it.",
     ledeReview: "Approve and the agent continues. Unsure? Block it — nothing is lost.",
     decisionRecorded: "Decision recorded.",
+    actionFailed: "That did not go through:",
     decisionRecordedDemo: "Decision recorded (demo mode, not saved).",
     // proposed_action values, as a parent would say them. Never render the
     // raw snake_case id: a reader can neither recognise it nor click it.
@@ -435,6 +436,7 @@ export const messages = {
     ledePapers: "练习卷要家长或老师批准之后才导出。",
     ledeReview: "先看原题和 AI 讲解，再确认是否准确、是否适合孩子。这不是给孩子的答案打分。",
     decisionRecorded: "决策已记录。",
+    actionFailed: "操作没有成功：",
     decisionRecordedDemo: "决策已记录（演示模式，不会保存）。",
     actionAddToMistakeBook: "加入错题本",
     actionMarkUnderstood: "标记为已弄懂",

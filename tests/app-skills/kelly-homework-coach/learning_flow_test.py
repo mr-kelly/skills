@@ -121,8 +121,23 @@ def main():
                     assert "Manual reference" in page.locator(".detail-panel").inner_text()
                     assert page.locator(".practice-diagram").count() == 2
                     page.screenshot(path=OUT / "homework-parent-paper-review.png", full_page=True)
+                    # A write the server refuses must surface in the page: this app runs in
+                    # a sandboxed iframe where window.alert() is dropped, which used to make
+                    # the decision buttons look dead.
+                    dialogs = []
+                    page.on("dialog", lambda dialog: (dialogs.append(dialog.message), dialog.dismiss()))
+                    page.route("**/api/**", lambda route: route.abort() if route.request.method == "POST" else route.continue_())
+                    page.locator("[data-decision-action='approve']").click()
+                    page.wait_for_selector("[data-action-error]")
+                    assert page.locator("[data-action-error]").get_attribute("role") == "alert"
+                    assert not dialogs and not pending(busabase)
+                    page.screenshot(path=OUT / "homework-decision-error.png", full_page=True)
+                    page.unroute("**/api/**")
+                    # The aborted request is the failure under test, not a defect.
+                    errors[:] = [e for e in errors if "ERR_FAILED" not in e]
                     page.locator("[data-decision-action='approve']").click()
                     page.wait_for_timeout(800)
+                    assert page.locator("[data-action-error]").count() == 0
                     requests = pending(busabase); assert len(requests) == 2
                     assert fields(rows(busabase, bases["papers"])[0])["status"] == "needs_review"
                     merge(busabase, requests)
