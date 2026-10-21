@@ -158,9 +158,21 @@ def test_demo_ui(browser, base_url: str) -> None:
     # bar offers the student a control that silently abandons their run.
     assert page.locator(".detail-actions-top").inner_text().strip() == ""
 
-    # hint_first: the first wrong answer gets the hint, never the answer.
+    # A refused action must be visible in the page. The app lives in a sandboxed
+    # AirApp iframe where window.alert() is dropped silently, which read as a
+    # dead button.
+    dialogs: list[str] = []
+    page.on("dialog", lambda dialog: (dialogs.append(dialog.message), dialog.dismiss()))
+    page.locator("[data-run-submit]").click()
+    banner = page.locator("[data-action-error]")
+    assert banner.is_visible() and banner.get_attribute("role") == "alert"
+    assert "answer" in banner.inner_text().lower()
+    assert not dialogs, dialogs
     page.fill("#runAnswer", "999")
     page.locator("[data-run-submit]").click()
+    assert page.locator("[data-action-error]").count() == 0
+
+    # hint_first: the first wrong answer gets the hint, never the answer.
     verdict = page.locator(".run-verdict").first
     assert "is-hint" in (verdict.get_attribute("class") or "")
     assert "326" not in verdict.inner_text()

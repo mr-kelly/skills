@@ -565,6 +565,17 @@ textarea:disabled {
   font-size: var(--text-sm);
 }
 
+.decision-error {
+  flex-basis: 100%;
+  margin: 0;
+  border: var(--hairline) solid var(--danger);
+  border-radius: var(--radius-sm);
+  background: var(--danger-soft);
+  padding: 8px 12px;
+  color: var(--danger-text);
+  font-size: var(--text-sm);
+}
+
 .primary {
   border-color: var(--accent-strong);
   background: var(--accent-strong);

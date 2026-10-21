@@ -34,6 +34,7 @@ const state = {
   loadMoreError: {},
   hasLoadedMore: false,
   notice: "",
+  error: "",
   flashId: "",
   run: null,
   reopenedReviewId: "",
@@ -243,6 +244,21 @@ function render() {
   document.documentElement.lang = state.lang === "zh" ? "zh-CN" : "en";
   state.route = parseRoute();
   renderShell();
+}
+
+/**
+ * Failures are shown in the page, not with window.alert(). The app runs inside
+ * a sandboxed Busabase AirApp iframe, where the browser silently drops modal
+ * dialogs: a refused decision or a paper that cannot start looked exactly like
+ * a button that does nothing.
+ */
+function showError(message) {
+  state.error = String(message);
+  render();
+}
+
+function showFailure(error) {
+  showError(`${t("actionFailed")} ${error?.message || ""}`.trim());
 }
 
 function renderShell() {
@@ -537,6 +553,7 @@ function renderDetailPanel(snapshot) {
         <button class="plain back-to-list" data-back-list type="button">${esc(t("back"))}</button>
         ${view === "review" && item ? reviewActions(item) : activeRun() ? "" : studentActions(view, item)}
         ${state.notice ? `<span class="decision-state" role="status">${esc(state.notice)}</span>` : ""}
+        ${state.error ? `<p class="decision-error" role="alert" data-action-error>${esc(state.error)}</p>` : ""}
       </div>
       <div class="detail-scroll">
         ${item ? renderDetail(item, view, snapshot) : `<p class="note">${esc(t("noItems"))}</p>`}
@@ -761,7 +778,7 @@ function hintFirst() {
 function startRun(paperId) {
   const paper = (state.data?.snapshot?.papers || []).find((p) => p.paper_id === paperId);
   if (!paper || paper.status !== "approved" || !isGradeable(paper)) {
-    window.alert(t("paperNeedsApproval"));
+    showError(t("paperNeedsApproval"));
     return;
   }
   state.run = {
@@ -795,7 +812,7 @@ function submitRunAnswer() {
   if (!runState || !item) return;
   const given = document.getElementById("runAnswer")?.value ?? "";
   if (!given.trim()) {
-    window.alert(t("answerRequired"));
+    showError(t("answerRequired"));
     return;
   }
   runState.answers[item.ref] = given;
@@ -886,7 +903,7 @@ async function finishRun() {
     state.notice = t("paperSubmitted");
     await loadState();
   } catch (error) {
-    window.alert(error.message);
+    showFailure(error);
   } finally {
     state.busy = false;
     render();
@@ -1260,7 +1277,7 @@ async function submitDecision(payload) {
     await loadState();
     flashDecision(payload.review_id);
   } catch (error) {
-    window.alert(error.message);
+    showFailure(error);
   } finally {
     state.busy = false;
   }
@@ -1290,7 +1307,7 @@ async function submitMistakeCause(id) {
   if (state.busy || state.mistakeSubmissions[id]) return;
   const cause = document.getElementById("mistakeCause")?.value.trim() || "";
   if (!cause || cause.length > 2000) {
-    window.alert(t("mistakeCauseRequired"));
+    showError(t("mistakeCauseRequired"));
     return;
   }
   state.mistakeDrafts[id] = cause;
@@ -1308,7 +1325,7 @@ async function submitMistakeCause(id) {
       rememberCauseRequests();
     }
   } catch (error) {
-    window.alert(error.message);
+    showFailure(error);
   } finally {
     state.busy = false;
     render();
@@ -1319,12 +1336,13 @@ document.addEventListener("click", async (event) => {
   if (!(event.target instanceof Element)) return;
   const button = event.target.closest("button");
   if (!button) return;
+  state.error = "";
 
   if (button.dataset.refreshCause !== undefined) {
     try {
       await loadState();
     } catch (error) {
-      window.alert(error.message);
+      showFailure(error);
     }
     return;
   }
@@ -1347,7 +1365,7 @@ document.addEventListener("click", async (event) => {
       await navigator.clipboard.writeText(prompt);
       state.notice = t("practiceCopied");
     } catch (error) {
-      window.alert(error.message);
+      showFailure(error);
     } finally {
       state.busy = false;
       render();
