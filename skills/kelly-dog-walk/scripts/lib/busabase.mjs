@@ -2,8 +2,11 @@
 //
 // Credentials come only from this process's environment — BUSABASE_BASE_URL, BUSABASE_API_KEY,
 // BUSABASE_SPACE_ID — never from ~/.busabase/.env implicitly and never from the AirApp's session.
-// Run it as the AGENT'S OWN member account: its node permissions are the gate (遛狗手册 = 可提交
-// 变更, 裁判规则 = 只读). An admin or owner key bypasses 限制访问 and would make that gate a lie.
+// Either the owner's own account (what an integration like Buda connects with — auth_verify says
+// owner) or the agent's own member account is fine. propose.mjs always submits with autoMerge: false,
+// so a playbook change waits for a person to merge it either way. Only a member account adds the
+// server-side gate (遛狗手册 = 可提交变更, 裁判规则 = 只读): owners and admins bypass 限制访问, so with
+// their key what keeps the agent off the playbook and the judge is SKILL.md's rules 3 and 4.
 //
 // Resources are found by what the template install stamped (`metadata.appId` + `resourceKey`),
 // never by a node id pasted into config. The 裁判规则 Doc is the one node install does not stamp,
@@ -19,7 +22,7 @@ export const connect = (options = {}) => {
   const baseUrl = process.env.BUSABASE_BASE_URL;
   if (!baseUrl) {
     throw new Error(
-      "缺少 BUSABASE_BASE_URL。可信脚本只用这个进程自己的凭据（BUSABASE_BASE_URL / BUSABASE_API_KEY / BUSABASE_SPACE_ID），请用 Agent 自己的成员账号。",
+      "缺少 BUSABASE_BASE_URL。可信脚本只用这个进程自己的凭据（BUSABASE_BASE_URL / BUSABASE_API_KEY / BUSABASE_SPACE_ID），主人的账号或 Agent 自己的成员账号都行。",
     );
   }
   return createBusabaseClient({

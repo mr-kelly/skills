@@ -147,7 +147,7 @@ run(async () => {
     }
     lines.push("", `证据不够仍然提交，理由：${args.despite}`);
   }
-  lines.push("", "这是提议。Agent 对遛狗手册只有「可提交变更」权限，合并由主人决定。");
+  lines.push("", "这是提议，合并由主人决定。");
   const message = lines.join("\n");
   const operations = [{ kind: "update", path: "SKILL.md", content: proposed, baseContentHash: current.contentHash }];
 
@@ -174,7 +174,7 @@ run(async () => {
   console.log(`\n变更请求已提交：${changeRequest.id}（${changeRequest.status}）。请主人在 Busabase 里审核、合并。`);
   if (changeRequest.status === "merged") {
     console.error(
-      "警告：这个变更请求被直接合并了——你用的凭据权限太大。Agent 应该用自己的成员账号，遛狗手册只给「可提交变更」。",
+      "警告：这个变更请求没等审核就被合并了。提交时带的是 autoMerge: false，所有者账号也不该这样——请马上告诉主人，查一下用的是哪个账号、连的 Busabase 是什么版本。",
     );
     process.exitCode = 2;
   }

@@ -5,9 +5,12 @@ rain at that hour. It is the demo for 风变第二期第 10 节《打造自我�
 thing: an agent can only improve itself if it has a judge it cannot fool.
 
 What evolves is not the model but a **playbook** (遛狗手册, a Busabase Skill node). The agent may only
-*propose* a playbook change, as a Busabase ChangeRequest; a person merges it. Permissions are the
-gate: the agent's own member account has **可提交变更** on the playbook, **只读** on the judge
-(裁判规则, a Doc), and **可写入** on its two Bases.
+*propose* a playbook change, as a Busabase ChangeRequest; a person merges it. The merge is the gate:
+proposals are always submitted with `autoMerge: false`, so they wait for review even when the agent
+runs on the owner's own account — which is what an integration like Buda connects with. Give the agent
+its own member account and the server enforces it too: **可提交变更** on the playbook, **只读** on the
+judge (裁判规则, a Doc), and **可写入** on its two Bases. Owners and admins bypass 限制访问, so those
+grants only bind a member account.
 
 ## What It Shows
 

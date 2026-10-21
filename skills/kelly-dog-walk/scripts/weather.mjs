@@ -9,7 +9,7 @@
 //
 // --source auto|live|cache|fixtures   auto = 本地缓存，没有再问 Open-Meteo（默认）
 // --lat/--lon/--timezone              自己指定坐标（上海默认固定在 31.23, 121.47，见 lib/open-meteo.mjs）
-// --write 需要 BUSABASE_BASE_URL / BUSABASE_API_KEY / BUSABASE_SPACE_ID（Agent 自己的成员账号）。
+// --write 需要 BUSABASE_BASE_URL / BUSABASE_API_KEY / BUSABASE_SPACE_ID（主人的账号或 Agent 自己的成员账号）。
 import { writeFile } from "node:fs/promises";
 import { lazyBusabase, parseArgs, run } from "./lib/cli.mjs";
 import { HOURS, fetchActualDay, fetchForecastDay, loadMonth, resolvePlace, serializeMonth } from "./lib/open-meteo.mjs";
