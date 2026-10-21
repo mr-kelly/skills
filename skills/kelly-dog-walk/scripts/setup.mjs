@@ -11,7 +11,7 @@
 //   2. 给「裁判规则」文档补上 appId/resourceKey 标记（安装只给 Base、技能、AirApp 打标记）；
 //   3. 给「每天的决定」建日历视图（按日期）和看板（按结论）——包格式只能带表格视图，
 //      所以这两个视图写在 references/native-views.json 里，由这里创建。
-// 这一步用主人（管理员）的凭据跑。之后 Agent 跑脚本，用它自己的成员账号。
+// 这一步用主人（所有者或管理员）的凭据跑。之后 Agent 跑脚本，用主人的账号或它自己的成员账号都行。
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { appConfig } from "../content/kelly-dog-walk-app/app/js/config.js";
@@ -129,13 +129,17 @@ run(async () => {
   }
 
   const agent = args["agent-user"] || "<Agent 的用户 id>";
-  console.log("\n给 Agent 开权限（主人用管理员账号做；Agent 之后只用自己的成员账号跑脚本）：");
+  console.log(
+    "\n可选：给 Agent 一个自己的成员账号，让服务器也守闸门。" +
+      "\nAgent 直接用主人的账号跑（比如通过 Buda 连上）可以跳过这一段，变更请求照样等主人合并。" +
+      "\n给 Agent 的成员账号开这些权限（主人用所有者或管理员账号开）：",
+  );
   for (const [key, label, role, roleLabel, why] of PERMISSIONS) {
     console.log(`  ${label.padEnd(6, "　")} ${roleLabel.padEnd(6, "　")} ${why}`);
   }
   console.log(
     "\n  「遛狗手册」和「裁判规则」要设成「限制访问」：设了以后只有单独授予的权限算数，空间里的默认权限盖不过它。" +
-      "\n  管理员和所有者不受「限制访问」约束——所以 Agent 一定要用自己的成员账号，不能用管理员的 API key，否则权限这道闸门就是摆设。",
+      "\n  管理员和所有者不受「限制访问」约束，所以这些权限只对 Agent 自己的成员账号起作用。",
   );
   console.log("\n  命令行授予（管理员执行）：");
   for (const [key, , role] of PERMISSIONS) {
