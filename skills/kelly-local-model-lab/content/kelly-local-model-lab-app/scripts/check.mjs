@@ -52,7 +52,7 @@ const root = path.resolve(import.meta.dirname, "..");
 const packageJson = JSON.parse(await readFile(path.join(root, "package.json"), "utf8"));
 const configText = await readFile(path.join(root, "app", "js", "config.js"), "utf8");
 const index = await readFile(path.join(root, "app", "index.html"), "utf8");
-const runtimeSource = await readFile(path.join(root, "app", "js", "runtime.js"), "utf8");
+const runtimeSource = await readFile(path.join(root, "app", "js", "connect-gate.js"), "utf8");
 const serverSource = await readFile(path.join(root, "server.js"), "utf8");
 
 if (packageJson.scripts.start !== "node server.js") throw new Error("AirApp start must be node server.js");

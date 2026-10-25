@@ -1,4 +1,8 @@
-import { inspectProvisionedResources, provisionDeclaredResources } from "../../vendor/busabase-airapp.js";
+import {
+  inspectProvisionedResources,
+  provisionDeclaredResources,
+  createAirAppRecords,
+} from "../../vendor/busabase-airapp.js";
 import { createRuntimeClient } from "../busabase-client.js";
 import { appConfig } from "../config.js?v=0.1.0";
 import {
@@ -44,12 +48,7 @@ async function rows(key) {
 
 async function findRecord(key, fieldSlug, valueText) {
   const base = bases.get(key);
-  try {
-    return await client.records.get({ baseId: base.baseId, fieldSlug, valueText });
-  } catch (error) {
-    if (error?.code === "NOT_FOUND" || error?.status === 404) return null;
-    throw error;
-  }
+  return createAirAppRecords(client).findRecord({ baseId: base.baseId, fieldSlug, valueText });
 }
 
 async function resolveAssetUrl(assetId) {

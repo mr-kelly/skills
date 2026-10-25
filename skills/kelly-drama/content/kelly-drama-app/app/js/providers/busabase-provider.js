@@ -1,4 +1,8 @@
-import { inspectProvisionedResources, provisionDeclaredResources } from "../../vendor/busabase-airapp.js";
+import {
+  inspectProvisionedResources,
+  provisionDeclaredResources,
+  createAirAppRecords,
+} from "../../vendor/busabase-airapp.js";
 // Reads/writes the operator-provisioned Kelly Drama Busabase workspace (one
 // Folder, 7 Bases: project/settings/characters/relationships/episodes/shots/
 // tasks) through js/busabase-client.js + js/drama-client.js (Asset upload/
@@ -110,21 +114,26 @@ function base(key) {
   return declared;
 }
 
+// Record reads and writes go through the SDK's helpers, bound to this app's client.
+// A person's write leaves `autoMerge` unset, so Busabase decides from their own
+// permission: it lands now with write access and becomes a ChangeRequest without
+// it. The response says which happened; `isAirAppWriteQueued` reads it.
+const sdkRecords = () => createAirAppRecords(runtimeClient, { appId: appConfig.appId });
+
 async function readPage(key, cursor) {
   if (!allowedReads.has("records.list")) throw new Error("PROCEDURE_DENIED: records.list");
   const declared = base(key);
-  const result = await runtimeClient.records.list({
+  const page = await sdkRecords().readPage({
     baseId: declared.baseId,
     limit: declared.readLimit,
-    ...(cursor ? { cursor } : {}),
+    cursor,
   });
-  const records = Array.isArray(result) ? result : result.records || [];
-  const rows = records.map((record) => ({
-    ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields),
+  const rows = page.records.map((record) => ({
+    ...normalizeFields(record.fields),
     __recordId: record.id,
     __headCommitId: record.headCommitId || record.headCommit?.id,
   }));
-  return { rows, nextCursor: Array.isArray(result) ? null : result.nextCursor || null };
+  return { rows, nextCursor: page.nextCursor };
 }
 
 async function countRecords(key, filters) {
@@ -147,12 +156,7 @@ async function countActiveRecords(key) {
 
 async function findRecord(key, idFieldSlug, idValue) {
   const declared = base(key);
-  try {
-    return await runtimeClient.records.get({ baseId: declared.baseId, fieldSlug: idFieldSlug, valueText: idValue });
-  } catch (error) {
-    if (error?.code === "NOT_FOUND" || error?.status === 404) return null;
-    throw error;
-  }
+  return sdkRecords().findRecord({ baseId: declared.baseId, fieldSlug: idFieldSlug, valueText: idValue });
 }
 
 async function upsert(key, idFieldSlug, idValue, fields, message) {
@@ -160,24 +164,14 @@ async function upsert(key, idFieldSlug, idValue, fields, message) {
     throw new Error("PROCEDURE_DENIED: records.changeRequest");
   }
   const declared = base(key);
-  const existing = await findRecord(key, idFieldSlug, idValue);
-  const normalized = toBusabaseFields(fields);
-  if (!existing) {
-    return runtimeClient.bases.createChangeRequest({
-      baseId: declared.baseId,
-      fields: normalized,
-      message,
-      submittedBy: appConfig.appId,
-    });
-  }
-  return runtimeClient.records.changeRequest({
-    recordId: existing.id,
-    operation: "update",
-    fields: normalized,
+  const { response } = await sdkRecords().upsert({
+    baseId: declared.baseId,
+    fieldSlug: idFieldSlug,
+    valueText: idValue,
+    fields: toBusabaseFields(fields),
     message,
-    author: appConfig.appId,
-    baseCommitId: existing.headCommitId,
   });
+  return response;
 }
 
 // ---- field shapes (row <-> field defaults) ----

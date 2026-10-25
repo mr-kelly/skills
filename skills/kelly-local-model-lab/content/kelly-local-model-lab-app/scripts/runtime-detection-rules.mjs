@@ -1,7 +1,8 @@
 // Copy into the generated `scripts/check.mjs` assertions array.
 //
-// `source` is the concatenated browser code (include `app/js/runtime.js` in the
-// list that builds it); `serverSource` is `server.js`.
+// `source` is the concatenated browser code (include the module that asks the
+// runtime, `app/js/connect-gate.js`, in the list that builds it); `serverSource`
+// is `server.js`.
 //
 // These exist because prose alone did not hold. Sixty-five generated Apps had
 // independently reinvented the same loopback-hostname test, and one App's check
@@ -13,8 +14,9 @@ export const runtimeDetectionAssertions = (source, serverSource) => [
     message: "Runtime must not be inferred from the hostname or from iframe nesting",
   },
   {
-    ok: source.includes("__airapp/runtime"),
-    message: "Browser code must probe the injected runtime at __airapp/runtime",
+    // `detectAirAppRuntime()` is the SDK's probe of that same relative path.
+    ok: source.includes("__airapp/runtime") || /\bdetectAirAppRuntime\s*\(/.test(source),
+    message: "Browser code must probe the injected runtime (detectAirAppRuntime(), or __airapp/runtime)",
   },
   {
     // Relative on purpose: under the Local Node engine the App is served from a

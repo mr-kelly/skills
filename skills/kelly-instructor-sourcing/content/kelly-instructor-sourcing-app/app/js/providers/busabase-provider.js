@@ -2,6 +2,7 @@ import {
   inspectProvisionedResources,
   isAirAppWriteQueued,
   provisionDeclaredResources,
+  createAirAppRecords,
 } from "../../vendor/busabase-airapp.js";
 import { createRuntimeClient } from "../busabase-client.js";
 import { appConfig } from "../config.js";
@@ -36,10 +37,10 @@ const normalizeRecords = (records, baseKey) =>
 
 const readPage = async (client, base, cursor) => {
   if (!allowedReads.has("records.list")) throw new Error("PROCEDURE_DENIED: records.list");
-  const page = await client.records.list({
+  const page = await createAirAppRecords(client).readPage({
     baseId: base.baseId,
     limit: BUSABASE_RECORD_PAGE_SIZE,
-    ...(cursor ? { cursor } : {}),
+    cursor,
   });
   return {
     records: normalizeRecords(page.records, base.key),
