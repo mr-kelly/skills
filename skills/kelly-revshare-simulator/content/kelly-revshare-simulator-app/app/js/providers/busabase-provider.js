@@ -19,15 +19,11 @@ const allowedSetup = new Set(appConfig.permissions.setupProcedures);
 const allowedWrites = new Set(appConfig.permissions.writeProcedures);
 const BROWSED_KEYS = ["scenarios"];
 
-// A deployed AirApp is served through the ambient Busabase session (a Busabase
-// iframe/preview host, or same-origin proxy under /api/airapp-preview/); a
-// standalone local preview runs on loopback outside that host. Direct writes
-// made from a standalone local preview (the trusted operator's own machine)
-// merge immediately; writes made from the deployed AirApp create a pending
-// ChangeRequest for the trusted process to merge, per the AirApp boundary.
-// A deployed AirApp sits inside the Busabase review boundary; only a standalone
-// run may merge its own writes. That is far too consequential to infer from the
-// URL — see ../runtime.js.
+// A person's create/update from this app leaves `autoMerge` unset, so Busabase
+// decides from that person's own permission: with write access the change lands
+// now; without it the same change becomes a ChangeRequest for someone who has it.
+// Delete is different (Busabase never auto-merges a delete), and still uses
+// isStandaloneLocalRuntime below to decide whether this run approves its own.
 import { isStandaloneLocalRuntime } from "../runtime.js";
 
 export { isStandaloneLocalRuntime };
@@ -122,7 +118,6 @@ async function createScenarioRecord(scenario, message) {
     fields: toBusabaseFields(scenarioToFields(scenario)),
     message,
     submittedBy: appConfig.appId,
-    autoMerge: isStandaloneLocalRuntime(),
   });
 }
 
@@ -135,7 +130,6 @@ async function updateScenarioRecord(existing, scenario, message) {
     message,
     author: appConfig.appId,
     baseCommitId: existing.headCommitId,
-    autoMerge: isStandaloneLocalRuntime(),
   });
 }
 

@@ -159,7 +159,7 @@ function renderDetail(candidate) {
     </div>
     <div class="detail-scroll">
       <div class="detail-heading"><div><span class="eyebrow">Review #${candidate.ref}</span><h2>${esc(candidate.title)}</h2></div><span class="chip ${statusClass(candidate.status)}">${esc(statusLabel(candidate.status))}</span></div>
-      ${state.pendingDecision?.candidate_id === candidate.candidate_id ? `<p class="pending-cr">ChangeRequest <strong>${esc(state.pendingDecision.change_request_id || "pending")}</strong> was submitted and is waiting for review. The candidate state has not been changed yet.</p>` : ""}
+      ${state.pendingDecision?.candidate_id === candidate.candidate_id ? `<p class="pending-cr">ChangeRequest <strong>${esc(state.pendingDecision.change_request_id || "pending")}</strong> was sent for review. You don't have write access here, so the candidate's state changes once someone who does approves it.</p>` : ""}
       <div class="segmented" role="group" aria-label="Comparison mode">
         ${segment("before", t("before"))}${segment("split", t("split"))}${segment("after", t("after"))}
       </div>
@@ -285,8 +285,11 @@ async function submitDecision(action) {
       strength: state.draftStrength ?? candidate.strength,
     });
     state.draftStrength = null;
-    state.pendingDecision = { candidate_id: candidate.candidate_id, ...result };
-    render();
+    // A decision that landed is already the candidate's state, so reload it. Without
+    // write access it is a ChangeRequest, and the detail says so until it is approved.
+    state.pendingDecision = result.pending ? { candidate_id: candidate.candidate_id, ...result } : null;
+    if (result.pending) render();
+    else await loadState();
   } catch (error) {
     window.alert(error instanceof Error ? error.message : String(error));
   } finally {

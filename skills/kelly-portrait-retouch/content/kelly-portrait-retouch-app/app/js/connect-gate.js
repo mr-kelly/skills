@@ -9,14 +9,12 @@
 // `shouldGate` is passed explicitly rather than letting the SDK infer it from a
 // status probe: where this app runs is a fact its host states
 // (BUSABASE_AIRAPP_RUNTIME, surfaced by ./runtime.js), never something to guess
-// from the hostname. `shouldUseLocalGateway` drives the connect gate;
-// `isStandaloneLocalRuntime` drives whether writes may merge. They differ only
-// when the runtime is undetermined, where each falls to its own safe side.
+// from the hostname. `shouldUseLocalGateway` drives the connect gate.
 import { createAirAppConnectGate } from "../vendor/busabase-airapp-gate.js";
 import { getProvider } from "./providers/index.js?v=0.1.0";
-import { isStandaloneLocalRuntime, shouldUseLocalGateway } from "./runtime.js";
+import { shouldUseLocalGateway } from "./runtime.js";
 
-export { isStandaloneLocalRuntime, shouldUseLocalGateway };
+export { shouldUseLocalGateway };
 
 const isDemo = () => new URLSearchParams(window.location.search).has("demo");
 const escapeHtml = (value) =>
