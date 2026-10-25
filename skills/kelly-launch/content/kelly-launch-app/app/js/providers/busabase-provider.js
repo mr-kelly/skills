@@ -8,10 +8,6 @@ const allowedSetup = new Set(appConfig.permissions.setupProcedures);
 const allowedWrites = new Set(appConfig.permissions.writeProcedures);
 const DECISION_ACTIONS = new Set(["approve", "request_changes", "block", "revise"]);
 
-// Only a standalone run may merge its own writes; a deployed AirApp is inside
-// the Busabase review boundary. Too consequential to infer from the URL.
-import { isStandaloneLocalRuntime } from "../runtime.js";
-
 const normalizeFields = (fields) =>
   Object.fromEntries(Object.entries(fields || {}).map(([slug, value]) => [slug.replaceAll("-", "_"), value]));
 const toBusabaseFields = (fields) =>
@@ -122,14 +118,12 @@ async function upsert(key, idFieldSlug, idValue, fields, message) {
   const declared = base(key);
   const existing = await findRecord(key, idFieldSlug, idValue);
   const normalized = toBusabaseFields(fields);
-  const autoMerge = isStandaloneLocalRuntime();
   if (!existing) {
     return runtimeClient.bases.createChangeRequest({
       baseId: declared.baseId,
       fields: normalized,
       message,
       submittedBy: appConfig.appId,
-      autoMerge,
     });
   }
   return runtimeClient.records.changeRequest({
@@ -139,7 +133,6 @@ async function upsert(key, idFieldSlug, idValue, fields, message) {
     message,
     author: appConfig.appId,
     baseCommitId: existing.headCommitId,
-    autoMerge,
   });
 }
 

@@ -9,9 +9,6 @@ import {
   buildSnapshot,
   parseJson,
 } from "../lab-model.js?v=0.1.0";
-import { isStandaloneLocalRuntime } from "../runtime.js";
-
-export { isStandaloneLocalRuntime };
 
 const allowedReads = new Set(appConfig.permissions.readProcedures);
 const allowedSetup = new Set(appConfig.permissions.setupProcedures);
@@ -101,7 +98,6 @@ async function updateRecord(key, item, fields, message) {
     message,
     author: appConfig.appId,
     baseCommitId: item.__headCommitId,
-    autoMerge: isStandaloneLocalRuntime(),
   });
 }
 

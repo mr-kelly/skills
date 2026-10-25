@@ -23,13 +23,6 @@ const allowedSetup = new Set(appConfig.permissions.setupProcedures);
 const allowedWrites = new Set(appConfig.permissions.writeProcedures);
 const BROWSED_KEYS = ["tickets", "knowledge-base"];
 
-// A deployed AirApp sits inside the Busabase review boundary; only a standalone
-// run may merge its own writes. That is far too consequential to infer from the
-// URL — see ../runtime.js.
-import { isStandaloneLocalRuntime } from "../runtime.js";
-
-export { isStandaloneLocalRuntime };
-
 const normalizeFields = (fields) =>
   Object.fromEntries(Object.entries(fields || {}).map(([slug, value]) => [slug.replaceAll("-", "_"), value]));
 const toBusabaseFields = (fields) =>
@@ -122,14 +115,12 @@ async function upsert(key, idFieldSlug, idValue, fields, message) {
   const declared = base(key);
   const existing = await findRecord(key, idFieldSlug, idValue);
   const normalized = toBusabaseFields(fields);
-  const autoMerge = isStandaloneLocalRuntime();
   if (!existing) {
     return runtimeClient.bases.createChangeRequest({
       baseId: declared.baseId,
       fields: normalized,
       message,
       submittedBy: appConfig.appId,
-      autoMerge,
     });
   }
   return runtimeClient.records.changeRequest({
@@ -139,7 +130,6 @@ async function upsert(key, idFieldSlug, idValue, fields, message) {
     message,
     author: appConfig.appId,
     baseCommitId: existing.headCommitId,
-    autoMerge,
   });
 }
 
@@ -435,7 +425,6 @@ export const busabaseProvider = {
     const fields = serializeSupportSettings(input, { complete: true });
     const current = await readSettingsRow();
     const normalized = toBusabaseFields(fields);
-    const autoMerge = isStandaloneLocalRuntime();
     const result = current.__recordId
       ? await runtimeClient.records.changeRequest({
           recordId: current.__recordId,
@@ -444,14 +433,12 @@ export const busabaseProvider = {
           message: "Configure Kelly Support policies and mark onboarding complete",
           author: appConfig.appId,
           baseCommitId: current.__headCommitId,
-          autoMerge,
         })
       : await runtimeClient.bases.createChangeRequest({
           baseId: base("settings").baseId,
           fields: normalized,
           message: "Configure Kelly Support policies and mark onboarding complete",
           submittedBy: appConfig.appId,
-          autoMerge,
         });
     return { ok: true, change_request_id: result?.status === "in_review" ? result.id : "" };
   },

@@ -87,11 +87,11 @@ test("does not persist secrets or a second data provider in browser storage", as
   assert.match(source, /createBusabaseClient/);
 });
 
-test("the AirApp writes verdicts only via records.changeRequest/bases.createChangeRequest, autoMerge gated by isStandaloneLocalRuntime", async () => {
+test("the AirApp writes verdicts only via records.changeRequest/bases.createChangeRequest, writes follow the person's permission", async () => {
   const source = await readFile(join(browserRoot, "js", "providers", "busabase-provider.js"), "utf8");
   assert.match(source, /records\.changeRequest/);
   assert.match(source, /bases\.createChangeRequest/);
-  assert.match(source, /autoMerge = isStandaloneLocalRuntime\(\)/);
+  assert.doesNotMatch(source.replace(/\/\/.*$/gm, ""), /\bautoMerge\b(?!\s*:\s*true)/);
 });
 
 test("retires the pre-Busabase local-file provider layer", async () => {

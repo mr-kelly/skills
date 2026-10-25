@@ -93,11 +93,11 @@ test("does not persist secrets or a second data provider in browser storage", as
   assert.match(source, /createBusabaseClient/);
 });
 
-test("decisions write directly onto the item's own record via records.changeRequest, autoMerge gated on standalone-local", async () => {
+test("decisions write directly onto the item's own record via records.changeRequest, writes follow the person's permission", async () => {
   const providerSource = await readFile(join(browserRoot, "js", "providers", "busabase-provider.js"), "utf8");
   assert.match(providerSource, /async saveDecision\(/);
   assert.match(providerSource, /records\.changeRequest|bases\.createChangeRequest/);
-  assert.match(providerSource, /isStandaloneLocalRuntime/);
+  assert.doesNotMatch(providerSource.replace(/\/\/.*$/gm, ""), /\bautoMerge\b(?!\s*:\s*true)/);
   const { appConfig } = await import(join(browserRoot, "js", "config.js"));
   assert.equal(appConfig.readOnly, false);
   assert.ok(appConfig.permissions.writeProcedures.includes("records.changeRequest"));

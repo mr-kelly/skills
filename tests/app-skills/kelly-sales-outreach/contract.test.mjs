@@ -236,9 +236,9 @@ test("the one-page collateral builder uses stored claims and degrades without Ch
   assert.match(renderer, /CHROME_PATH/);
 });
 
-test("browser writes only auto-merge on a standalone local runtime", async () => {
+test("browser writes leave autoMerge unset so they follow the person's permission", async () => {
   const provider = await readFile(join(browserRoot, "js", "providers", "busabase-provider.js"), "utf8");
-  assert.match(provider, /isStandaloneLocalRuntime\(\)/);
+  assert.doesNotMatch(provider.replace(/\/\/.*$/gm, ""), /\bautoMerge\b(?!\s*:\s*true)/);
   assert.doesNotMatch(provider, /autoMerge:\s*true/);
   assert.match(provider, /bases\.createChangeRequest/);
   assert.match(provider, /records\.changeRequest/);

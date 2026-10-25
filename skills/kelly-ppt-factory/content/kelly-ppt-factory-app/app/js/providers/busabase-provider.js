@@ -15,19 +15,6 @@ const allowedReads = new Set(appConfig.permissions.readProcedures);
 const allowedSetup = new Set(appConfig.permissions.setupProcedures);
 const allowedWrites = new Set(appConfig.permissions.writeProcedures);
 
-// A deployed AirApp is served through the ambient Busabase session (a Busabase
-// iframe/preview host, or same-origin proxy under /api/airapp-preview/); a
-// standalone local preview runs on loopback outside that host. Human actions
-// made from a standalone local preview (the trusted operator's own machine)
-// merge immediately; actions made from the deployed AirApp create a pending
-// ChangeRequest for the trusted process to merge, per the AirApp boundary.
-// A deployed AirApp sits inside the Busabase review boundary; only a standalone
-// run may merge its own writes. That is far too consequential to infer from the
-// URL — see ../runtime.js.
-import { isStandaloneLocalRuntime } from "../runtime.js";
-
-export { isStandaloneLocalRuntime };
-
 const normalizeFields = (fields) =>
   Object.fromEntries(Object.entries(fields || {}).map(([slug, value]) => [slug.replaceAll("-", "_"), value]));
 const toBusabaseFields = (fields) =>
@@ -265,7 +252,6 @@ export const busabaseProvider = {
         message: `Decision on deck ${id}: ${action}`,
         author: appConfig.appId,
         baseCommitId: existing.headCommitId,
-        autoMerge: isStandaloneLocalRuntime(),
       });
     } else {
       const current = normalizeSlideRow(currentRaw);
@@ -287,7 +273,6 @@ export const busabaseProvider = {
         message: `Decision on slide card ${id}: ${action}`,
         author: appConfig.appId,
         baseCommitId: existing.headCommitId,
-        autoMerge: isStandaloneLocalRuntime(),
       });
     }
     return { ok: true };

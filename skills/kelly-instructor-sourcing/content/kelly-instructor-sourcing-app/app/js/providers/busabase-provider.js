@@ -1,6 +1,20 @@
-import { inspectProvisionedResources, provisionDeclaredResources } from "../../vendor/busabase-airapp.js";
-import { createRuntimeClient, isStandaloneLocalRuntime } from "../busabase-client.js";
+import {
+  inspectProvisionedResources,
+  isAirAppWriteQueued,
+  provisionDeclaredResources,
+} from "../../vendor/busabase-airapp.js";
+import { createRuntimeClient } from "../busabase-client.js";
 import { appConfig } from "../config.js";
+
+// A person's write from this app leaves `autoMerge` unset, so Busabase decides
+// from that person's own permission: with write access the change lands now;
+// without it the same change becomes a ChangeRequest for someone who has it.
+// The response says which happened, and the caller reports it rather than
+// assuming either.
+const writeOutcome = (result) => {
+  const pending = isAirAppWriteQueued(result);
+  return { merged: !pending, pending, change_request_id: pending ? result?.id || "" : "" };
+};
 
 const allowedReads = new Set(appConfig.permissions.readProcedures);
 const allowedSetup = new Set(appConfig.permissions.setupProcedures);
@@ -91,7 +105,6 @@ export const busabaseProvider = {
         name: "busabase",
         mode: "busabase_sdk_openapi",
         readOnly: false,
-        pendingReview: !isStandaloneLocalRuntime(),
       },
       records: criteriaPage.records,
       pageInfo: {
@@ -110,7 +123,6 @@ export const busabaseProvider = {
         name: "busabase",
         mode: "busabase_sdk_openapi",
         readOnly: false,
-        pendingReview: !isStandaloneLocalRuntime(),
       },
       records: pages.flatMap(([, page]) => page.records),
       pageInfo: Object.fromEntries(
@@ -138,7 +150,6 @@ export const busabaseProvider = {
   },
   async saveCriteria({ recordId, fields, message }) {
     const client = runtimeClient || createRuntimeClient();
-    const autoMerge = isStandaloneLocalRuntime();
     if (recordId) {
       if (!allowedWrites.has("records.changeRequest")) throw new Error("PROCEDURE_DENIED: records.changeRequest");
       const result = await client.records.changeRequest({
@@ -147,9 +158,8 @@ export const busabaseProvider = {
         fields,
         message,
         author: appConfig.appId,
-        autoMerge,
       });
-      return { merged: result?.materialized === true };
+      return writeOutcome(result);
     }
     if (!allowedWrites.has("bases.createChangeRequest")) throw new Error("PROCEDURE_DENIED: bases.createChangeRequest");
     const result = await client.bases.createChangeRequest({
@@ -157,9 +167,8 @@ export const busabaseProvider = {
       fields,
       message,
       submittedBy: appConfig.appId,
-      autoMerge,
     });
-    return { merged: result?.materialized === true };
+    return writeOutcome(result);
   },
   async updateCandidate({ recordId, fields, message }) {
     if (!allowedWrites.has("records.changeRequest")) throw new Error("PROCEDURE_DENIED: records.changeRequest");
@@ -171,8 +180,7 @@ export const busabaseProvider = {
       fields,
       message,
       author: appConfig.appId,
-      autoMerge: isStandaloneLocalRuntime(),
     });
-    return { merged: result?.materialized === true };
+    return writeOutcome(result);
   },
 };
