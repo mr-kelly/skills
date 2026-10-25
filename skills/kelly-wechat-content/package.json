@@ -10,6 +10,6 @@
     "typecheck": "tsc -p tsconfig.json",
     "app:check": "pnpm --dir content/kelly-wechat-content-app check"
   },
-  "dependencies": { "busabase-sdk": "0.90.2" },
+  "dependencies": { "busabase-sdk": "0.99.1" },
   "engines": { "node": ">=24.18.0" }
 }

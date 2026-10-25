@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       busabase-sdk:
-        specifier: 0.90.2
-        version: 0.90.2
+        specifier: 0.99.1
+        version: 0.99.1
 
 packages:
 
@@ -43,8 +43,8 @@ packages:
   '@standard-schema/spec@1.1.0':
     resolution: {integrity: sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==}
 
-  busabase-sdk@0.90.2:
-    resolution: {integrity: sha512-XpJ0ZoDoYq9MyGysuAuO91ooIYiV9JBJHbcm6rNS/8NjOzZZ0o9SMe5NahOPySziE+Wd9nymlfVb1f3Dcn2GHA==}
+  busabase-sdk@0.99.1:
+    resolution: {integrity: sha512-b5Ih79bVcSkhgCDdEfc55u7q1Hn83Bg8ZIz7XojBZ816UrkHgAFoHcxpmkOU3V470IdDjm5BO+Z6/2kgPHRy+w==}
     engines: {node: '>=24.18.0'}
 
   openapi-types@12.1.3:
@@ -121,7 +121,7 @@ snapshots:
 
   '@standard-schema/spec@1.1.0': {}
 
-  busabase-sdk@0.90.2:
+  busabase-sdk@0.99.1:
     dependencies:
       '@orpc/client': 1.15.4
       '@orpc/contract': 1.15.4
