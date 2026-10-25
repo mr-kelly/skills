@@ -1,0 +1,152 @@
+{
+  "name": "证据",
+  "description": "证据：仅保存本工作台的数据。",
+  "position": 3,
+  "agentPrompts": [
+    {
+      "key": "scenario-1",
+      "label": "把此次核查的相关证据按时间排列，保留不确定性。",
+      "body": "阅读此文件夹中的 kelly-security skill 并遵循其流程。把此次核查的相关证据按时间排列，保留不确定性。",
+      "intent": "change"
+    },
+    {
+      "key": "scenario-2",
+      "label": "检查指定取证产物的来源和哈希是否完整。",
+      "body": "阅读此文件夹中的 kelly-security skill 并遵循其流程。检查指定取证产物的来源和哈希是否完整。",
+      "intent": "read-only"
+    }
+  ],
+  "fields": [
+    {
+      "slug": "title",
+      "name": "名称",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "source-kind",
+      "name": "来源类型",
+      "type": "text",
+      "required": true,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "source-locator",
+      "name": "来源路径、行号或事件编号",
+      "type": "text",
+      "required": true,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "original-time",
+      "name": "来源原始时间",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "event-time",
+      "name": "标准化事件时间",
+      "type": "date",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "time-confidence",
+      "name": "时区或年份不确定性",
+      "type": "text",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "collected-at",
+      "name": "采集时间",
+      "type": "date",
+      "required": true,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "sha256",
+      "name": "本机取证产物 SHA-256",
+      "type": "text",
+      "required": true,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "artifact-reference",
+      "name": "本机受限证据引用",
+      "type": "text",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "redacted-excerpt",
+      "name": "脱敏证据摘要",
+      "type": "longtext",
+      "required": false,
+      "position": 9,
+      "options": {}
+    },
+    {
+      "slug": "redaction-note",
+      "name": "脱敏与完整性说明",
+      "type": "longtext",
+      "required": false,
+      "position": 10,
+      "options": {}
+    },
+    {
+      "slug": "is-example",
+      "name": "示例记录",
+      "type": "checkbox",
+      "required": false,
+      "position": 11,
+      "options": {}
+    },
+    {
+      "slug": "record-key",
+      "name": "幂等业务键",
+      "type": "text",
+      "required": true,
+      "position": 12,
+      "options": {}
+    },
+    {
+      "slug": "check-reference",
+      "name": "检查项精确索引",
+      "type": "text",
+      "required": true,
+      "position": 13,
+      "options": {}
+    },
+    {
+      "slug": "check",
+      "name": "来源检查项",
+      "type": "relation",
+      "required": true,
+      "position": 14,
+      "options": {
+        "targetBaseSlug": "checks",
+        "allowMultiple": false
+      }
+    }
+  ],
+  "views": [
+    {
+      "slug": "evidence-main",
+      "name": "证据",
+      "type": "table",
+      "config": {}
+    }
+  ]
+}

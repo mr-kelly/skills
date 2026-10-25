@@ -1,0 +1,1384 @@
+{
+  "schema_version": 1,
+  "app": {
+    "name": "Kelly Security · Linux 入侵核查台",
+    "slug": "kelly-security",
+    "description": "由本机 Agent 经 SSH 核查 Linux 入侵证据，在 Busabase 中复核多服务器检查清单、证据和时间线。",
+    "locale": "zh-CN",
+    "deployment": "desktop",
+    "space_id": "",
+    "read_only": false,
+    "brand": {
+      "mode": "inferred",
+      "theme": "graphite",
+      "editorial": "desk",
+      "display": "sans"
+    }
+  },
+  "workspace": {
+    "folder": {
+      "name": "Kelly Security",
+      "slug": "kelly-security",
+      "agent_scenarios": [
+        "核查选中的服务器是否有入侵证据。",
+        "解释最值得先查的线索和当前证据缺口。"
+      ]
+    },
+    "bases": [
+      {
+        "key": "hosts",
+        "name": "服务器",
+        "slug": "kelly-security-hosts",
+        "description": "服务器：仅保存本工作台的数据。",
+        "read_limit": 50,
+        "fields": [
+          {
+            "slug": "title",
+            "name": "名称",
+            "type": "text",
+            "required": true
+          },
+          {
+            "slug": "ssh-alias",
+            "name": "本机 SSH 别名",
+            "type": "text",
+            "required": true
+          },
+          {
+            "slug": "role",
+            "name": "业务角色",
+            "type": "text",
+            "required": false
+          },
+          {
+            "slug": "environment",
+            "name": "环境",
+            "type": "select",
+            "required": false,
+            "options": {
+              "choices": [
+                {
+                  "id": "production",
+                  "name": "生产"
+                },
+                {
+                  "id": "staging",
+                  "name": "预发布"
+                },
+                {
+                  "id": "lab",
+                  "name": "实验室"
+                }
+              ]
+            }
+          },
+          {
+            "slug": "scope-note",
+            "name": "授权说明",
+            "type": "longtext",
+            "required": false
+          },
+          {
+            "slug": "expected-fingerprint",
+            "name": "已独立核实的 SSH 指纹",
+            "type": "text",
+            "required": false
+          },
+          {
+            "slug": "last-checked-at",
+            "name": "最近检查时间",
+            "type": "date",
+            "required": false
+          },
+          {
+            "slug": "summary",
+            "name": "最近结论",
+            "type": "select",
+            "required": false,
+            "options": {
+              "choices": [
+                {
+                  "id": "unassessed",
+                  "name": "未评估"
+                },
+                {
+                  "id": "no-indicators",
+                  "name": "未发现异常"
+                },
+                {
+                  "id": "suspicious",
+                  "name": "可疑"
+                },
+                {
+                  "id": "confirmed-malicious",
+                  "name": "确认恶意"
+                },
+                {
+                  "id": "explained-benign",
+                  "name": "已解释为正常"
+                },
+                {
+                  "id": "insufficient-evidence",
+                  "name": "证据不足"
+                }
+              ]
+            }
+          },
+          {
+            "slug": "is-example",
+            "name": "示例记录",
+            "type": "checkbox",
+            "required": false
+          }
+        ],
+        "views": [
+          {
+            "key": "hosts-main",
+            "name": "服务器",
+            "type": "table",
+            "config": {}
+          }
+        ],
+        "seed_records": [
+          {
+            "title": "示例 · Web 服务器",
+            "ssh-alias": "example-web",
+            "role": "演示数据，不代表可连接主机",
+            "environment": "lab",
+            "summary": "unassessed",
+            "is-example": true
+          },
+          {
+            "title": "示例 · API 服务器",
+            "ssh-alias": "example-api",
+            "role": "演示数据，不代表可连接主机",
+            "environment": "lab",
+            "summary": "insufficient-evidence",
+            "is-example": true
+          },
+          {
+            "title": "示例 · 数据服务器",
+            "ssh-alias": "example-db",
+            "role": "演示数据，不代表可连接主机",
+            "environment": "lab",
+            "summary": "unassessed",
+            "is-example": true
+          }
+        ],
+        "agentPrompts": [
+          {
+            "key": "scenario-1",
+            "label": "加入我指定的 SSH 别名，不连接其他机器。",
+            "body": "阅读此文件夹中的 kelly-security skill 并遵循其流程。加入我指定的 SSH 别名，不连接其他机器。",
+            "intent": "change"
+          },
+          {
+            "key": "scenario-2",
+            "label": "比较这些服务器还有哪些证据没有查清。",
+            "body": "阅读此文件夹中的 kelly-security skill 并遵循其流程。比较这些服务器还有哪些证据没有查清。",
+            "intent": "read-only"
+          }
+        ]
+      },
+      {
+        "key": "runs",
+        "name": "检查任务",
+        "slug": "kelly-security-runs",
+        "description": "检查任务：仅保存本工作台的数据。",
+        "read_limit": 50,
+        "fields": [
+          {
+            "slug": "title",
+            "name": "名称",
+            "type": "text",
+            "required": true
+          },
+          {
+            "slug": "scope-reference",
+            "name": "当前会话授权引用",
+            "type": "text",
+            "required": true
+          },
+          {
+            "slug": "window-start",
+            "name": "调查开始时间",
+            "type": "date",
+            "required": true
+          },
+          {
+            "slug": "window-end",
+            "name": "调查结束时间",
+            "type": "date",
+            "required": true
+          },
+          {
+            "slug": "check-profile",
+            "name": "检查包",
+            "type": "text",
+            "required": true
+          },
+          {
+            "slug": "status",
+            "name": "执行状态",
+            "type": "select",
+            "required": true,
+            "options": {
+              "choices": [
+                {
+                  "id": "requested",
+                  "name": "等待本机 Agent"
+                },
+                {
+                  "id": "running",
+                  "name": "执行中"
+                },
+                {
+                  "id": "completed",
+                  "name": "已完成"
+                },
+                {
+                  "id": "partial",
+                  "name": "部分完成"
+                },
+                {
+                  "id": "failed",
+                  "name": "失败"
+                },
+                {
+                  "id": "cancelled",
+                  "name": "已取消"
+                }
+              ]
+            }
+          },
+          {
+            "slug": "requested-at",
+            "name": "请求时间",
+            "type": "date",
+            "required": false
+          },
+          {
+            "slug": "started-at",
+            "name": "开始时间",
+            "type": "date",
+            "required": false
+          },
+          {
+            "slug": "finished-at",
+            "name": "结束时间",
+            "type": "date",
+            "required": false
+          },
+          {
+            "slug": "runner-id",
+            "name": "本机 Agent 标识",
+            "type": "text",
+            "required": false
+          },
+          {
+            "slug": "heartbeat-at",
+            "name": "最近心跳",
+            "type": "date",
+            "required": false
+          },
+          {
+            "slug": "claim-reference",
+            "name": "领取与幂等引用",
+            "type": "text",
+            "required": false
+          },
+          {
+            "slug": "coverage-summary",
+            "name": "覆盖和缺口",
+            "type": "longtext",
+            "required": false
+          },
+          {
+            "slug": "analyst-summary",
+            "name": "调查摘要",
+            "type": "longtext",
+            "required": false
+          },
+          {
+            "slug": "is-example",
+            "name": "示例记录",
+            "type": "checkbox",
+            "required": false
+          },
+          {
+            "slug": "batch-reference",
+            "name": "本次多服务器批次",
+            "type": "text",
+            "required": false
+          },
+          {
+            "slug": "host",
+            "name": "服务器",
+            "type": "relation",
+            "required": true,
+            "options": {
+              "targetBaseSlug": "kelly-security-hosts",
+              "allowMultiple": false
+            }
+          }
+        ],
+        "views": [
+          {
+            "key": "runs-main",
+            "name": "检查任务",
+            "type": "table",
+            "config": {}
+          }
+        ],
+        "seed_records": [],
+        "agentPrompts": [
+          {
+            "key": "scenario-1",
+            "label": "核查当前授权的这台服务器是否有入侵证据。",
+            "body": "阅读此文件夹中的 kelly-security skill 并遵循其流程。核查当前授权的这台服务器是否有入侵证据。",
+            "intent": "change"
+          },
+          {
+            "key": "scenario-2",
+            "label": "解释这次检查为什么中断或仍在等待本机 Agent。",
+            "body": "阅读此文件夹中的 kelly-security skill 并遵循其流程。解释这次检查为什么中断或仍在等待本机 Agent。",
+            "intent": "read-only"
+          }
+        ]
+      },
+      {
+        "key": "checks",
+        "name": "检查项",
+        "slug": "kelly-security-checks",
+        "description": "检查项：仅保存本工作台的数据。",
+        "read_limit": 50,
+        "fields": [
+          {
+            "slug": "title",
+            "name": "名称",
+            "type": "text",
+            "required": true
+          },
+          {
+            "slug": "check-id",
+            "name": "固定检查配方标识",
+            "type": "text",
+            "required": true
+          },
+          {
+            "slug": "attempt",
+            "name": "尝试序号",
+            "type": "number",
+            "required": true
+          },
+          {
+            "slug": "status",
+            "name": "采集状态",
+            "type": "select",
+            "required": true,
+            "options": {
+              "choices": [
+                {
+                  "id": "pending",
+                  "name": "未开始"
+                },
+                {
+                  "id": "running",
+                  "name": "执行中"
+                },
+                {
+                  "id": "completed",
+                  "name": "完成"
+                },
+                {
+                  "id": "permission-denied",
+                  "name": "无权限"
+                },
+                {
+                  "id": "not-applicable",
+                  "name": "不适用"
+                },
+                {
+                  "id": "missing-data",
+                  "name": "数据缺失"
+                },
+                {
+                  "id": "failed",
+                  "name": "失败"
+                },
+                {
+                  "id": "cancelled",
+                  "name": "已取消"
+                }
+              ]
+            }
+          },
+          {
+            "slug": "conclusion",
+            "name": "分析结论",
+            "type": "select",
+            "required": true,
+            "options": {
+              "choices": [
+                {
+                  "id": "unassessed",
+                  "name": "未评估"
+                },
+                {
+                  "id": "no-indicators",
+                  "name": "未发现异常"
+                },
+                {
+                  "id": "suspicious",
+                  "name": "可疑"
+                },
+                {
+                  "id": "confirmed-malicious",
+                  "name": "确认恶意"
+                },
+                {
+                  "id": "explained-benign",
+                  "name": "已解释为正常"
+                },
+                {
+                  "id": "insufficient-evidence",
+                  "name": "证据不足"
+                }
+              ]
+            }
+          },
+          {
+            "slug": "observed-at",
+            "name": "采集时间",
+            "type": "date",
+            "required": false
+          },
+          {
+            "slug": "coverage-start",
+            "name": "证据起始时间",
+            "type": "date",
+            "required": false
+          },
+          {
+            "slug": "coverage-end",
+            "name": "证据结束时间",
+            "type": "date",
+            "required": false
+          },
+          {
+            "slug": "coverage-note",
+            "name": "范围、截断和权限缺口",
+            "type": "longtext",
+            "required": false
+          },
+          {
+            "slug": "command-reference",
+            "name": "已审核配方与版本",
+            "type": "text",
+            "required": false
+          },
+          {
+            "slug": "exit-code",
+            "name": "退出状态",
+            "type": "number",
+            "required": false
+          },
+          {
+            "slug": "summary",
+            "name": "脱敏摘要",
+            "type": "longtext",
+            "required": false
+          },
+          {
+            "slug": "is-example",
+            "name": "示例记录",
+            "type": "checkbox",
+            "required": false
+          },
+          {
+            "slug": "record-key",
+            "name": "幂等业务键",
+            "type": "text",
+            "required": true
+          },
+          {
+            "slug": "run-reference",
+            "name": "检查任务精确索引",
+            "type": "text",
+            "required": true
+          },
+          {
+            "slug": "run",
+            "name": "检查任务",
+            "type": "relation",
+            "required": true,
+            "options": {
+              "targetBaseSlug": "kelly-security-runs",
+              "allowMultiple": false
+            }
+          }
+        ],
+        "views": [
+          {
+            "key": "checks-main",
+            "name": "检查项",
+            "type": "table",
+            "config": {}
+          }
+        ],
+        "seed_records": [],
+        "agentPrompts": [
+          {
+            "key": "scenario-1",
+            "label": "解释这项检查查到了什么、还有什么没有覆盖。",
+            "body": "阅读此文件夹中的 kelly-security skill 并遵循其流程。解释这项检查查到了什么、还有什么没有覆盖。",
+            "intent": "change"
+          },
+          {
+            "key": "scenario-2",
+            "label": "为这项无权限或缺失日志的检查列出补证方式。",
+            "body": "阅读此文件夹中的 kelly-security skill 并遵循其流程。为这项无权限或缺失日志的检查列出补证方式。",
+            "intent": "read-only"
+          }
+        ]
+      },
+      {
+        "key": "evidence",
+        "name": "证据",
+        "slug": "kelly-security-evidence",
+        "description": "证据：仅保存本工作台的数据。",
+        "read_limit": 50,
+        "fields": [
+          {
+            "slug": "title",
+            "name": "名称",
+            "type": "text",
+            "required": true
+          },
+          {
+            "slug": "source-kind",
+            "name": "来源类型",
+            "type": "text",
+            "required": true
+          },
+          {
+            "slug": "source-locator",
+            "name": "来源路径、行号或事件编号",
+            "type": "text",
+            "required": true
+          },
+          {
+            "slug": "original-time",
+            "name": "来源原始时间",
+            "type": "text",
+            "required": false
+          },
+          {
+            "slug": "event-time",
+            "name": "标准化事件时间",
+            "type": "date",
+            "required": false
+          },
+          {
+            "slug": "time-confidence",
+            "name": "时区或年份不确定性",
+            "type": "text",
+            "required": false
+          },
+          {
+            "slug": "collected-at",
+            "name": "采集时间",
+            "type": "date",
+            "required": true
+          },
+          {
+            "slug": "sha256",
+            "name": "本机取证产物 SHA-256",
+            "type": "text",
+            "required": true
+          },
+          {
+            "slug": "artifact-reference",
+            "name": "本机受限证据引用",
+            "type": "text",
+            "required": false
+          },
+          {
+            "slug": "redacted-excerpt",
+            "name": "脱敏证据摘要",
+            "type": "longtext",
+            "required": false
+          },
+          {
+            "slug": "redaction-note",
+            "name": "脱敏与完整性说明",
+            "type": "longtext",
+            "required": false
+          },
+          {
+            "slug": "is-example",
+            "name": "示例记录",
+            "type": "checkbox",
+            "required": false
+          },
+          {
+            "slug": "record-key",
+            "name": "幂等业务键",
+            "type": "text",
+            "required": true
+          },
+          {
+            "slug": "check-reference",
+            "name": "检查项精确索引",
+            "type": "text",
+            "required": true
+          },
+          {
+            "slug": "check",
+            "name": "来源检查项",
+            "type": "relation",
+            "required": true,
+            "options": {
+              "targetBaseSlug": "kelly-security-checks",
+              "allowMultiple": false
+            }
+          }
+        ],
+        "views": [
+          {
+            "key": "evidence-main",
+            "name": "证据",
+            "type": "table",
+            "config": {}
+          }
+        ],
+        "seed_records": [],
+        "agentPrompts": [
+          {
+            "key": "scenario-1",
+            "label": "把此次核查的相关证据按时间排列，保留不确定性。",
+            "body": "阅读此文件夹中的 kelly-security skill 并遵循其流程。把此次核查的相关证据按时间排列，保留不确定性。",
+            "intent": "change"
+          },
+          {
+            "key": "scenario-2",
+            "label": "检查指定取证产物的来源和哈希是否完整。",
+            "body": "阅读此文件夹中的 kelly-security skill 并遵循其流程。检查指定取证产物的来源和哈希是否完整。",
+            "intent": "read-only"
+          }
+        ]
+      },
+      {
+        "key": "findings",
+        "name": "发现与复核",
+        "slug": "kelly-security-findings",
+        "description": "发现与复核：仅保存本工作台的数据。",
+        "read_limit": 50,
+        "fields": [
+          {
+            "slug": "title",
+            "name": "名称",
+            "type": "text",
+            "required": true
+          },
+          {
+            "slug": "severity",
+            "name": "优先级",
+            "type": "select",
+            "required": true,
+            "options": {
+              "choices": [
+                {
+                  "id": "critical",
+                  "name": "紧急"
+                },
+                {
+                  "id": "high",
+                  "name": "高"
+                },
+                {
+                  "id": "medium",
+                  "name": "中"
+                },
+                {
+                  "id": "low",
+                  "name": "低"
+                },
+                {
+                  "id": "informational",
+                  "name": "信息"
+                }
+              ]
+            }
+          },
+          {
+            "slug": "conclusion",
+            "name": "分析结论",
+            "type": "select",
+            "required": true,
+            "options": {
+              "choices": [
+                {
+                  "id": "unassessed",
+                  "name": "未评估"
+                },
+                {
+                  "id": "no-indicators",
+                  "name": "未发现异常"
+                },
+                {
+                  "id": "suspicious",
+                  "name": "可疑"
+                },
+                {
+                  "id": "confirmed-malicious",
+                  "name": "确认恶意"
+                },
+                {
+                  "id": "explained-benign",
+                  "name": "已解释为正常"
+                },
+                {
+                  "id": "insufficient-evidence",
+                  "name": "证据不足"
+                }
+              ]
+            }
+          },
+          {
+            "slug": "reasoning",
+            "name": "判断依据与其他解释",
+            "type": "longtext",
+            "required": true
+          },
+          {
+            "slug": "limitations",
+            "name": "信任限制与证据缺口",
+            "type": "longtext",
+            "required": false
+          },
+          {
+            "slug": "next-step",
+            "name": "补证或处置建议",
+            "type": "longtext",
+            "required": false
+          },
+          {
+            "slug": "verdict",
+            "name": "人工复核",
+            "type": "select",
+            "required": true,
+            "options": {
+              "choices": [
+                {
+                  "id": "needs-review",
+                  "name": "待复核"
+                },
+                {
+                  "id": "confirmed-malicious",
+                  "name": "确认恶意"
+                },
+                {
+                  "id": "explained-benign",
+                  "name": "已解释为正常"
+                },
+                {
+                  "id": "needs-investigation",
+                  "name": "仍需调查"
+                }
+              ]
+            }
+          },
+          {
+            "slug": "review-note",
+            "name": "复核理由",
+            "type": "longtext",
+            "required": false
+          },
+          {
+            "slug": "reviewed-at",
+            "name": "复核时间",
+            "type": "date",
+            "required": false
+          },
+          {
+            "slug": "is-example",
+            "name": "示例记录",
+            "type": "checkbox",
+            "required": false
+          },
+          {
+            "slug": "record-key",
+            "name": "幂等业务键",
+            "type": "text",
+            "required": true
+          },
+          {
+            "slug": "run-reference",
+            "name": "检查任务精确索引",
+            "type": "text",
+            "required": true
+          },
+          {
+            "slug": "run",
+            "name": "检查任务",
+            "type": "relation",
+            "required": true,
+            "options": {
+              "targetBaseSlug": "kelly-security-runs",
+              "allowMultiple": false
+            }
+          },
+          {
+            "slug": "evidence",
+            "name": "证据引用",
+            "type": "relation",
+            "required": true,
+            "options": {
+              "targetBaseSlug": "kelly-security-evidence",
+              "allowMultiple": true
+            }
+          }
+        ],
+        "views": [
+          {
+            "key": "findings-main",
+            "name": "发现与复核",
+            "type": "table",
+            "config": {}
+          }
+        ],
+        "seed_records": [],
+        "agentPrompts": [
+          {
+            "key": "scenario-1",
+            "label": "判断此发现是否足以支持入侵结论，并给出证据。",
+            "body": "阅读此文件夹中的 kelly-security skill 并遵循其流程。判断此发现是否足以支持入侵结论，并给出证据。",
+            "intent": "change"
+          },
+          {
+            "key": "scenario-2",
+            "label": "根据新证据修订结论，保留原来的判断与复核理由。",
+            "body": "阅读此文件夹中的 kelly-security skill 并遵循其流程。根据新证据修订结论，保留原来的判断与复核理由。",
+            "intent": "read-only"
+          }
+        ]
+      },
+      {
+        "key": "settings",
+        "name": "工作台设置",
+        "slug": "kelly-security-settings",
+        "description": "工作台设置：仅保存本工作台的数据。",
+        "read_limit": 50,
+        "fields": [
+          {
+            "slug": "title",
+            "name": "名称",
+            "type": "text",
+            "required": true
+          },
+          {
+            "slug": "onboarding-version",
+            "name": "配置版本",
+            "type": "number",
+            "required": true
+          },
+          {
+            "slug": "onboarding-state",
+            "name": "配置状态",
+            "type": "select",
+            "required": true,
+            "options": {
+              "choices": [
+                {
+                  "id": "incomplete",
+                  "name": "未完成"
+                },
+                {
+                  "id": "needs-review",
+                  "name": "需复核"
+                },
+                {
+                  "id": "complete",
+                  "name": "完成"
+                }
+              ]
+            }
+          },
+          {
+            "slug": "onboarding-completed-at",
+            "name": "配置完成时间",
+            "type": "date",
+            "required": false
+          },
+          {
+            "slug": "operator",
+            "name": "调查负责人",
+            "type": "text",
+            "required": false
+          },
+          {
+            "slug": "scope-note",
+            "name": "调查授权说明",
+            "type": "longtext",
+            "required": false
+          },
+          {
+            "slug": "execution-mode",
+            "name": "执行方式：本机 Agent",
+            "type": "text",
+            "required": false
+          },
+          {
+            "slug": "evidence-policy",
+            "name": "证据存储与上传策略",
+            "type": "longtext",
+            "required": false
+          },
+          {
+            "slug": "is-example",
+            "name": "示例记录",
+            "type": "checkbox",
+            "required": false
+          }
+        ],
+        "views": [
+          {
+            "key": "settings-main",
+            "name": "工作台设置",
+            "type": "table",
+            "config": {}
+          }
+        ],
+        "seed_records": [
+          {
+            "title": "首次核查配置",
+            "onboarding-version": 1,
+            "onboarding-state": "incomplete",
+            "execution-mode": "local-agent",
+            "evidence-policy": "原始证据保留本机；Busabase 仅存脱敏摘要、索引与哈希。",
+            "is-example": false
+          }
+        ],
+        "agentPrompts": [
+          {
+            "key": "scenario-1",
+            "label": "确认这次核查的授权、执行方式和证据存储边界。",
+            "body": "阅读此文件夹中的 kelly-security skill 并遵循其流程。确认这次核查的授权、执行方式和证据存储边界。",
+            "intent": "change"
+          },
+          {
+            "key": "scenario-2",
+            "label": "解释本机 SSH 身份与 Busabase 数据的职责。",
+            "body": "阅读此文件夹中的 kelly-security skill 并遵循其流程。解释本机 SSH 身份与 Busabase 数据的职责。",
+            "intent": "read-only"
+          }
+        ]
+      }
+    ],
+    "docs": [
+      {
+        "key": "operating-guide",
+        "name": "入侵核查操作指南",
+        "slug": "kelly-security-guide",
+        "description": "如何采集、判断、补证与解释结果。",
+        "agent_scenarios": [
+          "解释首次入侵核查流程。",
+          "根据已同意的新规则更新操作指南。"
+        ]
+      }
+    ],
+    "drives": [
+      {
+        "key": "reports",
+        "name": "脱敏核查报告",
+        "slug": "kelly-security-reports",
+        "files": [
+          {
+            "path": "reports/",
+            "purpose": "明确请求导出的脱敏报告；不默认上传原始敏感证据。"
+          }
+        ],
+        "agent_scenarios": [
+          "导出带证据引用和覆盖限制的脱敏报告。",
+          "检查报告是否把攻击尝试误写成成功入侵。"
+        ]
+      }
+    ],
+    "whiteboards": [],
+    "forms": [],
+    "workflows": [],
+    "html": [],
+    "vault_requirements": [],
+    "integrations": [
+      {
+        "key": "local-ssh-agent",
+        "name": "本机 OpenSSH 与 Agent",
+        "purpose": "在当前会话允许的 SSH 别名和时间范围内执行已审核只读采集配方；凭据由本机 SSH 管理。",
+        "execution": "agent",
+        "vault_refs": []
+      }
+    ],
+    "relations": [
+      {
+        "source_base": "runs",
+        "field_slug": "host",
+        "field_name": "host",
+        "target_base": "hosts",
+        "required": true,
+        "multiple": false
+      },
+      {
+        "source_base": "checks",
+        "field_slug": "run",
+        "field_name": "run",
+        "target_base": "runs",
+        "required": true,
+        "multiple": false
+      },
+      {
+        "source_base": "evidence",
+        "field_slug": "check",
+        "field_name": "check",
+        "target_base": "checks",
+        "required": true,
+        "multiple": false
+      },
+      {
+        "source_base": "findings",
+        "field_slug": "run",
+        "field_name": "run",
+        "target_base": "runs",
+        "required": true,
+        "multiple": false
+      },
+      {
+        "source_base": "findings",
+        "field_slug": "evidence",
+        "field_name": "evidence",
+        "target_base": "evidence",
+        "required": true,
+        "multiple": true
+      }
+    ]
+  },
+  "ui": {
+    "primary_base": "hosts",
+    "list_columns": {
+      "hosts": [
+        "title",
+        "role",
+        "summary",
+        "last-checked-at"
+      ],
+      "runs": [
+        "title",
+        "status",
+        "window-start",
+        "window-end"
+      ],
+      "checks": [
+        "title",
+        "status",
+        "conclusion"
+      ],
+      "evidence": [
+        "title",
+        "event-time",
+        "source-kind"
+      ],
+      "findings": [
+        "title",
+        "severity",
+        "conclusion",
+        "verdict"
+      ],
+      "settings": [
+        "title",
+        "onboarding-state"
+      ]
+    },
+    "detail_modes": {
+      "hosts": "page",
+      "runs": "page",
+      "checks": "split",
+      "evidence": "drawer",
+      "findings": "split",
+      "settings": "page"
+    },
+    "density": "default",
+    "summary": "先找入侵证据，再解释入口、影响和未覆盖的范围。",
+    "screens": [
+      {
+        "id": "overview",
+        "name": "核查总览",
+        "purpose": "服务器选择、待复核项、运行状态与缺口，不展示安全分。",
+        "data_sources": [
+          "hosts",
+          "runs",
+          "findings"
+        ]
+      },
+      {
+        "id": "checklist",
+        "name": "可视化检查清单",
+        "purpose": "按选定任务展示服务器 × 类别矩阵和逐项证据。",
+        "data_sources": [
+          "hosts",
+          "runs",
+          "checks",
+          "evidence"
+        ]
+      },
+      {
+        "id": "timeline",
+        "name": "证据时间线",
+        "purpose": "按任务与时间过滤，保留原始时间、来源和推断限制。",
+        "data_sources": [
+          "runs",
+          "evidence",
+          "findings"
+        ]
+      },
+      {
+        "id": "findings",
+        "name": "发现与复核",
+        "purpose": "复核可疑项及其证据，记录理由。",
+        "data_sources": [
+          "findings",
+          "evidence"
+        ]
+      },
+      {
+        "id": "settings",
+        "name": "帮助与设置",
+        "purpose": "运行准备、授权说明和证据存储规则；不接收凭据。",
+        "data_sources": [
+          "settings",
+          "operating-guide"
+        ]
+      }
+    ],
+    "attention_states": [
+      "suspicious",
+      "insufficient-evidence",
+      "permission-denied",
+      "missing-data",
+      "failed",
+      "needs-review"
+    ],
+    "actions": [
+      {
+        "id": "add-host",
+        "label": "添加指定 SSH 别名",
+        "kind": "change_request",
+        "base": "hosts",
+        "fields": [
+          "title",
+          "ssh-alias",
+          "role",
+          "scope-note"
+        ]
+      },
+      {
+        "id": "request-investigation",
+        "label": "请求本机检查",
+        "kind": "change_request",
+        "base": "runs",
+        "fields": [
+          "title",
+          "scope-reference",
+          "window-start",
+          "window-end",
+          "check-profile",
+          "status"
+        ]
+      },
+      {
+        "id": "cancel-investigation",
+        "label": "请求停止后续检查",
+        "kind": "change_request",
+        "base": "runs",
+        "fields": [
+          "status"
+        ]
+      },
+      {
+        "id": "review-finding",
+        "label": "保存复核理由",
+        "kind": "change_request",
+        "base": "findings",
+        "fields": [
+          "verdict",
+          "review-note"
+        ]
+      },
+      {
+        "id": "save-onboarding",
+        "label": "保存核查配置",
+        "kind": "change_request",
+        "base": "settings",
+        "fields": [
+          "operator",
+          "scope-note",
+          "execution-mode",
+          "evidence-policy",
+          "onboarding-version",
+          "onboarding-state"
+        ]
+      }
+    ]
+  },
+  "onboarding": {
+    "version": 1,
+    "required_fields": [
+      {
+        "key": "investigation-owner",
+        "resource": "settings",
+        "validation": "调查负责人和当前授权说明非空；示例主机不能作为可执行目标。",
+        "unlocks": [
+          "request-investigation"
+        ]
+      },
+      {
+        "key": "ssh-target-scope",
+        "resource": "hosts",
+        "validation": "当前会话明确允许的 SSH 别名；不能以数据库记录代替授权；连接时使用可信 known_hosts。",
+        "unlocks": [
+          "local-ssh-collection"
+        ]
+      },
+      {
+        "key": "investigation-window",
+        "resource": "runs",
+        "validation": "有明确时区的开始和结束时间，开始早于结束；覆盖不足显式列出。",
+        "unlocks": [
+          "log-analysis"
+        ]
+      },
+      {
+        "key": "evidence-handling",
+        "resource": "settings",
+        "validation": "本机受限原始证据和 Busabase 脱敏索引的规则已确认；不自动上传原始日志。",
+        "unlocks": [
+          "evidence-publication"
+        ]
+      }
+    ],
+    "completion_resource": "settings"
+  },
+  "permissions": {
+    "read_procedures": [
+      "nodes.get",
+      "nodes.list",
+      "bases.listViews",
+      "records.list",
+      "records.listPage",
+      "records.get",
+      "records.count",
+      "records.groupBy",
+      "changeRequests.list"
+    ],
+    "change_request_procedures": [
+      "records.changeRequest",
+      "bases.createChangeRequest"
+    ]
+  },
+  "distribution": {
+    "route": "create-package-first",
+    "binding": "runtime",
+    "source_repository": "mr-kelly/skills",
+    "skill_directory": "skills/kelly-security",
+    "app_directory": "skills/kelly-security/content/kelly-security-app",
+    "approval_state": "approved",
+    "user_deployment_target": "not-selected",
+    "verification_target": "proposed-isolated-oss-instance-not-user-workspace",
+    "scope_approved_on": "2026-10-26"
+  },
+  "execution": {
+    "owner": "local-agent",
+    "ui_executes_ssh": false,
+    "arbitrary_command_input": false,
+    "requires_current_session_scope": true,
+    "host_concurrency": 2,
+    "per_check_timeout_seconds": 60,
+    "per_check_output_limit_bytes": 20971520,
+    "automatic_remediation": false,
+    "raw_evidence_upload": false,
+    "persistent_runner_required": false,
+    "offline_runner_state": "requested"
+  },
+  "check_profiles": [
+    {
+      "key": "intrusion-triage",
+      "name": "疑似入侵核查",
+      "checks": [
+        "collection-context",
+        "live-processes",
+        "live-connections",
+        "ssh-authentication",
+        "web-access-and-errors",
+        "existing-audit-events",
+        "accounts-and-privileges",
+        "cron-and-at",
+        "systemd-services-and-timers",
+        "ssh-profile-pam-preload",
+        "suspicious-files-and-existing-integrity",
+        "coverage-and-timeline"
+      ]
+    }
+  ],
+  "research": {
+    "busabase_skills_commit": "b6db4aaf053453e4deda2a6ef8b78e9abd75db70",
+    "upstream_skills": [
+      {
+        "skill": "analyzing-linux-system-artifacts",
+        "commit": "54a798831d2266a3ca61ce68a7acb80b81160d57",
+        "sha256": "6e8d44dc4f4a5c60084f25a95552fbdd387f4b2830383cd1f6a3ce6f9021bf48",
+        "url": "https://raw.githubusercontent.com/mukul975/Anthropic-Cybersecurity-Skills/54a798831d2266a3ca61ce68a7acb80b81160d57/skills/analyzing-linux-system-artifacts/SKILL.md",
+        "bytes": 14934
+      },
+      {
+        "skill": "analyzing-linux-audit-logs-for-intrusion",
+        "commit": "54a798831d2266a3ca61ce68a7acb80b81160d57",
+        "sha256": "36728ade3067bbc663459be37f0384094a16ab0e22cbbd897725c41ccf3777c0",
+        "url": "https://raw.githubusercontent.com/mukul975/Anthropic-Cybersecurity-Skills/54a798831d2266a3ca61ce68a7acb80b81160d57/skills/analyzing-linux-audit-logs-for-intrusion/SKILL.md",
+        "bytes": 9790
+      },
+      {
+        "skill": "analyzing-web-server-logs-for-intrusion",
+        "commit": "54a798831d2266a3ca61ce68a7acb80b81160d57",
+        "sha256": "c38e659c6294024622a52a0d6c5170742c636690bf1de42f26b0e479c0215ca6",
+        "url": "https://raw.githubusercontent.com/mukul975/Anthropic-Cybersecurity-Skills/54a798831d2266a3ca61ce68a7acb80b81160d57/skills/analyzing-web-server-logs-for-intrusion/SKILL.md",
+        "bytes": 2574
+      },
+      {
+        "skill": "performing-linux-log-forensics-investigation",
+        "commit": "54a798831d2266a3ca61ce68a7acb80b81160d57",
+        "sha256": "e1bd99f89617724fc3d780409886815f31511572fe7555e9cf633da81cf436d7",
+        "url": "https://raw.githubusercontent.com/mukul975/Anthropic-Cybersecurity-Skills/54a798831d2266a3ca61ce68a7acb80b81160d57/skills/performing-linux-log-forensics-investigation/SKILL.md",
+        "bytes": 10728
+      },
+      {
+        "skill": "analyzing-persistence-mechanisms-in-linux",
+        "commit": "54a798831d2266a3ca61ce68a7acb80b81160d57",
+        "sha256": "de87f57bc4f98dc43f5f008c9b936b559558af213f16cfaf524f119e64b64389",
+        "url": "https://raw.githubusercontent.com/mukul975/Anthropic-Cybersecurity-Skills/54a798831d2266a3ca61ce68a7acb80b81160d57/skills/analyzing-persistence-mechanisms-in-linux/SKILL.md",
+        "bytes": 3218
+      },
+      {
+        "skill": "building-incident-response-playbook",
+        "commit": "54a798831d2266a3ca61ce68a7acb80b81160d57",
+        "sha256": "cf95102d6b57ba6d4ec781ffa350d4861a500f38c86828f678d6cac4a5e38af9",
+        "url": "https://raw.githubusercontent.com/mukul975/Anthropic-Cybersecurity-Skills/54a798831d2266a3ca61ce68a7acb80b81160d57/skills/building-incident-response-playbook/SKILL.md",
+        "bytes": 10358
+      }
+    ],
+    "upstream_license": "Apache-2.0",
+    "external_reference_urls": [
+      "https://tclahr.github.io/uac-docs/",
+      "https://csrc.nist.gov/pubs/sp/800/61/r3/final"
+    ]
+  },
+  "data_model_version": 2
+}

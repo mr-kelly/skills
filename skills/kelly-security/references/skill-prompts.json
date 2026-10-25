@@ -1,0 +1,20 @@
+[
+  {
+    "key": "investigate-authorized-hosts",
+    "label": "核查我授权的服务器是否有入侵证据",
+    "body": "阅读此文件夹中的 kelly-security skill。在我当前会话明确授权的 SSH 主机和时间范围内核查入侵证据，显示检查进度、来源与缺口。",
+    "intent": "change"
+  },
+  {
+    "key": "verify-investigation-evidence",
+    "label": "复核现有调查证据和结论",
+    "body": "阅读此文件夹中的 kelly-security skill。只读复核当前调查的证据引用、时间线、判断依据和未覆盖范围，指出尚不能确认的情况。",
+    "intent": "read-only"
+  },
+  {
+    "key": "explain-first-investigation",
+    "label": "向第一次使用的人解释核查流程",
+    "body": "阅读此文件夹中的 kelly-security skill。解释如何选服务器、限定调查范围、由本机执行检查、复核证据并导出报告；不要连接服务器或修改配置。",
+    "intent": "read-only"
+  }
+]

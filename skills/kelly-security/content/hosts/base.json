@@ -1,0 +1,143 @@
+{
+  "name": "服务器",
+  "description": "服务器：仅保存本工作台的数据。",
+  "position": 0,
+  "agentPrompts": [
+    {
+      "key": "scenario-1",
+      "label": "加入我指定的 SSH 别名，不连接其他机器。",
+      "body": "阅读此文件夹中的 kelly-security skill 并遵循其流程。加入我指定的 SSH 别名，不连接其他机器。",
+      "intent": "change"
+    },
+    {
+      "key": "scenario-2",
+      "label": "比较这些服务器还有哪些证据没有查清。",
+      "body": "阅读此文件夹中的 kelly-security skill 并遵循其流程。比较这些服务器还有哪些证据没有查清。",
+      "intent": "read-only"
+    }
+  ],
+  "fields": [
+    {
+      "slug": "title",
+      "name": "名称",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "ssh-alias",
+      "name": "本机 SSH 别名",
+      "type": "text",
+      "required": true,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "role",
+      "name": "业务角色",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "environment",
+      "name": "环境",
+      "type": "select",
+      "required": false,
+      "position": 3,
+      "options": {
+        "choices": [
+          {
+            "id": "production",
+            "name": "生产"
+          },
+          {
+            "id": "staging",
+            "name": "预发布"
+          },
+          {
+            "id": "lab",
+            "name": "实验室"
+          }
+        ]
+      }
+    },
+    {
+      "slug": "scope-note",
+      "name": "授权说明",
+      "type": "longtext",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "expected-fingerprint",
+      "name": "已独立核实的 SSH 指纹",
+      "type": "text",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "last-checked-at",
+      "name": "最近检查时间",
+      "type": "date",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "summary",
+      "name": "最近结论",
+      "type": "select",
+      "required": false,
+      "position": 7,
+      "options": {
+        "choices": [
+          {
+            "id": "unassessed",
+            "name": "未评估"
+          },
+          {
+            "id": "no-indicators",
+            "name": "未发现异常"
+          },
+          {
+            "id": "suspicious",
+            "name": "可疑"
+          },
+          {
+            "id": "confirmed-malicious",
+            "name": "确认恶意"
+          },
+          {
+            "id": "explained-benign",
+            "name": "已解释为正常"
+          },
+          {
+            "id": "insufficient-evidence",
+            "name": "证据不足"
+          }
+        ]
+      }
+    },
+    {
+      "slug": "is-example",
+      "name": "示例记录",
+      "type": "checkbox",
+      "required": false,
+      "position": 8,
+      "options": {}
+    }
+  ],
+  "views": [
+    {
+      "slug": "hosts-main",
+      "name": "服务器",
+      "type": "table",
+      "config": {}
+    }
+  ]
+}

@@ -1,0 +1,3 @@
+{"key": "kelly-security-hosts-sample-1", "fields": {"title": "示例 · Web 服务器", "ssh-alias": "example-web", "role": "演示数据，不代表可连接主机", "environment": "lab", "summary": "unassessed", "is-example": true}}
+{"key": "kelly-security-hosts-sample-2", "fields": {"title": "示例 · API 服务器", "ssh-alias": "example-api", "role": "演示数据，不代表可连接主机", "environment": "lab", "summary": "insufficient-evidence", "is-example": true}}
+{"key": "kelly-security-hosts-sample-3", "fields": {"title": "示例 · 数据服务器", "ssh-alias": "example-db", "role": "演示数据，不代表可连接主机", "environment": "lab", "summary": "unassessed", "is-example": true}}

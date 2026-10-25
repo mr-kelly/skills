@@ -1,0 +1,4 @@
+interface:
+  display_name: "Kelly Security"
+  short_description: "Linux 入侵证据核查与多服务器可视化工作台"
+  default_prompt: "使用 $kelly-security 核查我授权的服务器是否有入侵证据，在 Busabase 中展示检查进度、证据和调查结论。"

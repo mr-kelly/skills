@@ -1,0 +1,19 @@
+{
+  "type": "drive",
+  "name": "脱敏核查报告",
+  "description": "",
+  "position": 6,
+  "agentPrompts": [
+    {
+      "key": "export",
+      "label": "导出脱敏核查报告",
+      "body": "阅读此文件夹中的 kelly-security skill。导出带证据引用和覆盖限制的脱敏报告。"
+    },
+    {
+      "key": "verify",
+      "label": "检查报告的证据与限制",
+      "body": "阅读此文件夹中的 kelly-security skill。检查报告是否把攻击尝试误写成成功入侵。",
+      "intent": "read-only"
+    }
+  ]
+}

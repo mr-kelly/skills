@@ -241,6 +241,7 @@ The `kelly-*` skills are the everyday business tools. Helper skills such as `age
 | `kelly-llm-gateway` | Dashboard for a shared LLM gateway's cost and model governance: spend trend, cost breakdown by service/model, canary-rollout status, and deterministic cost/error anomaly detection. | Use it when reviewing LLM gateway spend, canary rollouts, or acknowledging a cost/error anomaly. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-llm-gateway.html) |
 | `kelly-local-model-lab` | Busabase-backed control plane for curating training examples, running local Apple Silicon LoRA/QLoRA fine-tunes with MLX-LM, comparing locked baseline and adapter evaluations, and registering approved adapters. | Use it when training, evaluating, promoting, or managing a local language-model adapter with Busabase as the workflow source of truth. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-local-model-lab.html) |
 | `kelly-pr-review` | Runs a GitHub PR review desk through `gh` CLI. It gathers review-requested pull requests, prepares review notes, uses a local UI for approval, and executes approved `gh pr review` actions. | Use it when reviewing GitHub pull requests, approving/commenting/requesting changes from a local queue, or batching PR review decisions. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-pr-review.html) |
+| `kelly-security` | Investigates suspected Linux compromise with local SSH, a multi-server checklist, access/audit/persistence evidence, coverage gaps and analyst review in Busabase. | Use when a server may have been compromised and you need attributable intrusion evidence, a timeline and a bounded investigation report. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-security.html) |
 | `publish-skills` | Publishes agent skills and MCP servers to marketplaces and registries: security-scans for private data, validates with `gh skill`, cuts a release, wires the Claude `/plugin` and Codex marketplaces, and preps the MCP Registry and curated stores. | Use it when publishing, releasing, or listing skills, plugins, or MCP servers to skills.sh, Claude Code, Codex, or the MCP Registry. | [View ↗](https://mr-kelly.github.io/skills/s/publish-skills.html) |
 | `sandock-community` | Operates the Sandock community forum at community.sandock.ai through its own `/api/v1/community` REST API: lists categories and posts, reads a thread with its replies, searches, and publishes posts and replies only after an explicit confirmation. | Use it when checking, answering, or posting to the Sandock community. | [View ↗](https://mr-kelly.github.io/skills/s/sandock-community.html) |
 
@@ -1034,6 +1035,19 @@ Customer-support desk — KB-grounded drafted replies, SLA + CSAT, and a support
   <tr>
     <td><strong>Actions</strong><br>Internal briefs, client education tasks, advisor scripts, and risk reminders queued for approval.</td>
     <td><strong>Drafts</strong><br>Editable explainers and meeting notes that avoid personalized advice and performance promises.</td>
+  </tr>
+</table>
+
+### `kelly-security`
+
+<table>
+  <tr>
+    <td width="50%"><img src="skills/kelly-security/assets/screenshots/overview-dark-zh-CN.webp" alt="Kelly Security multi-server matrix"></td>
+    <td width="50%"><img src="skills/kelly-security/assets/screenshots/checklist-zh-CN.webp" alt="Kelly Security evidence checklist"></td>
+  </tr>
+  <tr>
+    <td><strong>Multi-server intrusion investigation</strong></td>
+    <td><strong>Checks, evidence and coverage gaps</strong></td>
   </tr>
 </table>
 

@@ -1,0 +1,19 @@
+{
+  "type": "airapp",
+  "name": "Linux 入侵核查台",
+  "description": "由本机 Agent 经 SSH 核查 Linux 入侵证据，在 Busabase 中复核多服务器检查清单、证据和时间线。",
+  "agentPrompts": [
+    {
+      "key": "scenario-1",
+      "label": "加入我指定的 SSH 别名，不连接其他机器。",
+      "body": "阅读此文件夹中的 kelly-security skill 并遵循其流程。加入我指定的 SSH 别名，不连接其他机器。",
+      "intent": "change"
+    },
+    {
+      "key": "scenario-2",
+      "label": "比较这些服务器还有哪些证据没有查清。",
+      "body": "阅读此文件夹中的 kelly-security skill 并遵循其流程。比较这些服务器还有哪些证据没有查清。",
+      "intent": "read-only"
+    }
+  ]
+}
