@@ -1,0 +1,168 @@
+{
+  "name": "证据适用与复核",
+  "description": "每个控制/证据映射独立判断。",
+  "position": 5,
+  "agentPrompts": [
+    {
+      "key": "scenario-1",
+      "label": "复核这份证据对指定控制的适用性并说明理由。",
+      "body": "阅读此文件夹中的 kelly-compliance skill，遵循其流程。复核这份证据对指定控制的适用性并说明理由。",
+      "intent": "change"
+    },
+    {
+      "key": "scenario-2",
+      "label": "找出范围不匹配、期间不足或已经过期的映射。",
+      "body": "阅读此文件夹中的 kelly-compliance skill，遵循其流程。找出范围不匹配、期间不足或已经过期的映射。",
+      "intent": "read-only"
+    }
+  ],
+  "fields": [
+    {
+      "slug": "title",
+      "name": "名称",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "record-key",
+      "name": "幂等业务键",
+      "type": "text",
+      "required": true,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "program-reference",
+      "name": "合规项目精确索引",
+      "type": "text",
+      "required": true,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "assessment-reference",
+      "name": "评估精确索引",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "control-reference",
+      "name": "控制项精确索引",
+      "type": "text",
+      "required": true,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "evidence-reference",
+      "name": "证据精确索引",
+      "type": "text",
+      "required": true,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "review-state",
+      "name": "人工审核",
+      "type": "select",
+      "required": true,
+      "position": 6,
+      "options": {
+        "choices": [
+          {
+            "id": "pending",
+            "name": "待审核"
+          },
+          {
+            "id": "accepted",
+            "name": "接受此映射"
+          },
+          {
+            "id": "rejected",
+            "name": "拒绝此映射"
+          }
+        ]
+      }
+    },
+    {
+      "slug": "review-note",
+      "name": "审核理由",
+      "type": "longtext",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "reviewer",
+      "name": "审核人",
+      "type": "text",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "reviewed-at",
+      "name": "审核时间",
+      "type": "date",
+      "required": false,
+      "position": 9,
+      "options": {}
+    },
+    {
+      "slug": "program",
+      "name": "合规项目",
+      "type": "relation",
+      "required": true,
+      "position": 10,
+      "options": {
+        "targetBaseSlug": "programs",
+        "allowMultiple": false
+      }
+    },
+    {
+      "slug": "assessment",
+      "name": "评估任务",
+      "type": "relation",
+      "required": false,
+      "position": 11,
+      "options": {
+        "targetBaseSlug": "assessments",
+        "allowMultiple": false
+      }
+    },
+    {
+      "slug": "control",
+      "name": "控制项",
+      "type": "relation",
+      "required": true,
+      "position": 12,
+      "options": {
+        "targetBaseSlug": "controls",
+        "allowMultiple": false
+      }
+    },
+    {
+      "slug": "evidence",
+      "name": "证据",
+      "type": "relation",
+      "required": true,
+      "position": 13,
+      "options": {
+        "targetBaseSlug": "evidence",
+        "allowMultiple": false
+      }
+    }
+  ],
+  "views": [
+    {
+      "slug": "evidence-links-table",
+      "name": "证据适用与复核",
+      "type": "table",
+      "config": {}
+    }
+  ]
+}

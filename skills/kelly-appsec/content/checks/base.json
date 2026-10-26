@@ -1,0 +1,235 @@
+{
+  "name": "逐项验证",
+  "description": "逐项验证，仅属于当前 AppSec 工作台。",
+  "position": 4,
+  "agentPrompts": [
+    {
+      "key": "scenario-1",
+      "label": "解释此格验证了什么、没有验证什么。",
+      "body": "阅读此文件夹中的 kelly-appsec skill。解释此格验证了什么、没有验证什么。",
+      "intent": "change"
+    },
+    {
+      "key": "scenario-2",
+      "label": "关联正向基线、返回数据和对象归属复核结果。",
+      "body": "阅读此文件夹中的 kelly-appsec skill。关联正向基线、返回数据和对象归属复核结果。",
+      "intent": "read-only"
+    }
+  ],
+  "fields": [
+    {
+      "slug": "title",
+      "name": "名称",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "record-key",
+      "name": "幂等验证键",
+      "type": "text",
+      "required": true,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "project-reference",
+      "name": "项目精确索引",
+      "type": "text",
+      "required": true,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "run-reference",
+      "name": "任务精确索引",
+      "type": "text",
+      "required": true,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "endpoint-reference",
+      "name": "接口精确索引",
+      "type": "text",
+      "required": true,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "rule-reference",
+      "name": "规则精确索引",
+      "type": "text",
+      "required": true,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "source-revision",
+      "name": "测试版本",
+      "type": "text",
+      "required": true,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "identity",
+      "name": "测试身份引用",
+      "type": "text",
+      "required": true,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "attempt",
+      "name": "尝试序号",
+      "type": "number",
+      "required": true,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "status",
+      "name": "采集状态",
+      "type": "select",
+      "required": true,
+      "position": 9,
+      "options": {
+        "choices": [
+          {
+            "id": "running",
+            "name": "执行中"
+          },
+          {
+            "id": "completed",
+            "name": "完成"
+          },
+          {
+            "id": "failed",
+            "name": "失败"
+          },
+          {
+            "id": "cancelled",
+            "name": "取消"
+          },
+          {
+            "id": "missing-data",
+            "name": "缺前提"
+          }
+        ]
+      }
+    },
+    {
+      "slug": "result",
+      "name": "规则结果",
+      "type": "select",
+      "required": true,
+      "position": 10,
+      "options": {
+        "choices": [
+          {
+            "id": "satisfied",
+            "name": "符合预期"
+          },
+          {
+            "id": "violated",
+            "name": "观察到规则违反"
+          },
+          {
+            "id": "inconclusive",
+            "name": "证据不足"
+          },
+          {
+            "id": "unverified",
+            "name": "未验证"
+          }
+        ]
+      }
+    },
+    {
+      "slug": "http-status",
+      "name": "HTTP 状态",
+      "type": "number",
+      "required": false,
+      "position": 11,
+      "options": {}
+    },
+    {
+      "slug": "observed-at",
+      "name": "采集时间",
+      "type": "date",
+      "required": false,
+      "position": 12,
+      "options": {}
+    },
+    {
+      "slug": "summary",
+      "name": "判断与缺口",
+      "type": "longtext",
+      "required": false,
+      "position": 13,
+      "options": {}
+    },
+    {
+      "slug": "policy-hash",
+      "name": "本次规则与端点指纹",
+      "type": "text",
+      "required": false,
+      "position": 14,
+      "options": {}
+    },
+    {
+      "slug": "project",
+      "name": "项目",
+      "type": "relation",
+      "required": true,
+      "position": 15,
+      "options": {
+        "targetBaseSlug": "projects",
+        "allowMultiple": false
+      }
+    },
+    {
+      "slug": "run",
+      "name": "任务",
+      "type": "relation",
+      "required": true,
+      "position": 16,
+      "options": {
+        "targetBaseSlug": "runs",
+        "allowMultiple": false
+      }
+    },
+    {
+      "slug": "endpoint",
+      "name": "接口",
+      "type": "relation",
+      "required": true,
+      "position": 17,
+      "options": {
+        "targetBaseSlug": "endpoints",
+        "allowMultiple": false
+      }
+    },
+    {
+      "slug": "rule",
+      "name": "规则",
+      "type": "relation",
+      "required": true,
+      "position": 18,
+      "options": {
+        "targetBaseSlug": "rules",
+        "allowMultiple": false
+      }
+    }
+  ],
+  "views": [
+    {
+      "slug": "checks-main",
+      "name": "逐项验证",
+      "type": "table",
+      "config": {}
+    }
+  ]
+}

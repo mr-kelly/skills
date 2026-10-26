@@ -1,0 +1,887 @@
+@layer base-ui {
+  /* Tokens are the shared visual contract. App styles may override them to
+   * preserve each product's accent and accepted visual identity. */
+  :root {
+    --accent: #176b5b;
+    --accent-strong: #12594c;
+    --accent-soft: color-mix(in srgb, var(--accent) 9%, var(--surface));
+    --accent-line: color-mix(in srgb, var(--accent) 26%, var(--surface));
+    --accent-contrast: #ffffff;
+    --canvas: #f6f7f8;
+    --surface: #ffffff;
+    --surface-soft: #f4f5f7;
+    --surface-hover: #fafbfb;
+    --ink: #14181f;
+    --ink-soft: #454c57;
+    --muted: #79828f;
+    --line: #ebedf0;
+    --line-strong: #dcdfe4;
+    --positive: #1f7a4d;
+    --danger: #b3261e;
+    --warning: #8a5a00;
+    --radius-sm: 8px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+    --shadow-card: 0 1px 2px rgba(16, 24, 40, 0.04);
+    --shadow-modal: 0 24px 60px rgba(16, 24, 40, 0.16);
+    --badge-wash: 9%;
+    --badge-ink: 76%;
+    --surface-blur: rgba(255, 255, 255, 0.94);
+    --scrim: rgba(16, 24, 40, 0.34);
+    --ease: 130ms cubic-bezier(0.2, 0, 0.2, 1);
+    --text-xs: 11px;
+    --text-sm: 12px;
+    --text-base: 13px;
+    --text-md: 14px;
+    --text-lg: 16px;
+    --text-xl: 20px;
+    --text-2xl: 30px;
+    --text-3xl: 38px;
+    color-scheme: light dark;
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+      "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+    font-size: var(--text-md);
+    line-height: 1.5;
+    color: var(--ink);
+    background: var(--canvas);
+    font-synthesis: none;
+    letter-spacing: 0;
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+/* This token-only block stays unlayered so it wins over legacy app :root
+ * declarations without duplicating any component rule. It must NOT redefine
+ * --accent itself: the hue is each app's identity (its own styles.css, or an
+ * accent-theme.css picker) and must survive into dark mode unchanged. Only
+ * the tints that depend on the hue are re-derived here, the same way
+ * accent-theme.css's own dark block re-derives them from var(--accent). */
+@media (prefers-color-scheme: dark) {
+  html:root {
+    --accent-strong: color-mix(in srgb, var(--accent) 86%, white);
+    --accent-contrast: #0b1512;
+    --canvas: #0e1013;
+    --surface: #16191d;
+    --surface-soft: #1e2228;
+    --surface-hover: #1a1e23;
+    --ink: #e8eaed;
+    --ink-soft: #b4bac3;
+    --muted: #868d98;
+    --line: #262a30;
+    --line-strong: #363c45;
+    --positive: #45c07f;
+    --warning: #d9a441;
+    --danger: #f2685c;
+    --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow-modal: 0 24px 60px rgba(0, 0, 0, 0.55);
+    --badge-wash: 18%;
+    --badge-ink: 62%;
+    --surface-blur: rgba(22, 25, 29, 0.92);
+    --scrim: rgba(0, 0, 0, 0.6);
+    --bg: var(--canvas);
+    --panel: var(--surface);
+    --panel-soft: var(--surface-soft);
+    --panel-subtle: var(--surface-soft);
+    --surface-2: var(--surface-soft);
+    --sidebar: var(--surface);
+    --sidebar-soft: var(--surface-soft);
+    --paper: var(--surface);
+    --soft: var(--surface-soft);
+    --subtle: var(--surface-soft);
+    --text: var(--ink);
+    --text-soft: var(--ink-soft);
+    --muted-2: var(--muted);
+    --muted-soft: var(--muted);
+    --faint: var(--muted);
+    --border: var(--line);
+    --border-soft: var(--line);
+    --side: var(--surface);
+    --shadow: var(--shadow-card);
+    --shadow-sm: var(--shadow-card);
+    --shadow-md: var(--shadow-modal);
+    --shadow-lifted: var(--shadow-modal);
+    --accent-weak: color-mix(in srgb, var(--accent) 18%, var(--surface));
+    --accent-wash: color-mix(in srgb, var(--accent) 12%, var(--surface));
+    --accent-focus: color-mix(in srgb, var(--accent) 24%, transparent);
+    --accent-text: var(--accent);
+    --accent-fg: var(--accent);
+    --warn: var(--warning);
+    --warn-soft: color-mix(in srgb, var(--warning) 18%, var(--surface));
+    --warn-bg: color-mix(in srgb, var(--warning) 18%, var(--surface));
+    --bad: var(--danger);
+    --bad-soft: color-mix(in srgb, var(--danger) 18%, var(--surface));
+    --bad-bg: color-mix(in srgb, var(--danger) 18%, var(--surface));
+    --danger-soft: color-mix(in srgb, var(--danger) 18%, var(--surface));
+    --good: var(--positive);
+    --ok: var(--positive);
+    --success: var(--positive);
+    --ok-soft: color-mix(in srgb, var(--positive) 18%, var(--surface));
+    --warning-soft: color-mix(in srgb, var(--warning) 18%, var(--surface));
+    --green: var(--positive);
+    --green-soft: color-mix(in srgb, var(--positive) 18%, var(--surface));
+    --amber: var(--warning);
+    --amber-soft: color-mix(in srgb, var(--warning) 18%, var(--surface));
+    --red: var(--danger);
+    --blue: var(--accent);
+    --blue-soft: color-mix(in srgb, var(--accent) 18%, var(--surface));
+  }
+}
+
+@layer base-ui {
+  * {
+    box-sizing: border-box;
+    scrollbar-width: thin;
+    scrollbar-color: var(--line-strong) transparent;
+  }
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+    letter-spacing: 0;
+  }
+  button {
+    color: inherit;
+  }
+  button:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible,
+  a:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 5px color-mix(in srgb, var(--accent) 18%, transparent);
+  }
+  ::selection {
+    background: color-mix(in srgb, var(--accent) 24%, transparent);
+    color: var(--ink);
+  }
+  input,
+  textarea {
+    caret-color: var(--accent);
+  }
+  *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  *::-webkit-scrollbar-thumb {
+    border: 3px solid transparent;
+    border-radius: 999px;
+    background: var(--line-strong);
+    background-clip: content-box;
+  }
+  *::-webkit-scrollbar-thumb:hover {
+    background: var(--muted);
+    background-clip: content-box;
+  }
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .eyebrow:lang(zh),
+  .eyebrow:lang(ja),
+  .eyebrow:lang(ko) {
+    letter-spacing: 0;
+    text-transform: none;
+  }
+
+  .metric-delta {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--muted);
+    font-size: var(--text-sm);
+  }
+  .metric-delta b {
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+  .metric-delta.up b {
+    color: var(--positive);
+  }
+  .metric-delta.down b {
+    color: var(--danger);
+  }
+
+  .card {
+    min-width: 0;
+    padding: 20px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    box-shadow: var(--shadow-card);
+  }
+  .page-hero {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 24px;
+    min-width: 0;
+  }
+  .page-hero > div {
+    min-width: 0;
+  }
+  .page-hero-context {
+    color: var(--muted);
+    font-size: var(--text-base);
+  }
+  .page-hero h1 {
+    margin-top: 6px;
+    font-size: var(--text-3xl);
+    font-weight: 660;
+    letter-spacing: -0.02em;
+  }
+  .page-hero p {
+    margin-top: 8px;
+    color: var(--muted);
+    font-size: var(--text-md);
+  }
+  .page-actions {
+    display: flex;
+    flex: 0 0 auto;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .card-heading {
+    display: flex;
+    align-items: start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .card-heading p {
+    margin-top: 4px;
+    color: var(--muted);
+    font-size: var(--text-base);
+  }
+  .card.flush {
+    padding: 0;
+  }
+  .card.flush > .card-heading {
+    padding: 20px 20px 0;
+  }
+  .button {
+    display: inline-flex;
+    min-height: 34px;
+    align-items: center;
+    gap: 6px;
+    padding: 0 12px;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    color: var(--ink);
+    font-size: var(--text-base);
+    font-weight: 550;
+    cursor: pointer;
+    transition: background var(--ease), border-color var(--ease), color var(--ease);
+  }
+  .button:hover {
+    background: var(--surface-soft);
+  }
+  .button.primary {
+    border-color: var(--accent-strong);
+    background: var(--accent-strong);
+    color: var(--accent-contrast);
+  }
+  .button.primary:hover {
+    background: color-mix(in srgb, var(--accent-strong) 88%, black);
+  }
+  .button:disabled {
+    color: var(--muted);
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 10px 3px 8px;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--dot, var(--muted)) var(--badge-wash), var(--surface));
+    color: color-mix(in srgb, var(--dot, var(--muted)) var(--badge-ink), var(--ink));
+    font-size: var(--text-base);
+    font-weight: 550;
+    white-space: nowrap;
+  }
+  .badge::before {
+    width: 6px;
+    height: 6px;
+    flex: 0 0 auto;
+    border-radius: 999px;
+    background: var(--dot, var(--muted));
+    content: "";
+  }
+  .badge.positive {
+    --dot: var(--positive);
+  }
+  .badge.warning {
+    --dot: var(--warning);
+  }
+  .badge.danger {
+    --dot: var(--danger);
+  }
+  .badge.active {
+    --dot: var(--accent);
+  }
+  .avatar {
+    display: grid;
+    width: 28px;
+    height: 28px;
+    flex: 0 0 auto;
+    place-items: center;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--surface-soft);
+    color: var(--ink-soft);
+    font-size: var(--text-sm);
+    font-weight: 600;
+  }
+  .toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--line);
+  }
+  .toolbar .search-field {
+    flex: 1 1 220px;
+    min-width: 0;
+    height: 34px;
+    padding: 0 12px;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    font-size: var(--text-base);
+  }
+  .segmented {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px;
+    padding: 2px;
+    border-radius: var(--radius-sm);
+    background: var(--surface-soft);
+  }
+  .segment {
+    display: inline-flex;
+    min-height: 28px;
+    align-items: center;
+    gap: 6px;
+    padding: 0 10px;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--muted);
+    font-size: var(--text-base);
+    cursor: pointer;
+    transition: background var(--ease), color var(--ease), box-shadow var(--ease);
+  }
+  .segment b {
+    font-weight: 550;
+    font-variant-numeric: tabular-nums;
+    opacity: 0.75;
+  }
+  .segment:hover {
+    color: var(--ink);
+  }
+  .segment.active {
+    background: var(--surface);
+    color: var(--ink);
+    font-weight: 580;
+    box-shadow: var(--shadow-card);
+  }
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--text-md);
+  }
+  .table th {
+    padding: 10px 20px;
+    border-bottom: 1px solid var(--line);
+    color: var(--muted);
+    font-size: var(--text-sm);
+    font-weight: 550;
+    text-align: left;
+    white-space: nowrap;
+  }
+  .table td {
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: middle;
+  }
+  .table tbody tr {
+    transition: background var(--ease);
+  }
+  .table tbody tr:hover {
+    background: var(--surface-hover);
+  }
+  .cell-identity {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+  }
+  .cell-identity div {
+    min-width: 0;
+  }
+  .cell-identity strong {
+    display: block;
+    overflow: hidden;
+    font-size: var(--text-md);
+    font-weight: 580;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .cell-identity span {
+    display: block;
+    overflow: hidden;
+    color: var(--muted);
+    font-size: var(--text-base);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .nav-item svg,
+  .button svg,
+  .segment svg,
+  .icon-button svg {
+    width: 16px;
+    height: 16px;
+    flex: 0 0 auto;
+    stroke: currentColor;
+    stroke-width: 1.6;
+    fill: none;
+  }
+  .nav-item svg {
+    margin-right: 10px;
+    opacity: 0.75;
+  }
+  .nav-item.active svg {
+    opacity: 1;
+  }
+  .metric-icon {
+    display: grid;
+    width: 30px;
+    height: 30px;
+    place-items: center;
+    border-radius: var(--radius-sm);
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+  .metric-icon svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    stroke-width: 1.6;
+    fill: none;
+  }
+  .metric-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-width: 0;
+  }
+  .empty-state {
+    display: grid;
+    max-width: 44ch;
+    margin: 0 auto;
+    padding: 56px 20px;
+    gap: 8px;
+    justify-items: center;
+    text-align: center;
+  }
+  .empty-state .empty-state-icon {
+    display: grid;
+    width: 40px;
+    height: 40px;
+    margin-bottom: 6px;
+    place-items: center;
+    border-radius: 999px;
+    background: var(--surface-soft);
+    color: var(--muted);
+  }
+  .empty-state strong {
+    font-size: var(--text-lg);
+    font-weight: 600;
+  }
+  .empty-state p {
+    color: var(--muted);
+    font-size: var(--text-md);
+    line-height: 1.6;
+    text-wrap: balance;
+  }
+  .empty-state .button {
+    margin-top: 8px;
+  }
+  .skeleton {
+    border-radius: var(--radius-sm);
+    background: linear-gradient(
+      90deg,
+      var(--surface-soft) 25%,
+      color-mix(in srgb, var(--surface-soft) 60%, var(--surface)) 37%,
+      var(--surface-soft) 63%
+    );
+    background-size: 400% 100%;
+    animation: skeleton-sweep 1.4s ease infinite;
+    color: transparent;
+    pointer-events: none;
+    user-select: none;
+  }
+  @keyframes skeleton-sweep {
+    from {
+      background-position: 100% 50%;
+    }
+    to {
+      background-position: 0 50%;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      transition-duration: 0.01ms !important;
+      animation-duration: 0.01ms !important;
+    }
+  }
+}
+
+/* ── Record views (busabase-app-creator layout spec) ─────────────────────
+ * Deliberately NOT inside `@layer base-ui`. App stylesheets are unlayered,
+ * and an unlayered rule beats any layered one regardless of specificity, so
+ * a template's old `table`, `th, td`, `h1` or `button` rules would silently
+ * override these. Unlayered, a `.ws-*` class selector wins over an element
+ * selector on specificity, and an app can still customise with its own
+ * class selector (it loads after this file).
+ *
+ * Opt-in and `ws-` prefixed, so nothing here reaches an app that has not
+ * adopted it. Two kinds of page: `.ws-overview` (the only page with the hero
+ * and a ≤3-number `.ws-metrics` band) and `.ws-view` (one `.ws-toolbar` row
+ * over a full-bleed `.ws-table`).
+ *
+ * Body state, one rule for every mode: add `ws-detail-open` whenever a record
+ * is shown, plus exactly one mode class —
+ *   ws-detail-page    the record replaces the list
+ *   ws-detail-drawer  the record slides over the list's right edge
+ *   ws-layout-split   a queue beside the record (set it for the whole view,
+ *                     selected or not; `ws-detail-open` marks a selection)
+ * On a phone every mode becomes a page. Also: `ws-searching` (show the
+ * narrowed count), `ws-compact` (32px rows), `ws-has-mobile-bar` (the app's
+ * own phone top bar already names the view, so the toolbar title hides).
+ *
+ * Tunables: --ws-row-height, --ws-first-col, --ws-split-list,
+ * --ws-detail-pad, --ws-drawer-width. Column helpers on th/td:
+ * .ws-col-narrow, .ws-col-num, .ws-col-wide; .ws-split-keep keeps a column
+ * visible in the narrow split queue (by default only the first two show). */
+[hidden] {
+  display: none !important;
+}
+:root {
+  --ws-row-height: 40px;
+  --ws-first-col: 30%;
+  --ws-split-list: minmax(300px, 380px);
+  --ws-detail-pad: 28px;
+  --ws-drawer-width: 560px;
+}
+body.ws-compact {
+  --ws-row-height: 32px;
+}
+.ws-view,
+.ws-overview {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+.ws-toolbar {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  min-width: 0;
+  min-height: 56px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+  padding: 10px 20px;
+}
+.ws-title {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 10px;
+}
+.ws-title h1 {
+  overflow: hidden;
+  margin: 0;
+  font-size: var(--text-xl);
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ws-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.ws-count {
+  min-width: 24px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--surface-soft);
+  color: var(--muted);
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+/* The nav already shows the total; the toolbar repeats a number only while a
+ * search narrows it. */
+body:not(.ws-searching) .ws-title .ws-count {
+  display: none;
+}
+.ws-workspace {
+  position: relative;
+  display: block;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  border-top: 1px solid var(--line);
+  background: var(--surface);
+}
+.ws-list,
+.ws-detail {
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+}
+.ws-list {
+  height: 100%;
+}
+.ws-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+.ws-table th,
+.ws-table td {
+  height: var(--ws-row-height);
+  overflow: hidden;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ws-table td {
+  font-size: var(--text-base);
+}
+.ws-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  height: 36px;
+  background: var(--surface-blur);
+  backdrop-filter: blur(10px);
+  color: var(--muted);
+  font-size: var(--text-xs);
+  font-weight: 600;
+}
+.ws-table th:first-child {
+  width: var(--ws-first-col);
+}
+.ws-table .ws-col-narrow {
+  width: 9%;
+}
+.ws-table .ws-col-num {
+  width: 11%;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.ws-table .ws-col-wide {
+  width: 24%;
+}
+.ws-table tbody tr {
+  cursor: pointer;
+  transition: background var(--ease);
+}
+.ws-table tbody tr:hover {
+  background: var(--surface-hover);
+}
+.ws-table tbody tr.ws-selected {
+  background: var(--accent-soft);
+}
+.ws-detail {
+  display: none;
+  padding: 0 var(--ws-detail-pad) 32px;
+  background: var(--surface);
+}
+.ws-detail-bar {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 48px;
+  margin: 0 calc(var(--ws-detail-pad) * -1) 16px;
+  padding: 0 var(--ws-detail-pad);
+  border-bottom: 1px solid var(--line);
+  background: var(--surface-blur);
+  backdrop-filter: blur(10px);
+}
+/* The split queue's resting state, before a record is chosen. */
+.ws-detail-empty {
+  max-width: 42ch;
+  margin: 0 auto;
+  padding: 56px 20px;
+  color: var(--muted);
+  font-size: var(--text-md);
+  line-height: 1.6;
+  text-align: center;
+}
+body.ws-detail-page .ws-list {
+  display: none;
+}
+body.ws-detail-page .ws-detail {
+  display: block;
+  height: 100%;
+}
+body.ws-detail-drawer.ws-detail-open .ws-detail {
+  position: absolute;
+  inset: 0 0 0 auto;
+  z-index: 5;
+  display: block;
+  width: min(var(--ws-drawer-width), 100%);
+  border-left: 1px solid var(--line);
+  box-shadow: var(--shadow-modal);
+}
+body.ws-layout-split .ws-workspace {
+  display: grid;
+  grid-template-columns: var(--ws-split-list) minmax(0, 1fr);
+}
+body.ws-layout-split .ws-list {
+  border-right: 1px solid var(--line);
+}
+body.ws-layout-split .ws-detail {
+  display: block;
+  height: 100%;
+}
+body.ws-layout-split .ws-table :is(th, td):nth-child(n + 3):not(.ws-split-keep) {
+  display: none;
+}
+/* The narrow queue keeps two columns; a width helper on the second would
+ * squeeze the first, so let it size to its content. */
+body.ws-layout-split .ws-table :is(th, td):nth-child(2) {
+  width: auto;
+}
+body.ws-layout-split .ws-table th:first-child {
+  width: 65%;
+}
+/* The layered `.page-hero h1` loses to an app's unlayered `h1` rule; restate
+ * it here so the overview title keeps the shared size. */
+.ws-overview .page-hero h1 {
+  margin: 6px 0 0;
+  font-size: var(--text-3xl);
+  font-weight: 660;
+  letter-spacing: -0.02em;
+}
+.ws-overview .page-hero p {
+  margin: 8px 0 0;
+}
+.ws-overview {
+  display: grid;
+  align-content: start;
+  gap: 20px;
+  overflow: auto;
+  padding: 28px 24px 32px;
+}
+/* A band, not a row of cards: one line that never wraps, ≤3 numbers, on the
+ * overview only. Each cell is a label (`span`) and a value (`strong`). */
+.ws-metrics {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+}
+.ws-metrics > * {
+  display: flex;
+  min-width: 0;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 18px;
+  border-right: 1px solid var(--line);
+}
+.ws-metrics > :last-child {
+  border-right: 0;
+}
+.ws-metrics span {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: var(--text-sm);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ws-metrics strong {
+  font-size: var(--text-xl);
+  font-weight: 650;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+@media (max-width: 720px) {
+  .ws-toolbar {
+    min-height: 52px;
+    padding: 8px 14px;
+  }
+  body:not(.ws-searching) .ws-title .ws-count {
+    display: inline-block;
+  }
+  body.ws-has-mobile-bar .ws-title h1 {
+    display: none;
+  }
+  .ws-overview {
+    padding: 18px 14px 24px;
+  }
+  /* Still one row on a phone: the label stacks over the value. */
+  .ws-metrics > * {
+    display: grid;
+    gap: 2px;
+    padding: 9px 10px;
+  }
+  .ws-metrics span {
+    font-size: var(--text-xs);
+  }
+  .ws-metrics strong {
+    font-size: var(--text-lg);
+  }
+  body.ws-layout-split .ws-workspace {
+    display: block;
+  }
+  body.ws-detail-open .ws-list,
+  body.ws-detail-page .ws-list,
+  body.ws-layout-split:not(.ws-detail-open) .ws-detail {
+    display: none;
+  }
+  body.ws-detail-open .ws-detail,
+  body.ws-detail-page .ws-detail,
+  body.ws-detail-drawer.ws-detail-open .ws-detail {
+    --ws-detail-pad: 14px;
+    position: static;
+    display: block;
+    width: auto;
+    height: 100%;
+    padding-bottom: 24px;
+    border-left: 0;
+    box-shadow: none;
+  }
+  .ws-table :is(th, td):nth-child(n + 3):not(.ws-split-keep) {
+    display: none;
+  }
+  /* Only two columns survive here, so the name column takes most of the row. */
+  .ws-table {
+    --ws-first-col: 62%;
+  }
+}

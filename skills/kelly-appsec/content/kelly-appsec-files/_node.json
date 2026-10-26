@@ -1,0 +1,19 @@
+{
+  "type": "drive",
+  "name": "AppSec 报告与证据",
+  "description": "",
+  "position": 7,
+  "agentPrompts": [
+    {
+      "key": "export",
+      "label": "导出脱敏核查报告",
+      "body": "阅读此文件夹中的 kelly-appsec skill。导出带证据引用和覆盖限制的脱敏报告。"
+    },
+    {
+      "key": "verify",
+      "label": "检查报告的证据与限制",
+      "body": "阅读此文件夹中的 kelly-appsec skill。检查报告是否明确区分规则违反、证据缺口与人工结论，并绑定具体源码/部署版本。",
+      "intent": "read-only"
+    }
+  ]
+}

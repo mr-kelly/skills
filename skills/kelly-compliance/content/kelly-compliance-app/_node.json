@@ -1,0 +1,18 @@
+{
+  "type": "airapp",
+  "name": "云安全与合规准备台",
+  "description": "云安全基线、SOC 2 就绪、证据期间与负责人闭环。",
+  "agentPrompts": [
+    {
+      "key": "review",
+      "label": "找出本期缺口",
+      "body": "阅读同目录 kelly-compliance skill，解释当前范围内的控制缺口和待复核证据。",
+      "intent": "read-only"
+    },
+    {
+      "key": "prepare",
+      "label": "整理审计准备包",
+      "body": "阅读同目录 kelly-compliance skill，按明确范围整理带来源、期间和缺口的准备包。"
+    }
+  ]
+}

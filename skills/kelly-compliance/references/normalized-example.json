@@ -1,0 +1,23 @@
+{
+  "format": "kelly-compliance-report@1",
+  "producer": "Synthetic teaching fixture",
+  "frameworkVersion": "kelly-soc2-readiness@1",
+  "scopeVersion": 1,
+  "rows": [
+    {
+      "key": "sg-1",
+      "title": "Synthetic public SSH",
+      "provider": "aws",
+      "account": "111111111111",
+      "region": "us-east-1",
+      "resourceKey": "sg-example",
+      "resourceType": "security-group",
+      "checkId": "network-public-admin",
+      "status": "fail",
+      "observedAt": "2026-09-30T12:00:00Z",
+      "evidenceMode": "snapshot",
+      "sourceLocator": "fixture:normalized-example/sg-1",
+      "summary": "Synthetic security group has TCP 22 open to 0.0.0.0/0."
+    }
+  ]
+}

@@ -1,0 +1,185 @@
+{
+  "name": "控制项",
+  "description": "自有控制模板、负责人及所需证据。",
+  "position": 2,
+  "agentPrompts": [
+    {
+      "key": "scenario-1",
+      "label": "为这个服务初始化可解释的控制模板并指定负责人。",
+      "body": "阅读此文件夹中的 kelly-compliance skill，遵循其流程。为这个服务初始化可解释的控制模板并指定负责人。",
+      "intent": "change"
+    },
+    {
+      "key": "scenario-2",
+      "label": "解释控制项需要什么技术和组织证据。",
+      "body": "阅读此文件夹中的 kelly-compliance skill，遵循其流程。解释控制项需要什么技术和组织证据。",
+      "intent": "read-only"
+    }
+  ],
+  "fields": [
+    {
+      "slug": "title",
+      "name": "名称",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "record-key",
+      "name": "幂等业务键",
+      "type": "text",
+      "required": true,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "program-reference",
+      "name": "合规项目精确索引",
+      "type": "text",
+      "required": true,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "control-key",
+      "name": "控制键",
+      "type": "text",
+      "required": true,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "framework-version",
+      "name": "控制包版本",
+      "type": "text",
+      "required": true,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "external-reference",
+      "name": "外部要求引用",
+      "type": "text",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "kind",
+      "name": "类型",
+      "type": "select",
+      "required": true,
+      "position": 6,
+      "options": {
+        "choices": [
+          {
+            "id": "technical",
+            "name": "技术与运行"
+          },
+          {
+            "id": "organizational",
+            "name": "组织与流程"
+          }
+        ]
+      }
+    },
+    {
+      "slug": "mapped-checks",
+      "name": "技术检查映射",
+      "type": "text",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "owner",
+      "name": "负责人",
+      "type": "text",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "frequency",
+      "name": "执行频率",
+      "type": "text",
+      "required": false,
+      "position": 9,
+      "options": {}
+    },
+    {
+      "slug": "coverage-mode",
+      "name": "证据需求",
+      "type": "select",
+      "required": true,
+      "position": 10,
+      "options": {
+        "choices": [
+          {
+            "id": "snapshot",
+            "name": "时点证据"
+          },
+          {
+            "id": "period",
+            "name": "期间运行证据"
+          }
+        ]
+      }
+    },
+    {
+      "slug": "description",
+      "name": "目的与方法",
+      "type": "longtext",
+      "required": true,
+      "position": 11,
+      "options": {}
+    },
+    {
+      "slug": "design-state",
+      "name": "设计状态",
+      "type": "select",
+      "required": true,
+      "position": 12,
+      "options": {
+        "choices": [
+          {
+            "id": "not-designed",
+            "name": "待设计"
+          },
+          {
+            "id": "designed",
+            "name": "已说明方法"
+          }
+        ]
+      }
+    },
+    {
+      "slug": "evidence-requirements",
+      "name": "证据维度",
+      "type": "longtext",
+      "required": false,
+      "position": 13,
+      "options": {}
+    },
+    {
+      "slug": "program",
+      "name": "合规项目",
+      "type": "relation",
+      "required": true,
+      "position": 14,
+      "options": {
+        "targetBaseSlug": "programs",
+        "allowMultiple": false
+      }
+    }
+  ],
+  "views": [
+    {
+      "slug": "controls-table",
+      "name": "控制项",
+      "type": "table",
+      "config": {}
+    }
+  ]
+}

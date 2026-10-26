@@ -1,0 +1,4 @@
+interface:
+  display_name: "Kelly AppSec"
+  short_description: "应用与 API 业务权限审计、证据复核与版本复测"
+  default_prompt: "Use $kelly-appsec to review my authorized application's API permissions and business rules, preserve evidence, and track a specific fix revision."

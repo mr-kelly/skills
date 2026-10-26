@@ -1,0 +1,265 @@
+{
+  "name": "证据中心",
+  "description": "来源、哈希、实际期间与脱敏内容。",
+  "position": 4,
+  "agentPrompts": [
+    {
+      "key": "scenario-1",
+      "label": "登记真实证据并保留来源、哈希和实际覆盖期间。",
+      "body": "阅读此文件夹中的 kelly-compliance skill，遵循其流程。登记真实证据并保留来源、哈希和实际覆盖期间。",
+      "intent": "change"
+    },
+    {
+      "key": "scenario-2",
+      "label": "检查某份材料能否支撑指定控制和期间。",
+      "body": "阅读此文件夹中的 kelly-compliance skill，遵循其流程。检查某份材料能否支撑指定控制和期间。",
+      "intent": "read-only"
+    }
+  ],
+  "fields": [
+    {
+      "slug": "title",
+      "name": "名称",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "record-key",
+      "name": "幂等业务键",
+      "type": "text",
+      "required": true,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "program-reference",
+      "name": "合规项目精确索引",
+      "type": "text",
+      "required": true,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "assessment-reference",
+      "name": "评估精确索引",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "framework-version",
+      "name": "控制包版本",
+      "type": "text",
+      "required": true,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "scope-version",
+      "name": "范围版本",
+      "type": "number",
+      "required": true,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "source-kind",
+      "name": "来源类型",
+      "type": "text",
+      "required": true,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "source-locator",
+      "name": "来源定位",
+      "type": "text",
+      "required": true,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "sha256",
+      "name": "原始产物 SHA-256",
+      "type": "text",
+      "required": true,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "observed-at",
+      "name": "观察时间",
+      "type": "date",
+      "required": true,
+      "position": 9,
+      "options": {}
+    },
+    {
+      "slug": "collected-at",
+      "name": "采集时间",
+      "type": "date",
+      "required": true,
+      "position": 10,
+      "options": {}
+    },
+    {
+      "slug": "coverage-start",
+      "name": "实际覆盖开始",
+      "type": "date",
+      "required": false,
+      "position": 11,
+      "options": {}
+    },
+    {
+      "slug": "coverage-end",
+      "name": "实际覆盖结束",
+      "type": "date",
+      "required": false,
+      "position": 12,
+      "options": {}
+    },
+    {
+      "slug": "evidence-mode",
+      "name": "证据形态",
+      "type": "select",
+      "required": true,
+      "position": 13,
+      "options": {
+        "choices": [
+          {
+            "id": "snapshot",
+            "name": "当前快照"
+          },
+          {
+            "id": "period",
+            "name": "真实期间记录"
+          }
+        ]
+      }
+    },
+    {
+      "slug": "technical-result",
+      "name": "技术结果",
+      "type": "select",
+      "required": true,
+      "position": 14,
+      "options": {
+        "choices": [
+          {
+            "id": "pass",
+            "name": "符合声明规则"
+          },
+          {
+            "id": "fail",
+            "name": "违反声明规则"
+          },
+          {
+            "id": "unknown",
+            "name": "未知"
+          },
+          {
+            "id": "manual",
+            "name": "需人工核对"
+          }
+        ]
+      }
+    },
+    {
+      "slug": "excerpt",
+      "name": "脱敏摘要",
+      "type": "longtext",
+      "required": false,
+      "position": 15,
+      "options": {}
+    },
+    {
+      "slug": "retention-until",
+      "name": "复核/有效截止",
+      "type": "date",
+      "required": false,
+      "position": 16,
+      "options": {}
+    },
+    {
+      "slug": "scope-reference",
+      "name": "授权范围依据",
+      "type": "text",
+      "required": false,
+      "position": 17,
+      "options": {}
+    },
+    {
+      "slug": "account",
+      "name": "账户/组织",
+      "type": "text",
+      "required": false,
+      "position": 18,
+      "options": {}
+    },
+    {
+      "slug": "region",
+      "name": "区域",
+      "type": "text",
+      "required": false,
+      "position": 19,
+      "options": {}
+    },
+    {
+      "slug": "resource-key",
+      "name": "资源或人员范围",
+      "type": "text",
+      "required": false,
+      "position": 20,
+      "options": {}
+    },
+    {
+      "slug": "check-id",
+      "name": "检查维度",
+      "type": "text",
+      "required": false,
+      "position": 21,
+      "options": {}
+    },
+    {
+      "slug": "requirement-key",
+      "name": "支撑维度",
+      "type": "text",
+      "required": false,
+      "position": 22,
+      "options": {}
+    },
+    {
+      "slug": "program",
+      "name": "合规项目",
+      "type": "relation",
+      "required": true,
+      "position": 23,
+      "options": {
+        "targetBaseSlug": "programs",
+        "allowMultiple": false
+      }
+    },
+    {
+      "slug": "assessment",
+      "name": "评估任务",
+      "type": "relation",
+      "required": false,
+      "position": 24,
+      "options": {
+        "targetBaseSlug": "assessments",
+        "allowMultiple": false
+      }
+    }
+  ],
+  "views": [
+    {
+      "slug": "evidence-table",
+      "name": "证据中心",
+      "type": "table",
+      "config": {}
+    }
+  ]
+}

@@ -1,0 +1,274 @@
+{
+  "name": "发现与修复",
+  "description": "发现与修复，仅属于当前 AppSec 工作台。",
+  "position": 5,
+  "agentPrompts": [
+    {
+      "key": "scenario-1",
+      "label": "结合已记录的证据复核此问题并保存理由。",
+      "body": "阅读此文件夹中的 kelly-appsec skill。结合已记录的证据复核此问题并保存理由。",
+      "intent": "change"
+    },
+    {
+      "key": "scenario-2",
+      "label": "为指定修复版本请求复测，保留原有发现历史。",
+      "body": "阅读此文件夹中的 kelly-appsec skill。为指定修复版本请求复测，保留原有发现历史。",
+      "intent": "read-only"
+    }
+  ],
+  "fields": [
+    {
+      "slug": "title",
+      "name": "名称",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "record-key",
+      "name": "幂等发现键",
+      "type": "text",
+      "required": true,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "project-reference",
+      "name": "项目精确索引",
+      "type": "text",
+      "required": true,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "run-reference",
+      "name": "任务精确索引",
+      "type": "text",
+      "required": true,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "check-reference",
+      "name": "验证精确索引",
+      "type": "text",
+      "required": true,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "source-revision",
+      "name": "发现版本",
+      "type": "text",
+      "required": true,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "severity",
+      "name": "优先级",
+      "type": "select",
+      "required": true,
+      "position": 6,
+      "options": {
+        "choices": [
+          {
+            "id": "high",
+            "name": "高"
+          },
+          {
+            "id": "medium",
+            "name": "中"
+          },
+          {
+            "id": "low",
+            "name": "低"
+          }
+        ]
+      }
+    },
+    {
+      "slug": "conclusion",
+      "name": "分析结论",
+      "type": "select",
+      "required": true,
+      "position": 7,
+      "options": {
+        "choices": [
+          {
+            "id": "policy-violation",
+            "name": "已观察到规则违反"
+          },
+          {
+            "id": "candidate",
+            "name": "源码/离线候选"
+          },
+          {
+            "id": "insufficient-evidence",
+            "name": "证据不足"
+          }
+        ]
+      }
+    },
+    {
+      "slug": "reasoning",
+      "name": "依据与影响",
+      "type": "longtext",
+      "required": true,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "limitations",
+      "name": "替代解释与限制",
+      "type": "longtext",
+      "required": false,
+      "position": 9,
+      "options": {}
+    },
+    {
+      "slug": "recommendation",
+      "name": "修复建议",
+      "type": "longtext",
+      "required": false,
+      "position": 10,
+      "options": {}
+    },
+    {
+      "slug": "verdict",
+      "name": "人工复核",
+      "type": "select",
+      "required": true,
+      "position": 11,
+      "options": {
+        "choices": [
+          {
+            "id": "needs-review",
+            "name": "待复核"
+          },
+          {
+            "id": "confirmed-vulnerability",
+            "name": "确认缺陷"
+          },
+          {
+            "id": "explained-benign",
+            "name": "正常解释"
+          },
+          {
+            "id": "needs-investigation",
+            "name": "继续调查"
+          }
+        ]
+      }
+    },
+    {
+      "slug": "review-note",
+      "name": "复核理由",
+      "type": "longtext",
+      "required": false,
+      "position": 12,
+      "options": {}
+    },
+    {
+      "slug": "reviewed-at",
+      "name": "复核时间",
+      "type": "date",
+      "required": false,
+      "position": 13,
+      "options": {}
+    },
+    {
+      "slug": "owner",
+      "name": "修复负责人",
+      "type": "text",
+      "required": false,
+      "position": 14,
+      "options": {}
+    },
+    {
+      "slug": "remediation",
+      "name": "修复状态",
+      "type": "select",
+      "required": true,
+      "position": 15,
+      "options": {
+        "choices": [
+          {
+            "id": "open",
+            "name": "待修复"
+          },
+          {
+            "id": "ready-for-retest",
+            "name": "待复测"
+          },
+          {
+            "id": "verified-fixed",
+            "name": "复测已验证修复"
+          },
+          {
+            "id": "reopened",
+            "name": "复测仍失败"
+          }
+        ]
+      }
+    },
+    {
+      "slug": "fixed-revision",
+      "name": "拟修复版本",
+      "type": "text",
+      "required": false,
+      "position": 16,
+      "options": {}
+    },
+    {
+      "slug": "retest-run-reference",
+      "name": "复测任务引用",
+      "type": "text",
+      "required": false,
+      "position": 17,
+      "options": {}
+    },
+    {
+      "slug": "project",
+      "name": "项目",
+      "type": "relation",
+      "required": true,
+      "position": 18,
+      "options": {
+        "targetBaseSlug": "projects",
+        "allowMultiple": false
+      }
+    },
+    {
+      "slug": "run",
+      "name": "任务",
+      "type": "relation",
+      "required": true,
+      "position": 19,
+      "options": {
+        "targetBaseSlug": "runs",
+        "allowMultiple": false
+      }
+    },
+    {
+      "slug": "check",
+      "name": "验证",
+      "type": "relation",
+      "required": true,
+      "position": 20,
+      "options": {
+        "targetBaseSlug": "checks",
+        "allowMultiple": false
+      }
+    }
+  ],
+  "views": [
+    {
+      "slug": "findings-main",
+      "name": "发现与修复",
+      "type": "table",
+      "config": {}
+    }
+  ]
+}

@@ -1,0 +1,54 @@
+{
+  "format": "busabase-package@1",
+  "name": "kelly-compliance",
+  "displayName": {
+    "en": "Kelly Compliance",
+    "zh-CN": "云安全与合规准备台"
+  },
+  "description": {
+    "en": "Manage cloud baselines, accountable controls and period evidence for SaaS SOC 2 readiness.",
+    "zh-CN": "明确云安全、控制责任、证据期间与整改缺口。"
+  },
+  "version": "0.1.0",
+  "license": "MIT",
+  "tags": ["security", "compliance", "soc2", "cloud"],
+  "template": {
+    "category": "platform",
+    "schemaVersion": 1,
+    "airapp": "kelly-compliance-app",
+    "screenshots": [
+      "assets/screenshots/cover.webp",
+      "assets/screenshots/overview.webp",
+      "assets/screenshots/resources.webp",
+      "assets/screenshots/controls.webp",
+      "assets/screenshots/evidence.webp",
+      "assets/screenshots/issues.webp",
+      "assets/screenshots/assessments.webp",
+      "assets/screenshots/controls-mobile.webp"
+    ],
+    "agentPrompts": [
+      "为我指定的 SaaS 服务建立云基线和 SOC 2 准备范围。",
+      "导入现有扫描结果，列出证据缺口和负责人。",
+      "复核证据覆盖期间并导出明确限制的准备包。"
+    ],
+    "requires": {
+      "airapp": true
+    },
+    "video": "assets/recordings/kelly-compliance.mp4",
+    "locales": {
+      "zh-CN": {
+        "screenshots": [
+          "assets/screenshots/cover-zh-CN.webp",
+          "assets/screenshots/overview-zh-CN.webp",
+          "assets/screenshots/resources-zh-CN.webp",
+          "assets/screenshots/controls-zh-CN.webp",
+          "assets/screenshots/evidence-zh-CN.webp",
+          "assets/screenshots/issues-zh-CN.webp",
+          "assets/screenshots/assessments-zh-CN.webp",
+          "assets/screenshots/controls-mobile-zh-CN.webp"
+        ],
+        "video": "assets/recordings/kelly-compliance-zh-CN.mp4"
+      }
+    }
+  }
+}
