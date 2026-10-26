@@ -3,11 +3,42 @@
 客户怀疑服务器被入侵时，先核查证据，再判断入口与影响。通过本机 Agent 执行 SSH，
 在 Busabase 中查看多服务器检查清单、证据时间线、采集缺口与人工复核结论。
 
-![多服务器入侵核查矩阵](assets/screenshots/overview-dark-zh-CN.webp)
+<table>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/cover-zh-CN.webp" alt="Linux 入侵核查台"></td>
+    <td width="50%"><img src="assets/screenshots/overview-zh-CN.webp" alt="核查总览"></td>
+  </tr>
+  <tr>
+    <td><strong>Linux 入侵核查台</strong><br>多服务器检查、证据与复核。</td>
+    <td><strong>核查总览</strong><br>对比每台服务器的十二项核查状态。</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/hosts-zh-CN.webp" alt="服务器清单"></td>
+    <td width="50%"><img src="assets/screenshots/runs-zh-CN.webp" alt="检查任务"></td>
+  </tr>
+  <tr>
+    <td><strong>服务器清单</strong><br>管理已授权 SSH 主机和业务角色。</td>
+    <td><strong>检查任务</strong><br>区分等待本机 Agent、执行中与证据缺口。</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/checklist-zh-CN.webp" alt="逐项检查"></td>
+    <td width="50%"><img src="assets/screenshots/timeline-zh-CN.webp" alt="证据时间线"></td>
+  </tr>
+  <tr>
+    <td><strong>逐项检查</strong><br>展开每项检查的证据来源与覆盖范围。</td>
+    <td><strong>证据时间线</strong><br>关联登录、访问、执行与持久化线索。</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/findings-zh-CN.webp" alt="发现与复核"></td>
+    <td width="50%"><img src="assets/screenshots/findings-mobile-zh-CN.webp" alt="手机复核"></td>
+  </tr>
+  <tr>
+    <td><strong>发现与复核</strong><br>核对证据后记录人工结论及理由。</td>
+    <td><strong>手机复核</strong><br>在手机上查看证据并完成复核。</td>
+  </tr>
+</table>
 
-![逐项检查与来源证据](assets/screenshots/checklist-zh-CN.webp)
-
-[观看 10 秒复核演示](assets/recordings/review-zh-CN.mp4)。截图和录像均使用合成数据。
+[观看 22 秒完整导览](assets/recordings/kelly-security-zh-CN.mp4) · [10 秒复核操作](assets/recordings/review-zh-CN.mp4)。截图和录像均使用合成数据。
 
 选择已获授权的服务器和调查时间范围，发起 12 项固定检查。界面只提交请求，由本机
 Agent 再次核对授权后执行；没有 Agent 时明确显示等待。SSH 凭据保留本机。

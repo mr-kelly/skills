@@ -22,9 +22,9 @@ metadata:
 
 # Kelly Security
 
-![Multi-server intrusion checklist](assets/screenshots/overview-dark-zh-CN.webp)
+![Multi-server intrusion checklist](assets/screenshots/cover-zh-CN.webp)
 
-[10-second review demonstration](assets/recordings/review-zh-CN.mp4) · Synthetic data, no real host access.
+[22-second workflow walkthrough](assets/recordings/kelly-security-zh-CN.mp4) · [Analyst review](assets/recordings/review-zh-CN.mp4). Synthetic data, no real host access.
 
 Answer **what evidence supports or contradicts a Linux intrusion, and what remains unknown**.
 The Busabase UI is the shared investigation desk; the current local Agent owns SSH execution.

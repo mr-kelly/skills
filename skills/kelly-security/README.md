@@ -17,20 +17,40 @@ coverage gaps, source evidence, timelines and analyst verdicts. The operator UI 
 
 <table>
   <tr>
-    <td width="50%"><img src="assets/screenshots/overview-dark-zh-CN.webp" alt="Multi-server investigation matrix in dark mode"></td>
-    <td width="50%"><img src="assets/screenshots/checklist-zh-CN.webp" alt="Twelve checks with source evidence and coverage gaps"></td>
+    <td width="50%"><img src="assets/screenshots/cover.webp" alt="Kelly Security"></td>
+    <td width="50%"><img src="assets/screenshots/overview.webp" alt="Server matrix"></td>
   </tr>
   <tr>
-    <td><strong>Server matrix</strong><br>Compare acquisition and assessment without treating an unexamined server as safe.</td>
-    <td><strong>Evidence checklist</strong><br>Open each check's evidence, timestamps and collection limitations.</td>
+    <td><strong>Kelly Security</strong><br>A multi-server investigation desk.</td>
+    <td><strong>Server matrix</strong><br>Compare twelve checks across servers.</td>
   </tr>
   <tr>
-    <td width="50%"><img src="assets/screenshots/findings-zh-CN.webp" alt="Analyst review with linked evidence"></td>
-    <td width="50%"><img src="assets/screenshots/reviewed-findings-mobile-zh-CN.webp" alt="Mobile review preserving automatic and human assessments"></td>
+    <td width="50%"><img src="assets/screenshots/hosts.webp" alt="Authorized servers"></td>
+    <td width="50%"><img src="assets/screenshots/runs.webp" alt="Investigation tasks"></td>
+  </tr>
+  <tr>
+    <td><strong>Authorized servers</strong><br>Choose named SSH targets and business roles.</td>
+    <td><strong>Investigation tasks</strong><br>Separate local execution from waiting and incomplete tasks.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/checklist.webp" alt="Evidence checklist"></td>
+    <td width="50%"><img src="assets/screenshots/timeline.webp" alt="Evidence timeline"></td>
+  </tr>
+  <tr>
+    <td><strong>Evidence checklist</strong><br>Open the source and coverage of each check.</td>
+    <td><strong>Evidence timeline</strong><br>Correlate access, execution and persistence leads.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/findings.webp" alt="Analyst review"></td>
+    <td width="50%"><img src="assets/screenshots/findings-mobile.webp" alt="Phone review"></td>
+  </tr>
+  <tr>
+    <td><strong>Analyst review</strong><br>Read the evidence before recording a verdict.</td>
+    <td><strong>Phone review</strong><br>Review the same findings on a phone.</td>
   </tr>
 </table>
 
-[Watch the 10-second review demonstration](assets/recordings/review-zh-CN.mp4).
+[Watch the 22-second walkthrough](assets/recordings/kelly-security-zh-CN.mp4) · [10-second analyst review](assets/recordings/review-zh-CN.mp4).
 Screenshots and recording use synthetic data; they do not show a real customer's infrastructure.
 
 ## Install and operate

@@ -47,3 +47,27 @@ test("README gallery captions and existing recording pages remain available", as
   assert.match(gallery(email), /docs\/demo-recordings\/kelly-email\/kelly-email-demo-zh-CN\.mp4/);
   assert.match(gallery(email), /assets\/screenshots\/overview/);
 });
+
+test("Security exposes its complete workflow gallery and playable walkthrough on the site", async () => {
+  const html = await page("kelly-security");
+  assert.deepEqual(mediaOrder(html), [
+    "cover.webp",
+    "video",
+    "overview.webp",
+    "hosts.webp",
+    "runs.webp",
+    "checklist.webp",
+    "timeline.webp",
+    "findings.webp",
+    "findings-mobile.webp",
+  ]);
+  assert.match(gallery(html), /assets\/recordings\/kelly-security\.mp4/);
+  assert.match(gallery(html), /<strong>Evidence timeline<\/strong>/);
+  assert.match(gallery(html), /<strong>证据时间线<\/strong>/);
+  assert.doesNotMatch(gallery(html), /<video\b/);
+  const index = await readFile(path.join(root, "docs", "index.html"), "utf8");
+  const card = index.match(/<a class="card"[^>]+href="s\/kelly-security\.html">([\s\S]*?)<\/a>/)?.[1];
+  assert.ok(card, "Security remains discoverable in the website catalog");
+  assert.match(card, /class="thumb template-cover"/);
+  assert.match(card, /kelly-security\/assets\/screenshots\/(?:thumbs\/)?cover\.webp/);
+});

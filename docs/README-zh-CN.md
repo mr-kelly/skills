@@ -1044,14 +1044,40 @@ Kelly Family Fund 是一个本地、只读的家庭统筹基金台账：把两�
 
 ### `kelly-security`
 
+22 秒完整导览与截图均使用合成数据；页面支持点击播放视频。
+
 <table>
   <tr>
-    <td width="50%"><img src="../skills/kelly-security/assets/screenshots/overview-dark-zh-CN.webp" alt="Kelly Security multi-server matrix"></td>
-    <td width="50%"><img src="../skills/kelly-security/assets/screenshots/checklist-zh-CN.webp" alt="Kelly Security evidence checklist"></td>
+    <td width="50%"><img src="../skills/kelly-security/assets/screenshots/cover-zh-CN.webp" alt="Linux 入侵核查台"></td>
+    <td width="50%"><img src="../skills/kelly-security/assets/screenshots/overview-zh-CN.webp" alt="核查总览"></td>
   </tr>
   <tr>
-    <td><strong>多服务器入侵核查</strong></td>
-    <td><strong>逐项检查与证据来源</strong></td>
+    <td><strong>Linux 入侵核查台</strong><br>多服务器检查、证据与复核。</td>
+    <td><strong>核查总览</strong><br>对比每台服务器的十二项核查状态。</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="../skills/kelly-security/assets/screenshots/hosts-zh-CN.webp" alt="服务器清单"></td>
+    <td width="50%"><img src="../skills/kelly-security/assets/screenshots/runs-zh-CN.webp" alt="检查任务"></td>
+  </tr>
+  <tr>
+    <td><strong>服务器清单</strong><br>管理已授权 SSH 主机和业务角色。</td>
+    <td><strong>检查任务</strong><br>区分等待本机 Agent、执行中与证据缺口。</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="../skills/kelly-security/assets/screenshots/checklist-zh-CN.webp" alt="逐项检查"></td>
+    <td width="50%"><img src="../skills/kelly-security/assets/screenshots/timeline-zh-CN.webp" alt="证据时间线"></td>
+  </tr>
+  <tr>
+    <td><strong>逐项检查</strong><br>展开每项检查的证据来源与覆盖范围。</td>
+    <td><strong>证据时间线</strong><br>关联登录、访问、执行与持久化线索。</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="../skills/kelly-security/assets/screenshots/findings-zh-CN.webp" alt="发现与复核"></td>
+    <td width="50%"><img src="../skills/kelly-security/assets/screenshots/findings-mobile-zh-CN.webp" alt="手机复核"></td>
+  </tr>
+  <tr>
+    <td><strong>发现与复核</strong><br>核对证据后记录人工结论及理由。</td>
+    <td><strong>手机复核</strong><br>在手机上查看证据并完成复核。</td>
   </tr>
 </table>
 
