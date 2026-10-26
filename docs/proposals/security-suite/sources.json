@@ -1,0 +1,184 @@
+{
+  "researched_on": "2026-10-26",
+  "planning_only": true,
+  "user_decisions": {
+    "compliance_audience": "outbound-saas",
+    "compliance_scope": [
+      "cloud-security-baseline",
+      "SOC-2-readiness"
+    ],
+    "implementation_authorized": false
+  },
+  "primary_sources": [
+    {
+      "id": "owasp-asvs",
+      "title": "OWASP ASVS",
+      "url": "https://asvs.owasp.org/",
+      "version_observed": "5.0.0",
+      "used_for": [
+        "application-requirements",
+        "versioned-rule-references"
+      ]
+    },
+    {
+      "id": "owasp-api-top10",
+      "title": "OWASP API Security Top 10",
+      "url": "https://api-security.owasp.org/editions/2023/en/0x11-t10/",
+      "version_observed": "2023",
+      "used_for": [
+        "api-authorization",
+        "risk-taxonomy"
+      ]
+    },
+    {
+      "id": "owasp-bola",
+      "title": "Broken Object Level Authorization",
+      "url": "https://api-security.owasp.org/editions/2023/en/0xa1-broken-object-level-authorization/",
+      "used_for": [
+        "per-object-action-policy",
+        "interpretation-of-response"
+      ]
+    },
+    {
+      "id": "owasp-flows",
+      "title": "Sensitive Business Flows",
+      "url": "https://api-security.owasp.org/editions/2023/en/0xa6-unrestricted-access-to-sensitive-business-flows/",
+      "used_for": [
+        "business-specific-abuse-cases"
+      ]
+    },
+    {
+      "id": "aicpa-soc",
+      "title": "AICPA SOC suite of services",
+      "url": "https://www.aicpa-cima.com/resources/landing/system-and-organization-controls-soc-suite-of-services",
+      "used_for": [
+        "professional-reporting-boundary",
+        "soc-scope"
+      ]
+    },
+    {
+      "id": "aicpa-tsc",
+      "title": "2017 TSC with revised points of focus 2022",
+      "url": "https://www.aicpa-cima.com/resources/download/2017-trust-services-criteria-with-revised-points-of-focus-2022",
+      "version_observed": "2017 TSC, revised points of focus 2022",
+      "used_for": [
+        "versioned-control-mapping"
+      ]
+    },
+    {
+      "id": "aicpa-report-review",
+      "title": "AICPA SOC 2 Report Review",
+      "url": "https://assets.ctfassets.net/rb9cdnjh59cm/3xbcLlNc5rd72So4nQpNIk/7a3e8e5945c78c35fc5e116859b96e6a/SOC_2_Report_%C3%82_Review_Checklist.pdf",
+      "used_for": [
+        "report-period-and-point-in-time",
+        "CPA-report-boundary"
+      ]
+    },
+    {
+      "id": "aws-shared",
+      "title": "AWS shared responsibility",
+      "url": "https://docs.aws.amazon.com/wellarchitected/latest/security-pillar/shared-responsibility.html",
+      "used_for": [
+        "cloud-provider-vs-customer-control-responsibility"
+      ]
+    },
+    {
+      "id": "aws-audit-manager-soc2",
+      "title": "AWS Audit Manager SSAE-18 SOC 2",
+      "url": "https://docs.aws.amazon.com/audit-manager/latest/userguide/SOC2.html",
+      "used_for": [
+        "evidence-vs-compliance",
+        "manual-procedural-controls"
+      ]
+    },
+    {
+      "id": "aws-securityhub-prereqs",
+      "title": "AWS Security Hub CSPM prerequisites",
+      "url": "https://docs.aws.amazon.com/securityhub/latest/userguide/securityhub-setup-prereqs.html",
+      "used_for": [
+        "dynamic-capability-discovery",
+        "avoid-stale-prerequisites"
+      ]
+    },
+    {
+      "id": "cis-benchmarks",
+      "title": "CIS Benchmarks",
+      "url": "https://www.cisecurity.org/cis-benchmarks",
+      "used_for": [
+        "version-specific-cloud-and-host-baselines",
+        "license-boundaries"
+      ]
+    },
+    {
+      "id": "prowler",
+      "title": "Prowler official site",
+      "url": "https://prowler.com/",
+      "used_for": [
+        "optional-read-only-collector",
+        "existing-output-import"
+      ]
+    }
+  ],
+  "community_skills": [
+    {
+      "name": "conducting-api-security-testing",
+      "repository": "mukul975/Anthropic-Cybersecurity-Skills",
+      "commit": "54a798831d2266a3ca61ce68a7acb80b81160d57",
+      "url": "https://github.com/mukul975/Anthropic-Cybersecurity-Skills/blob/54a798831d2266a3ca61ce68a7acb80b81160d57/skills/conducting-api-security-testing/SKILL.md",
+      "sha256": "d7c01bde62507b200c57a34b0d4ba04a520b1a6c0cd02ac2ac1b08fe2852c3ef",
+      "license": "Apache-2.0"
+    },
+    {
+      "name": "testing-api-for-broken-object-level-authorization",
+      "repository": "mukul975/Anthropic-Cybersecurity-Skills",
+      "commit": "54a798831d2266a3ca61ce68a7acb80b81160d57",
+      "url": "https://github.com/mukul975/Anthropic-Cybersecurity-Skills/blob/54a798831d2266a3ca61ce68a7acb80b81160d57/skills/testing-api-for-broken-object-level-authorization/SKILL.md",
+      "sha256": "ba403342c7cae18411a0b12fde05ce3a9441dcfaf341cd845d00537c99250886",
+      "license": "Apache-2.0"
+    },
+    {
+      "name": "testing-for-business-logic-vulnerabilities",
+      "repository": "mukul975/Anthropic-Cybersecurity-Skills",
+      "commit": "54a798831d2266a3ca61ce68a7acb80b81160d57",
+      "url": "https://github.com/mukul975/Anthropic-Cybersecurity-Skills/blob/54a798831d2266a3ca61ce68a7acb80b81160d57/skills/testing-for-business-logic-vulnerabilities/SKILL.md",
+      "sha256": "4cce70205aaa1013cfbd70b1950aecef4693c839b4420220bde786c36c0a3e06",
+      "license": "Apache-2.0"
+    },
+    {
+      "name": "performing-soc2-type2-audit-preparation",
+      "repository": "mukul975/Anthropic-Cybersecurity-Skills",
+      "commit": "54a798831d2266a3ca61ce68a7acb80b81160d57",
+      "url": "https://github.com/mukul975/Anthropic-Cybersecurity-Skills/blob/54a798831d2266a3ca61ce68a7acb80b81160d57/skills/performing-soc2-type2-audit-preparation/SKILL.md",
+      "sha256": "8d94fe1449f575b41c7d0ffe8784555a897640a0b1203179d748209a9526fa64",
+      "license": "Apache-2.0"
+    },
+    {
+      "name": "auditing-cloud-with-cis-benchmarks",
+      "repository": "mukul975/Anthropic-Cybersecurity-Skills",
+      "commit": "54a798831d2266a3ca61ce68a7acb80b81160d57",
+      "url": "https://github.com/mukul975/Anthropic-Cybersecurity-Skills/blob/54a798831d2266a3ca61ce68a7acb80b81160d57/skills/auditing-cloud-with-cis-benchmarks/SKILL.md",
+      "sha256": "71572e75783b52aaf69d86e038890cd4c6d0e58c41522716258ff326415a25bc",
+      "license": "Apache-2.0"
+    },
+    {
+      "name": "implementing-aws-security-hub-compliance",
+      "repository": "mukul975/Anthropic-Cybersecurity-Skills",
+      "commit": "54a798831d2266a3ca61ce68a7acb80b81160d57",
+      "url": "https://github.com/mukul975/Anthropic-Cybersecurity-Skills/blob/54a798831d2266a3ca61ce68a7acb80b81160d57/skills/implementing-aws-security-hub-compliance/SKILL.md",
+      "sha256": "8f015dac361e6dc2c5bbe5b056e487949344f2937f047c2053c8aa0141df481a",
+      "license": "Apache-2.0"
+    }
+  ],
+  "reuse_policy": "Adapt documented methods, pin revisions and preserve Apache-2.0 attribution on derived material. Community licensing does not grant rights to redistribute separate AICPA or CIS standard texts. No third-party scripts were run against customer targets.",
+  "architecture_reference": {
+    "repository": "busabase/skills",
+    "commit": "b6db4aaf053453e4deda2a6ef8b78e9abd75db70",
+    "skill": "busabase-app-creator"
+  },
+  "repository_prior_art": [
+    "skills/kelly-security/",
+    "skills/kelly-devops/",
+    "skills/kelly-app-skill-creator/",
+    "skills/kelly-app-skill-creator-tests/"
+  ]
+}
