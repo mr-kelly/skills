@@ -1326,8 +1326,9 @@ async function submitMistakeCause(id) {
         state.mistakeSubmissions[id] = t("causePending");
         state.causeStatus[id] = t("causePending");
       } else {
+        // Landed: nothing is in flight, so the parent can keep editing the cause.
         delete state.mistakeRequestIds[id];
-        state.mistakeSubmissions[id] = t("causeSaved");
+        delete state.mistakeSubmissions[id];
         state.causeStatus[id] = t("causeSaved");
       }
       rememberCauseRequests();

@@ -493,18 +493,16 @@ def test_busabase_provisioning(browser) -> None:
                     assert not errors, errors
                     context.close()
 
-                # A browser decision proposes two pending writes. Before reviewer
-                # approval/merge, neither canonical record may change.
-                pending = read_json(f"{busabase_url}/api/v1/change-requests")
-                pending = pending if isinstance(pending, list) else pending.get("changeRequests", [])
-                writes = [cr for cr in pending if cr.get("status") == "in_review"]
-                assert len(writes) == 2, pending
-                canonical = read_json(f"{busabase_url}/api/v1/records?baseId={reviews_base['baseId']}")
-                canonical = canonical if isinstance(canonical, list) else canonical.get("records", [])
-                assert all((r.get("headCommit", {}).get("payload") or r.get("headCommit", {}).get("fields", {})).get("status") == "needs_review" for r in canonical)
-                post_json(f"{busabase_url}/api/v1/change-requests/reviews", {"changeRequestIds": [cr["id"] for cr in writes], "verdict": "approved"})
-                merged = post_json(f"{busabase_url}/api/v1/change-requests/merge", {"changeRequestIds": [cr["id"] for cr in writes]})
-                assert all(result.get("ok") for result in merged["results"]), merged
+                # A parent's own decision follows their permission: this local
+                # server's credential has write access, so both writes (the review
+                # row and the linked question's status) land at once. Nothing may be
+                # left waiting for review; a propose-only connection is what queues.
+                change_requests = read_json(f"{busabase_url}/api/v1/change-requests")
+                change_requests = (
+                    change_requests if isinstance(change_requests, list) else change_requests.get("changeRequests", [])
+                )
+                still_pending = [cr for cr in change_requests if cr.get("status") == "in_review"]
+                assert not still_pending, still_pending
 
                 records = read_json(f"{busabase_url}/api/v1/records?baseId={reviews_base['baseId']}")
                 record_items = records if isinstance(records, list) else records.get("records", [])
@@ -560,7 +558,7 @@ def main() -> None:
                     test_demo_ui(browser, base_url)
                     print("PASS OSS - demo UI at desktop and phone viewports")
                     test_busabase_provisioning(browser)
-                    print("PASS OSS - lazy provisioning, pending decision writes, reviewed merge, and persistence against temporary Busabase")
+                    print("PASS OSS - lazy provisioning, parent decision writes land directly, and persistence against temporary Busabase")
                 except Exception:
                     for index, context in enumerate(browser.contexts):
                         for page_index, page in enumerate(context.pages):
