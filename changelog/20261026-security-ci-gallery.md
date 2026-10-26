@@ -22,7 +22,12 @@ AI Agent: Codex
 ## What Changed
 
 - Declare the exact `busabase-sdk@0.99.1` release-age exclusion in the skill and AirApp workspaces.
-- Complete the Security gallery, walkthrough and website references in the accompanying changes.
+- Add a 22-second, 1440×900 silent H.264 walkthrough covering all six primary workflow views.
+- Generate English and Chinese covers from real application captures, and include seven workflow/
+  phone screenshots with thumbnails and meaningful bilingual captions.
+- Update the template manifest, skill READMEs, root gallery and generated website. The detail page
+  orders cover → playable walkthrough → screenshots, and the homepage uses the new cover.
+- Add a website regression test for Security's complete gallery and lazy video player.
 
 ## Why
 
@@ -42,5 +47,10 @@ None.
 ## Testing
 
 - Repository SDK and hosted-runtime policy audits pass after the configuration correction.
-- Media validation checks codec, dimensions, duration and actual route coverage.
-- The final follow-up records the CI and staged website validation results.
+- Video: 22.267 seconds, H.264, 1440×900, 30fps, yuv420p, TV color range, 713,024 bytes, no audio.
+- Both generated covers pass structural validation; strict four-layer package validation passes.
+- The staged website passes its asset check: 85 pages, 663 local images and 7 local videos.
+- Browser acceptance loaded all eight gallery images, played the entire video, checked the homepage
+  cover and verified the 390px page has no horizontal overflow or page errors.
+- Root lint/typecheck, both repository policy audits, Security package/app checks and six contract
+  tests pass. Nine website/media validator tests pass.

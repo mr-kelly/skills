@@ -1040,14 +1040,40 @@ Customer-support desk — KB-grounded drafted replies, SLA + CSAT, and a support
 
 ### `kelly-security`
 
+22-second walkthrough and screenshots use synthetic data. The gallery includes click-to-play video. The app UI is currently Chinese.
+
 <table>
   <tr>
-    <td width="50%"><img src="skills/kelly-security/assets/screenshots/overview-dark-zh-CN.webp" alt="Kelly Security multi-server matrix"></td>
-    <td width="50%"><img src="skills/kelly-security/assets/screenshots/checklist-zh-CN.webp" alt="Kelly Security evidence checklist"></td>
+    <td width="50%"><img src="skills/kelly-security/assets/screenshots/cover.webp" alt="Kelly Security"></td>
+    <td width="50%"><img src="skills/kelly-security/assets/screenshots/overview.webp" alt="Server matrix"></td>
   </tr>
   <tr>
-    <td><strong>Multi-server intrusion investigation</strong></td>
-    <td><strong>Checks, evidence and coverage gaps</strong></td>
+    <td><strong>Kelly Security</strong><br>A multi-server investigation desk.</td>
+    <td><strong>Server matrix</strong><br>Compare twelve checks across servers.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="skills/kelly-security/assets/screenshots/hosts.webp" alt="Authorized servers"></td>
+    <td width="50%"><img src="skills/kelly-security/assets/screenshots/runs.webp" alt="Investigation tasks"></td>
+  </tr>
+  <tr>
+    <td><strong>Authorized servers</strong><br>Choose named SSH targets and business roles.</td>
+    <td><strong>Investigation tasks</strong><br>Separate local execution from waiting and incomplete tasks.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="skills/kelly-security/assets/screenshots/checklist.webp" alt="Evidence checklist"></td>
+    <td width="50%"><img src="skills/kelly-security/assets/screenshots/timeline.webp" alt="Evidence timeline"></td>
+  </tr>
+  <tr>
+    <td><strong>Evidence checklist</strong><br>Open the source and coverage of each check.</td>
+    <td><strong>Evidence timeline</strong><br>Correlate access, execution and persistence leads.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="skills/kelly-security/assets/screenshots/findings.webp" alt="Analyst review"></td>
+    <td width="50%"><img src="skills/kelly-security/assets/screenshots/findings-mobile.webp" alt="Phone review"></td>
+  </tr>
+  <tr>
+    <td><strong>Analyst review</strong><br>Read the evidence before recording a verdict.</td>
+    <td><strong>Phone review</strong><br>Review the same findings on a phone.</td>
   </tr>
 </table>
 
