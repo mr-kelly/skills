@@ -24,7 +24,7 @@
 | Busabase | 真正写入、重读、重启后持久化、AirApp 同源运行与源码一致 | 通过 |
 | 响应式 UI | 桌面与手机布局、表单、记录详情、深链接、刷新与编辑 | 通过 |
 | 网站和媒体 | 真实界面截图、合成数据视频、图片/视频可加载、安装入口 | 通过 |
-| CI | 仓库 lint/typecheck、SDK 和 hosted detection 检查通过；全量 CI 与 Pages | 发布中 |
+| CI | 仓库 lint/typecheck、SDK/runtime 审计及 Pages 资产检查 | 本地通过；远端全量 CI 与部署结果见 [GitHub Actions](https://github.com/mr-kelly/skills/actions/workflows/ci.yml) |
 | Cloud OAuth | 独立凭据和专用测试 Space 的环境门控 | 未提供凭据时明确跳过 |
 
 本地验收通过：独立 Node 跨边界测试 39/39、包内领域测试 20/20；两套应用各四种尺寸（1280×820、1280×720、390×844、360×740）的真实浏览器交互，以及两个已合并 OSS AirApp 的实际 UI 写入、SDK 回读、刷新持久化和手机布局。原生平台启动期会重建临时 iframe；最终同源会话、静态文件 MIME 与后续应用行为均验证。
@@ -60,3 +60,7 @@ node scripts/build-site.mjs --asset-mode=pages-local
 ## 独立试用复核
 
 另一次独立试用以随包示例驱动真实本地 HTTP 请求和实际导入/报告 helpers，发现并修复了中断报告只列出已完成记录的问题。复测确认：预算仅执行 1/2 条规则时，分页可完整，但执行覆盖明确不完整；报告保留失败状态、中断原因与具体未执行的跨租户规则。正常执行、规则/接口修改或删除、原请求描述保留、合规缺项/快照/截断均通过。此试用的 store 为合成适配器；真正的 Busabase 持久化由独立 OSS 和原生 AirApp 套件验证。
+
+## 干净检出验收
+
+两套完整 OSS 测试命令均在只含已提交文件的新 Git worktree 执行并通过：各自冻结依赖安装、包与应用检查、包内测试、独立 Node 测试、四尺寸 UI、实际安装的原生 AirApp。测试产生的数据与证据位于临时目录，不依赖原工作目录中的未跟踪 fixture、node_modules 或私有配置。两套严格包检查也从该检出通过。
