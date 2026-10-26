@@ -1,0 +1,17 @@
+2026-10-25T10:00:00+00:00 lab sshd[100]: Failed password for invalid user admin from 203.0.113.42 port 40000 ssh2
+2026-10-25T10:00:10+00:00 lab sshd[101]: Failed password for invalid user admin from 203.0.113.42 port 40001 ssh2
+2026-10-25T10:00:20+00:00 lab sshd[102]: Failed password for invalid user admin from 203.0.113.42 port 40002 ssh2
+2026-10-25T10:00:30+00:00 lab sshd[103]: Failed password for invalid user admin from 203.0.113.42 port 40003 ssh2
+2026-10-25T10:00:40+00:00 lab sshd[104]: Failed password for invalid user admin from 203.0.113.42 port 40004 ssh2
+2026-10-25T10:00:50+00:00 lab sshd[105]: Failed password for invalid user admin from 203.0.113.42 port 40005 ssh2
+2026-10-25T10:01:00+00:00 lab sshd[106]: Failed password for invalid user admin from 203.0.113.42 port 40006 ssh2
+2026-10-25T10:01:10+00:00 lab sshd[107]: Failed password for invalid user admin from 203.0.113.42 port 40007 ssh2
+2026-10-25T10:01:20+00:00 lab sshd[108]: Failed password for invalid user admin from 203.0.113.42 port 40008 ssh2
+2026-10-25T10:01:30+00:00 lab sshd[109]: Failed password for invalid user admin from 203.0.113.42 port 40009 ssh2
+2026-10-25T10:02:00+00:00 lab sshd[110]: Accepted publickey for root from 203.0.113.42 port 40010 ssh2
+2026-10-25T10:03:00+00:00 lab sudo: alice : TTY=pts/0 ; USER=root ; COMMAND=/tmp/.kelly-lab/update password=synthetic-auth-secret
+KELLY_FRAME L2V0Yy9zaGFkb3c=
+S0VM TFlfRU5ECg==
+KELLY_FRAME_END
+KELLY_SOURCE /etc/shadow
+2026-10-25T10:04:00+00:00 lab sudo: alice : TTY=pts/0 ; USER=root ; COMMAND=/tmp/.kelly-lab/update --user=admin:synthetic-curl-secret

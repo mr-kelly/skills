@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { readFile, readdir } from "node:fs/promises";
+import { readFile, readdir, stat } from "node:fs/promises";
 import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
@@ -10,6 +10,22 @@ import { appFiles, appRoot } from "../../../skills/kelly-security/lib/publish.mj
 const root = fileURLToPath(new URL("../../../skills/kelly-security/", import.meta.url));
 const json = async (relative) => JSON.parse(await readFile(path.join(root, relative), "utf8"));
 const digest = (content) => createHash("sha256").update(content).digest("hex");
+
+test("the SSH lab Docker build context includes every declared COPY input", async () => {
+  const context = path.resolve(fileURLToPath(new URL("./fixtures/ssh-lab/", import.meta.url)));
+  const dockerfile = await readFile(path.join(context, "Dockerfile"), "utf8");
+  const copies = [...dockerfile.matchAll(/^COPY\s+(.+)$/gm)];
+  assert.ok(copies.length > 0, "The lab must declare its runtime fixture inputs");
+  for (const [, argumentsText] of copies) {
+    const inputs = argumentsText.trim().split(/\s+/).slice(0, -1);
+    for (const input of inputs) {
+      const source = path.resolve(context, input);
+      assert.ok(source.startsWith(`${context}${path.sep}`), `COPY input escapes the lab context: ${input}`);
+      const details = await stat(source).catch(() => null);
+      assert.ok(details?.isFile() && details.size > 0, `Missing SSH lab Docker COPY input: ${input}`);
+    }
+  }
+});
 
 test("the installable package and runtime declaration identify the same isolated app", async () => {
   const [manifest, blueprint, folder] = await Promise.all([
