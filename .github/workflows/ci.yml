@@ -64,6 +64,9 @@ jobs:
       - name: Typecheck (.mjs)
         run: npm run typecheck
 
+      - name: Test Security package inputs
+        run: node --test tests/app-skills/kelly-security/contract.test.mjs
+
       - name: Test WeChat content template
         run: |
           pnpm --dir skills/kelly-wechat-content typecheck

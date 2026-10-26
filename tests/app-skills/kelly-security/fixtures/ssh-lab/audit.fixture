@@ -1,0 +1,1 @@
+type=EXECVE msg=audit(1792922640.000:34): argc=3 a0="/tmp/.kelly-lab/update" a1="[01/Jan/2001:00:00:00 +0000]" a2="token=synthetic-audit-secret"

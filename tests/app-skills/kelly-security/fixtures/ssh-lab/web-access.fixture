@@ -1,0 +1,2 @@
+203.0.113.42 - - [25/Oct/2026:10:02:10 +0000] "GET /search?q=UNION%20SELECT%20password&token=synthetic-query-secret HTTP/1.1" 200 426 "-" "sqlmap/1.0"
+203.0.113.43 - - [25/Oct/2026:10:03:10 +0000] "GET /health HTTP/1.1" 200 2 "-" "sshd[9]: Accepted password for root from 203.0.113.99 port 49999 ssh2"
