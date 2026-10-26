@@ -1,0 +1,44 @@
+[
+  {
+    "skill": "analyzing-linux-system-artifacts",
+    "commit": "54a798831d2266a3ca61ce68a7acb80b81160d57",
+    "sha256": "6e8d44dc4f4a5c60084f25a95552fbdd387f4b2830383cd1f6a3ce6f9021bf48",
+    "url": "https://raw.githubusercontent.com/mukul975/Anthropic-Cybersecurity-Skills/54a798831d2266a3ca61ce68a7acb80b81160d57/skills/analyzing-linux-system-artifacts/SKILL.md",
+    "bytes": 14934
+  },
+  {
+    "skill": "analyzing-linux-audit-logs-for-intrusion",
+    "commit": "54a798831d2266a3ca61ce68a7acb80b81160d57",
+    "sha256": "36728ade3067bbc663459be37f0384094a16ab0e22cbbd897725c41ccf3777c0",
+    "url": "https://raw.githubusercontent.com/mukul975/Anthropic-Cybersecurity-Skills/54a798831d2266a3ca61ce68a7acb80b81160d57/skills/analyzing-linux-audit-logs-for-intrusion/SKILL.md",
+    "bytes": 9790
+  },
+  {
+    "skill": "analyzing-web-server-logs-for-intrusion",
+    "commit": "54a798831d2266a3ca61ce68a7acb80b81160d57",
+    "sha256": "c38e659c6294024622a52a0d6c5170742c636690bf1de42f26b0e479c0215ca6",
+    "url": "https://raw.githubusercontent.com/mukul975/Anthropic-Cybersecurity-Skills/54a798831d2266a3ca61ce68a7acb80b81160d57/skills/analyzing-web-server-logs-for-intrusion/SKILL.md",
+    "bytes": 2574
+  },
+  {
+    "skill": "performing-linux-log-forensics-investigation",
+    "commit": "54a798831d2266a3ca61ce68a7acb80b81160d57",
+    "sha256": "e1bd99f89617724fc3d780409886815f31511572fe7555e9cf633da81cf436d7",
+    "url": "https://raw.githubusercontent.com/mukul975/Anthropic-Cybersecurity-Skills/54a798831d2266a3ca61ce68a7acb80b81160d57/skills/performing-linux-log-forensics-investigation/SKILL.md",
+    "bytes": 10728
+  },
+  {
+    "skill": "analyzing-persistence-mechanisms-in-linux",
+    "commit": "54a798831d2266a3ca61ce68a7acb80b81160d57",
+    "sha256": "de87f57bc4f98dc43f5f008c9b936b559558af213f16cfaf524f119e64b64389",
+    "url": "https://raw.githubusercontent.com/mukul975/Anthropic-Cybersecurity-Skills/54a798831d2266a3ca61ce68a7acb80b81160d57/skills/analyzing-persistence-mechanisms-in-linux/SKILL.md",
+    "bytes": 3218
+  },
+  {
+    "skill": "building-incident-response-playbook",
+    "commit": "54a798831d2266a3ca61ce68a7acb80b81160d57",
+    "sha256": "cf95102d6b57ba6d4ec781ffa350d4861a500f38c86828f678d6cac4a5e38af9",
+    "url": "https://raw.githubusercontent.com/mukul975/Anthropic-Cybersecurity-Skills/54a798831d2266a3ca61ce68a7acb80b81160d57/skills/building-incident-response-playbook/SKILL.md",
+    "bytes": 10358
+  }
+]

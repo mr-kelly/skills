@@ -1,0 +1,1 @@
+{"key": "kelly-security-settings-sample-1", "fields": {"title": "首次核查配置", "onboarding-version": 1, "onboarding-state": "incomplete", "execution-mode": "local-agent", "evidence-policy": "原始证据保留本机；Busabase 仅存脱敏摘要、索引与哈希。", "is-example": false}}

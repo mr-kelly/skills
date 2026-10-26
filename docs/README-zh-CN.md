@@ -241,6 +241,7 @@
 | `kelly-llm-gateway` | 共享 LLM 网关的成本与模型治理看板：花费趋势、按服务/模型的成本拆分、灰度发布状态板，以及确定性成本/错误异常检测。 | 查看 LLM 网关花费、灰度发布状态，或确认成本/错误异常时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-llm-gateway.html?lang=zh) |
 | `kelly-local-model-lab` | Busabase 支撑的本地模型实验室：审核训练样本、在 Apple Silicon 上用 MLX-LM 执行 LoRA/QLoRA 微调、锁定评估集对比原始模型与 adapter，并登记通过审核的 adapter。 | 需要以 Busabase 为工作流事实源，在本地训练、评估、晋级或管理语言模型 adapter 时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-local-model-lab.html?lang=zh) |
 | `kelly-pr-review` | 通过 `gh` CLI 做 GitHub PR review desk：收集待 review PR、准备 review notes、在本地 UI 批准后执行 `gh pr review`。 | review PR、批准/comment/request changes，或批量处理 PR review decision 时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-pr-review.html?lang=zh) |
+| `kelly-security` | 本机 SSH 执行的 Linux 入侵证据核查台：多服务器检查矩阵、登录与访问日志、持久化、证据时间线、缺口和人工复核。 | 客户怀疑服务器被黑、出现异常登录/进程/访问，或需要系统核查 Linux 入侵证据时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-security.html?lang=zh) |
 | `publish-skills` | 把 agent skills 和 MCP servers 发布到各大市场和注册表：扫描私密数据、用 `gh skill` 校验、切版本、接 Claude `/plugin` 和 Codex marketplace，并准备 MCP Registry 和精选商店。 | 发布、上架、分发 skills、plugins 或 MCP servers 到 skills.sh、Claude Code、Codex 或 MCP Registry 时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/publish-skills.html?lang=zh) |
 | `sandock-community` | 通过 community.sandock.ai 自带的 `/api/v1/community` REST API 操作 Sandock 社区论坛：列分类和帖子、读一个帖子连同回复、搜索，发帖和回帖必须先经过明确确认。 | 查看、回答或发布 Sandock 社区内容时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/sandock-community.html?lang=zh) |
 
@@ -1038,6 +1039,19 @@ Kelly Family Fund 是一个本地、只读的家庭统筹基金台账：把两�
   <tr>
     <td><strong>动作</strong><br>内部 brief、客户教育、顾问脚本和风险提醒进入审批队列。</td>
     <td><strong>草稿</strong><br>解释稿和会议 notes 可编辑，并避开个性化建议与收益承诺。</td>
+  </tr>
+</table>
+
+### `kelly-security`
+
+<table>
+  <tr>
+    <td width="50%"><img src="../skills/kelly-security/assets/screenshots/overview-dark-zh-CN.webp" alt="Kelly Security multi-server matrix"></td>
+    <td width="50%"><img src="../skills/kelly-security/assets/screenshots/checklist-zh-CN.webp" alt="Kelly Security evidence checklist"></td>
+  </tr>
+  <tr>
+    <td><strong>多服务器入侵核查</strong></td>
+    <td><strong>逐项检查与证据来源</strong></td>
   </tr>
 </table>
 

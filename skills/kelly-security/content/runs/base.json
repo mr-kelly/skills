@@ -1,0 +1,195 @@
+{
+  "name": "检查任务",
+  "description": "检查任务：仅保存本工作台的数据。",
+  "position": 1,
+  "agentPrompts": [
+    {
+      "key": "scenario-1",
+      "label": "核查当前授权的这台服务器是否有入侵证据。",
+      "body": "阅读此文件夹中的 kelly-security skill 并遵循其流程。核查当前授权的这台服务器是否有入侵证据。",
+      "intent": "change"
+    },
+    {
+      "key": "scenario-2",
+      "label": "解释这次检查为什么中断或仍在等待本机 Agent。",
+      "body": "阅读此文件夹中的 kelly-security skill 并遵循其流程。解释这次检查为什么中断或仍在等待本机 Agent。",
+      "intent": "read-only"
+    }
+  ],
+  "fields": [
+    {
+      "slug": "title",
+      "name": "名称",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "scope-reference",
+      "name": "当前会话授权引用",
+      "type": "text",
+      "required": true,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "window-start",
+      "name": "调查开始时间",
+      "type": "date",
+      "required": true,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "window-end",
+      "name": "调查结束时间",
+      "type": "date",
+      "required": true,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "check-profile",
+      "name": "检查包",
+      "type": "text",
+      "required": true,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "status",
+      "name": "执行状态",
+      "type": "select",
+      "required": true,
+      "position": 5,
+      "options": {
+        "choices": [
+          {
+            "id": "requested",
+            "name": "等待本机 Agent"
+          },
+          {
+            "id": "running",
+            "name": "执行中"
+          },
+          {
+            "id": "completed",
+            "name": "已完成"
+          },
+          {
+            "id": "partial",
+            "name": "部分完成"
+          },
+          {
+            "id": "failed",
+            "name": "失败"
+          },
+          {
+            "id": "cancelled",
+            "name": "已取消"
+          }
+        ]
+      }
+    },
+    {
+      "slug": "requested-at",
+      "name": "请求时间",
+      "type": "date",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "started-at",
+      "name": "开始时间",
+      "type": "date",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "finished-at",
+      "name": "结束时间",
+      "type": "date",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "runner-id",
+      "name": "本机 Agent 标识",
+      "type": "text",
+      "required": false,
+      "position": 9,
+      "options": {}
+    },
+    {
+      "slug": "heartbeat-at",
+      "name": "最近心跳",
+      "type": "date",
+      "required": false,
+      "position": 10,
+      "options": {}
+    },
+    {
+      "slug": "claim-reference",
+      "name": "领取与幂等引用",
+      "type": "text",
+      "required": false,
+      "position": 11,
+      "options": {}
+    },
+    {
+      "slug": "coverage-summary",
+      "name": "覆盖和缺口",
+      "type": "longtext",
+      "required": false,
+      "position": 12,
+      "options": {}
+    },
+    {
+      "slug": "analyst-summary",
+      "name": "调查摘要",
+      "type": "longtext",
+      "required": false,
+      "position": 13,
+      "options": {}
+    },
+    {
+      "slug": "is-example",
+      "name": "示例记录",
+      "type": "checkbox",
+      "required": false,
+      "position": 14,
+      "options": {}
+    },
+    {
+      "slug": "batch-reference",
+      "name": "本次多服务器批次",
+      "type": "text",
+      "required": false,
+      "position": 15,
+      "options": {}
+    },
+    {
+      "slug": "host",
+      "name": "服务器",
+      "type": "relation",
+      "required": true,
+      "position": 16,
+      "options": {
+        "targetBaseSlug": "hosts",
+        "allowMultiple": false
+      }
+    }
+  ],
+  "views": [
+    {
+      "slug": "runs-main",
+      "name": "检查任务",
+      "type": "table",
+      "config": {}
+    }
+  ]
+}

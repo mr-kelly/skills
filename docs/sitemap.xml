@@ -356,6 +356,11 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://mr-kelly.github.io/skills/s/kelly-security.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://mr-kelly.github.io/skills/s/kelly-seo.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>

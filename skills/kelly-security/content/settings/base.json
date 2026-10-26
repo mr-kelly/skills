@@ -1,0 +1,116 @@
+{
+  "name": "工作台设置",
+  "description": "工作台设置：仅保存本工作台的数据。",
+  "position": 5,
+  "agentPrompts": [
+    {
+      "key": "scenario-1",
+      "label": "确认这次核查的授权、执行方式和证据存储边界。",
+      "body": "阅读此文件夹中的 kelly-security skill 并遵循其流程。确认这次核查的授权、执行方式和证据存储边界。",
+      "intent": "change"
+    },
+    {
+      "key": "scenario-2",
+      "label": "解释本机 SSH 身份与 Busabase 数据的职责。",
+      "body": "阅读此文件夹中的 kelly-security skill 并遵循其流程。解释本机 SSH 身份与 Busabase 数据的职责。",
+      "intent": "read-only"
+    }
+  ],
+  "fields": [
+    {
+      "slug": "title",
+      "name": "名称",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "onboarding-version",
+      "name": "配置版本",
+      "type": "number",
+      "required": true,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "onboarding-state",
+      "name": "配置状态",
+      "type": "select",
+      "required": true,
+      "position": 2,
+      "options": {
+        "choices": [
+          {
+            "id": "incomplete",
+            "name": "未完成"
+          },
+          {
+            "id": "needs-review",
+            "name": "需复核"
+          },
+          {
+            "id": "complete",
+            "name": "完成"
+          }
+        ]
+      }
+    },
+    {
+      "slug": "onboarding-completed-at",
+      "name": "配置完成时间",
+      "type": "date",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "operator",
+      "name": "调查负责人",
+      "type": "text",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "scope-note",
+      "name": "调查授权说明",
+      "type": "longtext",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "execution-mode",
+      "name": "执行方式：本机 Agent",
+      "type": "text",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "evidence-policy",
+      "name": "证据存储与上传策略",
+      "type": "longtext",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "is-example",
+      "name": "示例记录",
+      "type": "checkbox",
+      "required": false,
+      "position": 8,
+      "options": {}
+    }
+  ],
+  "views": [
+    {
+      "slug": "settings-main",
+      "name": "工作台设置",
+      "type": "table",
+      "config": {}
+    }
+  ]
+}

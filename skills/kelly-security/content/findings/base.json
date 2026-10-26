@@ -1,0 +1,216 @@
+{
+  "name": "发现与复核",
+  "description": "发现与复核：仅保存本工作台的数据。",
+  "position": 4,
+  "agentPrompts": [
+    {
+      "key": "scenario-1",
+      "label": "判断此发现是否足以支持入侵结论，并给出证据。",
+      "body": "阅读此文件夹中的 kelly-security skill 并遵循其流程。判断此发现是否足以支持入侵结论，并给出证据。",
+      "intent": "change"
+    },
+    {
+      "key": "scenario-2",
+      "label": "根据新证据修订结论，保留原来的判断与复核理由。",
+      "body": "阅读此文件夹中的 kelly-security skill 并遵循其流程。根据新证据修订结论，保留原来的判断与复核理由。",
+      "intent": "read-only"
+    }
+  ],
+  "fields": [
+    {
+      "slug": "title",
+      "name": "名称",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "severity",
+      "name": "优先级",
+      "type": "select",
+      "required": true,
+      "position": 1,
+      "options": {
+        "choices": [
+          {
+            "id": "critical",
+            "name": "紧急"
+          },
+          {
+            "id": "high",
+            "name": "高"
+          },
+          {
+            "id": "medium",
+            "name": "中"
+          },
+          {
+            "id": "low",
+            "name": "低"
+          },
+          {
+            "id": "informational",
+            "name": "信息"
+          }
+        ]
+      }
+    },
+    {
+      "slug": "conclusion",
+      "name": "分析结论",
+      "type": "select",
+      "required": true,
+      "position": 2,
+      "options": {
+        "choices": [
+          {
+            "id": "unassessed",
+            "name": "未评估"
+          },
+          {
+            "id": "no-indicators",
+            "name": "未发现异常"
+          },
+          {
+            "id": "suspicious",
+            "name": "可疑"
+          },
+          {
+            "id": "confirmed-malicious",
+            "name": "确认恶意"
+          },
+          {
+            "id": "explained-benign",
+            "name": "已解释为正常"
+          },
+          {
+            "id": "insufficient-evidence",
+            "name": "证据不足"
+          }
+        ]
+      }
+    },
+    {
+      "slug": "reasoning",
+      "name": "判断依据与其他解释",
+      "type": "longtext",
+      "required": true,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "limitations",
+      "name": "信任限制与证据缺口",
+      "type": "longtext",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "next-step",
+      "name": "补证或处置建议",
+      "type": "longtext",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "verdict",
+      "name": "人工复核",
+      "type": "select",
+      "required": true,
+      "position": 6,
+      "options": {
+        "choices": [
+          {
+            "id": "needs-review",
+            "name": "待复核"
+          },
+          {
+            "id": "confirmed-malicious",
+            "name": "确认恶意"
+          },
+          {
+            "id": "explained-benign",
+            "name": "已解释为正常"
+          },
+          {
+            "id": "needs-investigation",
+            "name": "仍需调查"
+          }
+        ]
+      }
+    },
+    {
+      "slug": "review-note",
+      "name": "复核理由",
+      "type": "longtext",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "reviewed-at",
+      "name": "复核时间",
+      "type": "date",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "is-example",
+      "name": "示例记录",
+      "type": "checkbox",
+      "required": false,
+      "position": 9,
+      "options": {}
+    },
+    {
+      "slug": "record-key",
+      "name": "幂等业务键",
+      "type": "text",
+      "required": true,
+      "position": 10,
+      "options": {}
+    },
+    {
+      "slug": "run-reference",
+      "name": "检查任务精确索引",
+      "type": "text",
+      "required": true,
+      "position": 11,
+      "options": {}
+    },
+    {
+      "slug": "run",
+      "name": "检查任务",
+      "type": "relation",
+      "required": true,
+      "position": 12,
+      "options": {
+        "targetBaseSlug": "runs",
+        "allowMultiple": false
+      }
+    },
+    {
+      "slug": "evidence",
+      "name": "证据引用",
+      "type": "relation",
+      "required": true,
+      "position": 13,
+      "options": {
+        "targetBaseSlug": "evidence",
+        "allowMultiple": true
+      }
+    }
+  ],
+  "views": [
+    {
+      "slug": "findings-main",
+      "name": "发现与复核",
+      "type": "table",
+      "config": {}
+    }
+  ]
+}

@@ -1,0 +1,222 @@
+{
+  "name": "检查项",
+  "description": "检查项：仅保存本工作台的数据。",
+  "position": 2,
+  "agentPrompts": [
+    {
+      "key": "scenario-1",
+      "label": "解释这项检查查到了什么、还有什么没有覆盖。",
+      "body": "阅读此文件夹中的 kelly-security skill 并遵循其流程。解释这项检查查到了什么、还有什么没有覆盖。",
+      "intent": "change"
+    },
+    {
+      "key": "scenario-2",
+      "label": "为这项无权限或缺失日志的检查列出补证方式。",
+      "body": "阅读此文件夹中的 kelly-security skill 并遵循其流程。为这项无权限或缺失日志的检查列出补证方式。",
+      "intent": "read-only"
+    }
+  ],
+  "fields": [
+    {
+      "slug": "title",
+      "name": "名称",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "check-id",
+      "name": "固定检查配方标识",
+      "type": "text",
+      "required": true,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "attempt",
+      "name": "尝试序号",
+      "type": "number",
+      "required": true,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "status",
+      "name": "采集状态",
+      "type": "select",
+      "required": true,
+      "position": 3,
+      "options": {
+        "choices": [
+          {
+            "id": "pending",
+            "name": "未开始"
+          },
+          {
+            "id": "running",
+            "name": "执行中"
+          },
+          {
+            "id": "completed",
+            "name": "完成"
+          },
+          {
+            "id": "permission-denied",
+            "name": "无权限"
+          },
+          {
+            "id": "not-applicable",
+            "name": "不适用"
+          },
+          {
+            "id": "missing-data",
+            "name": "数据缺失"
+          },
+          {
+            "id": "failed",
+            "name": "失败"
+          },
+          {
+            "id": "cancelled",
+            "name": "已取消"
+          }
+        ]
+      }
+    },
+    {
+      "slug": "conclusion",
+      "name": "分析结论",
+      "type": "select",
+      "required": true,
+      "position": 4,
+      "options": {
+        "choices": [
+          {
+            "id": "unassessed",
+            "name": "未评估"
+          },
+          {
+            "id": "no-indicators",
+            "name": "未发现异常"
+          },
+          {
+            "id": "suspicious",
+            "name": "可疑"
+          },
+          {
+            "id": "confirmed-malicious",
+            "name": "确认恶意"
+          },
+          {
+            "id": "explained-benign",
+            "name": "已解释为正常"
+          },
+          {
+            "id": "insufficient-evidence",
+            "name": "证据不足"
+          }
+        ]
+      }
+    },
+    {
+      "slug": "observed-at",
+      "name": "采集时间",
+      "type": "date",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "coverage-start",
+      "name": "证据起始时间",
+      "type": "date",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "coverage-end",
+      "name": "证据结束时间",
+      "type": "date",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "coverage-note",
+      "name": "范围、截断和权限缺口",
+      "type": "longtext",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "command-reference",
+      "name": "已审核配方与版本",
+      "type": "text",
+      "required": false,
+      "position": 9,
+      "options": {}
+    },
+    {
+      "slug": "exit-code",
+      "name": "退出状态",
+      "type": "number",
+      "required": false,
+      "position": 10,
+      "options": {}
+    },
+    {
+      "slug": "summary",
+      "name": "脱敏摘要",
+      "type": "longtext",
+      "required": false,
+      "position": 11,
+      "options": {}
+    },
+    {
+      "slug": "is-example",
+      "name": "示例记录",
+      "type": "checkbox",
+      "required": false,
+      "position": 12,
+      "options": {}
+    },
+    {
+      "slug": "record-key",
+      "name": "幂等业务键",
+      "type": "text",
+      "required": true,
+      "position": 13,
+      "options": {}
+    },
+    {
+      "slug": "run-reference",
+      "name": "检查任务精确索引",
+      "type": "text",
+      "required": true,
+      "position": 14,
+      "options": {}
+    },
+    {
+      "slug": "run",
+      "name": "检查任务",
+      "type": "relation",
+      "required": true,
+      "position": 15,
+      "options": {
+        "targetBaseSlug": "runs",
+        "allowMultiple": false
+      }
+    }
+  ],
+  "views": [
+    {
+      "slug": "checks-main",
+      "name": "检查项",
+      "type": "table",
+      "config": {}
+    }
+  ]
+}

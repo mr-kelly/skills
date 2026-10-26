@@ -1,0 +1,40 @@
+{
+  "format": "busabase-package@1",
+  "name": "kelly-security",
+  "description": "由本机 Agent 经 SSH 核查 Linux 入侵证据，在 Busabase 中复核多服务器检查清单、证据和时间线。",
+  "version": "0.1.0",
+  "license": "MIT",
+  "tags": ["security", "linux", "incident-response", "ssh"],
+  "template": {
+    "category": "platform",
+    "schemaVersion": 2,
+    "airapp": "kelly-security-app",
+    "tags": ["linux", "intrusion-triage", "evidence", "multi-server"],
+    "screenshots": [
+      "assets/screenshots/overview-dark.webp",
+      "assets/screenshots/checklist.webp",
+      "assets/screenshots/findings.webp",
+      "assets/screenshots/reviewed-findings-mobile.webp"
+    ],
+    "agentPrompts": [
+      "检查我指定的服务器是否有入侵证据，并列出证据不足的地方。",
+      "把本次登录、访问和持久化线索整理为带来源的调查时间线。",
+      "为客户导出一份脱敏的入侵核查报告。"
+    ],
+    "requires": {
+      "airapp": true
+    },
+    "video": "assets/recordings/review.mp4",
+    "locales": {
+      "zh-CN": {
+        "screenshots": [
+          "assets/screenshots/overview-dark-zh-CN.webp",
+          "assets/screenshots/checklist-zh-CN.webp",
+          "assets/screenshots/findings-zh-CN.webp",
+          "assets/screenshots/reviewed-findings-mobile-zh-CN.webp"
+        ],
+        "video": "assets/recordings/review-zh-CN.mp4"
+      }
+    }
+  }
+}
