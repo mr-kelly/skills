@@ -6,9 +6,12 @@ const testGlobal = globalThis;
 
 import { appConfig } from "../app/js/config.js";
 
-test("cause and practice write existing latest heads, stay pending and never reset old reviews", async () => {
+test("cause and practice write existing latest heads, follow the parent's permission and never reset old reviews", async () => {
   let source = await readFile(new URL("../app/js/providers/busabase-provider.js", import.meta.url), "utf8");
-  source = source.replace(/import \{ inspectProvisionedResources, provisionDeclaredResources \}[^;]+;/, "");
+  source = source.replace(
+    '"../../vendor/busabase-airapp.js"',
+    JSON.stringify(new URL("../app/vendor/busabase-airapp.js", import.meta.url).href),
+  );
   source = source.replace(
     /import \{ createRuntimeClient \}[^;]+;/,
     "const createRuntimeClient = () => globalThis.homeworkTestClient;",
@@ -64,9 +67,10 @@ function base`,
     );
     const result = await provider.submitMistakeCause({ mistake_id: "m-fixture", cause: "new observation" });
     assert.equal(result.id, "crqfixture");
+    assert.equal(result.pending, true);
     assert.equal(calls[0][1].baseId, "fixture-mistakes");
     const write = calls[1][1];
-    assert.equal(write.autoMerge, false);
+    assert.equal("autoMerge" in write, false);
     assert.equal(write.baseCommitId, "head-fixture");
     assert.equal(write.fields.status, "needs_review");
     assert.deepEqual(JSON.parse(write.fields.analysis), { root_cause: "new observation", fix_strategy: "keep" });
@@ -105,8 +109,9 @@ function base`,
       attempt: { total: 1, correct: 1, wrong_count: 0, results: [] },
     });
     assert.equal(submitted.status, "in_review");
+    assert.equal(submitted.pending, true);
     assert.equal(calls.length, 2);
-    assert.equal(calls[1][1].autoMerge, false);
+    assert.equal("autoMerge" in calls[1][1], false);
     assert.equal(calls[1][1].fields.status, "needs_review");
     const analysis = JSON.parse(calls[1][1].fields.analysis);
     assert.equal(analysis.attempts.length, 2);
@@ -160,10 +165,11 @@ function base`,
       comment: "Read the explanation.",
     });
     assert.equal(reviewed.status, "in_review");
+    assert.equal(reviewed.pending, true);
     const reviewWrite = calls.at(-1)[1];
     assert.equal(reviewWrite.recordId, "record-fixture");
     assert.equal(reviewWrite.baseCommitId, "head-fixture");
-    assert.equal(reviewWrite.autoMerge, false);
+    assert.equal("autoMerge" in reviewWrite, false);
     assert.equal(reviewWrite.fields.status, "needs_review");
     assert.equal(JSON.parse(reviewWrite.fields.analysis).attempt_reviews[0].verdicts[0].outcome, "correct");
     assert.equal(calls.filter(([kind]) => kind === "write").length, 1);
@@ -183,6 +189,21 @@ function base`,
     );
     raw.status = "blocked";
     await assert.rejects(provider.submitPaperAttempt({ paper_id: "p-fixture", attempt: {} }));
+
+    // A parent with write access: Busabase merges the same write, so it is
+    // reported as saved rather than rejected as "not pending".
+    testGlobal.homeworkTestClient.records.changeRequest = async (input) => {
+      calls.push(["write", input]);
+      return { id: "crqlanded", status: "merged", materialized: true };
+    };
+    Object.assign(raw, {
+      "mistake-id": "m-fixture",
+      status: "needs_review",
+      analysis: JSON.stringify({ root_cause: "old" }),
+    });
+    const landed = await provider.submitMistakeCause({ mistake_id: "m-fixture", cause: "landed observation" });
+    assert.equal(landed.pending, false);
+    assert.equal(landed.status, "merged");
   } finally {
     testGlobal.homeworkTestClient = undefined;
   }

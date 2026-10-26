@@ -898,7 +898,8 @@ async function finishRun() {
   try {
     const provider = await getProvider();
     const submitted = await provider.submitPaperAttempt({ paper_id: paper.paper_id, attempt });
-    runState.requestId = submitted.id;
+    runState.requestId = submitted.pending ? submitted.id : "";
+    runState.pending = Boolean(submitted.pending);
     runState.stage = "submitted";
     state.notice = t("paperSubmitted");
     await loadState();
@@ -949,7 +950,7 @@ function renderRunner(paper) {
       <section class="section">
         ${
           runState.stage === "submitted"
-            ? `<p class="note">${esc(state.data?.demo ? t("decisionRecordedDemo") : t("paperResultPending"))} ${esc(runState.requestId || "")}</p>
+            ? `<p class="note">${esc(state.data?.demo ? t("decisionRecordedDemo") : runState.pending ? t("paperResultPending") : t("paperResultSaved"))} ${esc(runState.requestId || "")}</p>
                <div class="run-actions">
                  <button class="primary" data-route="review" type="button">${esc(t("review"))}</button>
                  <button class="plain" data-run-exit type="button">${esc(t("close"))}</button>
@@ -1272,8 +1273,8 @@ async function submitDecision(payload) {
   state.busy = true;
   try {
     const provider = await getProvider();
-    await provider.submitReview(payload);
-    state.notice = t("decisionRecorded");
+    const result = await provider.submitReview(payload);
+    state.notice = result?.pending ? t("decisionSentForReview") : t("decisionRecorded");
     await loadState();
     flashDecision(payload.review_id);
   } catch (error) {
@@ -1319,9 +1320,16 @@ async function submitMistakeCause(id) {
     } else {
       const provider = await getProvider();
       const cr = await provider.submitMistakeCause({ mistake_id: id, cause });
-      state.mistakeRequestIds[id] = cr.id;
-      state.mistakeSubmissions[id] = t("causePending");
-      state.causeStatus[id] = t("causePending");
+      // Only a queued write leaves a request to poll; a landed one is already saved.
+      if (cr.pending) {
+        state.mistakeRequestIds[id] = cr.id;
+        state.mistakeSubmissions[id] = t("causePending");
+        state.causeStatus[id] = t("causePending");
+      } else {
+        delete state.mistakeRequestIds[id];
+        state.mistakeSubmissions[id] = t("causeSaved");
+        state.causeStatus[id] = t("causeSaved");
+      }
       rememberCauseRequests();
     }
   } catch (error) {
@@ -1538,9 +1546,14 @@ document.addEventListener("click", async (event) => {
           verdicts,
           comment,
         });
-        state.attemptReviewRequests[paper.paper_id] = result.id;
-        state.notice = `${t("attemptReviewPending")} ${result.id}`;
-        render();
+        if (result.pending) {
+          state.attemptReviewRequests[paper.paper_id] = result.id;
+          state.notice = `${t("attemptReviewPending")} ${result.id}`;
+          render();
+        } else {
+          state.notice = t("attemptReviewSaved");
+          await loadState();
+        }
       }
     } catch (error) {
       if (errorNotice) {
