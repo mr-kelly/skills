@@ -1,6 +1,7 @@
 import {
   createAirAppRecords,
   inspectProvisionedResources,
+  isAirAppWriteQueued,
   provisionDeclaredResources,
 } from "../../vendor/busabase-airapp.js";
 import { createRuntimeClient } from "../busabase-client.js";
@@ -271,14 +272,22 @@ export const busabaseProvider = {
       decided_by: "operator",
       ...(payload.draft !== undefined ? { suggested_reply: String(payload.draft) } : {}),
     };
-    await upsert(
+    const response = await upsert(
       "followups",
       "followup-id",
       followupId,
       { followup_id: followupId, ...fields },
       `Decision on follow-up ${followupId}: ${action}`,
     );
-    return { updated_at: now, decisions: { [followupId]: { action, decided_at: now } } };
+    // Without write access Busabase queues the decision as a ChangeRequest instead
+    // of applying it; the page must say so rather than report it as saved.
+    const pending = isAirAppWriteQueued(response);
+    return {
+      updated_at: now,
+      pending,
+      change_request_id: pending ? String(response?.id || "") : "",
+      decisions: { [followupId]: { action, decided_at: now } },
+    };
   },
 
   async provisionResources() {
