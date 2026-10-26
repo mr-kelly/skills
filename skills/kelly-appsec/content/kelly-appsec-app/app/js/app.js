@@ -1,4 +1,5 @@
 import { appConfig } from "./config.js";
+import { ruleSnapshot } from "./coverage.js";
 import { cancelDialog, importDialog, projectDialog, requestDialog, ruleDialog, settingsDialog } from "./dialogs.js";
 import { esc, filter, href, parse, ref, snapshotReport } from "./model.js";
 import { getProvider, isDemo } from "./providers/index.js";
@@ -409,7 +410,18 @@ const submit = async (form, submitter) => {
           environment: project.fields.environment,
           ...(project.fields.origin ? { origin: project.fields.origin } : {}),
           "scope-reference": field(values, "scope-reference"),
-          "rule-snapshot": rules.map((row) => ({ id: row.id, headCommitId: row.headCommitId })),
+          "rule-snapshot": await Promise.all(
+            rules.map(async (row) => {
+              const endpoint = await provider.get("endpoints", ref(row.fields.endpoint));
+              if (
+                endpoint.fields["project-reference"] !== project.id ||
+                ref(endpoint.fields.project) !== project.id ||
+                endpoint.fields["source-revision"] !== project.fields["source-revision"]
+              )
+                throw new Error("接口不属于当前项目版本。");
+              return ruleSnapshot(row, endpoint);
+            }),
+          ),
           mode,
           status: "requested",
           "requested-at": new Date().toISOString(),

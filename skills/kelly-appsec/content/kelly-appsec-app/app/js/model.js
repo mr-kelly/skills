@@ -1,4 +1,6 @@
+import { runCoverage } from "./coverage.js";
 import { statusLabels } from "./messages.js";
+import { redact } from "./validation.js";
 export const label = (value) => statusLabels[value] || value || "—";
 export const tone = (value) =>
   ["violated", "policy-violation", "confirmed-vulnerability", "high", "failed", "reopened"].includes(value)
@@ -78,5 +80,37 @@ export const inventoryExample = (revision = "demo-rev-a") => ({
     },
   ],
 });
-export const snapshotReport = (state) =>
-  `# 应用与 API 安全审计 · 已加载记录\n\n项目：${state.project?.fields.title || "未加载"}\n版本：${state.revision}\n环境：${state.project?.fields.environment || "未记录"}\n\n本报告仅包括当前页面已加载、属于所选任务的记录。${Object.values(state.cursors).some(Boolean) ? "仍有未加载页面。" : "采集覆盖仍需按每项证据核对。"}\n采集完成不等于系统没有漏洞。\n\n## 规则验证\n${state.checks.map((row) => `- ${row.fields.title}：${label(row.fields.result)}；${row.fields.summary || ""}`).join("\n")}\n\n## 发现与复核\n${state.findings.map((row) => `- ${row.fields.title}：${label(row.fields.verdict)} / ${label(row.fields.remediation)}\n  ${row.fields.reasoning || ""}\n  限制：${row.fields.limitations || "未记录"}`).join("\n")}\n\n## 证据\n${state.evidence.map((row) => `- ${row.fields.title}；${row.fields["source-location"]}；版本 ${row.fields["source-revision"]}；SHA-256 ${row.fields.sha256}\n  ${row.fields["redacted-excerpt"] || ""}`).join("\n")}\n`;
+const reportText = (value) =>
+  redact(value)
+    .replace(/[\r\n]/g, " ")
+    .replace(/[<>&[\]()`#*_]/g, (character) => `\\${character}`);
+export const snapshotReport = (state) => {
+  const run = state.run;
+  const coverage = runCoverage(run, state.rules, state.endpoints, state.checks, { paginationComplete: false });
+  return `${[
+    "# 应用与 API 安全审计 · 已加载记录",
+    `项目：${reportText(state.project?.fields.title || "未加载")}\n版本：${reportText(state.revision)}\n环境：${reportText(run?.fields.environment || state.project?.fields.environment || "未记录")}`,
+    `任务状态：${reportText(label(run?.fields.status))}（${reportText(run?.fields.status || "未选择任务")}）\n任务说明：${reportText(run?.fields.summary || "未记录任务完成说明；不能推断通过。")}`,
+    `数据范围：只包含当前页面已加载、属于所选任务的记录。${Object.values(state.cursors).some(Boolean) ? "仍有未加载页面。" : "没有显示分页不等于测试全部完成。"}\n测试覆盖：不能由已存在的成功记录推断完整；请求 ${coverage.expected} 条，未执行或未加载/变更 ${coverage.unexecuted} 条。浏览器未核验原件与策略指纹；需要本机完整导出继续核对。\n${coverage.warning}`,
+    "## 原请求规则与覆盖缺口（仅核对已加载元数据）",
+    ...coverage.entries.map(
+      (entry) =>
+        `- ${reportText(entry.title)}：${reportText(entry.method)} ${reportText(entry.path)}；身份 ${reportText(entry.identity)}；预期 ${reportText(label(entry.expectation))}\n  业务规则：${reportText(entry.policyNote)}\n  执行 ${reportText(label(entry.status))}；观察 ${reportText(label(entry.result))}；${reportText(entry.reason)}`,
+    ),
+    "## 已加载执行记录",
+    ...state.checks.map(
+      (row) =>
+        `- ${reportText(row.fields.title)}：${reportText(label(row.fields.status))} / ${reportText(label(row.fields.result))}；${reportText(row.fields.summary || "")}`,
+    ),
+    "## 发现与复核",
+    ...state.findings.map(
+      (row) =>
+        `- ${reportText(row.fields.title)}：${reportText(label(row.fields.verdict))} / ${reportText(label(row.fields.remediation))}\n  ${reportText(row.fields.reasoning || "")}\n  限制：${reportText(row.fields.limitations || "未记录")}`,
+    ),
+    "## 证据",
+    ...state.evidence.map(
+      (row) =>
+        `- ${reportText(row.fields.title)}；${reportText(row.fields["source-location"])}；版本 ${reportText(row.fields["source-revision"])}；SHA-256 ${reportText(row.fields.sha256)}\n  ${reportText(row.fields["redacted-excerpt"] || "")}`,
+    ),
+  ].join("\n\n")}\n`;
+};

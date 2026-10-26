@@ -21,7 +21,12 @@ try {
   }
   console.log(
     JSON.stringify({
-      complete: result.complete,
+      paginationComplete: result.paginationComplete,
+      coverageComplete: result.coverage.complete,
+      expectedRules: result.coverage.expected,
+      verifiedRules: result.coverage.conclusive,
+      unexecutedRules: result.coverage.unexecuted,
+      unresolvedRules: result.coverage.unresolved,
       checks: result.checks.length,
       evidence: result.evidence.length,
       findings: result.findings.length,

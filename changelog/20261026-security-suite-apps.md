@@ -25,6 +25,7 @@ AI Agent: Codex
 - Added `kelly-appsec`: project and API inventory, explicit rules, local bounded test execution, source-review imports, attributed evidence, analyst review and original-case retesting.
 - Added `kelly-compliance`: scoped SaaS programs, finite AWS baseline reads, existing report imports, control evidence and periods, gaps, exceptions and reverification.
 - Added isolated integration and browser tests, package-input checks and CI registration.
+- Fixed a forward-use reporting defect: interrupted runs now list every requested rule and its unexecuted/failed/changed coverage, separately from pagination completeness.
 - Registered both products in the skills catalog, with screenshot/video galleries and installable package metadata.
 
 ## Why

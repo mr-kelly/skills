@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { chmod, lstat, mkdir, open, readFile } from "node:fs/promises";
 import path from "node:path";
+import { describeRuleRequest } from "../content/kelly-appsec-app/app/js/coverage.js";
 import { evaluateResponse, hash, parseJson, redact, storedCase, validateOrigin, validatePath } from "./domain.mjs";
 import { relationId } from "./store.mjs";
 
@@ -70,6 +71,8 @@ export const planRun = async (store, authorization) => {
       row.fields["endpoint-reference"] !== endpoint.id
     )
       throw new Error("ENDPOINT_OUTSIDE_PROJECT");
+    if (entry.request && JSON.stringify(entry.request) !== JSON.stringify(describeRuleRequest(row, endpoint)))
+      throw new Error("RULE_REQUEST_METADATA_CHANGED");
     const rule = storedCase(row);
     const method = endpoint.fields.method;
     const endpointPath = validatePath(endpoint.fields.path);

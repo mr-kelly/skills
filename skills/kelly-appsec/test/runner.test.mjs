@@ -18,12 +18,16 @@ const memory = () => {
       if (!row) throw new Error("NOT_FOUND");
       return structuredClone(row);
     },
-    page: async (key, { valueFilters = [] } = {}) => ({
-      records: structuredClone(
-        data[key].filter((row) => valueFilters.every((filter) => row.fields[filter.fieldSlug] === filter.value)),
-      ),
-      nextCursor: null,
-    }),
+    page: async (key, { valueFilters = [], cursor = null, limit = 50 } = {}) => {
+      const rows = data[key].filter((row) =>
+        valueFilters.every((filter) => row.fields[filter.fieldSlug] === filter.value),
+      );
+      const offset = Number(cursor || 0);
+      return {
+        records: structuredClone(rows.slice(offset, offset + limit)),
+        nextCursor: rows.length > offset + limit ? String(offset + limit) : null,
+      };
+    },
     create: async (key, fields) => {
       const row = {
         id: `rec${++next}`,
@@ -257,4 +261,99 @@ test("source review prevalidates all rows and never labels static evidence dynam
   assert.equal(f.store.data.findings[0].fields.conclusion, "candidate");
   assert.ok(!f.store.data.evidence[0].fields["redacted-excerpt"].includes("synthetic-secret"));
   assert.ok(f.store.data.checks[0].fields["policy-hash"]);
+});
+
+test("budget interruption exports every requested rule and separates pages from coverage", async (t) => {
+  const { exportRun, reportMarkdown } = await import("../lib/report.mjs");
+  const { snapshotReport } = await import("../content/kelly-appsec-app/app/js/model.js");
+  const f = await fixture(t);
+  await assert.rejects(
+    executeRun(f.store, { ...f.authorization, requestLimit: 1 }, { request, wait: async () => {} }),
+    /REQUEST_BUDGET_REACHED/,
+  );
+  const exported = await exportRun(f.store, f.run.id);
+  assert.equal(exported.paginationComplete, true);
+  assert.equal(exported.complete, false);
+  assert.equal(exported.coverage.complete, false);
+  assert.equal(exported.coverage.expected, 2);
+  assert.equal(exported.coverage.conclusive, 1);
+  assert.equal(exported.coverage.unexecuted, 1);
+  assert.equal(exported.coverage.entries[1].status, "unexecuted");
+  const markdown = reportMarkdown(exported);
+  assert.ok(markdown.includes("failed"));
+  assert.ok(markdown.includes("任务中断"));
+  assert.ok(markdown.includes("/orders/test-b"));
+  assert.ok(markdown.includes("测试账号 A 不得读取 B 的受控订单"));
+  assert.ok(markdown.includes("没有该规则"));
+  const loaded = snapshotReport({
+    run: exported.run,
+    project: exported.project,
+    revision: "rev-a",
+    rules: exported.rules,
+    endpoints: exported.endpoints,
+    checks: exported.checks,
+    findings: exported.findings,
+    evidence: exported.evidence,
+    cursors: {},
+  });
+  assert.ok(loaded.includes("failed"));
+  assert.ok(loaded.includes("任务中断"));
+  assert.ok(loaded.includes("/orders/test-b"));
+  assert.ok(loaded.includes("未执行"));
+});
+test("registered request descriptions survive deletion and changed rule heads never count passing", async (t) => {
+  const { exportRun, reportMarkdown } = await import("../lib/report.mjs");
+  const { ruleSnapshot } = await import("../content/kelly-appsec-app/app/js/coverage.js");
+  const f = await fixture(t);
+  const run = await f.store.get("runs", f.run.id);
+  await f.store.update("runs", run, {
+    "rule-snapshot": f.inventory.rules.map((row) =>
+      ruleSnapshot(
+        row,
+        f.inventory.endpoints.find((endpoint) => endpoint.id === row.fields["endpoint-reference"]),
+      ),
+    ),
+  });
+  await executeRun(f.store, f.authorization, { request, wait: async () => {} });
+  const complete = await exportRun(f.store, f.run.id);
+  assert.equal(complete.coverage.complete, true);
+  f.store.data.rules[0].headCommitId = "changed-after-execution";
+  f.store.data.rules.splice(1, 1);
+  const changed = await exportRun(f.store, f.run.id);
+  assert.equal(changed.coverage.complete, false);
+  assert.equal(changed.coverage.conclusive, 0);
+  assert.deepEqual(
+    changed.coverage.entries.map((entry) => entry.status),
+    ["changed", "unavailable"],
+  );
+  const markdown = reportMarkdown(changed);
+  assert.ok(markdown.includes("/orders/test-b"));
+  assert.ok(markdown.includes("测试账号 A 不得读取 B 的受控订单"));
+  assert.ok(markdown.includes("原规则或端点"));
+});
+test("failed latest attempt and an edited endpoint invalidate earlier conclusive coverage", async (t) => {
+  const { exportRun } = await import("../lib/report.mjs");
+  const f = await fixture(t);
+  await executeRun(f.store, f.authorization, { request, wait: async () => {} });
+  const truncated = await exportRun(f.store, f.run.id, { maxRows: 1 });
+  assert.equal(truncated.paginationComplete, false);
+  assert.equal(truncated.coverage.complete, false);
+  assert.equal(truncated.coverage.conclusive, 0);
+  const first = f.store.data.checks[0];
+  await f.store.create("checks", {
+    ...first.fields,
+    "record-key": "failed-retry",
+    attempt: 2,
+    status: "failed",
+    result: "inconclusive",
+    summary: "重试超时，不能沿用上一次成功",
+  });
+  const interrupted = await exportRun(f.store, f.run.id);
+  assert.equal(interrupted.coverage.complete, false);
+  assert.equal(interrupted.coverage.entries[0].status, "failed");
+  assert.equal(interrupted.coverage.entries[0].attempt, 2);
+  f.store.data.endpoints[1].headCommitId = "endpoint-edited";
+  const edited = await exportRun(f.store, f.run.id);
+  assert.equal(edited.coverage.conclusive, 0);
+  assert.ok(edited.coverage.entries[1].reason.includes("尚未核验"));
 });

@@ -17,3 +17,5 @@ run: requested → running → completed / partial / failed / cancelled。failed
 check: running → completed / failed；result 为 satisfied / violated / inconclusive / unverified。HTTP 状态与结果独立。历史 completed 仅能在相同不可变规则 head、端点与项目/版本所有权内复用；待复核旧证据不能伪装成新请求。
 
 finding.verdict：needs-review / confirmed-vulnerability / explained-benign / needs-investigation。提交理由才改变人工结论。remediation：open → ready-for-retest → verified-fixed / reopened。已修复只适用于声明的修复版本、原规则及其正向基线。
+
+导出分别报告“已存在记录是否全部翻页读取”和“原请求规则是否全部获得可归属的结论”。必须逐条对账任务 rule-snapshot，显示未执行、失败、不确定、已变更或无法读取的规则；最新一次失败不能被较早成功掩盖。新任务的快照保存原规则标题、身份、业务依据、方法/路径及端点 head，供规则后续修改或删除时解释原请求。旧任务仅有 ID/head 时，只能使用同 head、同项目/版本的现有描述，并明确恢复不了的缺口。浏览器报告仅限已加载记录；本机导出对政策指纹校验后才计入已核验覆盖。

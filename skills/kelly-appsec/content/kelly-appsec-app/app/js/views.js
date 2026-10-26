@@ -22,7 +22,7 @@ const projectRows = (state) =>
   state.projects
     .map(
       (row) =>
-        `<article class="host-row"><span class="host-avatar">⌘</span><span class="project-copy"><strong>${esc(row.fields.title)}</strong><small>${esc(row.fields["repository-reference"] || "未登记仓库")} · ${esc(row.fields["source-revision"])}</small></span><span class="muted">${esc(row.fields.environment)}</span>${pill(row.fields["onboarding-state"] === "complete" ? "satisfied" : "inconclusive")}<a class="button compact" href="#/overview?project=${encodeURIComponent(row.id)}">打开项目</a></article>`,
+        `<article class="host-row"><span class="host-avatar">⌘</span><span class="project-copy"><strong>${esc(row.fields.title)}</strong><small>${esc(row.fields["repository-reference"] || "未登记仓库")} · ${esc(row.fields["source-revision"])}</small></span><span class="muted">${esc(row.fields.environment)}</span>${pill(row.fields["onboarding-state"])}<a class="button compact" href="#/overview?project=${encodeURIComponent(row.id)}">打开项目</a></article>`,
     )
     .join("");
 const matrix = (state, compact = false) => {
