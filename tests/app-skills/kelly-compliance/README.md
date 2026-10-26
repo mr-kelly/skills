@@ -1,0 +1,9 @@
+# Kelly Compliance acceptance
+
+Run `node --test tests/app-skills/kelly-compliance/*.test.mjs`, then `python3 tests/app-skills/kelly-compliance/ui_test.py` and `python3 tests/app-skills/kelly-compliance/airapp_test.py`.
+
+The OSS suite installs the actual package twice into a disposable Busabase 0.99.1 server. It verifies import idempotency, real relations and scalar ownership, source provenance and redaction, account/region/framework/scope rejection, evidence timing and version checks, per-link human review, missing control dimensions, interval gaps and continuous unions, exception expiry, exact-resource remediation, claims, cancellation, pending writes, explicit resumption, cursor pagination, and persistence after a real server restart. Readiness never becomes an audit opinion.
+
+The browser suite checks all six routes at 1280×820, 1280×720, 390×844, and 360×740, including settings and seven themes. Native acceptance loads the merged AirApp in Busabase's actual browser engine, checks runtime and asset MIME types, creates a scoped program, explicitly initializes controls through the UI, verifies actual SDK state, reloads, and checks phone controls. Native diagnostic screenshots are written under `/tmp/kelly-security-suite-acceptance/`.
+
+AWS tests inject a synthetic CLI response and verify the finite read catalog, account authorization, resource limits, and pagination gaps; no AWS or customer account is contacted. GitHub evidence tests use synthetic records to verify same-commit, pre-merge approval/test chronology. `local-server.test.mjs` has separate deterministic fake-upstream OAuth gateway tests. `cloud_oauth_test.py` explicitly skips without dedicated Cloud test credentials; configured Cloud testing is OAuth-only, without mutations. These local results do not claim live AWS, GitHub, or Cloud acceptance.

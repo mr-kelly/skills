@@ -1,0 +1,18 @@
+[
+  {
+    "key": "scope",
+    "label": "明确服务与期间范围",
+    "body": "阅读此文件夹中的 kelly-compliance skill。根据当前会话已授权的服务、账户和区域建立准备范围，确认框架、期间和负责人。"
+  },
+  {
+    "key": "gaps",
+    "label": "检查控制与期间证据缺口",
+    "body": "阅读此文件夹中的 kelly-compliance skill。逐项检查控制维度、证据范围和覆盖期间，解释缺口并指定负责人。",
+    "intent": "read-only"
+  },
+  {
+    "key": "prepare",
+    "label": "生成有边界的准备材料",
+    "body": "阅读此文件夹中的 kelly-compliance skill。导出当前服务的证据索引、复核、缺口、到期风险接受及范围限制，不输出 SOC 2 审计意见。"
+  }
+]

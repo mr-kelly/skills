@@ -1,0 +1,135 @@
+{
+  "name": "接口清单",
+  "description": "接口清单，仅属于当前 AppSec 工作台。",
+  "position": 1,
+  "agentPrompts": [
+    {
+      "key": "scenario-1",
+      "label": "导入指定版本的 OpenAPI 接口，保留来源和未覆盖入口。",
+      "body": "阅读此文件夹中的 kelly-appsec skill。导入指定版本的 OpenAPI 接口，保留来源和未覆盖入口。",
+      "intent": "change"
+    },
+    {
+      "key": "scenario-2",
+      "label": "按业务流程解释当前接口盘点的覆盖范围。",
+      "body": "阅读此文件夹中的 kelly-appsec skill。按业务流程解释当前接口盘点的覆盖范围。",
+      "intent": "read-only"
+    }
+  ],
+  "fields": [
+    {
+      "slug": "title",
+      "name": "名称",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "record-key",
+      "name": "幂等接口键",
+      "type": "text",
+      "required": true,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "project-reference",
+      "name": "项目精确索引",
+      "type": "text",
+      "required": true,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "source-revision",
+      "name": "来源版本",
+      "type": "text",
+      "required": true,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "method",
+      "name": "HTTP 方法",
+      "type": "text",
+      "required": true,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "path",
+      "name": "接口路径",
+      "type": "text",
+      "required": true,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "operation-id",
+      "name": "操作标识",
+      "type": "text",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "business-flow",
+      "name": "业务流程",
+      "type": "text",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "source-location",
+      "name": "文档/源码定位",
+      "type": "text",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "discovery",
+      "name": "来源状态",
+      "type": "select",
+      "required": true,
+      "position": 9,
+      "options": {
+        "choices": [
+          {
+            "id": "documented",
+            "name": "已提供文档"
+          },
+          {
+            "id": "source",
+            "name": "已审查源码"
+          },
+          {
+            "id": "manual",
+            "name": "手工登记"
+          }
+        ]
+      }
+    },
+    {
+      "slug": "project",
+      "name": "项目",
+      "type": "relation",
+      "required": true,
+      "position": 10,
+      "options": {
+        "targetBaseSlug": "projects",
+        "allowMultiple": false
+      }
+    }
+  ],
+  "views": [
+    {
+      "slug": "endpoints-main",
+      "name": "接口清单",
+      "type": "table",
+      "config": {}
+    }
+  ]
+}

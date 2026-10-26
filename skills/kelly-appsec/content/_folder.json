@@ -1,0 +1,17 @@
+{
+  "name": "Kelly AppSec",
+  "description": "按项目、角色和业务规则审计应用与 API，并追踪证据及精确版本复测。",
+  "agentPrompts": [
+    {
+      "key": "investigate",
+      "label": "审计选中项目的接口与业务权限",
+      "body": "阅读此文件夹中的 kelly-appsec skill。在当前会话授权范围内审计选中项目的接口、身份和业务规则，列出证据与未覆盖项。"
+    },
+    {
+      "key": "explain",
+      "label": "解释最值得先查的线索",
+      "body": "阅读此文件夹中的 kelly-appsec skill。解释当前最值得先查的线索与证据缺口。",
+      "intent": "read-only"
+    }
+  ]
+}

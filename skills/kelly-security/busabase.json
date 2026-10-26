@@ -1,0 +1,55 @@
+{
+  "format": "busabase-package@1",
+  "name": "kelly-security",
+  "description": {
+    "en": "Investigate suspected Linux compromise with local SSH, evidence and a multi-server checklist.",
+    "zh-CN": "从本机 SSH 检查多台服务器，用访问日志、持久化痕迹和证据时间线核查入侵。"
+  },
+  "version": "0.1.0",
+  "license": "MIT",
+  "tags": ["security", "linux", "incident-response", "ssh"],
+  "template": {
+    "category": "platform",
+    "schemaVersion": 2,
+    "airapp": "kelly-security-app",
+    "tags": ["linux", "intrusion-triage", "evidence", "multi-server"],
+    "screenshots": [
+      "assets/screenshots/cover.webp",
+      "assets/screenshots/overview.webp",
+      "assets/screenshots/hosts.webp",
+      "assets/screenshots/runs.webp",
+      "assets/screenshots/checklist.webp",
+      "assets/screenshots/timeline.webp",
+      "assets/screenshots/findings.webp",
+      "assets/screenshots/findings-mobile.webp"
+    ],
+    "agentPrompts": [
+      "检查我指定的服务器是否有入侵证据，并列出证据不足的地方。",
+      "把本次登录、访问和持久化线索整理为带来源的调查时间线。",
+      "为客户导出一份脱敏的入侵核查报告。"
+    ],
+    "requires": {
+      "airapp": true
+    },
+    "video": "assets/recordings/kelly-security.mp4",
+    "locales": {
+      "zh-CN": {
+        "screenshots": [
+          "assets/screenshots/cover-zh-CN.webp",
+          "assets/screenshots/overview-zh-CN.webp",
+          "assets/screenshots/hosts-zh-CN.webp",
+          "assets/screenshots/runs-zh-CN.webp",
+          "assets/screenshots/checklist-zh-CN.webp",
+          "assets/screenshots/timeline-zh-CN.webp",
+          "assets/screenshots/findings-zh-CN.webp",
+          "assets/screenshots/findings-mobile-zh-CN.webp"
+        ],
+        "video": "assets/recordings/kelly-security-zh-CN.mp4"
+      }
+    }
+  },
+  "displayName": {
+    "en": "Kelly Security",
+    "zh-CN": "Linux 入侵核查台"
+  }
+}

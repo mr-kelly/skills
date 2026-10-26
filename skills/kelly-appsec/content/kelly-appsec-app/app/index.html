@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="graphite" data-editorial="desk" data-display="sans">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <title>Kelly AppSec · 应用与 API 安全审计</title>
+    <link rel="stylesheet" href="./base-ui.css">
+    <link rel="stylesheet" href="./styles/editorial.css">
+    <link rel="stylesheet" href="./styles.css">
+    <link rel="stylesheet" href="./styles/style-picker.css">
+    <link rel="stylesheet" href="./vendor/busabase-airapp-gate.css">
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="工作台导航">
+        <div class="brand"><span class="brand-icon" aria-hidden="true">◇</span><span class="brand-title">Kelly AppSec</span><button class="icon-button sidebar-toggle" data-action="sidebar" aria-label="收起侧栏" title="收起侧栏">◧</button></div>
+        <div class="attention"><span class="eyebrow">需要你复核</span><strong id="attentionCount">—</strong><span class="muted">让规则、证据和修复对应起来。</span></div>
+        <nav>
+<a href="#/overview" data-nav="overview"><span aria-hidden="true">◈</span><span>审计总览</span></a>
+<a href="#/projects" data-nav="projects"><span aria-hidden="true">▤</span><span>项目</span><span id="projectCount" class="nav-count">—</span></a>
+<a href="#/endpoints" data-nav="endpoints"><span aria-hidden="true">⌘</span><span>接口清单</span></a>
+<a href="#/rules" data-nav="rules"><span aria-hidden="true">☷</span><span>业务规则</span></a>
+<a href="#/matrix" data-nav="matrix"><span aria-hidden="true">▦</span><span>权限矩阵</span></a>
+<a href="#/findings" data-nav="findings"><span aria-hidden="true">⚑</span><span>发现与修复</span></a>
+<a href="#/runs" data-nav="runs"><span aria-hidden="true">◷</span><span>运行记录</span></a>
+</nav>
+        <div class="sidebar-footer"><span id="providerLabel" class="muted">正在连接…</span><a href="#/settings" class="settings-link"><span aria-hidden="true">⚙</span><span>帮助与设置</span></a></div>
+      </aside>
+      <button class="sidebar-scrim" data-action="sidebar" aria-label="关闭导航" hidden></button>
+      <main class="main">
+        <header class="mobile-topbar"><button class="icon-button" data-action="sidebar" aria-label="打开导航">◧</button><strong>Kelly AppSec</strong><a class="icon-button" href="#/settings" aria-label="帮助与设置">⚙</a></header>
+        <div id="demoBanner" class="demo-banner" hidden>演示模式 · 合成测试数据；操作只在此页面生效，不连接客户接口。</div>
+        <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
+        <div id="content" class="content"><div class="empty-state"><h1>正在连接应用审计工作台…</h1><p>读取当前工作区的项目、规则与验证任务。</p></div></div>
+      </main>
+    </div>
+    <dialog id="actionDialog" class="modal"><div class="modal-header"><h2 id="dialogTitle">操作</h2><button class="icon-button" data-action="close-dialog" aria-label="关闭">×</button></div><div id="dialogBody" class="modal-body"></div></dialog>
+    <script type="module" src="./js/app.js"></script>
+    <script type="module" src="./styles/style-picker.js"></script>
+  </body>
+</html>

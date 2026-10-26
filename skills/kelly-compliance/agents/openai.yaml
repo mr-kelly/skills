@@ -1,0 +1,4 @@
+interface:
+  display_name: "Kelly Compliance"
+  short_description: "云安全基线与 SaaS SOC 2 就绪、证据和缺口管理"
+  default_prompt: "使用 $kelly-compliance 管理我授权的云基线与 SOC 2 准备，明确证据来源、实际期间和缺口。"

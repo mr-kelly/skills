@@ -1,0 +1,19 @@
+{
+  "type": "drive",
+  "name": "私有证据与准备包",
+  "description": "私有证据索引与审计准备包；不上传原始秘密。",
+  "position": 8,
+  "agentPrompts": [
+    {
+      "key": "export",
+      "label": "导出审计准备材料",
+      "body": "阅读此文件夹中的 kelly-compliance skill。为所选服务导出控制维度、证据期间、负责人、风险接受和覆盖限制。"
+    },
+    {
+      "key": "verify",
+      "label": "复核材料的期间与限制",
+      "body": "阅读此文件夹中的 kelly-compliance skill。检查材料是否把时点快照误当期间运行，是否保留证据缺口和审计意见边界。",
+      "intent": "read-only"
+    }
+  ]
+}

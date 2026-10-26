@@ -1,0 +1,57 @@
+{
+  "format": "busabase-package@1",
+  "name": "kelly-appsec",
+  "displayName": {
+    "en": "Kelly AppSec",
+    "zh-CN": "应用与 API 安全审计台"
+  },
+  "description": {
+    "en": "Review API authorization and business rules with source evidence and version-aware retests.",
+    "zh-CN": "围绕角色、租户和业务规则审计接口，以证据推进修复与版本复测。"
+  },
+  "version": "0.1.0",
+  "license": "MIT",
+  "tags": ["appsec", "api-security", "authorization", "business-logic"],
+  "template": {
+    "category": "platform",
+    "schemaVersion": 1,
+    "airapp": "kelly-appsec-app",
+    "tags": ["api", "tenant-isolation", "evidence", "review"],
+    "screenshots": [
+      "assets/screenshots/cover.webp",
+      "assets/screenshots/overview.webp",
+      "assets/screenshots/projects.webp",
+      "assets/screenshots/endpoints.webp",
+      "assets/screenshots/rules.webp",
+      "assets/screenshots/matrix.webp",
+      "assets/screenshots/findings.webp",
+      "assets/screenshots/runs.webp",
+      "assets/screenshots/findings-mobile.webp"
+    ],
+    "agentPrompts": [
+      "盘点这个项目的接口并明确各角色和租户的预期权限。",
+      "在我授权的测试环境验证指定规则，保留正向基线和脱敏证据。",
+      "对指定修复版本复测，说明哪些问题仍未验证。"
+    ],
+    "requires": {
+      "airapp": true
+    },
+    "video": "assets/recordings/kelly-appsec.mp4",
+    "locales": {
+      "zh-CN": {
+        "screenshots": [
+          "assets/screenshots/cover-zh-CN.webp",
+          "assets/screenshots/overview-zh-CN.webp",
+          "assets/screenshots/projects-zh-CN.webp",
+          "assets/screenshots/endpoints-zh-CN.webp",
+          "assets/screenshots/rules-zh-CN.webp",
+          "assets/screenshots/matrix-zh-CN.webp",
+          "assets/screenshots/findings-zh-CN.webp",
+          "assets/screenshots/runs-zh-CN.webp",
+          "assets/screenshots/findings-mobile-zh-CN.webp"
+        ],
+        "video": "assets/recordings/kelly-appsec-zh-CN.mp4"
+      }
+    }
+  }
+}

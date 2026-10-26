@@ -1,0 +1,17 @@
+{
+  "name": "Kelly Compliance",
+  "description": "云安全与合规准备工作台",
+  "agentPrompts": [
+    {
+      "key": "investigate",
+      "label": "检查所选服务的控制与证据缺口",
+      "body": "阅读此文件夹中的 kelly-compliance skill。在当前服务账户、区域、框架和期间范围内检查控制维度、证据覆盖、负责人和到期风险接受。"
+    },
+    {
+      "key": "explain",
+      "label": "解释最需要补齐的证据",
+      "body": "阅读此文件夹中的 kelly-compliance skill。解释高优先级技术失败、缺失期间证据和负责人下一步；不要输出认证结论。",
+      "intent": "read-only"
+    }
+  ]
+}

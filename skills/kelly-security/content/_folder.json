@@ -1,0 +1,17 @@
+{
+  "name": "Kelly Security",
+  "description": "由本机 Agent 经 SSH 核查 Linux 入侵证据，在 Busabase 中复核多服务器检查清单、证据和时间线。",
+  "agentPrompts": [
+    {
+      "key": "investigate",
+      "label": "检查选中的服务器是否有入侵证据",
+      "body": "阅读此文件夹中的 kelly-security skill。在当前会话授权范围内核查选中的服务器，列出证据和缺口。"
+    },
+    {
+      "key": "explain",
+      "label": "解释最值得先查的线索",
+      "body": "阅读此文件夹中的 kelly-security skill。解释当前最值得先查的线索与证据缺口。",
+      "intent": "read-only"
+    }
+  ]
+}

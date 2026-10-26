@@ -1,0 +1,153 @@
+{
+  "name": "风险例外",
+  "description": "接受人、补偿措施、明确期限与撤销。",
+  "position": 7,
+  "agentPrompts": [
+    {
+      "key": "scenario-1",
+      "label": "记录已经决定的风险接受、补偿措施和到期时间。",
+      "body": "阅读此文件夹中的 kelly-compliance skill，遵循其流程。记录已经决定的风险接受、补偿措施和到期时间。",
+      "intent": "change"
+    },
+    {
+      "key": "scenario-2",
+      "label": "检查哪些例外已到期或仍保留技术风险。",
+      "body": "阅读此文件夹中的 kelly-compliance skill，遵循其流程。检查哪些例外已到期或仍保留技术风险。",
+      "intent": "read-only"
+    }
+  ],
+  "fields": [
+    {
+      "slug": "title",
+      "name": "名称",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "record-key",
+      "name": "幂等业务键",
+      "type": "text",
+      "required": true,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "program-reference",
+      "name": "合规项目精确索引",
+      "type": "text",
+      "required": true,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "control-reference",
+      "name": "控制项精确索引",
+      "type": "text",
+      "required": true,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "issue-reference",
+      "name": "缺口精确索引",
+      "type": "text",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "reason",
+      "name": "接受理由",
+      "type": "longtext",
+      "required": true,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "compensating-controls",
+      "name": "补偿措施",
+      "type": "longtext",
+      "required": true,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "accepted-by",
+      "name": "接受人",
+      "type": "text",
+      "required": true,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "expires-at",
+      "name": "有效截止",
+      "type": "date",
+      "required": true,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "status",
+      "name": "状态",
+      "type": "select",
+      "required": true,
+      "position": 9,
+      "options": {
+        "choices": [
+          {
+            "id": "accepted",
+            "name": "已记录风险接受"
+          },
+          {
+            "id": "revoked",
+            "name": "已撤销"
+          }
+        ]
+      }
+    },
+    {
+      "slug": "program",
+      "name": "合规项目",
+      "type": "relation",
+      "required": true,
+      "position": 10,
+      "options": {
+        "targetBaseSlug": "programs",
+        "allowMultiple": false
+      }
+    },
+    {
+      "slug": "control",
+      "name": "控制项",
+      "type": "relation",
+      "required": true,
+      "position": 11,
+      "options": {
+        "targetBaseSlug": "controls",
+        "allowMultiple": false
+      }
+    },
+    {
+      "slug": "issue",
+      "name": "缺口",
+      "type": "relation",
+      "required": false,
+      "position": 12,
+      "options": {
+        "targetBaseSlug": "issues",
+        "allowMultiple": false
+      }
+    }
+  ],
+  "views": [
+    {
+      "slug": "exceptions-table",
+      "name": "风险例外",
+      "type": "table",
+      "config": {}
+    }
+  ]
+}

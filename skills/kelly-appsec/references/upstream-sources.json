@@ -1,0 +1,63 @@
+{
+  "reviewed_on": "2026-10-26",
+  "primary_sources": [
+    {
+      "id": "owasp-asvs",
+      "title": "OWASP ASVS",
+      "url": "https://asvs.owasp.org/",
+      "version_observed": "5.0.0",
+      "used_for": ["application-requirements", "versioned-rule-references"]
+    },
+    {
+      "id": "owasp-api-top10",
+      "title": "OWASP API Security Top 10",
+      "url": "https://api-security.owasp.org/editions/2023/en/0x11-t10/",
+      "version_observed": "2023",
+      "used_for": ["api-authorization", "risk-taxonomy"]
+    },
+    {
+      "id": "owasp-bola",
+      "title": "Broken Object Level Authorization",
+      "url": "https://api-security.owasp.org/editions/2023/en/0xa1-broken-object-level-authorization/",
+      "used_for": ["per-object-action-policy", "interpretation-of-response"]
+    },
+    {
+      "id": "owasp-flows",
+      "title": "Sensitive Business Flows",
+      "url": "https://api-security.owasp.org/editions/2023/en/0xa6-unrestricted-access-to-sensitive-business-flows/",
+      "used_for": ["business-specific-abuse-cases"]
+    }
+  ],
+  "community_skills": [
+    {
+      "name": "conducting-api-security-testing",
+      "repository": "mukul975/Anthropic-Cybersecurity-Skills",
+      "commit": "54a798831d2266a3ca61ce68a7acb80b81160d57",
+      "url": "https://github.com/mukul975/Anthropic-Cybersecurity-Skills/blob/54a798831d2266a3ca61ce68a7acb80b81160d57/skills/conducting-api-security-testing/SKILL.md",
+      "sha256": "d7c01bde62507b200c57a34b0d4ba04a520b1a6c0cd02ac2ac1b08fe2852c3ef",
+      "license": "Apache-2.0"
+    },
+    {
+      "name": "testing-api-for-broken-object-level-authorization",
+      "repository": "mukul975/Anthropic-Cybersecurity-Skills",
+      "commit": "54a798831d2266a3ca61ce68a7acb80b81160d57",
+      "url": "https://github.com/mukul975/Anthropic-Cybersecurity-Skills/blob/54a798831d2266a3ca61ce68a7acb80b81160d57/skills/testing-api-for-broken-object-level-authorization/SKILL.md",
+      "sha256": "ba403342c7cae18411a0b12fde05ce3a9441dcfaf341cd845d00537c99250886",
+      "license": "Apache-2.0"
+    },
+    {
+      "name": "testing-for-business-logic-vulnerabilities",
+      "repository": "mukul975/Anthropic-Cybersecurity-Skills",
+      "commit": "54a798831d2266a3ca61ce68a7acb80b81160d57",
+      "url": "https://github.com/mukul975/Anthropic-Cybersecurity-Skills/blob/54a798831d2266a3ca61ce68a7acb80b81160d57/skills/testing-for-business-logic-vulnerabilities/SKILL.md",
+      "sha256": "4cce70205aaa1013cfbd70b1950aecef4693c839b4420220bde786c36c0a3e06",
+      "license": "Apache-2.0"
+    }
+  ],
+  "architecture_reference": {
+    "repository": "busabase/skills",
+    "commit": "b6db4aaf053453e4deda2a6ef8b78e9abd75db70",
+    "skill": "busabase-app-creator"
+  },
+  "reuse_policy": "Adapt documented methods, pin revisions and preserve Apache-2.0 attribution on derived material. Community licensing does not grant rights to redistribute separate AICPA or CIS standard texts. No third-party scripts were run against customer targets."
+}

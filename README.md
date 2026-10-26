@@ -235,12 +235,15 @@ The `kelly-*` skills are the everyday business tools. Helper skills such as `age
 | `kelly-agent-observability` | Local dashboard visualizing a fleet of LLM agents behind a shared AI gateway: call volume, latency, error rates, cost, and trace-level chain breaks. | Use it when reviewing agent fleet health or drilling into a failed trace to see where a chain broke. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-agent-observability.html) |
 | `kelly-app-skill-creator` | Builds Busabase-backed App-in-Skill packages around Research, Plan, Action, and Retrospective. Each bundles a complete canonical `app/`, uses `busabase-sdk` for persistent config/state/data, deploys the same source to AirApp by default, starts `pnpm dev` only on explicit request, owns the responsive Kelly operator UI, delegates runtime rules to `$busabase-app-creator`, and delegates conformance acceptance to `$kelly-app-skill-creator-tests`. The previous names `kelly-app-creator` and `app-in-skill-creator` remain compatibility aliases. | Use it when building a Busabase research desk, review queue, planner, action console, operating dashboard, control panel, or collaboration workspace. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-app-skill-creator.html) |
 | `kelly-app-skill-creator-tests` | Builds and runs reusable conformance tests for canonical Kelly app skills, including local server and responsive browser checks, temporary open-source Busabase provisioning and persistence, environment-gated Cloud OAuth, and AirApp parity. OSS and Cloud are always reported separately. | Use it when adding tests to a skill created by `kelly-app-skill-creator`, validating a migrated app skill, wiring app-skill CI, or diagnosing SDK, OAuth, provisioning, persistence, or AirApp regressions. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-app-skill-creator-tests.html) |
+| `kelly-appsec` | Application and API security audit desk: import OpenAPI, review role and tenant rules, run bounded local checks, inspect redacted evidence and track fixes through retest. | Use when reviewing authorization, object access, tenant isolation or business-rule risks in an application or API. | [View ↗](https://kellychan.im/skills/s/kelly-appsec.html) |
+| `kelly-compliance` | Cloud security and SOC 2 readiness desk: AWS baseline imports, scoped control evidence, audit-period coverage, owners, gaps, exceptions and reverification. | Use when preparing an outbound SaaS for a cloud security review or SOC 2 readiness assessment. | [View ↗](https://kellychan.im/skills/s/kelly-compliance.html) |
 | `kelly-devops` | Watches the product fleet: service uptime and latency, SSL certificate and domain expiry, API key rotation, and cloud spend anomalies, with agent-proposed action cards for approval. | Use it when checking service health, catching expiring domains and certificates, reviewing cloud spend spikes, or approving renewal and rotation actions. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-devops.html) |
 | `kelly-dog-walk` | 遛狗不淋雨 — a self-evolving agent with a trustworthy judge: the agent picks each day's dog-walk hour from a playbook, real Open-Meteo weather judges it, and playbook changes are only proposed as Busabase ChangeRequests a human merges. Ships replay, monthly-review and proposal scripts plus a read-only calendar AirApp. | Use it to run the 风变 lesson on self-evolving agents, replay any city and month against real weather, review a month's evidence, or propose and roll back playbook rules behind a human gate. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-dog-walk.html) |
 | `kelly-ideas` | Idea vault with a business consultant attached: sharpens vague ideas through required questions, then carries them through BRD, MRD, and PRD. | Use it when shaping a product or business concept into a specification precise enough to build. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-ideas.html) |
 | `kelly-llm-gateway` | Dashboard for a shared LLM gateway's cost and model governance: spend trend, cost breakdown by service/model, canary-rollout status, and deterministic cost/error anomaly detection. | Use it when reviewing LLM gateway spend, canary rollouts, or acknowledging a cost/error anomaly. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-llm-gateway.html) |
 | `kelly-local-model-lab` | Busabase-backed control plane for curating training examples, running local Apple Silicon LoRA/QLoRA fine-tunes with MLX-LM, comparing locked baseline and adapter evaluations, and registering approved adapters. | Use it when training, evaluating, promoting, or managing a local language-model adapter with Busabase as the workflow source of truth. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-local-model-lab.html) |
 | `kelly-pr-review` | Runs a GitHub PR review desk through `gh` CLI. It gathers review-requested pull requests, prepares review notes, uses a local UI for approval, and executes approved `gh pr review` actions. | Use it when reviewing GitHub pull requests, approving/commenting/requesting changes from a local queue, or batching PR review decisions. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-pr-review.html) |
+| `kelly-security` | Investigates suspected Linux compromise with local SSH, a multi-server checklist, access/audit/persistence evidence, coverage gaps and analyst review in Busabase. | Use when a server may have been compromised and you need attributable intrusion evidence, a timeline and a bounded investigation report. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-security.html) |
 | `publish-skills` | Publishes agent skills and MCP servers to marketplaces and registries: security-scans for private data, validates with `gh skill`, cuts a release, wires the Claude `/plugin` and Codex marketplaces, and preps the MCP Registry and curated stores. | Use it when publishing, releasing, or listing skills, plugins, or MCP servers to skills.sh, Claude Code, Codex, or the MCP Registry. | [View ↗](https://mr-kelly.github.io/skills/s/publish-skills.html) |
 | `sandock-community` | Operates the Sandock community forum at community.sandock.ai through its own `/api/v1/community` REST API: lists categories and posts, reads a thread with its replies, searches, and publishes posts and replies only after an explicit confirmation. | Use it when checking, answering, or posting to the Sandock community. | [View ↗](https://mr-kelly.github.io/skills/s/sandock-community.html) |
 
@@ -1034,6 +1037,125 @@ Customer-support desk — KB-grounded drafted replies, SLA + CSAT, and a support
   <tr>
     <td><strong>Actions</strong><br>Internal briefs, client education tasks, advisor scripts, and risk reminders queued for approval.</td>
     <td><strong>Drafts</strong><br>Editable explainers and meeting notes that avoid personalized advice and performance promises.</td>
+  </tr>
+</table>
+
+### `kelly-appsec`
+
+<table>
+  <tr>
+    <td width="50%"><img src="skills/kelly-appsec/assets/screenshots/cover.webp" alt="Kelly AppSec"></td>
+    <td width="50%"><img src="skills/kelly-appsec/assets/screenshots/overview.webp" alt="Audit overview"></td>
+  </tr>
+  <tr>
+    <td><strong>Kelly AppSec</strong><br>Rules, evidence and version-aware retests.</td>
+    <td><strong>Audit overview</strong><br>See policy coverage and the current project.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="skills/kelly-appsec/assets/screenshots/projects.webp" alt="Projects"></td>
+    <td width="50%"><img src="skills/kelly-appsec/assets/screenshots/endpoints.webp" alt="API inventory"></td>
+  </tr>
+  <tr>
+    <td><strong>Projects</strong><br>Keep target environments and revisions separate.</td>
+    <td><strong>API inventory</strong><br>Trace endpoints to OpenAPI or explicit inventory.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="skills/kelly-appsec/assets/screenshots/rules.webp" alt="Business rules"></td>
+    <td width="50%"><img src="skills/kelly-appsec/assets/screenshots/matrix.webp" alt="Permission matrix"></td>
+  </tr>
+  <tr>
+    <td><strong>Business rules</strong><br>Document who may access which objects.</td>
+    <td><strong>Permission matrix</strong><br>Compare roles against explicit expected behavior.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="skills/kelly-appsec/assets/screenshots/findings.webp" alt="Review and remediation"></td>
+    <td width="50%"><img src="skills/kelly-appsec/assets/screenshots/runs.webp" alt="Run history"></td>
+  </tr>
+  <tr>
+    <td><strong>Review and remediation</strong><br>Read the evidence before confirming a defect.</td>
+    <td><strong>Run history</strong><br>Separate requested, partial and completed work.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="skills/kelly-appsec/assets/screenshots/findings-mobile.webp" alt="Review on a phone"></td>
+  </tr>
+  <tr>
+    <td><strong>Review on a phone</strong><br>Inspect the same finding on a narrow screen.</td>
+  </tr>
+</table>
+
+### `kelly-compliance`
+
+<table>
+  <tr>
+    <td width="50%"><img src="skills/kelly-compliance/assets/screenshots/cover.webp" alt="Kelly Compliance"></td>
+    <td width="50%"><img src="skills/kelly-compliance/assets/screenshots/overview.webp" alt="Readiness overview"></td>
+  </tr>
+  <tr>
+    <td><strong>Kelly Compliance</strong><br>Scoped cloud evidence and SOC 2 readiness.</td>
+    <td><strong>Readiness overview</strong><br>See evidence gaps rather than a compliance score.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="skills/kelly-compliance/assets/screenshots/resources.webp" alt="Cloud resources"></td>
+    <td width="50%"><img src="skills/kelly-compliance/assets/screenshots/controls.webp" alt="Control checklist"></td>
+  </tr>
+  <tr>
+    <td><strong>Cloud resources</strong><br>Keep account and region scope visible.</td>
+    <td><strong>Control checklist</strong><br>Review requirements and evidence coverage.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="skills/kelly-compliance/assets/screenshots/evidence.webp" alt="Evidence review"></td>
+    <td width="50%"><img src="skills/kelly-compliance/assets/screenshots/issues.webp" alt="Gaps and exceptions"></td>
+  </tr>
+  <tr>
+    <td><strong>Evidence review</strong><br>Distinguish snapshots from operating-period evidence.</td>
+    <td><strong>Gaps and exceptions</strong><br>Track accountable owners and expiring exceptions.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="skills/kelly-compliance/assets/screenshots/assessments.webp" alt="Assessment history"></td>
+    <td width="50%"><img src="skills/kelly-compliance/assets/screenshots/controls-mobile.webp" alt="Review on a phone"></td>
+  </tr>
+  <tr>
+    <td><strong>Assessment history</strong><br>Retain imports, versions and collection gaps.</td>
+    <td><strong>Review on a phone</strong><br>Inspect control evidence on a narrow screen.</td>
+  </tr>
+</table>
+
+### `kelly-security`
+
+22-second walkthrough and screenshots use synthetic data. The gallery includes click-to-play video. The app UI is currently Chinese.
+
+<table>
+  <tr>
+    <td width="50%"><img src="skills/kelly-security/assets/screenshots/cover.webp" alt="Kelly Security"></td>
+    <td width="50%"><img src="skills/kelly-security/assets/screenshots/overview.webp" alt="Server matrix"></td>
+  </tr>
+  <tr>
+    <td><strong>Kelly Security</strong><br>A multi-server investigation desk.</td>
+    <td><strong>Server matrix</strong><br>Compare twelve checks across servers.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="skills/kelly-security/assets/screenshots/hosts.webp" alt="Authorized servers"></td>
+    <td width="50%"><img src="skills/kelly-security/assets/screenshots/runs.webp" alt="Investigation tasks"></td>
+  </tr>
+  <tr>
+    <td><strong>Authorized servers</strong><br>Choose named SSH targets and business roles.</td>
+    <td><strong>Investigation tasks</strong><br>Separate local execution from waiting and incomplete tasks.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="skills/kelly-security/assets/screenshots/checklist.webp" alt="Evidence checklist"></td>
+    <td width="50%"><img src="skills/kelly-security/assets/screenshots/timeline.webp" alt="Evidence timeline"></td>
+  </tr>
+  <tr>
+    <td><strong>Evidence checklist</strong><br>Open the source and coverage of each check.</td>
+    <td><strong>Evidence timeline</strong><br>Correlate access, execution and persistence leads.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="skills/kelly-security/assets/screenshots/findings.webp" alt="Analyst review"></td>
+    <td width="50%"><img src="skills/kelly-security/assets/screenshots/findings-mobile.webp" alt="Phone review"></td>
+  </tr>
+  <tr>
+    <td><strong>Analyst review</strong><br>Read the evidence before recording a verdict.</td>
+    <td><strong>Phone review</strong><br>Review the same findings on a phone.</td>
   </tr>
 </table>
 

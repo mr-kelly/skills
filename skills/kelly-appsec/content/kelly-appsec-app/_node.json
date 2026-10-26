@@ -1,0 +1,19 @@
+{
+  "type": "airapp",
+  "name": "应用与 API 安全审计台",
+  "description": "按项目、角色和业务规则审计应用与 API，并追踪证据及精确版本复测。",
+  "agentPrompts": [
+    {
+      "key": "scenario-1",
+      "label": "登记我指定的应用项目和审计范围。",
+      "body": "阅读此文件夹中的 kelly-appsec skill。登记我指定的应用项目和审计范围。",
+      "intent": "change"
+    },
+    {
+      "key": "scenario-2",
+      "label": "说明当前项目哪些身份、流程和版本还没有覆盖。",
+      "body": "阅读此文件夹中的 kelly-appsec skill。说明当前项目哪些身份、流程和版本还没有覆盖。",
+      "intent": "read-only"
+    }
+  ]
+}

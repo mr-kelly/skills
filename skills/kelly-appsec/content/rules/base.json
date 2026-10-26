@@ -1,0 +1,190 @@
+{
+  "name": "业务与权限规则",
+  "description": "业务与权限规则，仅属于当前 AppSec 工作台。",
+  "position": 2,
+  "agentPrompts": [
+    {
+      "key": "scenario-1",
+      "label": "为指定接口明确不同角色和租户的预期权限。",
+      "body": "阅读此文件夹中的 kelly-appsec skill。为指定接口明确不同角色和租户的预期权限。",
+      "intent": "change"
+    },
+    {
+      "key": "scenario-2",
+      "label": "检查公开分享、对象归属和字段规则是否已确认。",
+      "body": "阅读此文件夹中的 kelly-appsec skill。检查公开分享、对象归属和字段规则是否已确认。",
+      "intent": "read-only"
+    }
+  ],
+  "fields": [
+    {
+      "slug": "title",
+      "name": "名称",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "record-key",
+      "name": "幂等规则键",
+      "type": "text",
+      "required": true,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "project-reference",
+      "name": "项目精确索引",
+      "type": "text",
+      "required": true,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "endpoint-reference",
+      "name": "接口精确索引",
+      "type": "text",
+      "required": true,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "source-revision",
+      "name": "规则适用版本",
+      "type": "text",
+      "required": true,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "identity",
+      "name": "本机身份引用",
+      "type": "text",
+      "required": true,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "expectation",
+      "name": "预期访问",
+      "type": "select",
+      "required": true,
+      "position": 6,
+      "options": {
+        "choices": [
+          {
+            "id": "allow",
+            "name": "应允许"
+          },
+          {
+            "id": "deny",
+            "name": "应拒绝"
+          }
+        ]
+      }
+    },
+    {
+      "slug": "expected-statuses",
+      "name": "允许状态码",
+      "type": "longtext",
+      "required": true,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "assertions",
+      "name": "允许时的数据断言",
+      "type": "longtext",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "forbidden-assertions",
+      "name": "拒绝时不得泄露的数据断言",
+      "type": "longtext",
+      "required": false,
+      "position": 9,
+      "options": {}
+    },
+    {
+      "slug": "object-id",
+      "name": "受控测试对象",
+      "type": "text",
+      "required": false,
+      "position": 10,
+      "options": {}
+    },
+    {
+      "slug": "request-body",
+      "name": "受控请求体",
+      "type": "longtext",
+      "required": false,
+      "position": 11,
+      "options": {}
+    },
+    {
+      "slug": "baseline-rule-key",
+      "name": "正向基线规则键",
+      "type": "text",
+      "required": false,
+      "position": 12,
+      "options": {}
+    },
+    {
+      "slug": "mutating",
+      "name": "动作可能改变状态",
+      "type": "checkbox",
+      "required": false,
+      "position": 13,
+      "options": {}
+    },
+    {
+      "slug": "policy-note",
+      "name": "业务规则与确认依据",
+      "type": "longtext",
+      "required": true,
+      "position": 14,
+      "options": {}
+    },
+    {
+      "slug": "confirmed",
+      "name": "规则已经业务确认",
+      "type": "checkbox",
+      "required": false,
+      "position": 15,
+      "options": {}
+    },
+    {
+      "slug": "project",
+      "name": "项目",
+      "type": "relation",
+      "required": true,
+      "position": 16,
+      "options": {
+        "targetBaseSlug": "projects",
+        "allowMultiple": false
+      }
+    },
+    {
+      "slug": "endpoint",
+      "name": "接口",
+      "type": "relation",
+      "required": true,
+      "position": 17,
+      "options": {
+        "targetBaseSlug": "endpoints",
+        "allowMultiple": false
+      }
+    }
+  ],
+  "views": [
+    {
+      "slug": "rules-main",
+      "name": "业务与权限规则",
+      "type": "table",
+      "config": {}
+    }
+  ]
+}

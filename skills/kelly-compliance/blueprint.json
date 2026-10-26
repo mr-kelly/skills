@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "app_name": "Kelly Compliance",
+  "app_slug": "kelly-compliance",
+  "source_owner": "skills/kelly-compliance/content/kelly-compliance-app",
+  "approval": {
+    "state": "approved",
+    "basis": "Approved security-suite proposal; user requested implement and publish"
+  },
+  "route": "package-first",
+  "binding": "runtime",
+  "audience": "Outbound SaaS cloud baseline and SOC 2 readiness",
+  "resources": [
+    "programs",
+    "resources",
+    "controls",
+    "assessments",
+    "evidence",
+    "evidence-links",
+    "issues",
+    "exceptions"
+  ],
+  "user_operations": [
+    "Create scope",
+    "Initialize original control requirements",
+    "Import report or manual evidence",
+    "Review period applicability",
+    "Assign and verify gaps",
+    "Expire risk acceptance",
+    "Export bounded preparation materials"
+  ],
+  "cloud_execution": "Local finite read-only AWS catalog, current authorization plus identity binding",
+  "limits": ["No audit certification", "No fabricated history", "No automatic remediation", "No cloud-service enabling"]
+}

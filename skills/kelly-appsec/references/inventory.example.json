@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "sourceRevision": "rev-a",
+  "endpoints": [
+    {
+      "key": "own-order",
+      "method": "GET",
+      "path": "/orders/test-a",
+      "flow": "订单",
+      "location": "OpenAPI 或已审查源码"
+    },
+    {
+      "key": "other-order",
+      "method": "GET",
+      "path": "/orders/test-b",
+      "flow": "订单",
+      "location": "OpenAPI 或已审查源码"
+    }
+  ],
+  "rules": [
+    {
+      "key": "own-a",
+      "endpointKey": "own-order",
+      "identity": "user-a",
+      "expectation": "allow",
+      "expectedStatuses": [200],
+      "assertions": [
+        {
+          "path": "id",
+          "equals": "test-a"
+        }
+      ],
+      "objectId": "test-a",
+      "policyNote": "测试账号 A 可以读取自己的受控订单",
+      "confirmed": true
+    },
+    {
+      "key": "cross-a",
+      "endpointKey": "other-order",
+      "identity": "user-a",
+      "expectation": "deny",
+      "expectedStatuses": [403, 404],
+      "forbiddenAssertions": [
+        {
+          "path": "id",
+          "equals": "test-b"
+        }
+      ],
+      "objectId": "test-b",
+      "baselineRuleKey": "own-a",
+      "policyNote": "测试账号 A 不得读取 B 的受控订单",
+      "confirmed": true
+    }
+  ]
+}

@@ -1,0 +1,222 @@
+{
+  "name": "审计与复测任务",
+  "description": "审计与复测任务，仅属于当前 AppSec 工作台。",
+  "position": 3,
+  "agentPrompts": [
+    {
+      "key": "scenario-1",
+      "label": "在当前明确授权下验证选中的规则，记录结果和缺口。",
+      "body": "阅读此文件夹中的 kelly-appsec skill。在当前明确授权下验证选中的规则，记录结果和缺口。",
+      "intent": "change"
+    },
+    {
+      "key": "scenario-2",
+      "label": "说明中断任务如何恢复，或核对复测版本是否正确。",
+      "body": "阅读此文件夹中的 kelly-appsec skill。说明中断任务如何恢复，或核对复测版本是否正确。",
+      "intent": "read-only"
+    }
+  ],
+  "fields": [
+    {
+      "slug": "title",
+      "name": "名称",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "project-reference",
+      "name": "项目精确索引",
+      "type": "text",
+      "required": true,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "source-revision",
+      "name": "指定测试版本",
+      "type": "text",
+      "required": true,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "environment",
+      "name": "测试环境",
+      "type": "text",
+      "required": true,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "origin",
+      "name": "已授权 Origin",
+      "type": "url",
+      "required": true,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "scope-reference",
+      "name": "当前会话授权引用",
+      "type": "text",
+      "required": true,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "rule-snapshot",
+      "name": "显式规则与版本快照",
+      "type": "longtext",
+      "required": true,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "mode",
+      "name": "审计方式",
+      "type": "select",
+      "required": true,
+      "position": 7,
+      "options": {
+        "choices": [
+          {
+            "id": "dynamic",
+            "name": "受控 API 验证"
+          },
+          {
+            "id": "offline",
+            "name": "源码/离线复核"
+          }
+        ]
+      }
+    },
+    {
+      "slug": "status",
+      "name": "执行状态",
+      "type": "select",
+      "required": true,
+      "position": 8,
+      "options": {
+        "choices": [
+          {
+            "id": "requested",
+            "name": "等待本机 Agent"
+          },
+          {
+            "id": "running",
+            "name": "执行中"
+          },
+          {
+            "id": "completed",
+            "name": "已完成"
+          },
+          {
+            "id": "partial",
+            "name": "有覆盖缺口"
+          },
+          {
+            "id": "failed",
+            "name": "失败"
+          },
+          {
+            "id": "cancelled",
+            "name": "已取消"
+          }
+        ]
+      }
+    },
+    {
+      "slug": "requested-at",
+      "name": "请求时间",
+      "type": "date",
+      "required": false,
+      "position": 9,
+      "options": {}
+    },
+    {
+      "slug": "started-at",
+      "name": "开始时间",
+      "type": "date",
+      "required": false,
+      "position": 10,
+      "options": {}
+    },
+    {
+      "slug": "finished-at",
+      "name": "完成时间",
+      "type": "date",
+      "required": false,
+      "position": 11,
+      "options": {}
+    },
+    {
+      "slug": "runner-id",
+      "name": "执行器标识",
+      "type": "text",
+      "required": false,
+      "position": 12,
+      "options": {}
+    },
+    {
+      "slug": "heartbeat-at",
+      "name": "最近心跳",
+      "type": "date",
+      "required": false,
+      "position": 13,
+      "options": {}
+    },
+    {
+      "slug": "claim-reference",
+      "name": "任务领取引用",
+      "type": "text",
+      "required": false,
+      "position": 14,
+      "options": {}
+    },
+    {
+      "slug": "request-count",
+      "name": "实际请求数",
+      "type": "number",
+      "required": false,
+      "position": 15,
+      "options": {}
+    },
+    {
+      "slug": "summary",
+      "name": "结果与缺口",
+      "type": "longtext",
+      "required": false,
+      "position": 16,
+      "options": {}
+    },
+    {
+      "slug": "retest-finding-reference",
+      "name": "待复测发现引用",
+      "type": "text",
+      "required": false,
+      "position": 17,
+      "options": {}
+    },
+    {
+      "slug": "project",
+      "name": "项目",
+      "type": "relation",
+      "required": true,
+      "position": 18,
+      "options": {
+        "targetBaseSlug": "projects",
+        "allowMultiple": false
+      }
+    }
+  ],
+  "views": [
+    {
+      "slug": "runs-main",
+      "name": "审计与复测任务",
+      "type": "table",
+      "config": {}
+    }
+  ]
+}

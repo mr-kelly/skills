@@ -1,0 +1,182 @@
+{
+  "name": "云资产与检查",
+  "description": "资产归属、现有技术检查结果及覆盖。",
+  "position": 1,
+  "agentPrompts": [
+    {
+      "key": "scenario-1",
+      "label": "导入已授权账户的现有云安全检查结果。",
+      "body": "阅读此文件夹中的 kelly-compliance skill，遵循其流程。导入已授权账户的现有云安全检查结果。",
+      "intent": "change"
+    },
+    {
+      "key": "scenario-2",
+      "label": "找出无权限、未知或范围没有覆盖的资产。",
+      "body": "阅读此文件夹中的 kelly-compliance skill，遵循其流程。找出无权限、未知或范围没有覆盖的资产。",
+      "intent": "read-only"
+    }
+  ],
+  "fields": [
+    {
+      "slug": "title",
+      "name": "名称",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "record-key",
+      "name": "幂等业务键",
+      "type": "text",
+      "required": true,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "program-reference",
+      "name": "合规项目精确索引",
+      "type": "text",
+      "required": true,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "assessment-reference",
+      "name": "评估精确索引",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "provider",
+      "name": "来源云",
+      "type": "text",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "account",
+      "name": "账户",
+      "type": "text",
+      "required": true,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "region",
+      "name": "区域",
+      "type": "text",
+      "required": true,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "resource-key",
+      "name": "来源资源标识",
+      "type": "text",
+      "required": true,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "resource-type",
+      "name": "资产类型",
+      "type": "text",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "check-id",
+      "name": "技术检查键",
+      "type": "text",
+      "required": true,
+      "position": 9,
+      "options": {}
+    },
+    {
+      "slug": "status",
+      "name": "技术结果",
+      "type": "select",
+      "required": true,
+      "position": 10,
+      "options": {
+        "choices": [
+          {
+            "id": "pass",
+            "name": "符合声明规则"
+          },
+          {
+            "id": "fail",
+            "name": "违反声明规则"
+          },
+          {
+            "id": "unknown",
+            "name": "未知"
+          },
+          {
+            "id": "manual",
+            "name": "需人工核对"
+          }
+        ]
+      }
+    },
+    {
+      "slug": "observed-at",
+      "name": "观察时间",
+      "type": "date",
+      "required": true,
+      "position": 11,
+      "options": {}
+    },
+    {
+      "slug": "summary",
+      "name": "脱敏结论",
+      "type": "longtext",
+      "required": false,
+      "position": 12,
+      "options": {}
+    },
+    {
+      "slug": "source-locator",
+      "name": "原始来源",
+      "type": "text",
+      "required": false,
+      "position": 13,
+      "options": {}
+    },
+    {
+      "slug": "program",
+      "name": "合规项目",
+      "type": "relation",
+      "required": true,
+      "position": 14,
+      "options": {
+        "targetBaseSlug": "programs",
+        "allowMultiple": false
+      }
+    },
+    {
+      "slug": "assessment",
+      "name": "来源评估",
+      "type": "relation",
+      "required": false,
+      "position": 15,
+      "options": {
+        "targetBaseSlug": "assessments",
+        "allowMultiple": false
+      }
+    }
+  ],
+  "views": [
+    {
+      "slug": "resources-table",
+      "name": "云资产与检查",
+      "type": "table",
+      "config": {}
+    }
+  ]
+}
