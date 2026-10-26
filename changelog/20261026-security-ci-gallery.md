@@ -22,6 +22,8 @@ AI Agent: Codex
 ## What Changed
 
 - Declare the exact `busabase-sdk@0.99.1` release-age exclusion in the skill and AirApp workspaces.
+- Fetch Git LFS objects in the test job so package/media checks read real screenshot bytes rather
+  than pointer files, matching the Pages deployment checkout.
 - Add a 22-second, 1440×900 silent H.264 walkthrough covering all six primary workflow views.
 - Generate English and Chinese covers from real application captures, and include seven workflow/
   phone screenshots with thumbnails and meaningful bilingual captions.
