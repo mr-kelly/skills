@@ -235,6 +235,8 @@ The `kelly-*` skills are the everyday business tools. Helper skills such as `age
 | `kelly-agent-observability` | Local dashboard visualizing a fleet of LLM agents behind a shared AI gateway: call volume, latency, error rates, cost, and trace-level chain breaks. | Use it when reviewing agent fleet health or drilling into a failed trace to see where a chain broke. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-agent-observability.html) |
 | `kelly-app-skill-creator` | Builds Busabase-backed App-in-Skill packages around Research, Plan, Action, and Retrospective. Each bundles a complete canonical `app/`, uses `busabase-sdk` for persistent config/state/data, deploys the same source to AirApp by default, starts `pnpm dev` only on explicit request, owns the responsive Kelly operator UI, delegates runtime rules to `$busabase-app-creator`, and delegates conformance acceptance to `$kelly-app-skill-creator-tests`. The previous names `kelly-app-creator` and `app-in-skill-creator` remain compatibility aliases. | Use it when building a Busabase research desk, review queue, planner, action console, operating dashboard, control panel, or collaboration workspace. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-app-skill-creator.html) |
 | `kelly-app-skill-creator-tests` | Builds and runs reusable conformance tests for canonical Kelly app skills, including local server and responsive browser checks, temporary open-source Busabase provisioning and persistence, environment-gated Cloud OAuth, and AirApp parity. OSS and Cloud are always reported separately. | Use it when adding tests to a skill created by `kelly-app-skill-creator`, validating a migrated app skill, wiring app-skill CI, or diagnosing SDK, OAuth, provisioning, persistence, or AirApp regressions. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-app-skill-creator-tests.html) |
+| `kelly-appsec` | Application and API security audit desk: import OpenAPI, review role and tenant rules, run bounded local checks, inspect redacted evidence and track fixes through retest. | Use when reviewing authorization, object access, tenant isolation or business-rule risks in an application or API. | [View ↗](https://kellychan.im/skills/s/kelly-appsec.html) |
+| `kelly-compliance` | Cloud security and SOC 2 readiness desk: AWS baseline imports, scoped control evidence, audit-period coverage, owners, gaps, exceptions and reverification. | Use when preparing an outbound SaaS for a cloud security review or SOC 2 readiness assessment. | [View ↗](https://kellychan.im/skills/s/kelly-compliance.html) |
 | `kelly-devops` | Watches the product fleet: service uptime and latency, SSL certificate and domain expiry, API key rotation, and cloud spend anomalies, with agent-proposed action cards for approval. | Use it when checking service health, catching expiring domains and certificates, reviewing cloud spend spikes, or approving renewal and rotation actions. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-devops.html) |
 | `kelly-dog-walk` | 遛狗不淋雨 — a self-evolving agent with a trustworthy judge: the agent picks each day's dog-walk hour from a playbook, real Open-Meteo weather judges it, and playbook changes are only proposed as Busabase ChangeRequests a human merges. Ships replay, monthly-review and proposal scripts plus a read-only calendar AirApp. | Use it to run the 风变 lesson on self-evolving agents, replay any city and month against real weather, review a month's evidence, or propose and roll back playbook rules behind a human gate. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-dog-walk.html) |
 | `kelly-ideas` | Idea vault with a business consultant attached: sharpens vague ideas through required questions, then carries them through BRD, MRD, and PRD. | Use it when shaping a product or business concept into a specification precise enough to build. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-ideas.html) |
@@ -1035,6 +1037,86 @@ Customer-support desk — KB-grounded drafted replies, SLA + CSAT, and a support
   <tr>
     <td><strong>Actions</strong><br>Internal briefs, client education tasks, advisor scripts, and risk reminders queued for approval.</td>
     <td><strong>Drafts</strong><br>Editable explainers and meeting notes that avoid personalized advice and performance promises.</td>
+  </tr>
+</table>
+
+### `kelly-appsec`
+
+<table>
+  <tr>
+    <td width="50%"><img src="skills/kelly-appsec/assets/screenshots/cover.webp" alt="Kelly AppSec"></td>
+    <td width="50%"><img src="skills/kelly-appsec/assets/screenshots/overview.webp" alt="Audit overview"></td>
+  </tr>
+  <tr>
+    <td><strong>Kelly AppSec</strong><br>Rules, evidence and version-aware retests.</td>
+    <td><strong>Audit overview</strong><br>See policy coverage and the current project.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="skills/kelly-appsec/assets/screenshots/projects.webp" alt="Projects"></td>
+    <td width="50%"><img src="skills/kelly-appsec/assets/screenshots/endpoints.webp" alt="API inventory"></td>
+  </tr>
+  <tr>
+    <td><strong>Projects</strong><br>Keep target environments and revisions separate.</td>
+    <td><strong>API inventory</strong><br>Trace endpoints to OpenAPI or explicit inventory.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="skills/kelly-appsec/assets/screenshots/rules.webp" alt="Business rules"></td>
+    <td width="50%"><img src="skills/kelly-appsec/assets/screenshots/matrix.webp" alt="Permission matrix"></td>
+  </tr>
+  <tr>
+    <td><strong>Business rules</strong><br>Document who may access which objects.</td>
+    <td><strong>Permission matrix</strong><br>Compare roles against explicit expected behavior.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="skills/kelly-appsec/assets/screenshots/findings.webp" alt="Review and remediation"></td>
+    <td width="50%"><img src="skills/kelly-appsec/assets/screenshots/runs.webp" alt="Run history"></td>
+  </tr>
+  <tr>
+    <td><strong>Review and remediation</strong><br>Read the evidence before confirming a defect.</td>
+    <td><strong>Run history</strong><br>Separate requested, partial and completed work.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="skills/kelly-appsec/assets/screenshots/findings-mobile.webp" alt="Review on a phone"></td>
+  </tr>
+  <tr>
+    <td><strong>Review on a phone</strong><br>Inspect the same finding on a narrow screen.</td>
+  </tr>
+</table>
+
+### `kelly-compliance`
+
+<table>
+  <tr>
+    <td width="50%"><img src="skills/kelly-compliance/assets/screenshots/cover.webp" alt="Kelly Compliance"></td>
+    <td width="50%"><img src="skills/kelly-compliance/assets/screenshots/overview.webp" alt="Readiness overview"></td>
+  </tr>
+  <tr>
+    <td><strong>Kelly Compliance</strong><br>Scoped cloud evidence and SOC 2 readiness.</td>
+    <td><strong>Readiness overview</strong><br>See evidence gaps rather than a compliance score.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="skills/kelly-compliance/assets/screenshots/resources.webp" alt="Cloud resources"></td>
+    <td width="50%"><img src="skills/kelly-compliance/assets/screenshots/controls.webp" alt="Control checklist"></td>
+  </tr>
+  <tr>
+    <td><strong>Cloud resources</strong><br>Keep account and region scope visible.</td>
+    <td><strong>Control checklist</strong><br>Review requirements and evidence coverage.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="skills/kelly-compliance/assets/screenshots/evidence.webp" alt="Evidence review"></td>
+    <td width="50%"><img src="skills/kelly-compliance/assets/screenshots/issues.webp" alt="Gaps and exceptions"></td>
+  </tr>
+  <tr>
+    <td><strong>Evidence review</strong><br>Distinguish snapshots from operating-period evidence.</td>
+    <td><strong>Gaps and exceptions</strong><br>Track accountable owners and expiring exceptions.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="skills/kelly-compliance/assets/screenshots/assessments.webp" alt="Assessment history"></td>
+    <td width="50%"><img src="skills/kelly-compliance/assets/screenshots/controls-mobile.webp" alt="Review on a phone"></td>
+  </tr>
+  <tr>
+    <td><strong>Assessment history</strong><br>Retain imports, versions and collection gaps.</td>
+    <td><strong>Review on a phone</strong><br>Inspect control evidence on a narrow screen.</td>
   </tr>
 </table>
 

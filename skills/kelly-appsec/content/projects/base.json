@@ -1,0 +1,120 @@
+{
+  "name": "项目",
+  "description": "项目，仅属于当前 AppSec 工作台。",
+  "position": 0,
+  "agentPrompts": [
+    {
+      "key": "scenario-1",
+      "label": "登记我指定的应用项目和审计范围。",
+      "body": "阅读此文件夹中的 kelly-appsec skill。登记我指定的应用项目和审计范围。",
+      "intent": "change"
+    },
+    {
+      "key": "scenario-2",
+      "label": "说明当前项目哪些身份、流程和版本还没有覆盖。",
+      "body": "阅读此文件夹中的 kelly-appsec skill。说明当前项目哪些身份、流程和版本还没有覆盖。",
+      "intent": "read-only"
+    }
+  ],
+  "fields": [
+    {
+      "slug": "title",
+      "name": "名称",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "owner",
+      "name": "负责人",
+      "type": "text",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "repository-reference",
+      "name": "仓库引用",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "source-revision",
+      "name": "源码/部署版本",
+      "type": "text",
+      "required": true,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "environment",
+      "name": "声明环境",
+      "type": "text",
+      "required": true,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "origin",
+      "name": "测试 Origin",
+      "type": "url",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "scope-note",
+      "name": "授权与业务边界",
+      "type": "longtext",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "onboarding-version",
+      "name": "配置版本",
+      "type": "number",
+      "required": true,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "onboarding-state",
+      "name": "配置状态",
+      "type": "select",
+      "required": true,
+      "position": 8,
+      "options": {
+        "choices": [
+          {
+            "id": "incomplete",
+            "name": "待配置"
+          },
+          {
+            "id": "complete",
+            "name": "已配置"
+          }
+        ]
+      }
+    },
+    {
+      "slug": "is-example",
+      "name": "示例项目",
+      "type": "checkbox",
+      "required": false,
+      "position": 9,
+      "options": {}
+    }
+  ],
+  "views": [
+    {
+      "slug": "projects-main",
+      "name": "项目",
+      "type": "table",
+      "config": {}
+    }
+  ]
+}

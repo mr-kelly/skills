@@ -1,6 +1,6 @@
 # Kelly Compliance：云安全基线与 SOC 2 就绪
 
-状态：待实施产品方案。用户已选目标：**出海 SaaS**。
+状态：已按此方案实现首版 `kelly-compliance`。用户已选目标：**出海 SaaS**。实际自动化能力、验证与限制见 [交付记录](verification.md)。下列完整场景同时作为持续演进的验收方向。
 名称建议 `kelly-compliance`，中文“云安全与合规准备台”。
 
 ## 用户价值

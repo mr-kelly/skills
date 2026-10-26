@@ -235,6 +235,8 @@
 | `kelly-agent-observability` | 本地看板，展示运行在共享 AI 网关背后的一批 LLM agent：调用量、延迟、错误率、成本，以及链路级故障追踪。 | 审阅 agent 集群健康状况，或排查某条失败链路断在哪一步时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-agent-observability.html?lang=zh) |
 | `kelly-app-skill-creator` | 围绕 Research、Plan、Action、Retrospective 构建 Busabase-backed App-in-Skill。每个 skill 都包含完整规范 `app/`，用 `busabase-sdk` 读写持久配置、状态和数据，默认把同一套源码部署到 AirApp，只有明确要求时才启动 `pnpm dev`，拥有响应式 Kelly 操作台 UI，把运行时约束委托给 `$busabase-app-creator`，把 conformance 验收委托给 `$kelly-app-skill-creator-tests`。旧名 `kelly-app-creator`、`app-in-skill-creator` 保留为兼容别名。 | 构建 Busabase 研究台、审阅队列、计划看板、行动控制台、运营概览、控制面板或协作工作区时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-app-skill-creator.html?lang=zh) |
 | `kelly-app-skill-creator-tests` | 为规范 Kelly app skill 构建并运行可复用 conformance 测试，包括本地 server 与响应式浏览器检查、临时开源 Busabase provisioning 与持久化、环境变量门控的 Cloud OAuth，以及 AirApp parity；OSS 与 Cloud 始终分开报告。 | 给 `kelly-app-skill-creator` 生成的 skill 补测试、验收迁移后的 app skill、接入 app-skill CI，或诊断 SDK、OAuth、provisioning、持久化、AirApp 回归时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-app-skill-creator-tests.html?lang=zh) |
+| `kelly-appsec` | 应用与 API 安全审计台：导入 OpenAPI，建立角色与租户权限矩阵，由本机执行有范围的检查，复核脱敏证据并追踪修复复测。 | 排查接口越权、对象访问、跨租户泄露或业务流程安全问题时使用。 | [查看 ↗](https://kellychan.im/skills/s/kelly-appsec.html?lang=zh) |
+| `kelly-compliance` | 云安全与 SOC 2 就绪工作台：AWS 基线报告、按范围与期间核查控制证据、缺口负责人、风险例外和重新验证。 | 出海 SaaS 准备云安全基线检查或 SOC 2 就绪评估时使用。 | [查看 ↗](https://kellychan.im/skills/s/kelly-compliance.html?lang=zh) |
 | `kelly-devops` | 盯产品矩阵的运维面：服务可用性和延迟、SSL 证书和域名到期、API key 轮换、云支出异常，带 agent 提出的行动卡审批。 | 检查服务健康、避免域名/证书过期、review 云支出异常、批准续费和轮换动作时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-devops.html?lang=zh) |
 | `kelly-dog-walk` | 遛狗不淋雨：一个有靠谱裁判的自我进化 Agent。Agent 按遛狗手册每天定遛狗钟点，Open-Meteo 的真实天气当裁判；改手册只能提 Busabase 变更请求，主人合并才算数。附回放、月度复盘、提议脚本和只读遛狗日历。 | 讲风变「打造自我进化的 Agent」这一课、用真实天气回放任意城市任意月份、复盘一个月的证据，或在人工把关下提议和回滚手册规则时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-dog-walk.html?lang=zh) |
 | `kelly-ideas` | 带商业顾问的灵感库：通过必答问题把模糊想法问清楚，再依次推进到 BRD、MRD 和 PRD。 | 把产品或商业构想打磨成足够精确、可以交付开发的规格时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-ideas.html?lang=zh) |
@@ -1039,6 +1041,86 @@ Kelly Family Fund 是一个本地、只读的家庭统筹基金台账：把两�
   <tr>
     <td><strong>动作</strong><br>内部 brief、客户教育、顾问脚本和风险提醒进入审批队列。</td>
     <td><strong>草稿</strong><br>解释稿和会议 notes 可编辑，并避开个性化建议与收益承诺。</td>
+  </tr>
+</table>
+
+### `kelly-appsec`
+
+<table>
+  <tr>
+    <td width="50%"><img src="../skills/kelly-appsec/assets/screenshots/cover-zh-CN.webp" alt="应用与 API 安全审计"></td>
+    <td width="50%"><img src="../skills/kelly-appsec/assets/screenshots/overview-zh-CN.webp" alt="审计总览"></td>
+  </tr>
+  <tr>
+    <td><strong>应用与 API 安全审计</strong><br>把规则、证据与指定版本复测对应起来。</td>
+    <td><strong>审计总览</strong><br>查看当前项目、业务权限和未验证范围。</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="../skills/kelly-appsec/assets/screenshots/projects-zh-CN.webp" alt="项目"></td>
+    <td width="50%"><img src="../skills/kelly-appsec/assets/screenshots/endpoints-zh-CN.webp" alt="接口清单"></td>
+  </tr>
+  <tr>
+    <td><strong>项目</strong><br>明确项目、环境、仓库和版本。</td>
+    <td><strong>接口清单</strong><br>接口与业务动作都有明确来源。</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="../skills/kelly-appsec/assets/screenshots/rules-zh-CN.webp" alt="业务规则"></td>
+    <td width="50%"><img src="../skills/kelly-appsec/assets/screenshots/matrix-zh-CN.webp" alt="权限矩阵"></td>
+  </tr>
+  <tr>
+    <td><strong>业务规则</strong><br>写清楚谁能访问谁的对象与业务依据。</td>
+    <td><strong>权限矩阵</strong><br>按身份逐项查看允许、禁止和验证证据。</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="../skills/kelly-appsec/assets/screenshots/findings-zh-CN.webp" alt="发现与修复"></td>
+    <td width="50%"><img src="../skills/kelly-appsec/assets/screenshots/runs-zh-CN.webp" alt="运行记录"></td>
+  </tr>
+  <tr>
+    <td><strong>发现与修复</strong><br>复核证据、分配修复并对原案例复测。</td>
+    <td><strong>运行记录</strong><br>任务、执行状态、版本与历史记录。</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="../skills/kelly-appsec/assets/screenshots/findings-mobile-zh-CN.webp" alt="手机复核"></td>
+  </tr>
+  <tr>
+    <td><strong>手机复核</strong><br>手机上也能查看同一条发现与证据。</td>
+  </tr>
+</table>
+
+### `kelly-compliance`
+
+<table>
+  <tr>
+    <td width="50%"><img src="../skills/kelly-compliance/assets/screenshots/cover-zh-CN.webp" alt="云安全与合规准备"></td>
+    <td width="50%"><img src="../skills/kelly-compliance/assets/screenshots/overview-zh-CN.webp" alt="准备总览"></td>
+  </tr>
+  <tr>
+    <td><strong>云安全与合规准备</strong><br>云安全基线、控制证据与 SOC 2 就绪。</td>
+    <td><strong>准备总览</strong><br>查看控制、证据与缺口的真实状态。</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="../skills/kelly-compliance/assets/screenshots/resources-zh-CN.webp" alt="云资源"></td>
+    <td width="50%"><img src="../skills/kelly-compliance/assets/screenshots/controls-zh-CN.webp" alt="控制清单"></td>
+  </tr>
+  <tr>
+    <td><strong>云资源</strong><br>按账户、区域和资源核对云配置证据。</td>
+    <td><strong>控制清单</strong><br>逐项查看控制要求和证据覆盖。</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="../skills/kelly-compliance/assets/screenshots/evidence-zh-CN.webp" alt="证据复核"></td>
+    <td width="50%"><img src="../skills/kelly-compliance/assets/screenshots/issues-zh-CN.webp" alt="缺口与例外"></td>
+  </tr>
+  <tr>
+    <td><strong>证据复核</strong><br>核对来源、采集时间与真实覆盖期间。</td>
+    <td><strong>缺口与例外</strong><br>为整改分配负责人并跟踪例外期限。</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="../skills/kelly-compliance/assets/screenshots/assessments-zh-CN.webp" alt="评估记录"></td>
+    <td width="50%"><img src="../skills/kelly-compliance/assets/screenshots/controls-mobile-zh-CN.webp" alt="手机核对"></td>
+  </tr>
+  <tr>
+    <td><strong>评估记录</strong><br>保留报告导入、范围版本与采集缺口。</td>
+    <td><strong>手机核对</strong><br>在手机上逐项核对控制状态与证据。</td>
   </tr>
 </table>
 

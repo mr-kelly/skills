@@ -1,0 +1,20 @@
+[
+  {
+    "key": "start-audit",
+    "label": "审计我指定项目的接口权限与业务规则",
+    "body": "阅读此文件夹中的 kelly-appsec skill。结合我授权的仓库、部署版本和测试身份，整理接口与预期业务规则，再说明哪些证据还缺失。",
+    "intent": "change"
+  },
+  {
+    "key": "retest-fix",
+    "label": "验证指定版本是否修复了这个问题",
+    "body": "阅读此文件夹中的 kelly-appsec skill。在我明确授权的版本、环境和受控对象内复测原规则及正向基线，保留尚未验证项与证据。",
+    "intent": "change"
+  },
+  {
+    "key": "explain-evidence",
+    "label": "解释发现的证据、影响和未覆盖项",
+    "body": "阅读此文件夹中的 kelly-appsec skill。解释选定任务的发现、业务依据、证据来源和版本限制，不把候选线索当成已确认漏洞。",
+    "intent": "read-only"
+  }
+]

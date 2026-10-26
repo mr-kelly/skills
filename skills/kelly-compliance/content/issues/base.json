@@ -1,0 +1,266 @@
+{
+  "name": "缺口与整改",
+  "description": "责任、期限、补证与实际验证。",
+  "position": 6,
+  "agentPrompts": [
+    {
+      "key": "scenario-1",
+      "label": "为缺口分配负责人和期限，补证后验证关闭。",
+      "body": "阅读此文件夹中的 kelly-compliance skill，遵循其流程。为缺口分配负责人和期限，补证后验证关闭。",
+      "intent": "change"
+    },
+    {
+      "key": "scenario-2",
+      "label": "解释哪些问题仍然开放或需要重新验证。",
+      "body": "阅读此文件夹中的 kelly-compliance skill，遵循其流程。解释哪些问题仍然开放或需要重新验证。",
+      "intent": "read-only"
+    }
+  ],
+  "fields": [
+    {
+      "slug": "title",
+      "name": "名称",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "record-key",
+      "name": "幂等业务键",
+      "type": "text",
+      "required": true,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "program-reference",
+      "name": "合规项目精确索引",
+      "type": "text",
+      "required": true,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "assessment-reference",
+      "name": "评估精确索引",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "control-reference",
+      "name": "控制项精确索引",
+      "type": "text",
+      "required": true,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "severity",
+      "name": "优先级",
+      "type": "select",
+      "required": true,
+      "position": 5,
+      "options": {
+        "choices": [
+          {
+            "id": "high",
+            "name": "高"
+          },
+          {
+            "id": "medium",
+            "name": "中"
+          },
+          {
+            "id": "low",
+            "name": "低"
+          }
+        ]
+      }
+    },
+    {
+      "slug": "issue-kind",
+      "name": "缺口类型",
+      "type": "select",
+      "required": true,
+      "position": 6,
+      "options": {
+        "choices": [
+          {
+            "id": "technical",
+            "name": "技术问题"
+          },
+          {
+            "id": "evidence",
+            "name": "证据不足"
+          }
+        ]
+      }
+    },
+    {
+      "slug": "status",
+      "name": "处理状态",
+      "type": "select",
+      "required": true,
+      "position": 7,
+      "options": {
+        "choices": [
+          {
+            "id": "open",
+            "name": "待分派"
+          },
+          {
+            "id": "in-progress",
+            "name": "处理中"
+          },
+          {
+            "id": "needs-verification",
+            "name": "待验证"
+          },
+          {
+            "id": "closed",
+            "name": "已验证关闭"
+          },
+          {
+            "id": "reopened",
+            "name": "重开"
+          }
+        ]
+      }
+    },
+    {
+      "slug": "owner",
+      "name": "负责人",
+      "type": "text",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "due-at",
+      "name": "截止时间",
+      "type": "date",
+      "required": false,
+      "position": 9,
+      "options": {}
+    },
+    {
+      "slug": "reason",
+      "name": "缺口依据",
+      "type": "longtext",
+      "required": true,
+      "position": 10,
+      "options": {}
+    },
+    {
+      "slug": "resolution-note",
+      "name": "处理与验证理由",
+      "type": "longtext",
+      "required": false,
+      "position": 11,
+      "options": {}
+    },
+    {
+      "slug": "verified-evidence-reference",
+      "name": "验证证据索引",
+      "type": "text",
+      "required": false,
+      "position": 12,
+      "options": {}
+    },
+    {
+      "slug": "verification-after",
+      "name": "验证证据须晚于",
+      "type": "date",
+      "required": false,
+      "position": 13,
+      "options": {}
+    },
+    {
+      "slug": "resource-key",
+      "name": "待复测资源",
+      "type": "text",
+      "required": false,
+      "position": 14,
+      "options": {}
+    },
+    {
+      "slug": "check-id",
+      "name": "待复测检查",
+      "type": "text",
+      "required": false,
+      "position": 15,
+      "options": {}
+    },
+    {
+      "slug": "account",
+      "name": "账户",
+      "type": "text",
+      "required": false,
+      "position": 16,
+      "options": {}
+    },
+    {
+      "slug": "region",
+      "name": "区域",
+      "type": "text",
+      "required": false,
+      "position": 17,
+      "options": {}
+    },
+    {
+      "slug": "program",
+      "name": "合规项目",
+      "type": "relation",
+      "required": true,
+      "position": 18,
+      "options": {
+        "targetBaseSlug": "programs",
+        "allowMultiple": false
+      }
+    },
+    {
+      "slug": "assessment",
+      "name": "评估任务",
+      "type": "relation",
+      "required": false,
+      "position": 19,
+      "options": {
+        "targetBaseSlug": "assessments",
+        "allowMultiple": false
+      }
+    },
+    {
+      "slug": "control",
+      "name": "控制项",
+      "type": "relation",
+      "required": true,
+      "position": 20,
+      "options": {
+        "targetBaseSlug": "controls",
+        "allowMultiple": false
+      }
+    },
+    {
+      "slug": "verified-evidence",
+      "name": "验证证据",
+      "type": "relation",
+      "required": false,
+      "position": 21,
+      "options": {
+        "targetBaseSlug": "evidence",
+        "allowMultiple": false
+      }
+    }
+  ],
+  "views": [
+    {
+      "slug": "issues-table",
+      "name": "缺口与整改",
+      "type": "table",
+      "config": {}
+    }
+  ]
+}

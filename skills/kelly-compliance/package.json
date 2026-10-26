@@ -1,0 +1,20 @@
+{
+  "name": "kelly-compliance",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "engines": {
+    "node": ">=24.18.0"
+  },
+  "scripts": {
+    "check": "node scripts/check.mjs",
+    "test": "node --test test/*.test.mjs",
+    "setup": "node scripts/setup.mjs",
+    "report": "node scripts/report.mjs",
+    "import": "node scripts/import.mjs",
+    "aws": "node scripts/aws.mjs"
+  },
+  "dependencies": {
+    "busabase-sdk": "0.99.1"
+  }
+}

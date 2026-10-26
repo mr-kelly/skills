@@ -1,0 +1,171 @@
+/*
+ * Kelly App-in-Skill — Style picker (family + register).
+ *
+ * Companion to editorial.css: editorial.css supplies the tokens, this file
+ * supplies the ONE Help & Settings control that lets the operator choose
+ * among them. It is additive to the shared visual contract, so — same rule
+ * as editorial.css itself — every value here reads a token from
+ * editorial.css; nothing in this file is a raw colour, size, radius, or
+ * duration.
+ *
+ * Load after editorial.css, anywhere before the app's own stylesheet closes.
+ * Pairs with style-picker.js, which injects the markup these rules style.
+ */
+
+.style-settings {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.style-settings-group {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.style-settings-group h3 {
+  margin: 0;
+  font-size: var(--text-sm);
+  font-weight: 650;
+  color: var(--ink-soft);
+}
+
+.style-settings-group p {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--muted);
+}
+
+.style-family-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.style-family-option {
+  display: grid;
+  gap: var(--space-1);
+  justify-items: center;
+  width: 76px;
+  cursor: pointer;
+}
+
+.style-family-option input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+.style-family-swatch {
+  position: relative;
+  width: 56px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  border: var(--hairline) solid var(--line);
+  background: var(--swatch-canvas);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+  transition: border-color var(--ease), box-shadow var(--ease);
+}
+
+.style-family-swatch::before {
+  /* The "Aa" ink sample — the paper is most of what the operator sees.
+   * Sans, not --font-display: this is a decorative chrome glyph at
+   * --text-sm, and editorial.css's own rule (serif only at --text-xl and
+   * above) exists so a CJK serif never ships at a size it's hard to read —
+   * that rule doesn't need a carve-out for "but it's just two Latin
+   * letters", so this follows it exactly like real body copy would. */
+  content: "Aa";
+  position: absolute;
+  top: 5px;
+  left: 7px;
+  font-size: var(--text-sm);
+  line-height: 1;
+  color: var(--swatch-ink);
+}
+
+.style-family-swatch::after {
+  /* One accent dot, bottom-right — the accent owns a detail, not the tile. */
+  content: "";
+  position: absolute;
+  right: 7px;
+  bottom: 6px;
+  width: 9px;
+  height: 9px;
+  border-radius: var(--radius-pill);
+  background: var(--swatch-accent);
+}
+
+.style-family-option:has(input:checked) .style-family-swatch {
+  border-color: var(--swatch-accent);
+  box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--swatch-accent);
+}
+
+.style-family-option:has(input:focus-visible) .style-family-swatch {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.style-family-option span:last-child {
+  font-size: var(--text-xs);
+  color: var(--ink-soft);
+  text-align: center;
+  line-height: var(--leading-snug);
+}
+
+.style-register-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.style-register-option {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-3);
+  border: var(--hairline) solid var(--line);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-sm);
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: background var(--ease), border-color var(--ease), color var(--ease);
+}
+
+.style-register-option input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+.style-register-option:has(input:checked) {
+  background: var(--accent-soft);
+  border-color: var(--accent-line);
+  color: var(--accent-text);
+  font-weight: 600;
+}
+
+.style-register-option:has(input:focus-visible) {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+@media (max-width: 720px) {
+  .style-family-options {
+    gap: var(--space-2);
+  }
+
+  .style-family-option {
+    width: 64px;
+  }
+
+  .style-family-swatch {
+    width: 48px;
+    height: 36px;
+  }
+}

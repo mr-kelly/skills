@@ -1,0 +1,174 @@
+{
+  "name": "证据",
+  "description": "证据，仅属于当前 AppSec 工作台。",
+  "position": 6,
+  "agentPrompts": [
+    {
+      "key": "scenario-1",
+      "label": "核对指定发现的来源、版本和原件完整性。",
+      "body": "阅读此文件夹中的 kelly-appsec skill。核对指定发现的来源、版本和原件完整性。",
+      "intent": "change"
+    },
+    {
+      "key": "scenario-2",
+      "label": "将当前审计证据整理为明确范围的脱敏报告。",
+      "body": "阅读此文件夹中的 kelly-appsec skill。将当前审计证据整理为明确范围的脱敏报告。",
+      "intent": "read-only"
+    }
+  ],
+  "fields": [
+    {
+      "slug": "title",
+      "name": "名称",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "record-key",
+      "name": "幂等证据键",
+      "type": "text",
+      "required": true,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "project-reference",
+      "name": "项目精确索引",
+      "type": "text",
+      "required": true,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "run-reference",
+      "name": "任务精确索引",
+      "type": "text",
+      "required": true,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "check-reference",
+      "name": "验证精确索引",
+      "type": "text",
+      "required": true,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "source-kind",
+      "name": "证据类型",
+      "type": "text",
+      "required": true,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "source-location",
+      "name": "来源定位",
+      "type": "text",
+      "required": true,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "source-revision",
+      "name": "对应版本",
+      "type": "text",
+      "required": true,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "observed-at",
+      "name": "采集时间",
+      "type": "date",
+      "required": true,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "sha256",
+      "name": "本机原始产物 SHA-256",
+      "type": "text",
+      "required": true,
+      "position": 9,
+      "options": {}
+    },
+    {
+      "slug": "artifact-reference",
+      "name": "本机受限原件引用",
+      "type": "text",
+      "required": false,
+      "position": 10,
+      "options": {}
+    },
+    {
+      "slug": "redacted-excerpt",
+      "name": "脱敏摘要",
+      "type": "longtext",
+      "required": false,
+      "position": 11,
+      "options": {}
+    },
+    {
+      "slug": "coverage-note",
+      "name": "覆盖与脱敏说明",
+      "type": "longtext",
+      "required": false,
+      "position": 12,
+      "options": {}
+    },
+    {
+      "slug": "policy-hash",
+      "name": "本次规则与端点指纹",
+      "type": "text",
+      "required": false,
+      "position": 13,
+      "options": {}
+    },
+    {
+      "slug": "project",
+      "name": "项目",
+      "type": "relation",
+      "required": true,
+      "position": 14,
+      "options": {
+        "targetBaseSlug": "projects",
+        "allowMultiple": false
+      }
+    },
+    {
+      "slug": "run",
+      "name": "任务",
+      "type": "relation",
+      "required": true,
+      "position": 15,
+      "options": {
+        "targetBaseSlug": "runs",
+        "allowMultiple": false
+      }
+    },
+    {
+      "slug": "check",
+      "name": "验证",
+      "type": "relation",
+      "required": true,
+      "position": 16,
+      "options": {
+        "targetBaseSlug": "checks",
+        "allowMultiple": false
+      }
+    }
+  ],
+  "views": [
+    {
+      "slug": "evidence-main",
+      "name": "证据",
+      "type": "table",
+      "config": {}
+    }
+  ]
+}

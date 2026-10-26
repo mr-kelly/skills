@@ -1,0 +1,163 @@
+{
+  "name": "合规项目",
+  "description": "SaaS 服务边界、账户、期间与责任人。",
+  "position": 0,
+  "agentPrompts": [
+    {
+      "key": "scenario-1",
+      "label": "建立我指定服务的云安全与 SOC 2 准备范围。",
+      "body": "阅读此文件夹中的 kelly-compliance skill，遵循其流程。建立我指定服务的云安全与 SOC 2 准备范围。",
+      "intent": "change"
+    },
+    {
+      "key": "scenario-2",
+      "label": "解释这个服务还有哪些账户、期间或责任没有确认。",
+      "body": "阅读此文件夹中的 kelly-compliance skill，遵循其流程。解释这个服务还有哪些账户、期间或责任没有确认。",
+      "intent": "read-only"
+    }
+  ],
+  "fields": [
+    {
+      "slug": "title",
+      "name": "名称",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "record-key",
+      "name": "幂等业务键",
+      "type": "text",
+      "required": true,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "service-description",
+      "name": "服务与系统范围",
+      "type": "longtext",
+      "required": true,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "owner",
+      "name": "负责人",
+      "type": "text",
+      "required": true,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "accounts",
+      "name": "授权账户（逐行）",
+      "type": "longtext",
+      "required": true,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "regions",
+      "name": "授权区域（逐行）",
+      "type": "longtext",
+      "required": true,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "framework-version",
+      "name": "控制包版本",
+      "type": "text",
+      "required": true,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "assessment-type",
+      "name": "评估类型",
+      "type": "select",
+      "required": true,
+      "position": 7,
+      "options": {
+        "choices": [
+          {
+            "id": "point",
+            "name": "时点准备"
+          },
+          {
+            "id": "period",
+            "name": "期间准备"
+          }
+        ]
+      }
+    },
+    {
+      "slug": "period-start",
+      "name": "开始时间",
+      "type": "date",
+      "required": true,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "period-end",
+      "name": "结束时间",
+      "type": "date",
+      "required": true,
+      "position": 9,
+      "options": {}
+    },
+    {
+      "slug": "scope-reference",
+      "name": "授权范围引用",
+      "type": "text",
+      "required": true,
+      "position": 10,
+      "options": {}
+    },
+    {
+      "slug": "scope-version",
+      "name": "范围版本",
+      "type": "number",
+      "required": true,
+      "position": 11,
+      "options": {}
+    },
+    {
+      "slug": "onboarding-state",
+      "name": "配置状态",
+      "type": "select",
+      "required": true,
+      "position": 12,
+      "options": {
+        "choices": [
+          {
+            "id": "incomplete",
+            "name": "未完成"
+          },
+          {
+            "id": "complete",
+            "name": "已确认范围"
+          }
+        ]
+      }
+    },
+    {
+      "slug": "is-example",
+      "name": "示例项目",
+      "type": "checkbox",
+      "required": false,
+      "position": 13,
+      "options": {}
+    }
+  ],
+  "views": [
+    {
+      "slug": "programs-table",
+      "name": "合规项目",
+      "type": "table",
+      "config": {}
+    }
+  ]
+}

@@ -1,0 +1,214 @@
+{
+  "name": "评估任务",
+  "description": "固定范围和版本的采集、导入与复核任务。",
+  "position": 3,
+  "agentPrompts": [
+    {
+      "key": "scenario-1",
+      "label": "在当前明确授权内读取现有云配置或导入报告。",
+      "body": "阅读此文件夹中的 kelly-compliance skill，遵循其流程。在当前明确授权内读取现有云配置或导入报告。",
+      "intent": "change"
+    },
+    {
+      "key": "scenario-2",
+      "label": "解释评估结果覆盖哪些账户、区域和期间。",
+      "body": "阅读此文件夹中的 kelly-compliance skill，遵循其流程。解释评估结果覆盖哪些账户、区域和期间。",
+      "intent": "read-only"
+    }
+  ],
+  "fields": [
+    {
+      "slug": "title",
+      "name": "名称",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "record-key",
+      "name": "幂等业务键",
+      "type": "text",
+      "required": true,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "program-reference",
+      "name": "合规项目精确索引",
+      "type": "text",
+      "required": true,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "scope-reference",
+      "name": "授权引用",
+      "type": "text",
+      "required": true,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "scope-version",
+      "name": "范围版本",
+      "type": "number",
+      "required": true,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "framework-version",
+      "name": "控制包版本",
+      "type": "text",
+      "required": true,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "period-start",
+      "name": "期间开始",
+      "type": "date",
+      "required": true,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "period-end",
+      "name": "期间结束",
+      "type": "date",
+      "required": true,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "assessment-type",
+      "name": "评估类型",
+      "type": "select",
+      "required": true,
+      "position": 8,
+      "options": {
+        "choices": [
+          {
+            "id": "point",
+            "name": "时点准备"
+          },
+          {
+            "id": "period",
+            "name": "期间准备"
+          }
+        ]
+      }
+    },
+    {
+      "slug": "source-format",
+      "name": "来源格式",
+      "type": "text",
+      "required": false,
+      "position": 9,
+      "options": {}
+    },
+    {
+      "slug": "status",
+      "name": "执行状态",
+      "type": "select",
+      "required": true,
+      "position": 10,
+      "options": {
+        "choices": [
+          {
+            "id": "requested",
+            "name": "等待本机 Agent"
+          },
+          {
+            "id": "running",
+            "name": "执行中"
+          },
+          {
+            "id": "completed",
+            "name": "采集完成"
+          },
+          {
+            "id": "partial",
+            "name": "覆盖不足"
+          },
+          {
+            "id": "failed",
+            "name": "失败"
+          },
+          {
+            "id": "cancelled",
+            "name": "已取消"
+          }
+        ]
+      }
+    },
+    {
+      "slug": "started-at",
+      "name": "开始时间",
+      "type": "date",
+      "required": false,
+      "position": 11,
+      "options": {}
+    },
+    {
+      "slug": "finished-at",
+      "name": "完成时间",
+      "type": "date",
+      "required": false,
+      "position": 12,
+      "options": {}
+    },
+    {
+      "slug": "heartbeat-at",
+      "name": "最近心跳",
+      "type": "date",
+      "required": false,
+      "position": 13,
+      "options": {}
+    },
+    {
+      "slug": "runner-id",
+      "name": "执行器标识",
+      "type": "text",
+      "required": false,
+      "position": 14,
+      "options": {}
+    },
+    {
+      "slug": "coverage-note",
+      "name": "缺口与限制",
+      "type": "longtext",
+      "required": false,
+      "position": 15,
+      "options": {}
+    },
+    {
+      "slug": "source-sha256",
+      "name": "来源 SHA-256",
+      "type": "text",
+      "required": false,
+      "position": 16,
+      "options": {}
+    },
+    {
+      "slug": "program",
+      "name": "合规项目",
+      "type": "relation",
+      "required": true,
+      "position": 17,
+      "options": {
+        "targetBaseSlug": "programs",
+        "allowMultiple": false
+      }
+    }
+  ],
+  "views": [
+    {
+      "slug": "assessments-table",
+      "name": "评估任务",
+      "type": "table",
+      "config": {}
+    }
+  ]
+}
