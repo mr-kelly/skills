@@ -1,8 +1,7 @@
-import type { Config, ConfigMeta } from "../types.ts";
-import { createBusabaseProvider } from "./busabase-provider.ts";
-import { type EmailDataProvider, assertProvider } from "./provider-interface.ts";
+import { createBusabaseProvider } from "./busabase-provider.js";
+import { assertProvider } from "./provider-interface.js";
 
-let cachedProvider: EmailDataProvider | null = null;
+let cachedProvider = null;
 
 export function dataProviderKind() {
   return "busabase";
@@ -10,7 +9,7 @@ export function dataProviderKind() {
 
 export const dataReaderKind = dataProviderKind;
 
-export function createProvider(): EmailDataProvider {
+export function createProvider() {
   if (!cachedProvider) cachedProvider = assertProvider("busabase", createBusabaseProvider());
   return cachedProvider;
 }
@@ -31,6 +30,6 @@ export async function loadConfig() {
   return createProvider().loadConfig();
 }
 
-export function onboardingStatus(config: Config, meta: ConfigMeta = {}) {
-  return createProvider().onboardingStatus(config, meta as any);
+export function onboardingStatus(config, meta = {}) {
+  return createProvider().onboardingStatus(config, meta);
 }

@@ -1,54 +1,48 @@
-import type { Attachment, Batch, ReviewBrief, ReviewItem } from "../types.ts";
-import { emailContactRefsForItem } from "./email-contacts.ts";
-import { decisionsFromBatch, emptyBatch, normalizeBatch, normalizeItem, utcNow } from "./provider-utils.ts";
+import { emailContactRefsForItem } from "./email-contacts.js";
+import { decisionsFromBatch, emptyBatch, normalizeBatch, normalizeItem, utcNow } from "./provider-utils.js";
 
 export const EMAIL_RECORD_KIND = "review_item";
 
-export interface EmailRecordRow {
-  record_id: string;
-  [key: string]: unknown;
-}
-
-function text(value: unknown) {
+function text(value) {
   return String(value ?? "");
 }
 
-function compactText(value: unknown, limit = 1800) {
+function compactText(value, limit = 1800) {
   const source = text(value).replace(/\s+/g, " ").trim();
   return source.length > limit ? `${source.slice(0, limit).trimEnd()}...` : source;
 }
 
-function dateText(value: unknown) {
+function dateText(value) {
   const source = text(value).trim();
   if (!source) return "";
   const date = new Date(source);
   return Number.isNaN(date.getTime()) ? source : date.toISOString();
 }
 
-function boolValue(value: unknown) {
+function boolValue(value) {
   if (typeof value === "boolean") return value;
   if (typeof value === "number") return value !== 0;
   const source = text(value).trim().toLowerCase();
   return ["1", "true", "yes", "y"].includes(source);
 }
 
-function numberValue(value: unknown) {
+function numberValue(value) {
   const number = Number(value);
   return Number.isFinite(number) ? number : 0;
 }
 
-function objectValue<T extends Record<string, unknown>>(value: unknown): T {
-  return value && typeof value === "object" && !Array.isArray(value) ? (value as T) : ({} as T);
+function objectValue(value) {
+  return value && typeof value === "object" && !Array.isArray(value) ? value : {};
 }
 
-function lines(values: unknown[]) {
+function lines(values) {
   return values
     .map((value) => text(value).trim())
     .filter(Boolean)
     .join("\n");
 }
 
-function commaList(value: unknown): string[] {
+function commaList(value) {
   if (Array.isArray(value)) return value.map((entry) => text(entry).trim()).filter(Boolean);
   return text(value)
     .split(",")
@@ -56,13 +50,13 @@ function commaList(value: unknown): string[] {
     .filter(Boolean);
 }
 
-function parseAttachmentRefs(value: unknown): Attachment[] {
-  if (Array.isArray(value)) return value as Attachment[];
+function parseAttachmentRefs(value) {
+  if (Array.isArray(value)) return value;
   const source = text(value).trim();
   if (!source) return [];
   try {
     const parsed = JSON.parse(source);
-    if (Array.isArray(parsed)) return parsed as Attachment[];
+    if (Array.isArray(parsed)) return parsed;
   } catch {
     // Human-readable attachment lines are also accepted below.
   }
@@ -82,7 +76,7 @@ function parseAttachmentRefs(value: unknown): Attachment[] {
     });
 }
 
-function attachmentRefs(attachments: Attachment[]) {
+function attachmentRefs(attachments) {
   return attachments.map((attachment) => ({
     filename: attachment.filename || "",
     content_type: attachment.content_type || attachment.contentType || "",
@@ -92,7 +86,7 @@ function attachmentRefs(attachments: Attachment[]) {
   }));
 }
 
-function attachmentRefsText(attachments: Attachment[]) {
+function attachmentRefsText(attachments) {
   return attachmentRefs(attachments)
     .map((attachment) =>
       [attachment.filename, attachment.content_type, attachment.size || "", attachment.url].map(text).join(" | "),
@@ -100,27 +94,27 @@ function attachmentRefsText(attachments: Attachment[]) {
     .join("\n");
 }
 
-function reviewBriefText(brief: ReviewBrief | undefined, key: keyof ReviewBrief) {
-  return text(objectValue<ReviewBrief>(brief)[key]);
+function reviewBriefText(brief, key) {
+  return text(objectValue(brief)[key]);
 }
 
-function decisionAction(item: ReviewItem) {
+function decisionAction(item) {
   return text(item.decision?.action).trim();
 }
 
-function executionError(execution: Record<string, unknown>) {
+function executionError(execution) {
   return text(execution.error || execution.error_message || execution.reason).trim();
 }
 
-export function emailRecordId(item: ReviewItem | Record<string, unknown>) {
+export function emailRecordId(item) {
   const candidate = text(item.id || item.uid || item.message_id || item.thread_id).trim();
   return `email-item-${candidate || "unknown"}`;
 }
 
-export function reviewItemToEmailRecordFields(item: ReviewItem, batchId = ""): EmailRecordRow {
+export function reviewItemToEmailRecordFields(item, batchId = "") {
   const next = normalizeItem(item);
-  const brief = objectValue<ReviewBrief>(next.review_brief);
-  const execution = objectValue<Record<string, unknown>>(next.execution);
+  const brief = objectValue(next.review_brief);
+  const execution = objectValue(next.execution);
   const attachments = Array.isArray(next.attachments) ? next.attachments : [];
   const bodyText = text(next.body || next.body_original || next.body_preview);
   const suggestedReply = text(next.suggested_reply || brief.suggested_reply);
@@ -202,7 +196,7 @@ export function reviewItemToEmailRecordFields(item: ReviewItem, batchId = ""): E
   };
 }
 
-export function emailRecordFieldsToReviewItem(fields: Record<string, unknown>): ReviewItem {
+export function emailRecordFieldsToReviewItem(fields) {
   const decision = text(fields.decision_action).trim()
     ? {
         action: text(fields.decision_action).trim(),
@@ -274,7 +268,7 @@ export function emailRecordFieldsToReviewItem(fields: Record<string, unknown>): 
   });
 }
 
-export function batchFromEmailRecords(rows: Record<string, unknown>[], preferredBatchId = ""): Batch {
+export function batchFromEmailRecords(rows, preferredBatchId = "") {
   const reviewRows = rows.filter((row) => text(row.kind || EMAIL_RECORD_KIND) === EMAIL_RECORD_KIND);
   const requestedBatchId = text(preferredBatchId).trim();
   if (!reviewRows.length) {
@@ -309,8 +303,8 @@ export function batchFromEmailRecords(rows: Record<string, unknown>[], preferred
   });
 }
 
-function latestBatchRows(rows: Record<string, unknown>[]) {
-  const groups = new Map<string, { rows: Record<string, unknown>[]; updatedAt: string }>();
+function latestBatchRows(rows) {
+  const groups = new Map();
   for (const row of rows) {
     const batchId = text(row.batch_id || "email-records").trim() || "email-records";
     const group = groups.get(batchId) || { rows: [], updatedAt: "" };
@@ -325,16 +319,16 @@ function latestBatchRows(rows: Record<string, unknown>[]) {
   })[0][1].rows;
 }
 
-export function rowsFromBatch(batch: Batch): EmailRecordRow[] {
+export function rowsFromBatch(batch) {
   const next = normalizeBatch(batch);
   return (next.items || []).map((item) => reviewItemToEmailRecordFields(item, next.batch_id || ""));
 }
 
-export function decisionsFromEmailRecords(rows: Record<string, unknown>[]) {
+export function decisionsFromEmailRecords(rows) {
   return decisionsFromBatch(batchFromEmailRecords(rows));
 }
 
-export function tabularBatchDescription(batch: Batch) {
+export function tabularBatchDescription(batch) {
   const count = batch.items?.length || 0;
   return lines([batch.batch_id ? `batch ${batch.batch_id}` : "", `${count} review items`]);
 }

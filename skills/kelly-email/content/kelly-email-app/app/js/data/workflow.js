@@ -1,30 +1,28 @@
-import type { ReviewItem } from "./types.ts";
-
-export function decisionAction(item: ReviewItem) {
+export function decisionAction(item) {
   return item.decision?.action || "";
 }
 
-export function executionStatus(item: ReviewItem) {
+export function executionStatus(item) {
   return item.execution?.status || "";
 }
 
-export function isExecuted(item: ReviewItem) {
+export function isExecuted(item) {
   return item.status === "executed" || executionStatus(item) === "executed";
 }
 
-export function isBlocked(item: ReviewItem) {
+export function isBlocked(item) {
   return executionStatus(item) === "blocked";
 }
 
-export function isDone(item: ReviewItem) {
+export function isDone(item) {
   return isExecuted(item) || decisionAction(item) === "no_action";
 }
 
-export function isDraftAwaitingSendReview(item: ReviewItem) {
+export function isDraftAwaitingSendReview(item) {
   return item.status === "drafted" && !decisionAction(item) && !isExecuted(item) && !isBlocked(item);
 }
 
-export function isApprovedForExecution(item: ReviewItem) {
+export function isApprovedForExecution(item) {
   const action = decisionAction(item);
   if (action === "draft_reply") {
     return item.status === "draft_requested" && !isExecuted(item) && !isBlocked(item);
@@ -35,7 +33,7 @@ export function isApprovedForExecution(item: ReviewItem) {
   return isToApprove(item);
 }
 
-export function isNeedsReview(item: ReviewItem) {
+export function isNeedsReview(item) {
   return (
     !isDone(item) &&
     !isBlocked(item) &&
@@ -45,13 +43,13 @@ export function isNeedsReview(item: ReviewItem) {
   );
 }
 
-export function isToApprove(item: ReviewItem) {
+export function isToApprove(item) {
   return (
     !isDone(item) && !isBlocked(item) && !isNeedsReview(item) && !decisionAction(item) && item.status === "prepared"
   );
 }
 
-export function approvedPriority(item: ReviewItem) {
+export function approvedPriority(item) {
   const action = decisionAction(item);
   if (action === "send_reply") return 0;
   if (action === "draft_reply" || item.status === "draft_requested") return 1;

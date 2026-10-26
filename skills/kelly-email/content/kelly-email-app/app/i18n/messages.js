@@ -334,8 +334,10 @@ export const I18N = {
     "account.smtp_missing": "SMTP missing",
     "toast.select_one": "Select at least one message",
     "toast.saved_count": "Saved decision for {count} item(s)",
-    "toast.submitted_review": "Change submitted for Busabase review",
-    "toast.submitted_review_count": "Submitted {count} decision(s) for Busabase review",
+    "toast.submitted_review": // allow-private-copy: kelly-email ships no busabase-airapp.js bundle, so airAppWriteMessage is not available to it.
+      "Sent for review. You don't have write access here, so this waits until someone who does approves it.",
+    "toast.submitted_review_count":
+      "Sent {count} decision(s) for review. You don't have write access here, so they wait until someone who does approves them.",
     "toast.saved_detail": "Saved review note",
   },
   "zh-CN": {
@@ -658,8 +660,9 @@ export const I18N = {
     "account.smtp_missing": "SMTP 缺失",
     "toast.select_one": "请至少选择一封邮件",
     "toast.saved_count": "已为 {count} 项保存决定",
-    "toast.submitted_review": "变更已提交 Busabase 审核",
-    "toast.submitted_review_count": "已提交 {count} 项决定，等待 Busabase 审核",
+    "toast.submitted_review": "已提交审核。你在这里没有写权限，需要有写权限的人批准后才会生效。", // allow-private-copy: kelly-email ships no busabase-airapp.js bundle, so airAppWriteMessage is not available to it.
+    "toast.submitted_review_count":
+      "已提交 {count} 项决定等待审核。你在这里没有写权限，需要有写权限的人批准后才会生效。",
     "toast.saved_detail": "已保存审核备注",
   },
 };

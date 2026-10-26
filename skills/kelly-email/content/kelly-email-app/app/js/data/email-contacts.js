@@ -1,68 +1,24 @@
-import type { Batch, ReviewItem } from "../types.ts";
-import { normalizeBatch, normalizeItem, utcNow } from "./provider-utils.ts";
+import { normalizeBatch, normalizeItem, utcNow } from "./provider-utils.js";
 
 export const EMAIL_CONTACT_KIND = "email_contact";
 
-export interface EmailContactRow {
-  record_id: string;
-  kind: string;
-  contact_id: string;
-  email: string;
-  display_name: string;
-  domain: string;
-  roles: string;
-  source_accounts: string;
-  first_seen_at: string;
-  last_seen_at: string;
-  message_count: number;
-  last_subject: string;
-  last_message_id: string;
-  last_batch_id: string;
-  last_status: string;
-  last_proposed_action: string;
-  category_counts: string;
-  risk_tags: string;
-  updated_at: string;
-  created_at: string;
-  [key: string]: unknown;
-}
-
-interface ContactAggregate {
-  contact_id: string;
-  email: string;
-  display_name: string;
-  domain: string;
-  roles: Set<string>;
-  sourceAccounts: Set<string>;
-  categories: Map<string, number>;
-  risks: Set<string>;
-  firstSeenAt: string;
-  lastSeenAt: string;
-  messageCount: number;
-  lastSubject: string;
-  lastMessageId: string;
-  lastBatchId: string;
-  lastStatus: string;
-  lastProposedAction: string;
-}
-
-function text(value: unknown) {
+function text(value) {
   return String(value ?? "");
 }
 
-function dateText(value: unknown) {
+function dateText(value) {
   const source = text(value).trim();
   if (!source) return "";
   const date = new Date(source);
   return Number.isNaN(date.getTime()) ? source : date.toISOString();
 }
 
-function compactText(value: unknown, limit = 1200) {
+function compactText(value, limit = 1200) {
   const source = text(value).replace(/\s+/g, " ").trim();
   return source.length > limit ? `${source.slice(0, limit).trimEnd()}...` : source;
 }
 
-function slugText(value: unknown) {
+function slugText(value) {
   return text(value)
     .trim()
     .toLowerCase()
@@ -71,7 +27,7 @@ function slugText(value: unknown) {
     .slice(0, 180);
 }
 
-export function normalizeEmailAddress(value: unknown) {
+export function normalizeEmailAddress(value) {
   const source = text(value).trim();
   if (!source) return "";
   const angleMatch = source.match(/<([^<>@\s]+@[^<>\s]+)>/);
@@ -81,7 +37,7 @@ export function normalizeEmailAddress(value: unknown) {
     .toLowerCase();
 }
 
-function displayName(value: unknown, email: string) {
+function displayName(value, email) {
   const source = text(value).trim();
   if (!source) return email;
   const beforeAngle = source.match(/^(.+?)\s*<[^<>@\s]+@[^<>\s]+>/);
@@ -91,26 +47,26 @@ function displayName(value: unknown, email: string) {
   return candidate || email;
 }
 
-function domainFor(email: string) {
+function domainFor(email) {
   return email.includes("@") ? email.split("@").pop() || "" : "";
 }
 
-function splitAddresses(value: unknown) {
+function splitAddresses(value) {
   return text(value)
     .split(/[,;\n]/)
     .map((entry) => entry.trim())
     .filter(Boolean);
 }
 
-function contactIdFor(email: string) {
+function contactIdFor(email) {
   return `contact-${slugText(email) || "unknown"}`;
 }
 
-export function emailContactRecordId(email: string) {
+export function emailContactRecordId(email) {
   return `email-contact-${slugText(email) || "unknown"}`;
 }
 
-function roleEntries(item: ReviewItem) {
+function roleEntries(item) {
   const entries = [];
   if (item.from) entries.push({ role: "sender", source: item.from });
   for (const source of splitAddresses(item.to)) entries.push({ role: "recipient", source });
@@ -118,32 +74,30 @@ function roleEntries(item: ReviewItem) {
   return entries;
 }
 
-function mergeContact(contacts: Map<string, ContactAggregate>, item: ReviewItem, batchId: string) {
-  const seenInMessage = new Set<string>();
+function mergeContact(contacts, item, batchId) {
+  const seenInMessage = new Set();
   for (const entry of roleEntries(item)) {
     const email = normalizeEmailAddress(entry.source);
     if (!email) continue;
     const key = contactIdFor(email);
-    const current =
-      contacts.get(key) ||
-      ({
-        contact_id: key,
-        email,
-        display_name: displayName(entry.source, email),
-        domain: domainFor(email),
-        roles: new Set<string>(),
-        sourceAccounts: new Set<string>(),
-        categories: new Map<string, number>(),
-        risks: new Set<string>(),
-        firstSeenAt: dateText(item.date || item.updated_at || utcNow()),
-        lastSeenAt: "",
-        messageCount: 0,
-        lastSubject: "",
-        lastMessageId: "",
-        lastBatchId: "",
-        lastStatus: "",
-        lastProposedAction: "",
-      } satisfies ContactAggregate);
+    const current = contacts.get(key) || {
+      contact_id: key,
+      email,
+      display_name: displayName(entry.source, email),
+      domain: domainFor(email),
+      roles: new Set(),
+      sourceAccounts: new Set(),
+      categories: new Map(),
+      risks: new Set(),
+      firstSeenAt: dateText(item.date || item.updated_at || utcNow()),
+      lastSeenAt: "",
+      messageCount: 0,
+      lastSubject: "",
+      lastMessageId: "",
+      lastBatchId: "",
+      lastStatus: "",
+      lastProposedAction: "",
+    };
     current.roles.add(entry.role);
     if (item.account) current.sourceAccounts.add(item.account);
     if (item.category) current.categories.set(item.category, (current.categories.get(item.category) || 0) + 1);
@@ -166,16 +120,16 @@ function mergeContact(contacts: Map<string, ContactAggregate>, item: ReviewItem,
   }
 }
 
-function categoryCountsText(counts: Map<string, number>) {
+function categoryCountsText(counts) {
   return [...counts.entries()]
     .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
     .map(([category, count]) => `${category}:${count}`)
     .join(", ");
 }
 
-export function rowsFromContactsBatch(batch: Batch): EmailContactRow[] {
+export function rowsFromContactsBatch(batch) {
   const next = normalizeBatch(batch);
-  const contacts = new Map<string, ContactAggregate>();
+  const contacts = new Map();
   for (const item of next.items || []) mergeContact(contacts, normalizeItem(item), next.batch_id || "");
   return [...contacts.values()]
     .sort((a, b) => a.email.localeCompare(b.email))
@@ -203,7 +157,7 @@ export function rowsFromContactsBatch(batch: Batch): EmailContactRow[] {
     }));
 }
 
-export function emailContactRefsForItem(item: ReviewItem) {
+export function emailContactRefsForItem(item) {
   const next = normalizeItem(item);
   const senderEmail = normalizeEmailAddress(next.from);
   const recipients = [...splitAddresses(next.to), ...splitAddresses(next.cc)]

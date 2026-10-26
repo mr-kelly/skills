@@ -1,22 +1,21 @@
-export { loadConfig, loadConfigWithMeta, loadDotenvFiles, onboardingStatus } from "../lib/data-provider/index.ts";
-import { onboardingStatus } from "../lib/data-provider/index.ts";
-import type { Config, ConfigMeta, Onboarding } from "./types.ts";
+export { loadConfig, loadConfigWithMeta, loadDotenvFiles, onboardingStatus } from "./index.js";
+import { onboardingStatus } from "./index.js";
 
-function asArray<T = unknown>(value: T | T[] | undefined | null): T[] {
+function asArray(value) {
   if (!value) return [];
   return Array.isArray(value) ? value : [value];
 }
 
-function safeStringMap(value: unknown): Record<string, string> {
+function safeStringMap(value) {
   if (!value || typeof value !== "object" || Array.isArray(value)) return {};
   return Object.fromEntries(
-    Object.entries(value as Record<string, unknown>)
+    Object.entries(value)
       .filter(([, val]) => typeof val === "string" || typeof val === "number" || typeof val === "boolean")
       .map(([key, val]) => [key, String(val)]),
   );
 }
 
-function publicProfile(config: Config) {
+function publicProfile(config) {
   const profile = config.user_profile || {};
   return {
     display_name: profile.display_name || "",
@@ -34,7 +33,7 @@ function publicProfile(config: Config) {
   };
 }
 
-function publicBrands(config: Config) {
+function publicBrands(config) {
   return asArray(config.brands)
     .map((brand) => ({
       brand_id: brand?.brand_id || "",
@@ -48,7 +47,7 @@ function publicBrands(config: Config) {
     .filter((brand) => brand.name || brand.brand_id || brand.homepage);
 }
 
-function publicStyle(config: Config) {
+function publicStyle(config) {
   const style = config.style || {};
   return {
     preset: style.preset || "",
@@ -65,7 +64,7 @@ function publicStyle(config: Config) {
   };
 }
 
-function publicKnowledgeBase(config: Config) {
+function publicKnowledgeBase(config) {
   const kb = config.knowledge_base || {};
   return {
     enabled: Boolean(kb.enabled),
@@ -86,12 +85,7 @@ function publicKnowledgeBase(config: Config) {
   };
 }
 
-export function publicAccounts(
-  config: Config,
-  source = "",
-  onboarding: Onboarding = onboardingStatus(config, { source }),
-  meta: ConfigMeta = {},
-) {
+export function publicAccounts(config, source = "", onboarding = onboardingStatus(config, { source }), meta = {}) {
   const identitiesByMailbox = new Map();
   for (const identity of config.identities || []) {
     const rows = identitiesByMailbox.get(identity.mailbox_id) || [];

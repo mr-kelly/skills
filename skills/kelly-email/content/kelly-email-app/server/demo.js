@@ -1,19 +1,18 @@
-import type { DecisionRequestBody, ReviewItem, StateQuery, StatusCounts } from "./types.ts";
-import { isApprovedForExecution, isBlocked, isDone, isNeedsReview } from "./workflow.ts";
+import { isApprovedForExecution, isBlocked, isDone, isNeedsReview } from "../app/js/data/workflow.js";
 
 const now = "2026-06-18T09:30:00.000Z";
-const scenarioUpdatedAt: Record<string, string> = {
+const scenarioUpdatedAt = {
   "needs-review": "2026-06-18T09:30:00.000Z",
   approved: "2026-06-18T09:42:00.000Z",
   done: "2026-06-18T09:55:00.000Z",
   mixed: now,
 };
 
-export function isDemoQuery(query: StateQuery = {}) {
+export function isDemoQuery(query = {}) {
   return Boolean(query.demo);
 }
 
-export function demoStatePayload(query: StateQuery = {}) {
+export function demoStatePayload(query = {}) {
   const scenario = demoScenario(query);
   const zh = String(query.lang || "")
     .toLowerCase()
@@ -66,7 +65,7 @@ export function demoStatePayload(query: StateQuery = {}) {
   };
 }
 
-function localizeAccountsZh(accounts: any): any {
+function localizeAccountsZh(accounts) {
   return {
     ...accounts,
     onboarding: { ...accounts.onboarding, message: "Demo 模式只使用模拟账号和邮件。" },
@@ -106,8 +105,8 @@ function localizeAccountsZh(accounts: any): any {
   };
 }
 
-function localizeItemsZh(items: ReviewItem[]): ReviewItem[] {
-  const map: Record<string, Partial<ReviewItem>> = {
+function localizeItemsZh(items) {
+  const map = {
     "demo-email-001": {
       from: "陈 Maya <maya@acme.example>",
       subject: "客服场景可以使用审批队列吗？",
@@ -209,12 +208,12 @@ function localizeItemsZh(items: ReviewItem[]): ReviewItem[] {
   });
 }
 
-function queryValue(value: unknown, fallback = "") {
+function queryValue(value, fallback = "") {
   const raw = Array.isArray(value) ? value[0] : value;
   return String(raw ?? fallback);
 }
 
-function demoScenario(query: StateQuery = {}) {
+function demoScenario(query = {}) {
   const value = queryValue(query.demo, "mixed").toLowerCase().trim();
   if (["review", "needs-review", "needs_review", "needs"].includes(value)) return "needs-review";
   if (["approved", "waiting", "waiting-approved", "waiting_approved"].includes(value)) return "approved";
@@ -222,11 +221,11 @@ function demoScenario(query: StateQuery = {}) {
   return "mixed";
 }
 
-function uidNumber(item: ReviewItem) {
+function uidNumber(item) {
   return Number.parseInt(item.uid || "0", 10) || 0;
 }
 
-function withReviewNumbers(items: ReviewItem[]): ReviewItem[] {
+function withReviewNumbers(items) {
   const reviewItems = items.filter(isNeedsReview).sort((a, b) => uidNumber(b) - uidNumber(a));
   const byId = new Map(reviewItems.map((item, index) => [String(item.id), index + 1]));
   return items.map((item) => {
@@ -241,15 +240,15 @@ function withReviewNumbers(items: ReviewItem[]): ReviewItem[] {
   });
 }
 
-function countByStatus(items: ReviewItem[]): StatusCounts {
-  const counts: StatusCounts = {};
+function countByStatus(items) {
+  const counts = {};
   for (const item of items) {
     counts[item.status || "unknown"] = (counts[item.status || "unknown"] || 0) + 1;
   }
   return counts;
 }
 
-function demoItemsForScenario(scenario: string): ReviewItem[] {
+function demoItemsForScenario(scenario) {
   const items = demoItems().slice(0, 6);
   if (scenario === "needs-review") return items.map(asNeedsReviewItem);
   if (scenario === "approved") return items.map(asApprovedItem);
@@ -257,7 +256,7 @@ function demoItemsForScenario(scenario: string): ReviewItem[] {
   return demoItems();
 }
 
-function asNeedsReviewItem(item: ReviewItem, index: number): ReviewItem {
+function asNeedsReviewItem(item, index) {
   return {
     ...item,
     status: "needs_review",
@@ -271,7 +270,7 @@ function asNeedsReviewItem(item: ReviewItem, index: number): ReviewItem {
   };
 }
 
-function asApprovedItem(item: ReviewItem, index: number): ReviewItem {
+function asApprovedItem(item, index) {
   const action = approvedActionFor(item, index);
   const status = action === "draft_reply" ? "draft_requested" : action === "send_reply" ? "drafted" : "prepared";
   return {
@@ -287,7 +286,7 @@ function asApprovedItem(item: ReviewItem, index: number): ReviewItem {
   };
 }
 
-function asDoneItem(item: ReviewItem, index: number): ReviewItem {
+function asDoneItem(item, index) {
   const approved = asApprovedItem(item, index);
   const action = approved.decision?.action;
   return {
@@ -298,21 +297,21 @@ function asDoneItem(item: ReviewItem, index: number): ReviewItem {
   };
 }
 
-function proposedActionFor(item: ReviewItem, index: number) {
+function proposedActionFor(item, index) {
   if (item.suggested_reply || item.draft) return index % 2 ? "send_reply" : "draft_reply";
   if (item.category === "security") return "review";
   if (item.category === "newsletter") return "archive";
   return item.proposed_action || "archive";
 }
 
-function approvedActionFor(item: ReviewItem, index: number) {
+function approvedActionFor(item, index) {
   if (item.suggested_reply || item.draft) return index % 2 ? "send_reply" : "draft_reply";
   if (item.category === "security") return "mark_read";
   if (item.category === "money") return "draft_reply";
   return index % 3 === 0 ? "mark_read" : "archive";
 }
 
-function needsReviewReasonFor(item: ReviewItem, index: number) {
+function needsReviewReasonFor(item, index) {
   const reasons = [
     "Demo recording: this message still needs a human note or decision.",
     "Demo recording: the assistant is waiting for approval before taking action.",
@@ -321,8 +320,8 @@ function needsReviewReasonFor(item: ReviewItem, index: number) {
   return item.reason || reasons[index % reasons.length];
 }
 
-function approvedReasonFor(action: string) {
-  const labels: Record<string, string> = {
+function approvedReasonFor(action) {
+  const labels = {
     archive: "Demo recording: approved for archive and waiting for execution.",
     mark_read: "Demo recording: approved to mark read and waiting for execution.",
     send_reply: "Demo recording: reply approved and waiting for execution.",
@@ -331,7 +330,7 @@ function approvedReasonFor(action: string) {
   return labels[action] || "Demo recording: approved and waiting for execution.";
 }
 
-export function demoDecisionResponse(body: DecisionRequestBody = {}) {
+export function demoDecisionResponse(body = {}) {
   const ids = (body.ids || [body.id]).filter(Boolean).map(String);
   return {
     demo: true,
@@ -341,7 +340,7 @@ export function demoDecisionResponse(body: DecisionRequestBody = {}) {
   };
 }
 
-function demoAccounts(): any {
+function demoAccounts() {
   return {
     source: "demo",
     data_reader: "demo",
@@ -443,7 +442,7 @@ function demoAccounts(): any {
   };
 }
 
-function demoItems(): ReviewItem[] {
+function demoItems() {
   return [
     {
       id: "demo-email-001",

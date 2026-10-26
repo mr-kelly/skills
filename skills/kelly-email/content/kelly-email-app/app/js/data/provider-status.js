@@ -1,7 +1,6 @@
-import { createProvider } from "../lib/data-provider/index.ts";
-import type { ProviderStatus } from "../lib/data-provider/provider-interface.ts";
+import { createProvider } from "./index.js";
 
-export async function providerStatus(): Promise<ProviderStatus> {
+export async function providerStatus() {
   const provider = createProvider();
   if (provider.providerStatus) return provider.providerStatus();
   return {

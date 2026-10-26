@@ -34,7 +34,7 @@ The system has two deliberately separate sides:
 - The AirApp is the human review desk. It reads settings and review rows, shows sanitized account context, and writes reviewable ChangeRequests for human decisions.
 - The trusted skill process scans IMAP, drafts replies, applies explicitly approved IMAP/SMTP actions, and writes execution outcomes.
 
-The AirApp must never scan mailboxes, send mail, archive, mark read, delete, label, approve a ChangeRequest, or merge a ChangeRequest. An AirApp decision only proposes a Busabase change. The trusted process remains the sole owner of mailbox side effects.
+The AirApp must never scan mailboxes, send mail, archive, mark read, delete, label, approve a ChangeRequest, or merge a ChangeRequest. An AirApp decision only records a Busabase change: with write access it lands at once, without it it waits as a ChangeRequest for someone who has write access. The trusted process remains the sole owner of mailbox side effects.
 
 Default behavior is AirApp-first. Unless the user explicitly asks only for explanation or configuration help, update the Busabase batch and give the user the clickable AirApp URL. Start localhost only when local preview/debugging is explicitly requested; it uses the same Busabase resources and never offers another data provider.
 
@@ -155,7 +155,7 @@ Do not scan mail until onboarding is ready.
 11. Apply only approved IMAP/SMTP actions and write an execution report to Reviews.
 12. Summarize executed, blocked, failed, and remaining work.
 
-The scan script is a trusted producer and may auto-merge its own review/contact/lock/scan-state records. AirApp writes are always review-first. A decision that is still in an unmerged CR is not approval and must not be executed.
+The scan script is a trusted producer and may auto-merge its own review/contact/lock/scan-state records. AirApp writes follow the person's own permission, wherever the AirApp runs: with write access a decision lands at once; without it, it becomes a ChangeRequest for someone who has write access, and the app says it was sent for review. The app never forces review on its own writes. A decision that is still in an unmerged CR is not approval and must not be executed.
 
 ## Classification And Quota
 

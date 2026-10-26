@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { app } from "../server/hono.ts";
+import { app } from "../server/hono.js";
 
 test("runtime report treats presence as hosted even for a future engine name", async (t) => {
   const original = process.env.BUSABASE_AIRAPP_RUNTIME;

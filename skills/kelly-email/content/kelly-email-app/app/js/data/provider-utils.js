@@ -1,6 +1,3 @@
-import type { Batch, DecisionsPayload, ReviewItem } from "../types.ts";
-import type { DecisionInput, DetailInput } from "./provider-interface.ts";
-
 export const LOCAL_ACTIONS = new Set([
   "approve_proposed",
   "approve_archive",
@@ -16,7 +13,7 @@ export function utcNow() {
   return new Date().toISOString();
 }
 
-export function emptyBatch(): Batch {
+export function emptyBatch() {
   return {
     batch_id: "empty",
     generated_at: utcNow(),
@@ -25,7 +22,7 @@ export function emptyBatch(): Batch {
   };
 }
 
-export function normalizeItem(item: ReviewItem): ReviewItem {
+export function normalizeItem(item) {
   const uid = String(item.uid || item.id || item.message_id || "");
   let status = item.review_status || item.status || "needs_review";
   if (status === "safe_cleanup") status = "prepared";
@@ -75,15 +72,15 @@ export function normalizeItem(item: ReviewItem): ReviewItem {
   };
 }
 
-export function normalizeBatch(batch: Batch): Batch {
+export function normalizeBatch(batch) {
   return {
     ...batch,
     items: (batch.items || []).map(normalizeItem),
   };
 }
 
-export function decisionsFromBatch(batch: Batch): DecisionsPayload {
-  const decisions: DecisionsPayload["decisions"] = [];
+export function decisionsFromBatch(batch) {
+  const decisions = [];
   for (const item of batch.items || []) {
     const decision = item.decision || {};
     if (!decision.action) continue;
@@ -107,7 +104,7 @@ export function decisionsFromBatch(batch: Batch): DecisionsPayload {
   };
 }
 
-export function findItem(batch: Batch, itemId: string): ReviewItem {
+export function findItem(batch, itemId) {
   const item = (batch.items || []).find(
     (candidate) => String(candidate.id) === String(itemId) || String(candidate.uid) === String(itemId),
   );
@@ -115,7 +112,7 @@ export function findItem(batch: Batch, itemId: string): ReviewItem {
   return item;
 }
 
-function approvedActionFor(action: string, item: ReviewItem) {
+function approvedActionFor(action, item) {
   if (action === "approve_proposed") {
     const proposed = item.proposed_action || "review";
     return ["review", "needs_review", "revise"].includes(proposed) ? "needs_review" : proposed;
@@ -129,7 +126,7 @@ function approvedActionFor(action: string, item: ReviewItem) {
   return "revise";
 }
 
-function updateItemStatus(item: ReviewItem, approvedAction: string) {
+function updateItemStatus(item, approvedAction) {
   if (approvedAction === "draft_reply") item.status = "draft_requested";
   else if (["review", "needs_review", "revise"].includes(approvedAction)) item.status = "needs_review";
   else if (approvedAction === "send_reply") item.status = "drafted";
@@ -137,7 +134,7 @@ function updateItemStatus(item: ReviewItem, approvedAction: string) {
   else if (!["prepared", "drafted"].includes(item.status || "")) item.status = "prepared";
 }
 
-export function applyItemsDecision(batch: Batch, input: DecisionInput) {
+export function applyItemsDecision(batch, input) {
   const ids = (input.ids || []).map(String);
   const action = input.action || "";
   const hasComment = Object.hasOwn(input, "comment");
@@ -146,7 +143,7 @@ export function applyItemsDecision(batch: Batch, input: DecisionInput) {
   const hasSuggestedReply = Object.hasOwn(input, "suggested_reply");
   if (!ids.length) throw new Error("No items selected");
   if (!LOCAL_ACTIONS.has(action)) throw new Error(`Unsupported local decision: ${action}`);
-  const changed: string[] = [];
+  const changed = [];
   for (const itemId of ids) {
     const item = findItem(batch, itemId);
     if (hasDraft) item.draft = String(input.draft || "");
@@ -167,7 +164,7 @@ export function applyItemsDecision(batch: Batch, input: DecisionInput) {
   return changed;
 }
 
-export function applyDetailUpdate(batch: Batch, input: DetailInput) {
+export function applyDetailUpdate(batch, input) {
   const item = findItem(batch, String(input.id));
   if (Object.hasOwn(input, "draft")) item.draft = input.draft || "";
   if (Object.hasOwn(input, "suggested_reply")) item.suggested_reply = input.suggested_reply || "";

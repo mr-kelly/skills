@@ -1,28 +1,28 @@
-import { appConfig } from "../../app/js/config.js";
-import { isAirAppRequest } from "../runtime-context.ts";
-import type { Batch, Config, ConfigWithMeta } from "../types.ts";
-import { createBusabaseClient } from "./busabase-client.ts";
-import { rowsFromContactsBatch } from "./email-contacts.ts";
+import { appConfig } from "../config.js";
+import { canInspectSecrets, environmentValue } from "./connection.js";
+
+import { createEmailClient } from "../busabase-client.js";
+import { rowsFromContactsBatch } from "./email-contacts.js";
 import {
   batchFromEmailRecords,
   emailRecordFieldsToReviewItem,
   emailRecordId,
   reviewItemToEmailRecordFields,
-} from "./email-records.ts";
-import type { AttachmentInput, AttachmentResult, DecisionInput, DetailInput } from "./provider-interface.ts";
-import { applyDetailUpdate, applyItemsDecision, decisionsFromBatch, normalizeBatch, utcNow } from "./provider-utils.ts";
+} from "./email-records.js";
+
+import { applyDetailUpdate, applyItemsDecision, decisionsFromBatch, normalizeBatch, utcNow } from "./provider-utils.js";
 
 const CONFIG_RECORD_ID = "kelly-email-config";
 const LOCK_RECORD_ID = "kelly-email-lock";
 const SCAN_STATE_RECORD_ID = "kelly-email-scan-state";
 const DEFAULT_LOCK_MESSAGE = "/kelly-email is processing this batch.";
 
-function asObject(value: unknown): Record<string, any> {
+function asObject(value) {
   if (!value || typeof value !== "object" || Array.isArray(value)) return {};
-  return value as Record<string, any>;
+  return value;
 }
 
-function parsePayload(value: unknown) {
+function parsePayload(value) {
   if (typeof value === "string") {
     try {
       return asObject(JSON.parse(value));
@@ -33,12 +33,12 @@ function parsePayload(value: unknown) {
   return asObject(value);
 }
 
-function secretRef(endpoint: unknown) {
+function secretRef(endpoint) {
   const data = asObject(endpoint);
   return String(data.vault_ref || data.password_vault_ref || data.secret_ref || data.password_env || "").trim();
 }
 
-function configSecretRefs(config: Config) {
+function configSecretRefs(config) {
   const refs = [];
   for (const mailbox of config.mailboxes || []) {
     for (const endpoint of [mailbox.imap, mailbox.smtp]) {
@@ -50,23 +50,23 @@ function configSecretRefs(config: Config) {
 }
 
 export function createBusabaseProvider() {
-  let clientPromise: Promise<ReturnType<typeof createBusabaseClient>> | null = null;
-  const client = async () => (clientPromise ||= Promise.resolve(createBusabaseClient()));
+  let clientPromise = null;
+  const client = async () => (clientPromise ||= Promise.resolve(createEmailClient()));
 
   async function readSettingsRows() {
     return (await client()).listSettingsFields();
   }
 
-  async function readConfigMeta(): Promise<ConfigWithMeta> {
+  async function readConfigMeta() {
     const rows = await readSettingsRows();
-    const row = rows.find((item: any) => item.record_id === CONFIG_RECORD_ID || item.kind === "config");
-    const config = parsePayload(row?.payload) as Config;
+    const row = rows.find((item) => item.record_id === CONFIG_RECORD_ID || item.kind === "config");
+    const config = parsePayload(row?.payload);
     if (!Array.isArray(config.mailboxes)) config.mailboxes = [];
     if (!Array.isArray(config.identities)) config.identities = [];
     const refs = configSecretRefs(config);
-    // AirApp receives the authenticated Busabase request context, never Vault
-    // values. Only the trusted skill process can verify injected secrets.
-    const missing = isAirAppRequest() ? [] : refs.filter((name) => !process.env[name]);
+    // The page never sees Vault values. Only the trusted skill process can verify
+    // injected secrets.
+    const missing = canInspectSecrets() ? refs.filter((name) => !environmentValue(name)) : [];
     return {
       config,
       source: row ? "busabase:base/kelly-email-settings-v3" : "",
@@ -101,8 +101,8 @@ export function createBusabaseProvider() {
       return { batch: batchFromEmailRecords([]), batchId: "", nextCursor: null, total: 0 };
     }
     const filters = [
-      { fieldSlug: "kind", fieldType: "text", operator: "equals" as const, value: "review_item" },
-      { fieldSlug: "batch-id", fieldType: "text", operator: "equals" as const, value: activeBatchId },
+      { fieldSlug: "kind", fieldType: "text", operator: "equals", value: "review_item" },
+      { fieldSlug: "batch-id", fieldType: "text", operator: "equals", value: activeBatchId },
     ];
     const [page, total] = await Promise.all([
       busabase.readRecordPage({
@@ -120,10 +120,19 @@ export function createBusabaseProvider() {
     };
   }
 
-  async function readReviewItems(itemIds: string[]) {
+  async function readReviewItems(itemIds) {
     const busabase = await client();
     const rows = await Promise.all(
-      itemIds.map((id) => busabase.getRecordFields(emailRecordId({ id })).then((fields) => ({ fields, id }))),
+      itemIds.map(async (id) => {
+        // Rows the app wrote are keyed `email-item-<id>`. Rows that arrived any other
+        // way (the template's starter rows, an agent writing `record-id` directly) carry
+        // no `item-id`, so the item's id IS its `record-id` and must be looked up as-is.
+        const fields =
+          (await busabase.findRecordFields(emailRecordId({ id }))) ||
+          (await busabase.findRecordFields(String(id))) ||
+          {};
+        return { fields, id };
+      }),
     );
     return {
       batchId: String(rows[0]?.fields.batch_id || ""),
@@ -131,7 +140,17 @@ export function createBusabaseProvider() {
     };
   }
 
-  async function writeReviewRows(batch: Batch, itemIds?: string[]) {
+  // The key of the row an item already lives in. The app keys its own rows
+  // `email-item-<id>`; a row it did not write (a starter row, an agent's direct write)
+  // is keyed by the item's id itself. New items always get the app's own format.
+  async function reviewRowKey(busabase, item) {
+    const own = emailRecordId(item);
+    if (await busabase.findRecordFields(own)) return own;
+    if (await busabase.findRecordFields(String(item.id))) return String(item.id);
+    return own;
+  }
+
+  async function writeReviewRows(batch, itemIds) {
     const busabase = await client();
     const wanted = itemIds ? new Set(itemIds.map(String)) : null;
     const writes = [];
@@ -139,7 +158,7 @@ export function createBusabaseProvider() {
       if (wanted && !wanted.has(String(item.id))) continue;
       writes.push(
         busabase.upsertRecord(
-          emailRecordId(item),
+          await reviewRowKey(busabase, item),
           reviewItemToEmailRecordFields(item, batch.batch_id || ""),
           `Review item ${item.subject || item.id}`,
         ),
@@ -148,7 +167,7 @@ export function createBusabaseProvider() {
     return Promise.all(writes);
   }
 
-  async function writeContactRows(batch: Batch) {
+  async function writeContactRows(batch) {
     const busabase = await client();
     return Promise.all(
       rowsFromContactsBatch(batch).map((row) =>
@@ -157,7 +176,7 @@ export function createBusabaseProvider() {
     );
   }
 
-  async function settingsRecord(recordId: string) {
+  async function settingsRecord(recordId) {
     try {
       return await (await client()).getSettingsFields(recordId);
     } catch {
@@ -165,7 +184,7 @@ export function createBusabaseProvider() {
     }
   }
 
-  async function writeSettings(recordId: string, fields: Record<string, unknown>, message: string) {
+  async function writeSettings(recordId, fields, message) {
     return (await client()).upsertSettingsRecord(recordId, fields, message);
   }
 
@@ -185,7 +204,7 @@ export function createBusabaseProvider() {
       return (await this.loadConfigWithMeta()).config;
     },
 
-    onboardingStatus(config: Config, meta: ConfigWithMeta = {} as ConfigWithMeta) {
+    onboardingStatus(config, meta = {}) {
       const mailboxes = config.mailboxes || [];
       const missingRefs = [];
       for (const mailbox of mailboxes) {
@@ -213,7 +232,7 @@ export function createBusabaseProvider() {
       };
     },
 
-    async getBatch(): Promise<Batch> {
+    async getBatch() {
       await this.init();
       return (await readBatchPage()).batch;
     },
@@ -223,7 +242,7 @@ export function createBusabaseProvider() {
       return readBatchPage(options);
     },
 
-    async saveBatch(batch: Batch) {
+    async saveBatch(batch) {
       await this.init();
       const next = normalizeBatch({ ...batch, updated_at: utcNow() });
       await writeReviewRows(next);
@@ -235,11 +254,11 @@ export function createBusabaseProvider() {
       return decisionsFromBatch(await this.getBatch());
     },
 
-    async writeDecisions(batch: Batch) {
+    async writeDecisions(batch) {
       return decisionsFromBatch(batch);
     },
 
-    async writeScanState(value: Record<string, unknown>) {
+    async writeScanState(value) {
       await this.init();
       await writeSettings(
         SCAN_STATE_RECORD_ID,
@@ -248,7 +267,7 @@ export function createBusabaseProvider() {
       );
     },
 
-    async updateItems(input: DecisionInput) {
+    async updateItems(input) {
       await this.rejectIfLocked();
       const selected = await readReviewItems((input.ids || []).map(String));
       const batch = { batch_id: selected.batchId, items: selected.items };
@@ -258,11 +277,11 @@ export function createBusabaseProvider() {
       return {
         changed,
         decisions: changed.length,
-        change_requests: writes.map((write: any) => write.change_request_id).filter(Boolean),
+        change_requests: writes.map((write) => write.change_request_id).filter(Boolean),
       };
     },
 
-    async updateDetail(input: DetailInput) {
+    async updateDetail(input) {
       await this.rejectIfLocked();
       const selected = await readReviewItems([String(input.id || "")]);
       const batch = { batch_id: selected.batchId, items: selected.items };
@@ -291,7 +310,7 @@ export function createBusabaseProvider() {
       if (lock.locked) throw new Error(String(lock.message || DEFAULT_LOCK_MESSAGE));
     },
 
-    async writeLock(message: string) {
+    async writeLock(message) {
       await this.init();
       await writeSettings(
         LOCK_RECORD_ID,
@@ -317,7 +336,7 @@ export function createBusabaseProvider() {
       );
     },
 
-    async writeExecutionReport(batch: Batch, report: Record<string, unknown>, stamp = "") {
+    async writeExecutionReport(batch, report, stamp = "") {
       await this.init();
       const reportStamp =
         stamp ||
@@ -340,7 +359,7 @@ export function createBusabaseProvider() {
       return { provider: "busabase", record_id: recordId, change_request_id: write.change_request_id };
     },
 
-    async clearBatchAttachments(batchId: string) {
+    async clearBatchAttachments(batchId) {
       await (await client()).writeDriveFile(
         `attachments/${batchId}/cleared.json`,
         JSON.stringify({ cleared_at: utcNow() }),
@@ -348,16 +367,11 @@ export function createBusabaseProvider() {
       );
     },
 
-    async persistAttachments(
-      batchId: string,
-      itemId: string,
-      htmlBody: string,
-      attachments: AttachmentInput[],
-    ): Promise<AttachmentResult> {
+    async persistAttachments(batchId, itemId, htmlBody, attachments) {
       await this.init();
       const busabase = await client();
-      const cidUrls = new Map<string, string>();
-      const saved: AttachmentInput[] = [];
+      const cidUrls = new Map();
+      const saved = [];
       for (const [index, attachment] of attachments.entries()) {
         const filename = String(attachment.filename || `attachment-${index + 1}.bin`).replaceAll("/", "-");
         const contentType = String(attachment.contentType || attachment.content_type || "application/octet-stream");
@@ -390,7 +404,7 @@ export function createBusabaseProvider() {
       return { html, attachments: saved };
     },
 
-    async getFile(pathname: string) {
+    async getFile(pathname) {
       const file = await (await client()).readDriveFile(pathname).catch(() => null);
       if (!file || file.encoding !== "utf8") return null;
       const payload = parsePayload(file.content);
@@ -399,7 +413,7 @@ export function createBusabaseProvider() {
         : { data: file.content, meta: { encoding: "utf8", content_type: file.mimeType } };
     },
 
-    async putFile(pathname: string, data: unknown, meta: Record<string, unknown> = {}) {
+    async putFile(pathname, data, meta = {}) {
       const write = await (await client()).writeDriveFile(
         pathname,
         typeof data === "string" ? data : JSON.stringify(data),
@@ -408,7 +422,7 @@ export function createBusabaseProvider() {
       return { provider: "busabase", path: pathname, ...write };
     },
 
-    async getSecret(name: string) {
+    async getSecret(name) {
       return (await client()).getSecret(name);
     },
 
@@ -458,7 +472,7 @@ export function createBusabaseProvider() {
       return { ok: Boolean(resources.folder && !resources.missing.length && resources.drive), resources };
     },
 
-    async ensureSchema(options: { apply?: boolean } = {}) {
+    async ensureSchema(options = {}) {
       const busabase = await client();
       const resources = options.apply ? await busabase.provisionResources() : await busabase.inspectResources();
       return {

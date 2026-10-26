@@ -31,9 +31,34 @@ def assert_no_horizontal_overflow(page: Page) -> None:
     assert dimensions["content"] <= dimensions["viewport"] + 1, dimensions
 
 
+# The data layer runs in the page, so its expected "not found" lookups are now
+# browser requests: the lock record (`kelly-email-lock`) does not exist until a
+# skill run takes the lock, and a 404 there means "unlocked". Chromium logs every
+# 4xx as a console error, so those are matched by URL and every other failure
+# still fails the test.
+EXPECTED_NOT_FOUND = ("valueText=kelly-email-lock",)
+
+
 def attach_error_capture(page: Page) -> list[str]:
     errors: list[str] = []
-    page.on("console", lambda message: errors.append(f"console: {message.text}") if message.type == "error" else None)
+    expected: set[str] = set()
+
+    def on_response(response) -> None:
+        if response.status == 404 and any(part in response.url for part in EXPECTED_NOT_FOUND):
+            expected.add(response.url)
+        elif response.status >= 400:
+            errors.append(f"HTTP {response.status} {response.url}")
+
+    def on_console(message) -> None:
+        if message.type != "error":
+            return
+        location = (message.location or {}).get("url", "")
+        if "Failed to load resource" in message.text and location in expected:
+            return
+        errors.append(f"console: {message.text}")
+
+    page.on("response", on_response)
+    page.on("console", on_console)
     page.on("pageerror", lambda error: errors.append(f"pageerror: {error}"))
     return errors
 
@@ -171,7 +196,21 @@ def test_busabase_provisioning(browser) -> None:
                     # see SKILL.md. Resources are ready; onboarding is not, since no account
                     # config record was seeded, so the app must show the onboarding card
                     # rather than the seeded review record.
-                    state = read_json(f"{app_url}/api/state")
+                    # The data layer runs in the page (app/js/data/page-api.js), against
+                    # same-origin /api/v1 through the local gateway; the server itself only
+                    # answers /api/state for the demo fixture. So read state the way the
+                    # page does, from inside it.
+                    context = browser.new_context(viewport={"width": 390, "height": 844})
+                    page = context.new_page()
+                    errors = attach_error_capture(page)
+                    page.goto(f"{app_url}/#/inbox")
+                    page.wait_for_load_state("networkidle")
+                    state = page.evaluate(
+                        """async () => {
+                          const { callPageRoute } = await import("./js/data/page-api.js");
+                          return callPageRoute("/api/state", {});
+                        }"""
+                    )
                     assert state["provider_status"]["ok"] is True, state
                     assert state["provider_status"]["connection"] == {
                         "folder_exists": True,
@@ -181,12 +220,6 @@ def test_busabase_provisioning(browser) -> None:
                         "drive_exists": True,
                     }, state
                     assert state["setup"]["state"] == "needs_config", state
-
-                    context = browser.new_context(viewport={"width": 390, "height": 844})
-                    page = context.new_page()
-                    errors = attach_error_capture(page)
-                    page.goto(f"{app_url}/#/inbox")
-                    page.wait_for_load_state("networkidle")
                     assert page.locator("#listCount").inner_text() == "Setup required"
                     assert_no_horizontal_overflow(page)
                     assert not errors, errors

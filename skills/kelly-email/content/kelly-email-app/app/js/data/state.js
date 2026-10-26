@@ -1,25 +1,25 @@
-import { createProvider } from "../lib/data-provider/index.ts";
-import { loadBatchPage, normalizeItem } from "./batch-store.ts";
-import { loadConfigWithMeta, onboardingStatus, publicAccounts } from "./config.ts";
-import { lockPayload } from "./lock.ts";
-import { providerStatus } from "./provider-status.ts";
-import type { ReviewItem, StateQuery, StatusCounts } from "./types.ts";
-import { normalizeQueryValue } from "./utils.ts";
-import { approvedPriority, isApprovedForExecution, isBlocked, isDone, isNeedsReview } from "./workflow.ts";
+import { loadConfigWithMeta, onboardingStatus, publicAccounts } from "./accounts.js";
+import { loadBatchPage, normalizeItem } from "./batch-store.js";
+import { createProvider } from "./index.js";
+import { lockPayload } from "./lock.js";
+import { providerStatus } from "./provider-status.js";
 
-function countByStatus(items: ReviewItem[]): StatusCounts {
-  const counts: StatusCounts = {};
+import { normalizeQueryValue } from "./utils.js";
+import { approvedPriority, isApprovedForExecution, isBlocked, isDone, isNeedsReview } from "./workflow.js";
+
+function countByStatus(items) {
+  const counts = {};
   for (const item of items) {
     counts[item.status || "unknown"] = (counts[item.status || "unknown"] || 0) + 1;
   }
   return counts;
 }
 
-function uidNumber(item: ReviewItem) {
+function uidNumber(item) {
   return Number.parseInt(item.uid || "0", 10) || 0;
 }
 
-function withReviewNumbers(items: ReviewItem[]): ReviewItem[] {
+function withReviewNumbers(items) {
   const reviewItems = items.filter(isNeedsReview).sort((a, b) => uidNumber(b) - uidNumber(a));
   const byId = new Map(reviewItems.map((item, index) => [String(item.id), index + 1]));
   return items.map((item) => {
@@ -29,7 +29,7 @@ function withReviewNumbers(items: ReviewItem[]): ReviewItem[] {
   });
 }
 
-export async function statePayload(query: StateQuery = {}) {
+export async function statePayload(query = {}) {
   const provider = createProvider();
   const providerState = await providerStatus();
   const providerUnavailable = providerState.ok === false;

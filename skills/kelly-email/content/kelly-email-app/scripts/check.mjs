@@ -58,14 +58,14 @@ const configText = await readFile(path.join(root, "app", "js", "config.js"), "ut
 const index = await readFile(path.join(root, "app", "index.html"), "utf8");
 const setupText = await readFile(path.join(root, "app", "js", "setup.js"), "utf8");
 const localAuthText = await readFile(path.join(root, "server", "local-auth.js"), "utf8");
-const providerText = await readFile(path.join(root, "lib", "data-provider", "busabase-client.ts"), "utf8");
-const providerModelText = await readFile(path.join(root, "lib", "data-provider", "busabase-provider.ts"), "utf8");
+const providerText = await readFile(path.join(root, "app", "js", "busabase-client.js"), "utf8");
+const providerModelText = await readFile(path.join(root, "app", "js", "data", "busabase-provider.js"), "utf8");
 const listText = await readFile(path.join(root, "app", "js", "list-detail.js"), "utf8");
 const appText = await readFile(path.join(root, "app", "app.js"), "utf8");
-const serverText = await readFile(path.join(root, "server", "hono.ts"), "utf8");
+const serverText = await readFile(path.join(root, "server", "hono.js"), "utf8");
 
 if (packageJson.scripts.start !== "node server.js") throw new Error("AirApp start must be node server.js");
-if (!/^\d+\.\d+\.\d+$/.test(packageJson.dependencies["busabase-sdk"]))
+if (!/^\d+\.\d+\.\d+$/.test(packageJson.dependencies["busabase-sdk"] ?? ""))
   throw new Error("busabase-sdk must be exact-pinned");
 if (!configText.includes('deployment: "cloud"')) throw new Error("Kelly Email must be Cloud-only");
 if (!configText.includes('resourceKey: "kelly-email-files"')) {
@@ -89,6 +89,18 @@ if (!appText.includes("store.pagesLoaded === 1")) {
 }
 if (!serverText.includes("describeBusabaseAirAppRuntime")) {
   throw new Error("AirApp runtime reporting must use busabase-sdk/airapp-node");
+}
+// A hosted AirApp process has no Busabase origin and no credential, so the
+// server must never read the workspace: the page does, over same-origin /api/v1.
+const serverImports = [...serverText.matchAll(/^import[^;]*from\s+["']([^"']+)["']/gm)].map((match) => match[1]);
+if (
+  /\bcreateProvider\s*\(/.test(serverText) ||
+  serverImports.some((spec) => /data-provider|app\/js\/data\//.test(spec))
+) {
+  throw new Error("The AirApp server must not read Busabase; the page's data layer does");
+}
+if (!providerText.includes("../vendor/busabase-sdk.js")) {
+  throw new Error("The page's data layer must use the vendored busabase-sdk bundle");
 }
 if (/KELLY_EMAIL_DATA_PROVIDER|local-file-provider|folders\.get/.test(configText)) {
   throw new Error("Retired provider/runtime contract remains in app config");

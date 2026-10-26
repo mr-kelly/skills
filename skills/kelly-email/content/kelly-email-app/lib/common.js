@@ -1,8 +1,7 @@
 import { createHash } from "node:crypto";
 import { join } from "node:path";
-import { createProvider, loadConfig, loadConfigWithMeta, loadDotenv, onboardingStatus } from "./data-provider/index.ts";
-import { APP_DIR, ROOT_DIR, SKILL_DIR } from "./paths.ts";
-import type { Attachment, Brand, Config, ReviewItem } from "./types.ts";
+import { createProvider, loadConfig, loadConfigWithMeta, loadDotenv, onboardingStatus } from "../app/js/data/index.js";
+import { APP_DIR, ROOT_DIR, SKILL_DIR } from "./paths.js";
 
 export const SCRIPTS_DIR = join(SKILL_DIR, "scripts");
 export const ROOT = ROOT_DIR;
@@ -28,7 +27,7 @@ export async function clearAgentLock() {
   await createProvider().clearLock();
 }
 
-export function configuredEmailAccounts(config: Config, source = "") {
+export function configuredEmailAccounts(config, source = "") {
   const identitiesByMailbox = new Map();
   for (const identity of config.identities || []) {
     const rows = identitiesByMailbox.get(identity.mailbox_id) || [];
@@ -146,7 +145,7 @@ export function normalizeLanguageCode(value = "") {
   return "";
 }
 
-export function preferredUserLanguage(config: Config = {}) {
+export function preferredUserLanguage(config = {}) {
   const candidates = [
     process.env.KELLY_EMAIL_USER_LANGUAGE,
     config.style?.default_language,
@@ -203,7 +202,7 @@ const REVIEW_COPY = {
   },
 };
 
-function recommendationKeyFor(category: string, risks: Set<string>, attachments: Attachment[]) {
+function recommendationKeyFor(category, risks, attachments) {
   if (category === "money" || risks.has("money")) return "recommend_money";
   if (category === "course_feedback") return "recommend_course";
   if (category === "data_privacy_security" || risks.has("security")) return "recommend_security";
@@ -213,18 +212,18 @@ function recommendationKeyFor(category: string, risks: Set<string>, attachments:
   return "recommend_default";
 }
 
-function firstConfiguredBrand(config: Config = {}): Brand {
+function firstConfiguredBrand(config = {}) {
   const brands = Array.isArray(config.brands) ? config.brands : [];
   return brands.find((brand) => brand?.name || brand?.homepage) || {};
 }
 
-function configuredProductName(config: Config = {}) {
+function configuredProductName(config = {}) {
   const brand = firstConfiguredBrand(config);
   const identity = (config.identities || []).find((row) => row?.brand_or_product);
   return brand.name || identity?.brand_or_product || config.user_profile?.company || "your product";
 }
 
-function configuredPrimaryUrl(config: Config = {}) {
+function configuredPrimaryUrl(config = {}) {
   const brand = firstConfiguredBrand(config);
   return (
     config.official_urls?.primary_cta ||
@@ -235,7 +234,7 @@ function configuredPrimaryUrl(config: Config = {}) {
   );
 }
 
-function configuredContactLine(config: Config = {}) {
+function configuredContactLine(config = {}) {
   const methods = Array.isArray(config.user_profile?.contact_methods) ? config.user_profile.contact_methods : [];
   const visible = methods
     .filter((method) => method?.label && method?.value)
@@ -244,19 +243,7 @@ function configuredContactLine(config: Config = {}) {
   return visible.length ? `\n\nYou can also reach me here: ${visible.join(" · ")}` : "";
 }
 
-export function reviewRecommendationFor(
-  classification: {
-    category?: string;
-    risk?: string[];
-    reason_i18n?: Record<string, string>;
-    [key: string]: unknown;
-  },
-  sender: string,
-  subject: string,
-  body: string,
-  attachments: Attachment[] = [],
-  config: Config = {},
-) {
+export function reviewRecommendationFor(classification, sender, subject, body, attachments = [], config = {}) {
   const category = classification.category || "other";
   const risks = new Set(classification.risk || []);
   const bodyHint = summaryFrom(subject, body);
@@ -264,7 +251,7 @@ export function reviewRecommendationFor(
   const userLanguage = preferredUserLanguage(config);
   const sourceLanguage = detectTextLanguage(`${subject}\n${body}`);
   const recommendationKey = recommendationKeyFor(category, risks, attachments);
-  const i18n: Record<string, { background: string; why_review: string; recommendation: string }> = {};
+  const i18n = {};
   for (const language of ["en", "zh-CN"]) {
     const copy = REVIEW_COPY[language];
     i18n[language] = {
@@ -321,7 +308,7 @@ export async function clearBatchAttachments(batchId) {
   return provider.clearBatchAttachments(batchId);
 }
 
-export async function persistAttachments(batchId: string, itemId: string, htmlBody: string, attachments: Attachment[]) {
+export async function persistAttachments(batchId, itemId, htmlBody, attachments) {
   const provider = createProvider();
   if (!provider.persistAttachments) throw new Error("Busabase provider does not support attachments.");
   return provider.persistAttachments(batchId, itemId, htmlBody, attachments);
@@ -358,17 +345,11 @@ function keywordMatch(text, keywords = []) {
   return keywords.some((keyword) => keyword && text.toLowerCase().includes(String(keyword).toLowerCase()));
 }
 
-export function configuredRiskSignal(config: Config, riskName: string, text: string) {
+export function configuredRiskSignal(config, riskName, text) {
   return keywordMatch(text, config?.risk_policy?.review_keywords?.[riskName] || []);
 }
 
-export function classify(
-  sender: string,
-  subject: string,
-  body: string,
-  attachments: Attachment[] = [],
-  config: Config = {},
-) {
+export function classify(sender, subject, body, attachments = [], config = {}) {
   const text = `${sender}\n${subject}\n${body}`.toLowerCase();
   const original = `${sender}\n${subject}\n${body}`;
 
@@ -488,27 +469,27 @@ export function classify(
   };
 }
 
-export function decisionAction(item: ReviewItem) {
+export function decisionAction(item) {
   return item?.decision?.action || "";
 }
 
-export function executionStatus(item: ReviewItem) {
+export function executionStatus(item) {
   return item?.execution?.status || "";
 }
 
-export function isDone(item: ReviewItem) {
+export function isDone(item) {
   return item.status === "executed" || executionStatus(item) === "executed" || decisionAction(item) === "no_action";
 }
 
-export function isBlocked(item: ReviewItem) {
+export function isBlocked(item) {
   return executionStatus(item) === "blocked";
 }
 
-export function isDraftAwaitingSendReview(item: ReviewItem) {
+export function isDraftAwaitingSendReview(item) {
   return item.status === "drafted" && !decisionAction(item) && !isDone(item) && !isBlocked(item);
 }
 
-export function isNeedsReview(item: ReviewItem) {
+export function isNeedsReview(item) {
   return (
     !isDone(item) &&
     !isBlocked(item) &&
@@ -518,13 +499,13 @@ export function isNeedsReview(item: ReviewItem) {
   );
 }
 
-export function isToApprove(item: ReviewItem) {
+export function isToApprove(item) {
   return (
     !isDone(item) && !isBlocked(item) && !isNeedsReview(item) && !decisionAction(item) && item.status === "prepared"
   );
 }
 
-export function isApproved(item: ReviewItem) {
+export function isApproved(item) {
   const action = decisionAction(item);
   if (isDone(item) || isBlocked(item)) return false;
   if (action === "draft_reply") return item.status === "draft_requested";

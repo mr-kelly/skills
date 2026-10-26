@@ -1,15 +1,3 @@
-type DemoVisual = {
-  id: string;
-  title: string;
-  caption: string;
-  kind: string;
-  alt: string;
-  src: string;
-  image: string;
-  image_url: string;
-  simulated: true;
-};
-
 const SKILL_NAME = "kelly-email";
 const ACCENTS = ["#2563eb", "#64748b"];
 const VISUAL_DEFS = [
@@ -33,24 +21,24 @@ const VISUAL_DEFS = [
   },
 ];
 
-function queryValue(query: unknown, key: string): string {
+function queryValue(query, key) {
   if (query instanceof URLSearchParams) return query.get(key) || "";
-  const value = (query as Record<string, unknown> | undefined)?.[key];
+  const value = query?.[key];
   return Array.isArray(value) ? String(value[0] || "") : String(value || "");
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
+function isRecord(value) {
   return Boolean(value && typeof value === "object" && !Array.isArray(value));
 }
 
-function escapeXml(value: unknown): string {
+function escapeXml(value) {
   return String(value ?? "").replace(
     /[&<>"]/g,
     (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[ch] || ch,
   );
 }
 
-function motif(kind: string, accent: string, secondary: string): string {
+function motif(kind, accent, secondary) {
   if (kind === "mobile") {
     return `<rect x="368" y="74" width="264" height="392" rx="36" fill="#111827"/><rect x="388" y="112" width="224" height="310" rx="18" fill="#f8fafc"/><rect x="410" y="138" width="94" height="16" rx="8" fill="${accent}"/><rect x="410" y="174" width="168" height="46" rx="14" fill="#e2e8f0"/><rect x="456" y="240" width="122" height="46" rx="14" fill="${secondary}"/><rect x="410" y="306" width="178" height="72" rx="18" fill="#dbeafe"/><circle cx="500" cy="444" r="10" fill="#f8fafc"/>`;
   }
@@ -84,7 +72,7 @@ function motif(kind: string, accent: string, secondary: string): string {
   return `<rect x="238" y="64" width="484" height="400" rx="22" fill="#f8fafc"/><rect x="292" y="126" width="256" height="30" rx="12" fill="${accent}"/><rect x="292" y="206" width="360" height="18" rx="9" fill="#cbd5e1"/><rect x="292" y="252" width="316" height="18" rx="9" fill="#cbd5e1"/><rect x="292" y="298" width="338" height="18" rx="9" fill="#cbd5e1"/><rect x="292" y="368" width="188" height="34" rx="12" fill="${secondary}"/>`;
 }
 
-function visualSvg(title: string, caption: string, kind: string, index: number): string {
+function visualSvg(title, caption, kind, index) {
   const accent = ACCENTS[index % ACCENTS.length] || "#2563eb";
   const secondary = ACCENTS[(index + 1) % ACCENTS.length] || "#0f766e";
   const safeTitle = escapeXml(title);
@@ -98,11 +86,11 @@ function visualSvg(title: string, caption: string, kind: string, index: number):
 </svg>`;
 }
 
-function imageDataUrl(title: string, caption: string, kind: string, index: number): string {
+function imageDataUrl(title, caption, kind, index) {
   return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(visualSvg(title, caption, kind, index))}`;
 }
 
-export function demoVisualsForApp(appName = SKILL_NAME, query: unknown = {}): DemoVisual[] {
+export function demoVisualsForApp(appName = SKILL_NAME, query = {}) {
   const lang = queryValue(query, "lang").toLowerCase();
   const displayApp = appName || SKILL_NAME;
   return VISUAL_DEFS.map((item, index) => {
@@ -121,12 +109,12 @@ export function demoVisualsForApp(appName = SKILL_NAME, query: unknown = {}): De
   });
 }
 
-function appNameFrom(payload: Record<string, unknown>): string {
+function appNameFrom(payload) {
   const snapshot = isRecord(payload.snapshot) ? payload.snapshot : {};
   return String(payload.app || snapshot.app || SKILL_NAME);
 }
 
-function looksLikeDemoPayload(payload: Record<string, unknown>): boolean {
+function looksLikeDemoPayload(payload) {
   const snapshot = isRecord(payload.snapshot) ? payload.snapshot : {};
   const batch = isRecord(payload.batch) ? payload.batch : {};
   return (
@@ -139,11 +127,11 @@ function looksLikeDemoPayload(payload: Record<string, unknown>): boolean {
   );
 }
 
-function wantsDemoVisuals(query: unknown, payload: Record<string, unknown>): boolean {
+function wantsDemoVisuals(query, payload) {
   return Boolean(queryValue(query, "demo") || queryValue(query, "demo_visuals") || looksLikeDemoPayload(payload));
 }
 
-function attachToNested(payload: Record<string, unknown>, visuals: DemoVisual[]): void {
+function attachToNested(payload, visuals) {
   payload.demo_visuals = visuals;
   for (const key of ["snapshot", "project", "batch"]) {
     const target = payload[key];
@@ -151,14 +139,14 @@ function attachToNested(payload: Record<string, unknown>, visuals: DemoVisual[])
   }
 }
 
-export function withDemoVisuals(payload: unknown, query: unknown = {}): unknown {
+export function withDemoVisuals(payload, query = {}) {
   if (!isRecord(payload) || !wantsDemoVisuals(query, payload)) return payload;
   const visuals = demoVisualsForApp(appNameFrom(payload), query);
   attachToNested(payload, visuals);
   return payload;
 }
 
-function requestQuery(c: any): Record<string, string | string[]> {
+function requestQuery(c) {
   try {
     if (typeof c.req?.query === "function") return c.req.query();
   } catch {}
@@ -169,12 +157,12 @@ function requestQuery(c: any): Record<string, string | string[]> {
   }
 }
 
-export async function attachDemoVisuals(c: any, next: () => Promise<void>): Promise<void> {
+export async function attachDemoVisuals(c, next) {
   await next();
   const response = c.res;
   const contentType = response?.headers?.get("content-type") || "";
   if (!contentType.includes("application/json")) return;
-  let payload: unknown;
+  let payload;
   try {
     payload = await response.clone().json();
   } catch {

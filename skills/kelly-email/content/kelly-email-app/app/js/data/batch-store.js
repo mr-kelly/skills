@@ -1,17 +1,15 @@
-import { createProvider } from "../lib/data-provider/index.ts";
-export { findItem, normalizeItem } from "../lib/data-provider/provider-utils.ts";
-import type { BatchPage } from "../lib/data-provider/provider-interface.ts";
-import type { Batch } from "./types.ts";
+import { createProvider } from "./index.js";
+export { findItem, normalizeItem } from "./provider-utils.js";
 
 export async function ensureDirs() {
   // Busabase owns all durable state; no handoff directories are created.
 }
 
-export async function loadBatch(): Promise<Batch> {
+export async function loadBatch() {
   return createProvider().getBatch();
 }
 
-export async function loadBatchPage(options: { cursor?: string; batchId?: string } = {}): Promise<BatchPage> {
+export async function loadBatchPage(options = {}) {
   const provider = createProvider();
   if (provider.getBatchPage) return provider.getBatchPage(options);
   const batch = await provider.getBatch();
@@ -23,10 +21,10 @@ export async function loadBatchPage(options: { cursor?: string; batchId?: string
   };
 }
 
-export async function saveBatch(batch: Batch) {
+export async function saveBatch(batch) {
   return createProvider().saveBatch(batch);
 }
 
-export async function writeDecisions(batch: Batch) {
+export async function writeDecisions(batch) {
   return createProvider().writeDecisions(batch);
 }

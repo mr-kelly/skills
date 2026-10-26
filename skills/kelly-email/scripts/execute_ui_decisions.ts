@@ -1,15 +1,21 @@
 #!/usr/bin/env node
 import { ImapFlow } from "imapflow";
 import nodemailer from "nodemailer";
+import { createProvider } from "../content/kelly-email-app/app/js/data/index.js";
 import {
   clearAgentLock,
   loadConfig,
   loadDotenv,
   utcNow,
   writeAgentLock,
-} from "../content/kelly-email-app/lib/common.ts";
-import { createProvider } from "../content/kelly-email-app/lib/data-provider/index.ts";
-import type { Batch, Config, DecisionsPayload, Mailbox, ReviewItem } from "../content/kelly-email-app/lib/types.ts";
+} from "../content/kelly-email-app/lib/common.js";
+
+// Shapes are documented in references/; these scripts only need names for them.
+type Batch = Record<string, any>;
+type Config = Record<string, any>;
+type DecisionsPayload = Record<string, any>;
+type Mailbox = Record<string, any>;
+type ReviewItem = Record<string, any>;
 
 interface ExecEntry {
   item: ReviewItem;
@@ -382,7 +388,7 @@ async function writeReport(
 }
 
 async function updateBatchAfterExecution(batch: Batch, results: ExecResult[], blocked: ExecResult[]) {
-  const byId = new Map((batch.items || []).map((item) => [String(item.id), item]));
+  const byId = new Map<string, ReviewItem>((batch.items || []).map((item: ReviewItem) => [String(item.id), item]));
   for (const result of results) {
     const item = byId.get(String((result.item as ReviewItem)?.id));
     if (!item) continue;
