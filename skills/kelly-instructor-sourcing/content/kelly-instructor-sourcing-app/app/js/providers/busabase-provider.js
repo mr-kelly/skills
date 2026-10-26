@@ -1,8 +1,8 @@
 import {
+  createAirAppRecords,
   inspectProvisionedResources,
   isAirAppWriteQueued,
   provisionDeclaredResources,
-  createAirAppRecords,
 } from "../../vendor/busabase-airapp.js";
 import { createRuntimeClient } from "../busabase-client.js";
 import { appConfig } from "../config.js";

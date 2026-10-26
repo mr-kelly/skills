@@ -1,7 +1,7 @@
 import {
+  createAirAppRecords,
   inspectProvisionedResources,
   provisionDeclaredResources,
-  createAirAppRecords,
 } from "../../vendor/busabase-airapp.js";
 import { DECISION_ACTIONS, buildConfigSummary, buildSnapshot, statusForVerdict } from "../audit-model.js?v=0.1.0";
 import { createRuntimeClient } from "../busabase-client.js";

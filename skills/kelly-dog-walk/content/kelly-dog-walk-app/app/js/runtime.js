@@ -65,4 +65,3 @@ export const runtime = await probe();
  * closed by the operator; a missing one strands them — so `unknown` shows it.
  */
 export const shouldUseLocalGateway = () => !runtime.hosted;
-

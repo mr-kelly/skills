@@ -1,8 +1,8 @@
 import {
-  inspectProvisionedResources,
-  provisionDeclaredResources,
   createAirAppRecords,
+  inspectProvisionedResources,
   isAirAppWriteQueued,
+  provisionDeclaredResources,
 } from "../../vendor/busabase-airapp.js";
 import { createRuntimeClient } from "../busabase-client.js";
 import { appConfig } from "../config.js?v=0.1.0";
@@ -298,19 +298,21 @@ export const busabaseProvider = {
     const nextStatus = statusForAction(action);
 
     const results = [];
-    results.push(await updateRecord(
-      "reviews",
-      existing,
-      baseReviewFields({
-        ...computeReviewFromRow(current),
-        review_id,
-        status: nextStatus,
-        decision_action: action,
-        decision_comment: String(comment || ""),
-        decided_at: now,
-      }),
-      `Decision on review ${review_id}: ${action}`,
-    ));
+    results.push(
+      await updateRecord(
+        "reviews",
+        existing,
+        baseReviewFields({
+          ...computeReviewFromRow(current),
+          review_id,
+          status: nextStatus,
+          decision_action: action,
+          decision_comment: String(comment || ""),
+          decided_at: now,
+        }),
+        `Decision on review ${review_id}: ${action}`,
+      ),
+    );
 
     const targetType = current.target_type;
     const targetId = current.target_id;
@@ -330,12 +332,14 @@ export const busabaseProvider = {
           mistakes: computeMistakeFromRow,
           papers: computePaperFromRow,
         }[targetBase];
-        results.push(await updateRecord(
-          targetBase,
-          targetExisting,
-          fieldsBuilder({ ...normalizer(targetCurrent), status: nextStatus }),
-          `Decision on review ${review_id} updates ${targetType} ${targetId}: ${nextStatus}`,
-        ));
+        results.push(
+          await updateRecord(
+            targetBase,
+            targetExisting,
+            fieldsBuilder({ ...normalizer(targetCurrent), status: nextStatus }),
+            `Decision on review ${review_id} updates ${targetType} ${targetId}: ${nextStatus}`,
+          ),
+        );
       }
     }
 

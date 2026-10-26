@@ -11,8 +11,8 @@
 // (BUSABASE_AIRAPP_RUNTIME, surfaced by detectAirAppRuntime()), never something to guess
 // from the hostname. `shouldUseLocalGateway` drives the connect gate.
 import { createAirAppConnectGate } from "../vendor/busabase-airapp-gate.js";
-import { getProvider } from "./providers/index.js?v=0.1.0";
 import { detectAirAppRuntime, shouldUseLocalAirAppGateway } from "../vendor/busabase-airapp.js";
+import { getProvider } from "./providers/index.js?v=0.1.0";
 
 const runtime = await detectAirAppRuntime();
 const shouldUseLocalGateway = () => shouldUseLocalAirAppGateway(runtime);

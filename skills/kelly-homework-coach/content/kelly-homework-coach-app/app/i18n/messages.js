@@ -33,7 +33,8 @@ export const messages = {
     originalImageAlt: "Original homework diagram",
     paperResultPending:
       "Results sent for review: you don't have write access here, so they are saved once someone who does approves them. Previous paper approval does not approve this attempt.",
-    paperResultSaved: "Results saved. This attempt still needs its own review; the previous paper approval does not cover it.",
+    paperResultSaved:
+      "Results saved. This attempt still needs its own review; the previous paper approval does not cover it.",
     approvePaper: "Confirm this practice paper",
     childPaperNote: "Student practice. Answers and parent review notes are not shown here.",
     parentPaperReview: "Parent / teacher paper review",
@@ -54,7 +55,8 @@ export const messages = {
     causeLookupFailed: "Save status unavailable. Refresh later; do not resubmit.",
     causeConflict: "Pending: version conflict. Ask the agent to resolve it.",
     causeNeedsChanges: "Not saved. Revise and resubmit.",
-    causePending: "Sent for review: you don't have write access here, so this is saved once someone who does approves it.",
+    causePending:
+      "Sent for review: you don't have write access here, so this is saved once someone who does approves it.",
     causeSaved: "Saved",
     paperNeedsApproval: "Confirm the paper before practice.",
     practiceRequest: "Practice for this mistake",
@@ -178,7 +180,8 @@ export const messages = {
     ledePapers: "A paper is only exported after a parent or teacher approves it.",
     ledeReview: "Approve and the agent continues. Unsure? Block it — nothing is lost.",
     decisionRecorded: "Decision recorded.",
-    decisionSentForReview: "Sent for review. You don't have write access here, so this waits until someone who does approves it.",
+    decisionSentForReview:
+      "Sent for review. You don't have write access here, so this waits until someone who does approves it.",
     actionFailed: "That did not go through:",
     decisionRecordedDemo: "Decision recorded (demo mode, not saved).",
     // proposed_action values, as a parent would say them. Never render the
