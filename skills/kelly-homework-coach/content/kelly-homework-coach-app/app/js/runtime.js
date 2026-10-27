@@ -65,10 +65,3 @@ export const runtime = await probe();
  * closed by the operator; a missing one strands them — so `unknown` shows it.
  */
 export const shouldUseLocalGateway = () => !runtime.hosted;
-
-/**
- * Whether this process may merge its own writes instead of raising a
- * ChangeRequest. `unknown` must read as NOT standalone: a reviewable write can
- * still be approved, but one that auto-merged has already crossed the boundary.
- */
-export const isStandaloneLocalRuntime = () => runtime.determined && !runtime.hosted;

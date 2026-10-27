@@ -1,0 +1,125 @@
+import { loadConfigWithMeta, onboardingStatus, publicAccounts } from "./accounts.js";
+import { loadBatchPage, normalizeItem } from "./batch-store.js";
+import { createProvider } from "./index.js";
+import { lockPayload } from "./lock.js";
+import { providerStatus } from "./provider-status.js";
+
+import { normalizeQueryValue } from "./utils.js";
+import { approvedPriority, isApprovedForExecution, isBlocked, isDone, isNeedsReview } from "./workflow.js";
+
+function countByStatus(items) {
+  const counts = {};
+  for (const item of items) {
+    counts[item.status || "unknown"] = (counts[item.status || "unknown"] || 0) + 1;
+  }
+  return counts;
+}
+
+function uidNumber(item) {
+  return Number.parseInt(item.uid || "0", 10) || 0;
+}
+
+function withReviewNumbers(items) {
+  const reviewItems = items.filter(isNeedsReview).sort((a, b) => uidNumber(b) - uidNumber(a));
+  const byId = new Map(reviewItems.map((item, index) => [String(item.id), index + 1]));
+  return items.map((item) => {
+    const reviewNumber = byId.get(String(item.id)) || null;
+    if (!reviewNumber) return { ...item, review_number: null, review_ref: "" };
+    return { ...item, review_number: reviewNumber, review_ref: `Review #${reviewNumber}` };
+  });
+}
+
+export async function statePayload(query = {}) {
+  const provider = createProvider();
+  const providerState = await providerStatus();
+  const providerUnavailable = providerState.ok === false;
+  const configMeta = providerUnavailable ? { config: {}, source: "" } : await loadConfigWithMeta();
+  const { config, source } = configMeta;
+  const onboarding = providerUnavailable
+    ? {
+        configured: false,
+        state: "provider_not_ready",
+        reader: provider.kind,
+        message: providerState.message || "Kelly Email data provider is not ready.",
+        missing_env: [],
+      }
+    : onboardingStatus(config, configMeta);
+  const setupIncomplete = providerUnavailable || onboarding.configured === false;
+  const page = setupIncomplete
+    ? { batch: { items: [] }, batchId: "", nextCursor: null, total: 0 }
+    : await loadBatchPage({
+        cursor: normalizeQueryValue(query.cursor, ""),
+        batchId: normalizeQueryValue(query.batch_id, ""),
+      });
+  const batch = page.batch;
+  const allItems = withReviewNumbers((batch.items || []).map(normalizeItem));
+  let items = allItems;
+  const mode = normalizeQueryValue(query.mode, "all");
+  const search = normalizeQueryValue(query.q, "").toLowerCase().trim();
+  if (mode !== "all") {
+    if (mode === "needs_review") items = items.filter(isNeedsReview);
+    else if (mode === "approved") items = items.filter(isApprovedForExecution);
+    else if (mode === "done") items = items.filter(isDone);
+    else if (mode === "blocked") items = items.filter(isBlocked);
+    else items = items.filter((item) => item.status === mode);
+  }
+  if (search) {
+    items = items.filter((item) =>
+      `${item.review_ref} ${item.from} ${item.subject} ${item.summary}`.toLowerCase().includes(search),
+    );
+  }
+  items.sort((a, b) => {
+    if (mode === "approved") {
+      const priority = approvedPriority(a) - approvedPriority(b);
+      if (priority) return priority;
+    }
+    return uidNumber(b) - uidNumber(a);
+  });
+  const counts = countByStatus(allItems);
+  counts.needs_review = allItems.filter(isNeedsReview).length;
+  counts.to_approve = 0;
+  counts.approved = allItems.filter(isApprovedForExecution).length;
+  counts.done = allItems.filter(isDone).length;
+  counts.blocked = allItems.filter(isBlocked).length;
+  const providerSelected = true;
+  const setupState = providerUnavailable ? "provider_not_ready" : onboarding.state || "ready";
+  const recommendedConfig =
+    onboarding.recommended_config || configMeta.recommended_config || "busabase:base/kelly-email-settings-v3";
+  const recommendedEnv =
+    onboarding.recommended_env ||
+    configMeta.recommended_env ||
+    `busabase:vault/${String(providerState.secrets_namespace || "kelly-email")}`;
+  return {
+    app: "kelly-email",
+    setup: {
+      provider_selected: providerSelected,
+      provider_env_locked: true,
+      provider: provider.kind,
+      state: setupState,
+      recommended_config: recommendedConfig,
+      recommended_env: recommendedEnv,
+      example_config: onboarding.example_config || configMeta.example_config || "",
+      missing_env: onboarding.missing_env || [],
+    },
+    batch: {
+      batch_id: batch.batch_id,
+      generated_at: batch.generated_at,
+      updated_at: batch.updated_at,
+      source: batch.source,
+      last_scan: batch.last_scan,
+    },
+    counts,
+    items,
+    total_cached: page.total ?? allItems.length,
+    pagination: {
+      batch_id: page.batchId,
+      next_cursor: page.nextCursor,
+    },
+    batch_path: "busabase:base/kelly-email-reviews-v3",
+    contacts_path: "busabase:base/kelly-email-contacts-v3",
+    decisions_path: "busabase:base/kelly-email-reviews-v3/decision-*",
+    provider_status: providerState,
+    email_accounts: publicAccounts(config, source, onboarding, configMeta),
+    lock: providerUnavailable ? { locked: false, provider: provider.kind } : await lockPayload(),
+  };
+}

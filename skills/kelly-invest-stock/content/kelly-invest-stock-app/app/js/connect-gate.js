@@ -6,8 +6,11 @@
 // is genuinely this app's own: its name, whether this run owes a gate at all,
 // and what "initialize" does.
 import { createAirAppConnectGate } from "../vendor/busabase-airapp-gate.js";
+import { detectAirAppRuntime, shouldUseLocalAirAppGateway } from "../vendor/busabase-airapp.js";
 import { getProvider } from "./providers/index.js?v=0.9.2";
-import { shouldUseLocalGateway } from "./runtime.js";
+
+const runtime = await detectAirAppRuntime();
+const shouldUseLocalGateway = () => shouldUseLocalAirAppGateway(runtime);
 
 const isDemo = () => new URLSearchParams(window.location.search).get("demo") === "1";
 

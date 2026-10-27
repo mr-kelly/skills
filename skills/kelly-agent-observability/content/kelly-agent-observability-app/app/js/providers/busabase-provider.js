@@ -1,4 +1,8 @@
-import { inspectProvisionedResources, provisionDeclaredResources } from "../../vendor/busabase-airapp.js";
+import {
+  createAirAppRecords,
+  inspectProvisionedResources,
+  provisionDeclaredResources,
+} from "../../vendor/busabase-airapp.js";
 import { createRuntimeClient } from "../busabase-client.js";
 import { appConfig } from "../config.js?v=0.1.0";
 import {
@@ -13,20 +17,6 @@ import {
 const allowedReads = new Set(appConfig.permissions.readProcedures);
 const allowedSetup = new Set(appConfig.permissions.setupProcedures);
 const allowedWrites = new Set(appConfig.permissions.writeProcedures);
-
-// A deployed AirApp is served through the ambient Busabase session (a Busabase
-// iframe/preview host, or same-origin proxy under /api/airapp-preview/); a
-// standalone local preview runs on loopback outside that host. A handoff
-// submitted from a standalone local preview (the trusted operator's own
-// machine) merges immediately; one submitted from the deployed AirApp creates
-// a pending ChangeRequest for the trusted process to merge, per the AirApp
-// boundary.
-// A deployed AirApp sits inside the Busabase review boundary; only a standalone
-// run may merge its own writes. That is far too consequential to infer from the
-// URL — see ../runtime.js.
-import { isStandaloneLocalRuntime } from "../runtime.js";
-
-export { isStandaloneLocalRuntime };
 
 const normalizeFields = (fields) =>
   Object.fromEntries(Object.entries(fields || {}).map(([slug, value]) => [slug.replaceAll("-", "_"), value]));
@@ -75,21 +65,23 @@ function base(key) {
   return declared;
 }
 
+// Record reads go through the SDK's helper, bound to this app's client.
+const sdkRecords = () => createAirAppRecords(runtimeClient, { appId: appConfig.appId });
+
 async function readPage(key, cursor) {
   if (!allowedReads.has("records.list")) throw new Error("PROCEDURE_DENIED: records.list");
   const declared = base(key);
-  const result = await runtimeClient.records.list({
+  const page = await sdkRecords().readPage({
     baseId: declared.baseId,
     limit: declared.readLimit,
-    ...(cursor ? { cursor } : {}),
+    cursor,
   });
-  const records = Array.isArray(result) ? result : result.records || [];
-  const rows = records.map((record) => ({
-    ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields),
+  const rows = page.records.map((record) => ({
+    ...normalizeFields(record.fields),
     __recordId: record.id,
     __headCommitId: record.headCommitId || record.headCommit?.id,
   }));
-  return { rows, nextCursor: Array.isArray(result) ? null : result.nextCursor || null };
+  return { rows, nextCursor: page.nextCursor };
 }
 
 const initialPageCursors = {};
@@ -202,7 +194,6 @@ export const busabaseProvider = {
       fields: toBusabaseFields(baseHandoffFields(handoff)),
       message: `Record ${status} handoff for ${target_type} ${target_id}`,
       submittedBy: appConfig.appId,
-      autoMerge: isStandaloneLocalRuntime(),
     });
     return handoff;
   },

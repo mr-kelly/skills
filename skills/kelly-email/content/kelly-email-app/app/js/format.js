@@ -92,13 +92,17 @@ export function isPdf(att) {
 
 export function attachmentHtml(att) {
   const meta = `${escapeHtml(att.content_type || "file")} ${sizeLabel(att.size)}`;
+  // The saved URL is resolved in the page after render (list-detail.js
+  // resolveAttachments): the bytes live in the app's Drive, read through /api/v1.
   const url = att.url ? escapeHtml(att.url) : "";
-  const link = url ? `<a href="${url}" target="_blank" rel="noopener">${escapeHtml(t("attachment.open"))}</a>` : "";
+  const link = url
+    ? `<a data-attachment-url="${url}" target="_blank" rel="noopener">${escapeHtml(t("attachment.open"))}</a>`
+    : "";
   const preview =
     url && isImage(att)
-      ? `<img class="attachment-preview-image" src="${url}" alt="${escapeHtml(att.filename)}" />`
+      ? `<img class="attachment-preview-image" data-attachment-url="${url}" alt="${escapeHtml(att.filename)}" />`
       : url && isPdf(att)
-        ? `<iframe class="attachment-preview-pdf" src="${url}" title="${escapeHtml(att.filename)}"></iframe>`
+        ? `<iframe class="attachment-preview-pdf" data-attachment-url="${url}" title="${escapeHtml(att.filename)}"></iframe>`
         : "";
   return `
     <div class="attachment">

@@ -1,4 +1,8 @@
-import { inspectProvisionedResources, provisionDeclaredResources } from "../../vendor/busabase-airapp.js";
+import {
+  createAirAppRecords,
+  inspectProvisionedResources,
+  provisionDeclaredResources,
+} from "../../vendor/busabase-airapp.js";
 import { createRuntimeClient } from "../busabase-client.js";
 import { appConfig } from "../config.js?v=0.1.0";
 import {
@@ -15,15 +19,11 @@ const allowedSetup = new Set(appConfig.permissions.setupProcedures);
 const allowedWrites = new Set(appConfig.permissions.writeProcedures);
 const BROWSED_KEYS = ["scenarios"];
 
-// A deployed AirApp is served through the ambient Busabase session (a Busabase
-// iframe/preview host, or same-origin proxy under /api/airapp-preview/); a
-// standalone local preview runs on loopback outside that host. Direct writes
-// made from a standalone local preview (the trusted operator's own machine)
-// merge immediately; writes made from the deployed AirApp create a pending
-// ChangeRequest for the trusted process to merge, per the AirApp boundary.
-// A deployed AirApp sits inside the Busabase review boundary; only a standalone
-// run may merge its own writes. That is far too consequential to infer from the
-// URL — see ../runtime.js.
+// A person's create/update from this app leaves `autoMerge` unset, so Busabase
+// decides from that person's own permission: with write access the change lands
+// now; without it the same change becomes a ChangeRequest for someone who has it.
+// Delete is different (Busabase never auto-merges a delete), and still uses
+// isStandaloneLocalRuntime below to decide whether this run approves its own.
 import { isStandaloneLocalRuntime } from "../runtime.js";
 
 export { isStandaloneLocalRuntime };
@@ -67,21 +67,23 @@ function base(key) {
 
 const initialCursors = new Map();
 
+// Record reads go through the SDK's helper, bound to this app's client.
+const sdkRecords = () => createAirAppRecords(runtimeClient, { appId: appConfig.appId });
+
 async function readPage(key, cursor) {
   if (!allowedReads.has("records.list")) throw new Error("PROCEDURE_DENIED: records.list");
   const declared = base(key);
-  const result = await runtimeClient.records.list({
+  const page = await sdkRecords().readPage({
     baseId: declared.baseId,
     limit: declared.readLimit,
-    ...(cursor ? { cursor } : {}),
+    cursor,
   });
-  const records = Array.isArray(result) ? result : result.records || [];
-  const rows = records.map((record) => ({
-    ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields),
+  const rows = page.records.map((record) => ({
+    ...normalizeFields(record.fields),
     __recordId: record.id,
     __headCommitId: record.headCommitId || record.headCommit?.id,
   }));
-  return { rows, nextCursor: Array.isArray(result) ? null : result.nextCursor || null };
+  return { rows, nextCursor: page.nextCursor };
 }
 
 async function readPageRows(key) {
@@ -105,12 +107,7 @@ async function countRecords(key, filters) {
 
 async function findRecord(key, idFieldSlug, idValue) {
   const declared = base(key);
-  try {
-    return await runtimeClient.records.get({ baseId: declared.baseId, fieldSlug: idFieldSlug, valueText: idValue });
-  } catch (error) {
-    if (error?.code === "NOT_FOUND" || error?.status === 404) return null;
-    throw error;
-  }
+  return sdkRecords().findRecord({ baseId: declared.baseId, fieldSlug: idFieldSlug, valueText: idValue });
 }
 
 async function createScenarioRecord(scenario, message) {
@@ -121,7 +118,6 @@ async function createScenarioRecord(scenario, message) {
     fields: toBusabaseFields(scenarioToFields(scenario)),
     message,
     submittedBy: appConfig.appId,
-    autoMerge: isStandaloneLocalRuntime(),
   });
 }
 
@@ -134,7 +130,6 @@ async function updateScenarioRecord(existing, scenario, message) {
     message,
     author: appConfig.appId,
     baseCommitId: existing.headCommitId,
-    autoMerge: isStandaloneLocalRuntime(),
   });
 }
 

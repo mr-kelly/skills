@@ -91,14 +91,12 @@ def main():
                     page.locator("[data-select-id]").first.click()
                     page.locator("#mistakeCause").fill("Observed: child skipped one calculation step; cause unverified.")
                     page.locator("[data-save-mistake]").click()
-                    page.wait_for_selector("[data-refresh-cause]")
-                    requests = pending(busabase); assert len(requests) == 1
-                    assert "Cause not verified" in fields(rows(busabase, bases["mistakes"])[0])["analysis"]
-                    assert page.locator("[data-save-mistake]").is_disabled()
-                    page.screenshot(path=OUT / "homework-cause-pending.png", full_page=True)
-                    merge(busabase, requests)
-                    page.locator("[data-refresh-cause]").click()
+                    # A parent's own write follows their permission: with write access it
+                    # lands at once, so there is nothing to refresh and nothing pending.
+                    page.wait_for_selector("[data-save-mistake] ~ p[role='status']")
                     page.wait_for_function("!document.querySelector('[data-save-mistake]').disabled")
+                    assert not pending(busabase)
+                    assert page.locator("[data-refresh-cause]").count() == 0
                     analysis = json.loads(fields(rows(busabase, bases["mistakes"])[0])["analysis"])
                     assert analysis["fix_strategy"] == "Preserve this strategy"
                     assert analysis["root_cause"].startswith("Observed:")
@@ -138,9 +136,9 @@ def main():
                     page.locator("[data-decision-action='approve']").click()
                     page.wait_for_timeout(800)
                     assert page.locator("[data-action-error]").count() == 0
-                    requests = pending(busabase); assert len(requests) == 2
-                    assert fields(rows(busabase, bases["papers"])[0])["status"] == "needs_review"
-                    merge(busabase, requests)
+                    # The parent's approval lands directly (paper and review rows).
+                    assert not pending(busabase)
+                    assert fields(rows(busabase, bases["papers"])[0])["status"] == "approved"
                     page.reload(); page.wait_for_load_state("networkidle")
                     page.locator("[data-route='papers']").click()
                     page.locator("[data-select-id]").first.click()
@@ -157,10 +155,9 @@ def main():
                     page.locator("[data-run-submit]").click(); page.locator("[data-run-next]").click()
                     page.locator("[data-run-finish]").click()
                     page.wait_for_timeout(800)
-                    requests = pending(busabase); assert len(requests) == 1
-                    assert fields(rows(busabase, bases["papers"])[0])["status"] == "approved"
-                    page.screenshot(path=OUT / "homework-result-pending.png", full_page=True)
-                    merge(busabase, requests)
+                    # The practice result is the parent's own write too: saved, not queued.
+                    assert not pending(busabase)
+                    page.screenshot(path=OUT / "homework-result-saved.png", full_page=True)
                     paper_fields = fields(rows(busabase, bases["papers"])[0])
                     attempt = json.loads(paper_fields["analysis"])["attempts"][0]
                     assert attempt["correct"] == 1
@@ -174,7 +171,7 @@ def main():
                     ui.assert_no_horizontal_overflow(page)
                     assert not errors, errors
                     context.close(); browser.close()
-    print("PASS real Busabase: child feedback, cause pending/merge/status, source handoff, paper approval gate, attempts, stale review preservation")
+    print("PASS real Busabase: child feedback, parent writes land directly, agent recorder still reviewed, source handoff, paper approval gate, attempts, stale review preservation")
 
 if __name__ == "__main__":
     main()

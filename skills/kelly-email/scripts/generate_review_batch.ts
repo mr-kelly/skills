@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { ImapFlow } from "imapflow";
 import { simpleParser } from "mailparser";
+import { createProvider } from "../content/kelly-email-app/app/js/data/index.js";
 import {
   CLASSIFICATION_PIPELINE_VERSION,
   SKILL_DIR,
@@ -21,9 +22,12 @@ import {
   summaryFrom,
   utcNow,
   writeAgentLock,
-} from "../content/kelly-email-app/lib/common.ts";
-import { createProvider } from "../content/kelly-email-app/lib/data-provider/index.ts";
-import type { Config, Mailbox, ReviewItem } from "../content/kelly-email-app/lib/types.ts";
+} from "../content/kelly-email-app/lib/common.js";
+
+// Shapes are documented in references/; these scripts only need names for them.
+type Config = Record<string, any>;
+type Mailbox = Record<string, any>;
+type ReviewItem = Record<string, any>;
 
 interface BatchArgs {
   reviewQuota: number;

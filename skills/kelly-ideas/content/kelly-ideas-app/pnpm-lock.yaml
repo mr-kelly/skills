@@ -12,8 +12,8 @@ importers:
         specifier: 2.0.10
         version: 2.0.10(hono@4.12.34)
       busabase-sdk:
-        specifier: 0.80.0
-        version: 0.80.0
+        specifier: 0.99.1
+        version: 0.99.1
       hono:
         specifier: 4.12.34
         version: 4.12.34
@@ -188,8 +188,8 @@ packages:
   '@upsetjs/venn.js@2.0.0':
     resolution: {integrity: sha512-WbBhLrooyePuQ1VZxrJjtLvTc4NVfpOyKx0sKqioq9bX1C1m7Jgykkn8gLrtwumBioXIqam8DLxp88Adbue6Hw==}
 
-  busabase-sdk@0.80.0:
-    resolution: {integrity: sha512-2iahDmtjMNBQufRYahFy1QvPo8e7OKv3BdvKx2niN9SgmY/sBoGFUaqobfLonHosTYygY7x1X39oHqDy4l10GQ==}
+  busabase-sdk@0.99.1:
+    resolution: {integrity: sha512-b5Ih79bVcSkhgCDdEfc55u7q1Hn83Bg8ZIz7XojBZ816UrkHgAFoHcxpmkOU3V470IdDjm5BO+Z6/2kgPHRy+w==}
     engines: {node: '>=24.18.0'}
 
   commander@7.2.0:
@@ -700,7 +700,7 @@ snapshots:
       d3-selection: 3.0.0
       d3-transition: 3.0.1(d3-selection@3.0.0)
 
-  busabase-sdk@0.80.0:
+  busabase-sdk@0.99.1:
     dependencies:
       '@orpc/client': 1.15.0
       '@orpc/contract': 1.15.0

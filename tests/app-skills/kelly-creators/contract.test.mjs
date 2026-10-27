@@ -83,7 +83,7 @@ test("busabase-provider writes decisions as direct field changes, never a decisi
   const source = await readFile(join(browserRoot, "js", "providers", "busabase-provider.js"), "utf8");
   assert.match(source, /records\.changeRequest/);
   assert.match(source, /bases\.createChangeRequest/);
-  assert.match(source, /isStandaloneLocalRuntime/);
+  assert.doesNotMatch(source.replace(/\/\/.*$/gm, ""), /\bautoMerge\b(?!\s*:\s*true)/);
   assert.doesNotMatch(source, /decisions\.json/);
 });
 

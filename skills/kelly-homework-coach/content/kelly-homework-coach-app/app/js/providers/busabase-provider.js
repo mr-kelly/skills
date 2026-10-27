@@ -1,4 +1,9 @@
-import { inspectProvisionedResources, provisionDeclaredResources } from "../../vendor/busabase-airapp.js";
+import {
+  createAirAppRecords,
+  inspectProvisionedResources,
+  isAirAppWriteQueued,
+  provisionDeclaredResources,
+} from "../../vendor/busabase-airapp.js";
 import { createRuntimeClient } from "../busabase-client.js";
 import { appConfig } from "../config.js?v=0.1.0";
 import {
@@ -19,12 +24,6 @@ import {
 const allowedReads = new Set(appConfig.permissions.readProcedures);
 const allowedSetup = new Set(appConfig.permissions.setupProcedures);
 const allowedWrites = new Set(appConfig.permissions.writeProcedures);
-
-// Business record writes always remain pending, including local previews.
-// Resource provisioning retains its separate upstream setup workflow.
-import { isStandaloneLocalRuntime } from "../runtime.js";
-
-export { isStandaloneLocalRuntime };
 
 const normalizeFields = (fields) =>
   Object.fromEntries(Object.entries(fields || {}).map(([slug, value]) => [slug.replaceAll("-", "_"), value]));
@@ -63,21 +62,23 @@ function base(key) {
   return declared;
 }
 
+// Record reads go through the SDK's helper, bound to this app's client.
+const sdkRecords = () => createAirAppRecords(runtimeClient, { appId: appConfig.appId });
+
 async function readPage(key, cursor) {
   if (!allowedReads.has("records.list")) throw new Error("PROCEDURE_DENIED: records.list");
   const declared = base(key);
-  const result = await runtimeClient.records.list({
+  const page = await sdkRecords().readPage({
     baseId: declared.baseId,
     limit: declared.readLimit,
-    ...(cursor ? { cursor } : {}),
+    cursor,
   });
-  const records = Array.isArray(result) ? result : result.records || [];
-  const rows = records.map((record) => ({
-    ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields),
+  const rows = page.records.map((record) => ({
+    ...normalizeFields(record.fields),
     __recordId: record.id,
     __headCommitId: record.headCommitId || record.headCommit?.id,
   }));
-  return { rows, nextCursor: Array.isArray(result) ? null : result.nextCursor || null };
+  return { rows, nextCursor: page.nextCursor };
 }
 
 async function countRecords(key, filters) {
@@ -95,12 +96,7 @@ const countStatus = (key, status) =>
 
 async function findRecord(key, idFieldSlug, idValue) {
   const declared = base(key);
-  try {
-    return await runtimeClient.records.get({ baseId: declared.baseId, fieldSlug: idFieldSlug, valueText: idValue });
-  } catch (error) {
-    if (error?.code === "NOT_FOUND" || error?.status === 404) return null;
-    throw error;
-  }
+  return sdkRecords().findRecord({ baseId: declared.baseId, fieldSlug: idFieldSlug, valueText: idValue });
 }
 
 async function updateRecord(key, existing, fields, message) {
@@ -112,9 +108,17 @@ async function updateRecord(key, existing, fields, message) {
     message,
     author: appConfig.appId,
     baseCommitId: existing.headCommitId,
-    autoMerge: false,
   });
 }
+
+// A parent's write leaves `autoMerge` unset, so Busabase decides from their own
+// permission: with write access it lands now; without it the same change becomes
+// a ChangeRequest for someone who has it. Callers say "sent for review" only when
+// `pending` is true.
+const writeOutcome = (cr) => {
+  const pending = isAirAppWriteQueued(cr);
+  return { id: cr?.id || "", status: pending ? cr?.status || "in_review" : "merged", pending };
+};
 
 function findSettingsRow(rows = [], kind = "") {
   return rows.find((row) => row.kind === kind) || null;
@@ -264,10 +268,8 @@ export const busabaseProvider = {
       fields: { ...raw, analysis: JSON.stringify({ ...analysis, root_cause: cause.trim() }) },
       message: "补充既有错题卡的家长提供错因／作答过程；保留其他字段和确认状态",
       author: appConfig.appId,
-      autoMerge: false,
     });
-    if (cr.status !== "in_review") throw new Error("Expected pending ChangeRequest");
-    return { id: cr.id, status: cr.status };
+    return writeOutcome(cr);
   },
 
   async submitReview({ review_id, action, comment = "" } = {}) {
@@ -295,18 +297,21 @@ export const busabaseProvider = {
     const now = new Date().toISOString();
     const nextStatus = statusForAction(action);
 
-    await updateRecord(
-      "reviews",
-      existing,
-      baseReviewFields({
-        ...computeReviewFromRow(current),
-        review_id,
-        status: nextStatus,
-        decision_action: action,
-        decision_comment: String(comment || ""),
-        decided_at: now,
-      }),
-      `Decision on review ${review_id}: ${action}`,
+    const results = [];
+    results.push(
+      await updateRecord(
+        "reviews",
+        existing,
+        baseReviewFields({
+          ...computeReviewFromRow(current),
+          review_id,
+          status: nextStatus,
+          decision_action: action,
+          decision_comment: String(comment || ""),
+          decided_at: now,
+        }),
+        `Decision on review ${review_id}: ${action}`,
+      ),
     );
 
     const targetType = current.target_type;
@@ -327,16 +332,19 @@ export const busabaseProvider = {
           mistakes: computeMistakeFromRow,
           papers: computePaperFromRow,
         }[targetBase];
-        await updateRecord(
-          targetBase,
-          targetExisting,
-          fieldsBuilder({ ...normalizer(targetCurrent), status: nextStatus }),
-          `Decision on review ${review_id} updates ${targetType} ${targetId}: ${nextStatus}`,
+        results.push(
+          await updateRecord(
+            targetBase,
+            targetExisting,
+            fieldsBuilder({ ...normalizer(targetCurrent), status: nextStatus }),
+            `Decision on review ${review_id} updates ${targetType} ${targetId}: ${nextStatus}`,
+          ),
         );
       }
     }
 
-    return { ok: true };
+    const queued = results.find(isAirAppWriteQueued);
+    return { ok: true, pending: Boolean(queued), change_request_id: queued?.id || "" };
   },
 
   /**
@@ -380,8 +388,7 @@ export const busabaseProvider = {
       }),
       `Practice result for ${paper_id}; review the new attempt separately from the old paper approval`,
     );
-    if (cr.status !== "in_review") throw new Error("Expected pending result request");
-    return { id: cr.id, status: cr.status };
+    return writeOutcome(cr);
   },
 
   async submitAttemptReview({ paper_id, attempted_at, verdicts, comment } = {}) {
@@ -423,8 +430,7 @@ export const busabaseProvider = {
       basePaperFields({ ...paper, analysis: next }),
       `Parent review of practice attempt ${attempted_at} on ${paper_id}`,
     );
-    if (cr.status !== "in_review") throw new Error("Expected pending attempt review request");
-    return { id: cr.id, status: cr.status };
+    return writeOutcome(cr);
   },
 
   async provisionResources() {

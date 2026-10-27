@@ -18,4 +18,3 @@ export function createRuntimeClient() {
 // decide this: loopback hostname, minus iframe nesting and the preview path. A
 // decision this consequential should not rest on a guess that a dev tunnel or a
 // Desktop server on localhost can flip.
-export { isStandaloneLocalRuntime } from "./runtime.js";

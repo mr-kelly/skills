@@ -65,21 +65,10 @@ export async function initRuntime() {
 export const runtimeSnapshot = () => store.cached || UNKNOWN_RUNTIME;
 
 /**
- * Two predicates, not one, because the two decisions fail in opposite
- * directions and an undetermined runtime must fall to the safe side of each.
- *
- * Showing a connect gate that turns out to be unnecessary is recoverable — the
- * operator closes it. Skipping one that was needed is the reported bug.
+ * Whether the local `/auth/*` gateway applies. Showing a connect gate that turns
+ * out to be unnecessary is recoverable — the operator closes it. Skipping one
+ * that was needed is the reported bug, so an undetermined runtime shows it.
+ * Where the app runs never decides whether a write merges: Busabase decides that
+ * from the person's own permission.
  */
 export const shouldUseLocalGateway = (runtime = runtimeSnapshot()) => !runtime.hosted;
-
-/**
- * Whether this process may merge its own writes instead of leaving them as
- * ChangeRequests. A deployed AirApp sits inside the Busabase review boundary; a
- * standalone preview is the trusted operator's own machine.
- *
- * Here an undetermined runtime must read as NOT standalone: a write that stays
- * reviewable can still be approved, but one that auto-merged by mistake has
- * already crossed the review boundary.
- */
-export const isStandaloneLocalRuntime = (runtime = runtimeSnapshot()) => runtime.determined && !runtime.hosted;

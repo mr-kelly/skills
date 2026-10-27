@@ -384,16 +384,17 @@ async function submitDecision(followupId, action, card) {
   }
   const draft = card.querySelector('[data-field="draft"]')?.value ?? "";
   const note = card.querySelector('[data-field="note"]')?.value ?? "";
+  let result;
   try {
     const provider = await getProvider();
-    await provider.applyDecision({ followup_id: followupId, action, comment: note, draft });
+    result = await provider.applyDecision({ followup_id: followupId, action, comment: note, draft });
   } catch (error) {
     state.notice = error instanceof Error ? error.message : `Decision failed: ${error}`;
     render();
     return;
   }
   delete state.edits[followupId];
-  state.notice = t("saved");
+  state.notice = result?.pending ? t("sentForReview") : t("saved");
   await loadState();
 }
 

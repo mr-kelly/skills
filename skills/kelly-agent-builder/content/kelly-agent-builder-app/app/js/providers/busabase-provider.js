@@ -1,4 +1,8 @@
-import { inspectProvisionedResources, provisionDeclaredResources } from "../../vendor/busabase-airapp.js";
+import {
+  createAirAppRecords,
+  inspectProvisionedResources,
+  provisionDeclaredResources,
+} from "../../vendor/busabase-airapp.js";
 import {
   activateAgent as activateAgentRule,
   applyUpdate,
@@ -16,10 +20,6 @@ import { TOOL_CATALOG } from "../tool-catalog.js?v=0.1.0";
 const allowedReads = new Set(appConfig.permissions.readProcedures);
 const allowedSetup = new Set(appConfig.permissions.setupProcedures);
 const allowedWrites = new Set(appConfig.permissions.writeProcedures);
-
-// Only a standalone run may merge its own writes; a deployed AirApp is inside
-// the Busabase review boundary. Too consequential to infer from the URL.
-import { isStandaloneLocalRuntime } from "../runtime.js";
 
 const normalizeFields = (fields) =>
   Object.fromEntries(Object.entries(fields || {}).map(([slug, value]) => [slug.replaceAll("-", "_"), value]));
@@ -101,21 +101,26 @@ function base(key) {
   return declared;
 }
 
+// Record reads and writes go through the SDK's helpers, bound to this app's client.
+// A person's write leaves `autoMerge` unset, so Busabase decides from their own
+// permission: it lands now with write access and becomes a ChangeRequest without
+// it. The response says which happened; `isAirAppWriteQueued` reads it.
+const sdkRecords = () => createAirAppRecords(runtimeClient, { appId: appConfig.appId });
+
 async function readPage(key, cursor) {
   if (!allowedReads.has("records.list")) throw new Error("PROCEDURE_DENIED: records.list");
   const declared = base(key);
-  const result = await runtimeClient.records.list({
+  const page = await sdkRecords().readPage({
     baseId: declared.baseId,
     limit: declared.readLimit,
-    ...(cursor ? { cursor } : {}),
+    cursor,
   });
-  const records = Array.isArray(result) ? result : result.records || [];
-  const rows = records.map((record) => ({
-    ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields),
+  const rows = page.records.map((record) => ({
+    ...normalizeFields(record.fields),
     __recordId: record.id,
     __headCommitId: record.headCommitId || record.headCommit?.id,
   }));
-  return { rows, nextCursor: Array.isArray(result) ? null : result.nextCursor || null };
+  return { rows, nextCursor: page.nextCursor };
 }
 
 const initialPageCursors = {};
@@ -143,42 +148,19 @@ function normalizePageRows(key, rows) {
   return key === "agents" ? rows.map(recordToAgent).map(toView) : rows;
 }
 
-async function findRecord(key, idFieldSlug, idValue) {
-  const declared = base(key);
-  try {
-    return await runtimeClient.records.get({ baseId: declared.baseId, fieldSlug: idFieldSlug, valueText: idValue });
-  } catch (error) {
-    if (error?.code === "NOT_FOUND" || error?.status === 404) return null;
-    throw error;
-  }
-}
-
 async function upsert(key, idFieldSlug, idValue, fields, message) {
   if (!allowedWrites.has("bases.createChangeRequest") || !allowedWrites.has("records.changeRequest")) {
     throw new Error("PROCEDURE_DENIED: records.changeRequest");
   }
   const declared = base(key);
-  const existing = await findRecord(key, idFieldSlug, idValue);
-  const normalized = toBusabaseFields(fields);
-  const autoMerge = isStandaloneLocalRuntime();
-  if (!existing) {
-    return runtimeClient.bases.createChangeRequest({
-      baseId: declared.baseId,
-      fields: normalized,
-      message,
-      submittedBy: appConfig.appId,
-      autoMerge,
-    });
-  }
-  return runtimeClient.records.changeRequest({
-    recordId: existing.id,
-    operation: "update",
-    fields: normalized,
+  const { response } = await sdkRecords().upsert({
+    baseId: declared.baseId,
+    fieldSlug: idFieldSlug,
+    valueText: idValue,
+    fields: toBusabaseFields(fields),
     message,
-    author: appConfig.appId,
-    baseCommitId: existing.headCommitId,
-    autoMerge,
   });
+  return response;
 }
 
 async function readSettingsRows() {

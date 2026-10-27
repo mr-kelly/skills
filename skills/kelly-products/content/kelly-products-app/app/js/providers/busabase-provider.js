@@ -1,4 +1,8 @@
-import { inspectProvisionedResources, provisionDeclaredResources } from "../../vendor/busabase-airapp.js";
+import {
+  createAirAppRecords,
+  inspectProvisionedResources,
+  provisionDeclaredResources,
+} from "../../vendor/busabase-airapp.js";
 import { createRuntimeClient } from "../busabase-client.js";
 import { appConfig } from "../config.js?v=0.1.0";
 import {
@@ -26,19 +30,6 @@ const NORMALIZE_BY_KEY = {
   inventory: normalizeInventoryRow,
   review: normalizeReviewRow,
 };
-
-// A deployed AirApp is served through the ambient Busabase session (a Busabase
-// iframe/preview host, or same-origin proxy under /api/airapp-preview/); a
-// standalone local preview runs on loopback outside that host. Direct writes
-// made from a standalone local preview (the trusted operator's own machine)
-// merge immediately; writes made from the deployed AirApp create a pending
-// ChangeRequest for the trusted process to merge, per the AirApp boundary.
-// A deployed AirApp sits inside the Busabase review boundary; only a standalone
-// run may merge its own writes. That is far too consequential to infer from the
-// URL — see ../runtime.js.
-import { isStandaloneLocalRuntime } from "../runtime.js";
-
-export { isStandaloneLocalRuntime };
 
 const normalizeFields = (fields) =>
   Object.fromEntries(Object.entries(fields || {}).map(([slug, value]) => [slug.replaceAll("-", "_"), value]));
@@ -79,21 +70,23 @@ function base(key) {
 
 const initialCursors = new Map();
 
+// Record reads go through the SDK's helper, bound to this app's client.
+const sdkRecords = () => createAirAppRecords(runtimeClient, { appId: appConfig.appId });
+
 async function readPage(key, cursor) {
   if (!allowedReads.has("records.list")) throw new Error("PROCEDURE_DENIED: records.list");
   const declared = base(key);
-  const result = await runtimeClient.records.list({
+  const page = await sdkRecords().readPage({
     baseId: declared.baseId,
     limit: declared.readLimit,
-    ...(cursor ? { cursor } : {}),
+    cursor,
   });
-  const records = Array.isArray(result) ? result : result.records || [];
-  const rows = records.map((record) => ({
-    ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields),
+  const rows = page.records.map((record) => ({
+    ...normalizeFields(record.fields),
     __recordId: record.id,
     __headCommitId: record.headCommitId || record.headCommit?.id,
   }));
-  return { rows, nextCursor: Array.isArray(result) ? null : result.nextCursor || null };
+  return { rows, nextCursor: page.nextCursor };
 }
 
 async function readPageRows(key) {
@@ -117,12 +110,7 @@ async function countRecords(key, filters) {
 
 async function findRecord(key, idFieldSlug, idValue) {
   const declared = base(key);
-  try {
-    return await runtimeClient.records.get({ baseId: declared.baseId, fieldSlug: idFieldSlug, valueText: idValue });
-  } catch (error) {
-    if (error?.code === "NOT_FOUND" || error?.status === 404) return null;
-    throw error;
-  }
+  return sdkRecords().findRecord({ baseId: declared.baseId, fieldSlug: idFieldSlug, valueText: idValue });
 }
 
 async function updateRecord(existing, fields, message) {
@@ -134,7 +122,6 @@ async function updateRecord(existing, fields, message) {
     message,
     author: appConfig.appId,
     baseCommitId: existing.headCommitId,
-    autoMerge: isStandaloneLocalRuntime(),
   });
 }
 

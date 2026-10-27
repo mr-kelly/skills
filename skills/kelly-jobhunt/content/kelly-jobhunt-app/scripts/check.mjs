@@ -177,12 +177,12 @@ const assertions = [
     message: "Server must expose the injected runtime at /__airapp/runtime",
   },
   {
-    // A deployed AirApp sits inside the Busabase review boundary; only a local
-    // loopback preview may merge its own writes.
+    // A person's write follows their own permission: the provider leaves
+    // `autoMerge` unset and reports whether Busabase merged or queued it.
     ok:
-      providerSource.includes("autoMerge: isStandaloneLocalRuntime()") ||
-      providerSource.includes("const autoMerge = isStandaloneLocalRuntime()"),
-    message: "Record writes must only auto-merge on a standalone local runtime",
+      !/\bautoMerge\s*[:=]|[{,]\s*autoMerge\s*[,}]/.test(providerSource) &&
+      providerSource.includes("isAirAppWriteQueued"),
+    message: "Record writes must leave autoMerge unset and report whether Busabase queued them",
   },
   {
     ok: providerSource.includes("bases.createChangeRequest") && providerSource.includes("records.changeRequest"),

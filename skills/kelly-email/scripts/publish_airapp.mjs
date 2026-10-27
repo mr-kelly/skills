@@ -17,7 +17,7 @@ import { createBusabaseClient } from "busabase-sdk";
 import { publishAirApp } from "busabase-sdk/airapp";
 import { appConfig } from "../content/kelly-email-app/app/js/config.js";
 
-const appRoot = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "app");
+const appRoot = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "content", "kelly-email-app");
 
 function fail(message) {
   console.error(message);
@@ -37,12 +37,19 @@ const client = createBusabaseClient({
 });
 
 const SKIP_NAMES = new Set(["node_modules", ".git", ".DS_Store", "coverage", "test-results", "playwright-report"]);
+// Repository-only files the app lists in its own .busabaseignore (tests, lockfiles).
+const IGNORED = new Set(
+  (await readFile(path.join(appRoot, ".busabaseignore"), "utf8").catch(() => ""))
+    .split("\n")
+    .map((line) => line.trim().replace(/\/$/, ""))
+    .filter((line) => line && !line.startsWith("#")),
+);
 async function readAirAppFiles(dir = appRoot, prefix = "") {
   const entries = await readdir(dir, { withFileTypes: true });
   const files = [];
   for (const entry of entries) {
-    if (SKIP_NAMES.has(entry.name)) continue;
     const rel = prefix ? `${prefix}/${entry.name}` : entry.name;
+    if (SKIP_NAMES.has(entry.name) || IGNORED.has(rel)) continue;
     const abs = path.join(dir, entry.name);
     if (entry.isDirectory()) {
       files.push(...(await readAirAppFiles(abs, rel)));

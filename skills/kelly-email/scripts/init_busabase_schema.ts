@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { createProvider, loadDotenv } from "../content/kelly-email-app/lib/data-provider/index.ts";
+import { createProvider, loadDotenv } from "../content/kelly-email-app/app/js/data/index.js";
 
 function help() {
   console.log(`Usage: node scripts/init_busabase_schema.ts [--apply]

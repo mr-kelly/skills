@@ -1,4 +1,4 @@
-import { api, toast } from "./api.js";
+import { api, attachmentUrl, toast } from "./api.js";
 import {
   accountEmailLabel,
   accountLabel,
@@ -360,7 +360,7 @@ export function renderDetail() {
   }
   const attachments = (item.attachments || []).map(attachmentHtml).join("");
   const htmlPreview = (item.html || "").trim()
-    ? `<iframe class="html-preview" sandbox srcdoc="${escapeHtml(item.html)}"></iframe>`
+    ? `<iframe class="html-preview" sandbox srcdoc="${escapeHtml(item.html)}" data-email-html></iframe>`
     : `<div class="body-box muted">${escapeHtml(t("detail.no_html"))}</div>`;
   const risks = (item.risk || []).map((risk) => badge(risk, risk)).join("");
   const suggestedReply = suggestedReplyFor(item);
@@ -438,6 +438,7 @@ export function renderDetail() {
   `;
   renderMobileTopbar();
   attachHtmlPreviewAutoResize();
+  resolveAttachments(item).catch(() => {});
   applyLockState();
   closeDetailActionMenu();
   $("primaryDetailAction").onclick = () => decide(primaryAction.action, [item.id]);
@@ -531,6 +532,30 @@ export async function decide(action, ids = null) {
       : t("toast.saved_count", { count: data.changed.length }),
   );
   await refresh({ preserveScroll: false });
+}
+
+// Saved attachments (and inline `cid:` images, which the scan rewrote to the same
+// URLs) are read from the app's Drive and shown as object URLs. A link that cannot
+// be resolved stays without an href rather than pointing at a route nobody serves.
+const PROVIDER_FILE_URL = /\/api\/provider-file\/[^"'\s)<>]+/g;
+
+async function resolveAttachments(item) {
+  const body = $("detailBody");
+  for (const node of body.querySelectorAll("[data-attachment-url]")) {
+    const resolved = await attachmentUrl(node.dataset.attachmentUrl);
+    if (!resolved || !node.isConnected) continue;
+    node.setAttribute(node.tagName === "A" ? "href" : "src", resolved);
+  }
+  const frame = body.querySelector("[data-email-html]");
+  const html = String(item.html || "");
+  const inline = [...new Set(html.match(PROVIDER_FILE_URL) || [])];
+  if (!frame || !inline.length) return;
+  let rewritten = html;
+  for (const url of inline) {
+    const resolved = await attachmentUrl(url, { inline: true });
+    if (resolved) rewritten = rewritten.replaceAll(url, resolved);
+  }
+  if (frame.isConnected && rewritten !== html) frame.srcdoc = rewritten;
 }
 
 // router.js needs refresh/renderList/renderDetail (registered below) and this

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { batchFromEmailRecords } from "../app/js/data/email-records.js";
 import { appendStatePage } from "../app/js/store.js";
-import { batchFromEmailRecords } from "../lib/data-provider/email-records.ts";
 
 test("successive record pages use the same field normalizer", () => {
   const first = batchFromEmailRecords([
