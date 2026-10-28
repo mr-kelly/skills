@@ -75,6 +75,22 @@
     transform: translate(-50%, 0);
   }
 
+  /* Buttons near a panel's left edge: anchor the bubble to the button's left
+     side so it grows rightward instead of being clipped. */
+  button.has-tooltip.tooltip-start::after {
+    left: 0;
+    transform: translate(0, 6px);
+  }
+
+  button.has-tooltip.tooltip-start::before {
+    left: 16px;
+  }
+
+  button.has-tooltip.tooltip-start:hover::after,
+  button.has-tooltip.tooltip-start:focus-visible::after {
+    transform: translate(0, 0);
+  }
+
   button.primary {
     background: linear-gradient(
       180deg,
