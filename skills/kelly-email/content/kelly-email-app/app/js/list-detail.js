@@ -432,7 +432,7 @@ export function renderDetail() {
     <div class="section-title">${escapeHtml(t("detail.review_note"))}</div>
     <textarea id="commentText" class="comment-box" placeholder="${escapeHtml(t("detail.comment.placeholder"))}">${escapeHtml(item.user_comment || "")}</textarea>
     <div class="detail-actions">
-      <button id="saveDetail" class="has-tooltip" data-tooltip="${escapeHtml(t("detail.save.tooltip"))}" title="${escapeHtml(t("detail.save.tooltip"))}">${escapeHtml(t("action.save_note"))}</button>
+      <button id="saveDetail" class="has-tooltip tooltip-start" data-tooltip="${escapeHtml(t("detail.save.tooltip"))}" title="${escapeHtml(t("detail.save.tooltip"))}">${escapeHtml(t("action.save_note"))}</button>
     </div>
     ${emailBodySectionsHtml(item)}
   `;
