@@ -513,7 +513,7 @@ function renderRow(item, view) {
   const id = idFor(item, view);
   const active = state.route.id === id || (!state.route.id && selectedItem(state.data.snapshot) === item);
   const target = view === "review" ? findTarget(state.data.snapshot, item) : null;
-  const title = target?.title || item.title;
+  const title = target?.title || item.title || (view === "mistakes" ? item.topic : "") || "";
   const summary =
     target?.prompt_text ||
     item.prompt_text ||
@@ -523,13 +523,13 @@ function renderRow(item, view) {
     "";
   let chips = statusChip(item.status);
   if (view === "student") chips += outcomeChip(item.outcome);
-  if (view === "mistakes") chips += `<span class="chip">${esc(item.topic)}</span>`;
+  if (view === "mistakes" && item.topic && item.topic !== title) chips += `<span class="chip">${esc(item.topic)}</span>`;
   if (view === "papers") chips += `<span class="chip">${esc(item.question_count)} ${esc(t("questionCount"))}</span>`;
   if (view === "review") chips += `<span class="chip action">${esc(nextStep(item))}</span>`;
   return `
     <button class="row ${active ? "active" : ""} ${state.flashId === id ? "is-decided" : ""}" data-select-id="${esc(id)}" data-select-view="${esc(view)}" type="button">
       <div class="row-top">
-        <div class="row-title">${esc(refLabel(view, item.ref))} · ${esc(title)}</div>
+        <div class="row-title">${esc(refLabel(view, item.ref))}${title ? ` · ${esc(title)}` : ""}</div>
       </div>
       <div class="row-summary">${esc(summary)}</div>
       <div class="chips">${chips}</div>
