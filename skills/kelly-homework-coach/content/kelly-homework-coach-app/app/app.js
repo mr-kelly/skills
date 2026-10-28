@@ -523,7 +523,8 @@ function renderRow(item, view) {
     "";
   let chips = statusChip(item.status);
   if (view === "student") chips += outcomeChip(item.outcome);
-  if (view === "mistakes" && item.topic && item.topic !== title) chips += `<span class="chip">${esc(item.topic)}</span>`;
+  if (view === "mistakes" && item.topic && item.topic !== title)
+    chips += `<span class="chip">${esc(item.topic)}</span>`;
   if (view === "papers") chips += `<span class="chip">${esc(item.question_count)} ${esc(t("questionCount"))}</span>`;
   if (view === "review") chips += `<span class="chip action">${esc(nextStep(item))}</span>`;
   return `
