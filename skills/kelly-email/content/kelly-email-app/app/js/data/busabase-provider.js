@@ -451,6 +451,8 @@ export function createBusabaseProvider() {
           action: "",
         };
       } catch (error) {
+        const detail = error instanceof Error ? error.message : String(error);
+        const archived = detail.startsWith("SETUP_ARCHIVED");
         return {
           ok: false,
           provider: "busabase",
@@ -458,9 +460,13 @@ export function createBusabaseProvider() {
           hosting: "cloud",
           base_url: busabase.meta.baseUrl || "same-origin",
           space_id: busabase.meta.spaceId,
-          message: "Kelly Email could not initialize its declared Busabase resources.",
-          action: "Open this AirApp in the target Space and initialize its resources.",
-          error: error instanceof Error ? error.message : String(error),
+          message: archived
+            ? "Kelly Email's Busabase resources were moved to the Space's Trash, so it did not recreate them."
+            : "Kelly Email could not initialize its declared Busabase resources.",
+          action: archived
+            ? "Restore them from the Trash to reconnect, or run node scripts/init_busabase_schema.ts --apply to create new ones."
+            : "Open this AirApp in the target Space and initialize its resources.",
+          error: detail,
           connection: {},
         };
       }
@@ -474,7 +480,11 @@ export function createBusabaseProvider() {
 
     async ensureSchema(options = {}) {
       const busabase = await client();
-      const resources = options.apply ? await busabase.provisionResources() : await busabase.inspectResources();
+      // An operator asking to apply is explicit intent, so this one is not held
+      // back by the Trash guard that init() runs under.
+      const resources = options.apply
+        ? await busabase.provisionResources({ force: true })
+        : await busabase.inspectResources();
       return {
         ok: Boolean(resources.folder && !resources.missing.length && resources.drive),
         resources,

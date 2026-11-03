@@ -237,6 +237,79 @@ def test_busabase_provisioning(browser) -> None:
             )
 
 
+def archive_node(busabase_url: str, node_id: str) -> None:
+    # What a person does when they delete the Folder in the dashboard.
+    change = post_json(
+        f"{busabase_url}/api/v1/nodes/change-requests",
+        {
+            "message": "Archive Kelly Email on purpose",
+            "autoMerge": True,
+            "operations": [{"kind": "delete", "nodeId": node_id}],
+        },
+    )
+    assert change.get("status") in ("merged", None), change
+
+
+def test_archived_folder_stays_archived(browser) -> None:
+    # Story: an owner deletes the Kelly Email Folder. The app is still open in
+    # a tab, and the page reloads or polls. The Folder must stay in the Trash.
+    busabase_port = free_port()
+    busabase_url = f"http://127.0.0.1:{busabase_port}"
+    with tempfile.TemporaryDirectory(prefix="kelly-email-busabase-") as data_dir:
+        busabase_command = [
+            "npx", "-y", f"busabase@{BUSABASE_VERSION}", "server",
+            "--host", "127.0.0.1", "--port", str(busabase_port), "--data", data_dir,
+        ]  # fmt: skip
+        with managed_process(busabase_command, REPO_ROOT, {}, f"{busabase_url}/api/health", timeout=90):
+            run_init_schema(busabase_url)
+            folder = find_base(read_json(f"{busabase_url}/api/v1/nodes?depth=2"), "app-root")
+            assert folder, "the Kelly Email Folder should exist after init"
+
+            app_port = free_port()
+            app_url = f"http://127.0.0.1:{app_port}"
+            with tempfile.TemporaryDirectory(prefix="kelly-email-home-") as app_home:
+                app_env = {
+                    "BUSABASE_BASE_URL": busabase_url,
+                    "BUSABASE_SPACE_ID": "local",
+                    "HOME": app_home,
+                    "PORT": str(app_port),
+                }
+                with managed_process(["node", "server.js"], APP_ROOT, app_env, f"{app_url}/auth/status"):
+                    context = browser.new_context(viewport={"width": 1280, "height": 820})
+                    page = context.new_page()
+                    page.goto(f"{app_url}/#/inbox")
+                    page.wait_for_load_state("networkidle")
+                    page.screenshot(path=str(RESULTS_ROOT / "archived-1-before-delete.png"))
+
+                    archive_node(busabase_url, folder["id"])
+
+                    # Three page loads: the old behaviour rebuilt the Folder on the first.
+                    for _ in range(3):
+                        page.goto(f"{app_url}/#/inbox")
+                        page.reload()
+                        page.wait_for_load_state("networkidle")
+                    page.get_by_text("Trash", exact=False).first.wait_for(timeout=10000)
+                    # The page says what to do next, not only that it did nothing.
+                    action = page.locator("#providerGateAction").inner_text()
+                    assert "Trash" in action and "init_busabase_schema.ts --apply" in action, action
+                    page.screenshot(path=str(RESULTS_ROOT / "archived-2-reload-after-delete.png"))
+                    # The gate scrolls inside itself, so bring the next step into view.
+                    page.locator("#providerGateAction").scroll_into_view_if_needed()
+                    page.screenshot(path=str(RESULTS_ROOT / "archived-2b-what-to-do-next.png"))
+
+                    live = find_base(read_json(f"{busabase_url}/api/v1/nodes?depth=2"), "app-root")
+                    assert not live, f"the archived Folder was recreated: {live}"
+
+                    # The operator can still set it up again on purpose.
+                    run_init_schema(busabase_url)
+                    live = find_base(read_json(f"{busabase_url}/api/v1/nodes?depth=2"), "app-root")
+                    assert live, "an explicit --apply should create the Folder again"
+                    page.reload()
+                    page.wait_for_load_state("networkidle")
+                    page.screenshot(path=str(RESULTS_ROOT / "archived-3-after-explicit-apply.png"))
+                    context.close()
+
+
 def main() -> None:
     RESULTS_ROOT.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="kelly-email-home-") as app_home:
@@ -255,6 +328,8 @@ def main() -> None:
                     print("PASS OSS - demo UI at desktop and phone viewports")
                     test_busabase_provisioning(browser)
                     print("PASS OSS - schema init, seeded record read, and persistence against temporary Busabase")
+                    test_archived_folder_stays_archived(browser)
+                    print("PASS OSS - a Folder moved to the Trash is not recreated by page loads")
                 except Exception:
                     for index, context in enumerate(browser.contexts):
                         for page_index, page in enumerate(context.pages):
