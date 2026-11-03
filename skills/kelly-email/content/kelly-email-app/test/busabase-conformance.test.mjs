@@ -127,5 +127,39 @@ test(
       const server = await fs.readFile(new URL("../server/hono.js", import.meta.url), "utf8");
       assert.doesNotMatch(server, /imap|nodemailer|smtp|createProvider/i);
     });
+
+    // Runs last: it archives the Folder every test above depends on.
+    await t.test("a Folder the owner archived is not recreated by the next read", async () => {
+      const { appConfig } = await import("../app/js/config.js");
+      const { providerStatus } = await import("../app/js/data/provider-status.js");
+      const provider = createProvider();
+      assert.ok(appConfig.folder.nodeId, "the Folder should be resolved by the earlier tests");
+
+      const archived = await fetch(`${origin}/api/v1/nodes/change-requests`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          message: "Archive Kelly Email on purpose",
+          autoMerge: true,
+          operations: [{ kind: "delete", nodeId: appConfig.folder.nodeId }],
+        }),
+      });
+      assert.ok(archived.ok, await archived.text());
+
+      // Every page load asks for the status, and every data call runs the same
+      // check first: several rounds, because the old behaviour recreated the
+      // Folder on the very first one.
+      for (let round = 0; round < 3; round += 1) {
+        const status = await providerStatus();
+        assert.equal(status.ok, false, JSON.stringify(status));
+        assert.match(String(status.error), /SETUP_ARCHIVED/);
+      }
+      const inspected = await provider.checkSchema();
+      assert.equal(inspected.resources.folder, null, "the archived Folder must stay archived");
+
+      // An operator explicitly applying the schema is still allowed to bring it back.
+      const applied = await provider.ensureSchema({ apply: true });
+      assert.equal(applied.ok, true, JSON.stringify(applied));
+    });
   },
 );

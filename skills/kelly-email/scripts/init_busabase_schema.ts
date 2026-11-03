@@ -5,8 +5,10 @@ function help() {
   console.log(`Usage: node scripts/init_busabase_schema.ts [--apply]
 
 Checks the declared Kelly Email Busabase Folder, Bases, and Drive.
-Without --apply this is read-only. With --apply it lazily creates missing
-declared resources after ownership checks. Normal AirApp startup does the same.`);
+Without --apply this is read-only. With --apply it creates missing declared
+resources after ownership checks, including ones moved to the Space's Trash.
+Normal AirApp startup does the same for a Space that never had the app, but
+leaves anything in the Trash alone.`);
 }
 
 async function main() {
