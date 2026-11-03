@@ -161,5 +161,28 @@ test(
       const applied = await provider.ensureSchema({ apply: true });
       assert.equal(applied.ok, true, JSON.stringify(applied));
     });
+
+    // The guard is about the Folder. Once the Space has a live Folder again (a
+    // re-install), an old Drive sitting in the Trash must not stop the app from
+    // creating the one it is missing.
+    await t.test("a re-installed Space still gets its missing Drive", async () => {
+      const { appConfig } = await import("../app/js/config.js");
+      const { providerStatus } = await import("../app/js/data/provider-status.js");
+      assert.ok(appConfig.drive.nodeId, "the Drive should exist after the explicit apply");
+      const archived = await fetch(`${origin}/api/v1/nodes/change-requests`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          message: "Archive the old Drive",
+          autoMerge: true,
+          operations: [{ kind: "delete", nodeId: appConfig.drive.nodeId }],
+        }),
+      });
+      assert.ok(archived.ok, await archived.text());
+      appConfig.drive.nodeId = "";
+      const status = await providerStatus();
+      assert.equal(status.ok, true, JSON.stringify(status));
+      assert.equal(status.connection.drive_exists, true, JSON.stringify(status));
+    });
   },
 );

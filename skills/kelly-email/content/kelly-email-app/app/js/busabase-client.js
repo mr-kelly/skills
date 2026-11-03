@@ -107,34 +107,27 @@ export function createEmailClient() {
     return { folder: resources.folder, bases: resources.bases, drive, missing: resources.missing };
   }
 
-  // Slugs of this app's own nodes sitting in the Space's Trash. Provisioning
-  // fills in whatever is missing on every call, so without this a Folder the
-  // owner deleted on purpose is back within a second of the next page load.
-  async function trashedOwnSlugs() {
-    const trash = await sdk.nodes.list({ status: "archived" });
-    const rows = Array.isArray(trash) ? trash : trash?.nodes || trash?.items || [];
-    return new Set(rows.filter((node) => node?.metadata?.appId === appConfig.appId).map((node) => node.slug));
-  }
-
+  // Provisioning fills in whatever is missing on every call, so without this a
+  // Folder the owner deleted on purpose is back within a second of the next page
+  // load. Only the Folder counts: while a live one exists the Space has been set
+  // up (again), and a missing Base or Drive is just part of that set-up.
   async function assertNotRemovedOnPurpose() {
     const current = await inspectResources();
-    const wanted = [
-      ...(current.folder ? [] : [appConfig.folder.slug]),
-      ...current.missing.map((declaration) => declaration.slug),
-      ...(current.folder && !current.drive ? [appConfig.drive.slug] : []),
-    ];
-    if (!wanted.length) return;
-    const trashed = await trashedOwnSlugs();
-    const removed = wanted.filter((slug) => trashed.has(slug));
-    if (removed.length) {
-      throw new Error(
-        `SETUP_ARCHIVED: ${removed.join(", ")} ${removed.length === 1 ? "is" : "are"} in the Space's Trash`,
-      );
-    }
+    if (current.folder) return;
+    const trash = await sdk.nodes.list({ status: "archived" });
+    const rows = Array.isArray(trash) ? trash : trash?.nodes || trash?.items || [];
+    const removed = rows.some(
+      (node) =>
+        node?.type === "folder" &&
+        node?.slug === appConfig.folder.slug &&
+        node?.metadata?.appId === appConfig.appId &&
+        node?.metadata?.resourceKey === "app-root",
+    );
+    if (removed) throw new Error(`SETUP_ARCHIVED: ${appConfig.folder.slug} is in the Space's Trash`);
   }
 
   // First contact in a Space that never had the app still provisions on its
-  // own, but anything the owner has archived stays archived until someone
+  // own, but an app Folder the owner archived stays archived until someone
   // restores it. `force` is for an operator who explicitly asks to set it up.
   async function provisionResources({ force = false } = {}) {
     if (!force) await assertNotRemovedOnPurpose();

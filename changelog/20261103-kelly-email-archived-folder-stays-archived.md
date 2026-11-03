@@ -20,7 +20,8 @@ AI Agent: Claude
 ## What Changed
 
 - Every data call in the Busabase provider ran `init()` first, and `init()` created whatever declared resource was missing. A Folder in the Trash counts as missing, so the next page load or poll rebuilt the whole Folder, its three Bases and the Drive.
-- Automatic provisioning now checks the Space's Trash first. If a missing resource has a same-app node in the Trash, it is treated as removed on purpose: nothing is created, and the setup panel says so and how to proceed (restore it, or run `node scripts/init_busabase_schema.ts --apply`).
+- Automatic provisioning now checks the Space's Trash when the app's Folder is missing. If the Trash holds this app's Folder, it is treated as removed on purpose: nothing is created, and the setup panel says so and how to proceed (restore it, or run `node scripts/init_busabase_schema.ts --apply`).
+- The check is about the Folder only. While a live Folder exists the Space has been set up (again), so a missing Base or Drive is still created as before, even if an older copy sits in the Trash.
 - A Space that never had the app still provisions on first contact, as before.
 - An operator running `ensureSchema({ apply: true })` (the `--apply` script) is explicit intent and still creates the resources, Trash or not.
 
