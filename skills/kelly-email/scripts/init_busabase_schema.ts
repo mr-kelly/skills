@@ -6,9 +6,10 @@ function help() {
 
 Checks the declared Kelly Email Busabase Folder, Bases, and Drive.
 Without --apply this is read-only. With --apply it creates missing declared
-resources after ownership checks, including ones moved to the Space's Trash.
-Normal AirApp startup does the same for a Space that never had the app, but
-leaves anything in the Trash alone.`);
+resources after ownership checks, including an app Folder moved to the Space's
+Trash. Normal AirApp startup does the same for a Space that never had the app,
+but leaves an archived app Folder alone. A Base or Drive deleted on its own
+inside a live Folder is still recreated.`);
 }
 
 async function main() {

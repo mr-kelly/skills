@@ -43,12 +43,25 @@ def bounds(app) -> None:
 
 def controls_in_bounds(app) -> None:
     # Every enabled, visible primary control needs a reachable phone hit target.
-    controls = app.locator("#content button:visible, #content select:visible")
-    for index in range(controls.count()):
-        control = controls.nth(index)
-        control.scroll_into_view_if_needed()
-        box = control.bounding_box()
-        assert box and box["x"] >= -1 and box["x"] + box["width"] <= app.evaluate("innerWidth") + 1, box
+    # Checked in one in-page pass: the apps re-render #content on a timer, and a
+    # Playwright locator held across such a render fails with "Element is not
+    # attached to the DOM" (flaky on slow CI runners). Nothing can re-render in the
+    # middle of a single synchronous script.
+    offenders = app.evaluate("""() => {
+      const bad = [];
+      for (const control of document.querySelectorAll("#content button, #content select")) {
+        const style = getComputedStyle(control);
+        const box = control.getBoundingClientRect();
+        if (style.visibility === "hidden" || style.display === "none" || (!box.width && !box.height)) continue;
+        control.scrollIntoView({ block: "nearest", inline: "nearest" });
+        const moved = control.getBoundingClientRect();
+        if (moved.x < -1 || moved.x + moved.width > innerWidth + 1) {
+          bad.push({ text: (control.textContent || "").trim().slice(0, 40), x: moved.x, width: moved.width });
+        }
+      }
+      return bad;
+    }""")
+    assert not offenders, offenders
 
 
 def navigate(app, view: str) -> None:

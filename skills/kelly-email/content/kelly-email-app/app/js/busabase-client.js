@@ -107,30 +107,39 @@ export function createEmailClient() {
     return { folder: resources.folder, bases: resources.bases, drive, missing: resources.missing };
   }
 
-  // Provisioning fills in whatever is missing on every call, so without this a
-  // Folder the owner deleted on purpose is back within a second of the next page
-  // load. Only the Folder counts: while a live one exists the Space has been set
-  // up (again), and a missing Base or Drive is just part of that set-up.
-  async function assertNotRemovedOnPurpose() {
-    const current = await inspectResources();
-    if (current.folder) return;
+  // Provisioning fills in whatever is missing on every call, so without a guard
+  // a Folder the owner deleted on purpose is back within a second of the next
+  // page load. Only the Folder counts: while a live one exists the Space has been
+  // set up (again), and a missing Base or Drive is just part of that set-up.
+  async function folderWasRemovedOnPurpose() {
     const trash = await sdk.nodes.list({ status: "archived" });
     const rows = Array.isArray(trash) ? trash : trash?.nodes || trash?.items || [];
-    const removed = rows.some(
+    return rows.some(
       (node) =>
         node?.type === "folder" &&
         node?.slug === appConfig.folder.slug &&
         node?.metadata?.appId === appConfig.appId &&
         node?.metadata?.resourceKey === "app-root",
     );
-    if (removed) throw new Error(`SETUP_ARCHIVED: ${appConfig.folder.slug} is in the Space's Trash`);
   }
 
   // First contact in a Space that never had the app still provisions on its
   // own, but an app Folder the owner archived stays archived until someone
   // restores it. `force` is for an operator who explicitly asks to set it up.
+  //
+  // When nothing is missing this only reads. That matters: the creating call
+  // below does its own lookup, and an owner deleting the Folder between our read
+  // and that lookup would make it look "missing" and rebuild everything. Reaching
+  // it only when something really needs creating leaves the page's ordinary
+  // load and polling path with no way to recreate a Folder.
   async function provisionResources({ force = false } = {}) {
-    if (!force) await assertNotRemovedOnPurpose();
+    if (!force) {
+      const current = await inspectResources();
+      if (current.folder && !current.missing.length && current.drive) return current;
+      if (!current.folder && (await folderWasRemovedOnPurpose())) {
+        throw new Error(`SETUP_ARCHIVED: ${appConfig.folder.slug} is in the Space's Trash`);
+      }
+    }
     const resources = await provisionDeclaredResources(sdk, resourceConfig);
     syncResolvedConfig(resources);
     let drive = await locateDrive(resources.folder.nodeId);

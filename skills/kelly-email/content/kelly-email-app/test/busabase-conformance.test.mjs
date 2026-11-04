@@ -184,5 +184,69 @@ test(
       assert.equal(status.ok, true, JSON.stringify(status));
       assert.equal(status.connection.drive_exists, true, JSON.stringify(status));
     });
+
+    // The window a check-then-create guard leaves: the owner deletes the Folder
+    // right after our read and before the creating call's own lookup. When
+    // nothing is missing, provisioning must not reach that call at all.
+    await t.test("a delete landing mid-provision does not rebuild the Folder", async () => {
+      const { appConfig } = await import("../app/js/config.js");
+      const { createEmailClient } = await import("../app/js/busabase-client.js");
+      const folderId = appConfig.folder.nodeId;
+      assert.ok(folderId, "the Folder should be live after the earlier re-install test");
+
+      const liveFolder = async () => {
+        const nodes = await (await fetch(`${origin}/api/v1/nodes?depth=3`)).json();
+        const find = (list) => {
+          for (const node of list) {
+            if (node?.metadata?.resourceKey === "app-root") return node;
+            const inner = find(node.children || []);
+            if (inner) return inner;
+          }
+          return null;
+        };
+        return find(nodes);
+      };
+      assert.ok(await liveFolder(), "precondition: a live Folder");
+
+      // How many reads of the Folder does a plain look take? Measure it rather
+      // than assume, so the delete below lands right after the last one.
+      const realFetch = globalThis.fetch;
+      let folderReads = 0;
+      let archiveAfter = Number.POSITIVE_INFINITY;
+      globalThis.fetch = async (input, init) => {
+        const response = await realFetch(input, init);
+        const url = String(input?.url || input);
+        if ((init?.method || "GET") === "GET" && url.includes(`/api/v1/nodes/${folderId}`)) {
+          folderReads += 1;
+          if (folderReads === archiveAfter) {
+            await realFetch(`${origin}/api/v1/nodes/change-requests`, {
+              method: "POST",
+              headers: { "content-type": "application/json" },
+              body: JSON.stringify({
+                message: "Owner archives the Folder mid-read",
+                autoMerge: true,
+                operations: [{ kind: "delete", nodeId: folderId }],
+              }),
+            });
+          }
+        }
+        return response;
+      };
+      try {
+        await createEmailClient().inspectResources();
+        archiveAfter = folderReads;
+        folderReads = 0;
+        // Everything is in place, so this is the ordinary page-load path. The
+        // owner's delete lands after its last read of the Folder.
+        await createEmailClient().provisionResources();
+      } finally {
+        globalThis.fetch = realFetch;
+      }
+      assert.ok(
+        archiveAfter >= 1 && folderReads >= archiveAfter,
+        `the delete never fired (${folderReads} of ${archiveAfter} Folder reads)`,
+      );
+      assert.equal(await liveFolder(), null, "no replacement Folder may appear after the owner deleted it");
+    });
   },
 );
